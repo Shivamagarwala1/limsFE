@@ -1,0 +1,82 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Arial:wght@400&family=Georgia:wght@400&display=swap'); */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* Hide the default scrollbar */
+::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: gray;
+    border: 3px solid gray;
+    border-radius: 0.5rem;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: gray;
+}
+
+.menuPeerLevel {
+    @apply absolute left-2 -top-[0.20rem] bg-white px-1 text-xxxs text-[#795548] transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-xxxs peer-placeholder-shown:text-gray-800 peer-focus:-top-1 peer-focus:text-xxxxs font-semibold peer-focus:text-[#795548];
+}
+
+.inputPeerField {
+    @apply w-full rounded border-[1.5px] px-1 text-xxxs font-semibold h-[1.6rem] bg-white text-[#795548];
+}
+
+.ripple {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: scale(0);
+    animation: rippleEffect 0.6s linear;
+}
+
+@keyframes rippleEffect {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+
+/* for editor ul list */
+[contenteditable="true"] ul {
+    list-style-type: disc;
+    /* Adds bullet points */
+    padding-left: 1.5rem;
+    /* Adds spacing to the left of the list */
+    margin: 0.5rem 0;
+    /* Adds spacing above and below the list */
+}
+
+[contenteditable="true"] li {
+    margin-bottom: 0.5rem;
+    /* Adds spacing between list items */
+}
+
+[contenteditable="true"] ol {
+    list-style-type: decimal;
+    /* Use numbers for ordered lists */
+    padding-left: 1.5rem;
+    /* Add spacing to the left of the list */
+    margin: 0.5rem 0;
+    /* Add spacing above and below the list */
+}
+
+[contenteditable="true"] li {
+    margin-bottom: 0.5rem;
+    /* Add spacing between list items */
+}

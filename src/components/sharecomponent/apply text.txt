@@ -1,0 +1,666 @@
+ const handleClearContent = () => {
+    if (editorRef.current) {
+      editorRef.current.innerHTML = ""; // Clear editor content
+      setContent(""); // Clear state
+    }
+  };
+ ================================================unorder=====
+   onClick={() => document.execCommand("insertUnorderedList", false, null)}
+  style={{
+    padding: "5px 10px",
+    cursor: "pointer",
+  }}
+
+  ========order=========
+  <button
+  onClick={() => document.execCommand("insertOrderedList", false, null)}
+  style={{
+    padding: "5px 10px",
+    cursor: "pointer",
+  }}
+>
+  OL
+</button>
+=======================fontName=====
+<select
+  onChange={(e) => document.execCommand("fontName", false, e.target.value)}
+  style={{
+    padding: "5px",
+    cursor: "pointer",
+  }}
+>
+  <option value="Arial">Arial</option>
+  <option value="Georgia">Georgia</option>
+  <option value="Courier New">Courier New</option>
+  <option value="Times New Roman">Times New Roman</option>
+  <option value="Verdana">Verdana</option>
+</select>
+==================font size==========
+<select
+  onChange={(e) => document.execCommand("fontSize", false, e.target.value)}
+  style={{
+    padding: "5px",
+    cursor: "pointer",
+  }}
+>
+  <option value="1">Small</option>
+  <option value="2">Normal</option>
+  <option value="3">Large</option>
+  <option value="4">Larger</option>
+  <option value="5">Extra Large</option>
+  <option value="6">Huge</option>
+  <option value="7">Maximum</option>
+</select>
+==============heading size==============
+<select
+  onChange={(e) => document.execCommand("formatBlock", false, e.target.value)}
+  style={{
+    padding: "5px",  
+    cursor: "pointer",
+  }}
+>
+  <option value="">Normal</option>
+  <option value="h1">Heading 1</option>
+  <option value="h2">Heading 2</option>
+  <option value="h3">Heading 3</option>
+  <option value="h4">Heading 4</option>
+  <option value="h5">Heading 5</option>
+  <option value="h6">Heading 6</option>
+</select>
+========================styleWithCSS===============
+<select
+  onChange={(e) => {
+    const lineHeight = e.target.value;
+    document.execCommand("styleWithCSS", false, true); // Ensure inline styling
+    document.execCommand("fontSize", false, 7); // Temporary font size as a workaround
+    const selectedElements = document.querySelectorAll('[style*="font-size: xx-large;"]');
+    selectedElements.forEach((el) => {
+      el.style.lineHeight = lineHeight;
+    });
+  }}
+  style={{
+    padding: "5px",
+    cursor: "pointer",
+  }}
+>
+  <option value="normal">Normal</option>
+  <option value="1">1</option>
+  <option value="1.5">1.5</option>
+  <option value="2">2</option>
+  <option value="2.5">2.5</option>
+  <option value="3">3</option>
+</select>
+===============================image , file, video=========
+const applyLink = () => {
+  const url = prompt("Enter the URL", "https://"); // Prompt user to input URL
+  if (url) {
+    document.execCommand("createLink", false, url); // Create link with the URL
+  }
+};
+==============================audtio===================
+import React, { useRef, useState } from "react";
+
+export default function App() {
+  const editorRef = useRef(null);
+  const [content, setContent] = useState(""); // Maintain content in state
+  const [isListening, setIsListening] = useState(false); // Track listening state
+  const recognitionRef = useRef(null); // Ref for SpeechRecognition instance
+
+  // Initialize SpeechRecognition
+  const initializeSpeechRecognition = () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "en-US"; // Set language
+      recognition.interimResults = true; // Show interim results
+      recognition.continuous = true; // Keep recognizing continuously
+
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+          .map((result) => result[0].transcript)
+          .join("");
+        if (editorRef.current) {
+          editorRef.current.innerHTML = transcript; // Update editor content
+          setContent(transcript); // Update state
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.error("SpeechRecognition error:", event.error);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false); // Update state when recognition ends
+      };
+
+      recognitionRef.current = recognition;
+    } else {
+      alert("Speech recognition is not supported in this browser.");
+    }
+  };
+
+  // Start voice typing
+  const startListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
+  };
+
+  // Stop voice typing
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+  };
+
+  // Apply formatting to the selected text
+  const applyStyle = (command) => {
+    document.execCommand(command, false, null); // Use `execCommand` for inline styling
+  };
+
+  // Update state when content changes
+  const handleInput = () => {
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML); // Save editor content to state
+    }
+  };
+
+  // Function to log the content of the editor
+  const handleLogContent = () => {
+    console.log(content); // Logs the content of the editor
+  };
+
+  // Initialize SpeechRecognition on component mount
+  React.useEffect(() => {
+    initializeSpeechRecognition();
+  }, []);
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+      {/* Toolbar */}
+      <div
+        style={{
+          marginBottom: "10px",
+          display: "flex",
+          gap: "10px",
+          borderBottom: "1px solid #ccc",
+          paddingBottom: "10px",
+        }}
+      >
+        {/* Bold */}
+        <button
+          onClick={() => applyStyle("bold")}
+          style={{
+            fontWeight: "bold",
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          B
+        </button>
+
+        {/* Italic */}
+        <button
+          onClick={() => applyStyle("italic")}
+          style={{
+            fontStyle: "italic",
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          I
+        </button>
+
+        {/* Unordered List */}
+        <button
+          onClick={() => applyStyle("insertUnorderedList")}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          UL
+        </button>
+      </div>
+
+      {/* Editable Area */}
+      <div
+        ref={editorRef}
+        contentEditable={true}
+        onInput={handleInput} // Capture content changes
+        style={{
+          border: "1px solid #ccc",
+          minHeight: "200px",
+          padding: "10px",
+          outline: "none",
+          borderRadius: "5px",
+          marginBottom: "10px",
+        }}
+        suppressContentEditableWarning // Suppress React warning for contentEditable
+      >
+        {/* Initial Content */}
+        Type here...
+      </div>
+
+      {/* Voice Typing Controls */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+        <button
+          onClick={startListening}
+          disabled={isListening}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: isListening ? "#ccc" : "#28a745",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: isListening ? "not-allowed" : "pointer",
+          }}
+        >
+          Start Voice Typing
+        </button>
+        <button
+          onClick={stopListening}
+          disabled={!isListening}
+          style={{
+            padding: "10px 20px",
+            backgroundColor: !isListening ? "#ccc" : "#dc3545",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: !isListening ? "not-allowed" : "pointer",
+          }}
+        >
+          Stop Voice Typing
+        </button>
+      </div>
+
+      {/* Log Content Button */}
+      <button
+        onClick={handleLogContent}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#007BFF",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Log Content
+      </button>
+    </div>
+  );
+}
+=========================================cut,copy,paste,selectAll========
+const applyCut = () => {
+  document.execCommand("cut"); //instated of cut value change like copy,cut,paste,selectAll
+};
+==================deselect===========
+const applyDeselectAll = () => {
+  const selection = window.getSelection();
+  selection.removeAllRanges(); // Deselect all selected content
+};
+=============================bgcolor=============
+import React, { useState, useRef } from "react";
+
+export default function App() {
+  const editorRef = useRef(null);
+  const [content, setContent] = useState(""); // Maintain content in state
+  const [bgColor, setBgColor] = useState("white"); // State for background color
+
+  // Apply background color
+  const applyBgColor = (color) => {
+    if (editorRef.current) {
+      editorRef.current.style.backgroundColor = color; // Set background color
+      setBgColor(color); // Update state
+    }
+  };
+
+  // Update state when content changes
+  const handleInput = () => {
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML); // Save editor content to state
+    }
+  };
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+      {/* Toolbar */}
+      <div
+        style={{
+          marginBottom: "10px",
+          display: "flex",
+          gap: "10px",
+          borderBottom: "1px solid #ccc",
+          paddingBottom: "10px",
+        }}
+      >
+        {/* Background Color Buttons */}
+        <button
+          onClick={() => applyBgColor("lightyellow")}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Yellow
+        </button>
+
+        <button
+          onClick={() => applyBgColor("lightblue")}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Blue
+        </button>
+
+        <button
+          onClick={() => applyBgColor("lightgreen")}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Green
+        </button>
+      </div>
+
+      {/* Editable Area */}
+      <div
+        ref={editorRef}
+        contentEditable={true}
+        onInput={handleInput}
+        style={{
+          border: "1px solid #ccc",
+          minHeight: "200px",
+          padding: "10px",
+          outline: "none",
+          borderRadius: "5px",
+          backgroundColor: bgColor, // Set background color
+          marginBottom: "10px",
+        }}
+        suppressContentEditableWarning
+      >
+        Type here...
+      </div>
+
+      {/* Log Content Button */}
+      <button
+        onClick={() => console.log(content)}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#007BFF",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Log Content
+      </button>
+    </div>
+  );
+}
+====================frontcolor============
+import React, { useRef, useState } from "react";
+
+export default function App() {
+  const editorRef = useRef(null);
+  const [content, setContent] = useState(""); // Maintain content in state
+  const [textColor, setTextColor] = useState("black"); // Default text color
+
+  // Apply text color to the selected text
+  const applyTextColor = (color) => {
+    document.execCommand("foreColor", false, color); // Apply text color
+    setTextColor(color); // Update the state for the text color
+  };
+
+  // Update state when content changes
+  const handleInput = () => {
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML); // Save editor content to state
+    }
+  };
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+      {/* Toolbar */}
+      <div
+        style={{
+          marginBottom: "10px",
+          display: "flex",
+          gap: "10px",
+          borderBottom: "1px solid #ccc",
+          paddingBottom: "10px",
+        }}
+      >
+        {/* Text Color Buttons */}
+        <button
+          onClick={() => applyTextColor("red")}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Red
+        </button>
+
+        <button
+          onClick={() => applyTextColor("blue")}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Blue
+        </button>
+
+        <button
+          onClick={() => applyTextColor("green")}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Green
+        </button>
+      </div>
+
+      {/* Editable Area */}
+      <div
+        ref={editorRef}
+        contentEditable={true}
+        onInput={handleInput}
+        style={{
+          border: "1px solid #ccc",
+          minHeight: "200px",
+          padding: "10px",
+          outline: "none",
+          borderRadius: "5px",
+          marginBottom: "10px",
+        }}
+        suppressContentEditableWarning
+      >
+        Type here...
+      </div>
+
+      {/* Log Content Button */}
+      <button
+        onClick={() => console.log(content)}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#007BFF",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Log Content
+      </button>
+    </div>
+  );
+}
+=====================undo============
+// Undo the last action
+  const handleUndo = () => {
+    document.execCommand("undo"); // Undo the last change
+  };
+  ===========================convert code===============
+  import React, { useRef, useState } from "react";
+
+export default function App() {
+  const editorRef = useRef(null);
+  const [content, setContent] = useState(""); // Maintain content in state
+
+  // Apply formatting to the selected text
+  const applyStyle = (command) => {
+    document.execCommand(command, false, null); // Use `execCommand` for inline styling
+  };
+
+  // Apply code formatting (wrap selected text in <code> tag)
+  const applyCodeFormat = () => {
+    const selection = window.getSelection();
+    const range = selection.getRangeAt(0);
+    const codeElement = document.createElement('code');
+    range.surroundContents(codeElement); // Wrap the selected text in a <code> tag
+  };
+
+  // Update state when content changes
+  const handleInput = () => {
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML); // Save editor content to state
+    }
+  };
+
+  return (
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "auto" }}>
+      {/* Toolbar */}
+      <div
+        style={{
+          marginBottom: "10px",
+          display: "flex",
+          gap: "10px",
+          borderBottom: "1px solid #ccc",
+          paddingBottom: "10px",
+        }}
+      >
+        {/* Code Formatting Button */}
+        <button
+          onClick={applyCodeFormat}
+          style={{
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          Code
+        </button>
+
+        {/* Bold */}
+        <button
+          onClick={() => applyStyle("bold")}
+          style={{
+            fontWeight: "bold",
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          B
+        </button>
+
+        {/* Italic */}
+        <button
+          onClick={() => applyStyle("italic")}
+          style={{
+            fontStyle: "italic",
+            padding: "5px 10px",
+            cursor: "pointer",
+          }}
+        >
+          I
+        </button>
+      </div>
+
+      {/* Editable Area */}
+      <div
+        ref={editorRef}
+        contentEditable={true}
+        onInput={handleInput}
+        style={{
+          border: "1px solid #ccc",
+          minHeight: "200px",
+          padding: "10px",
+          outline: "none",
+          borderRadius: "5px",
+          marginBottom: "10px",
+        }}
+        suppressContentEditableWarning // Suppress React warning for contentEditable
+      >
+        {/* Initial Content */}
+        Type here...
+      </div>
+
+      {/* Log Content Button */}
+      <button
+        onClick={() => console.log(content)}
+        style={{
+          padding: "10px 20px",
+          backgroundColor: "#007BFF",
+          color: "#fff",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        Log Content
+      </button>
+    </div>
+  );
+}
+=======================preview============
+ <div
+          dangerouslySetInnerHTML={{ __html: content }} // Render HTML content
+        />
+
+=================print==========
+// Print the editor content
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head><title>Print Content</title></head>
+        <body>
+          <div>${content}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+
+  =========================================================latest code=================
+   const applyStyle = (command) => {
+        console.log(command);
+        if (command === 'bold' || command === 'italic' || command === 'strikeThrough' || command === 'superscript' || command === 'subscript' || command === 'justifyFull' || command === 'justifyCenter' || command === 'justifyLeft' || command === 'justifyRight') {
+            document.execCommand(command, false, null); // Use `execCommand` for inline styling
+        } else if (command === 'clear') {
+            if (editorRef.current) {
+                editorRef.current.innerHTML = ""; // Clear editor content
+                setContent(""); // Clear state
+            }
+        } else if (command === 'cut' || command === 'copy' || command === 'paste' || command === 'selectAll' || command === 'undo' || command === 'redo') {
+            document.execCommand(command);
+        } else if (command === 'deSelectAll') {
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+        } else if (command === 'preview') {
+            setOpenPreview(!openPreview)
+        }
+    };
+  

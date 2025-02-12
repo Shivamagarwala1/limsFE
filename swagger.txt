@@ -1,0 +1,20 @@
+https://imarsar.com:8084/swagger/index.html
+
+
+background: linear-gradient(90deg, rgba(194,240,255,1) 0%, rgba(0,75,117,1) 100%);
+background: linear-gradient(90deg, rgba(30,60,114,1) 0%, rgba(42,82,152,1) 100%);
+background: linear-gradient(90deg, rgba(106,17,203,1) 40%, rgba(37,117,252,0.9754026610644257) 100%);                                                                                              
+background: linear-gradient(90deg, rgba(255,126,95,1) 40%, rgba(254,180,123,1) 100%);
+background: linear-gradient(90deg, rgba(0,198,255,1) 40%, rgba(0,114,255,1) 100%);
+background: linear-gradient(90deg, rgba(67,198,172,1) 40%, rgba(25,22,84,1) 100%);
+background: linear-gradient(90deg, rgba(62,81,81,1) 40%, rgba(38,214,209,1) 100%);
+background: linear-gradient(90deg, rgba(222,203,164,1) 6%, rgba(62,81,81,1) 100%);
+
+
+
+ =====================need to change=========== 
+  button====>raplicate effiect====>matarial tailwind css
+  labale----->zoom in====>flow bite
+  table====>card effect
+  multi check====>id to name
+  close popup data.
