@@ -1,24 +1,41 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useEffect, useRef, useState } from 'react'
-import { FaCalendarAlt } from 'react-icons/fa';
+import { CiCalendarDate } from 'react-icons/ci';
 import { useSelector } from 'react-redux';
 import UserCalendar from '../../../public/UserCalendar';
 import useRippleEffect from '../../../customehook/useRippleEffect';
 import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
 import useOutsideClick from '../../../customehook/useOutsideClick';
+import UserCalendarAndTime from '../../../public/UserCalanderAndTime';
+import { RiCalendarScheduleFill } from 'react-icons/ri';
+import { dummyData, patientRegistrationInvestigation, patientRegistrationPaymentMode } from '../../../listData/listData';
 
 
 export default function PatientRegistration() {
 
     const user = useSelector((state) => state.userSliceName?.user || null);
     const activeTheme = useSelector((state) => state.theme.activeTheme);
-    
-    useRippleEffect();
 
+    useRippleEffect();
+    const [isHoveredTable, setIsHoveredTable] = useState(null);
     const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
     const [showCalander, setShowCalander] = useState(false);
+    const [showCalanderAndTime, setShowCalanderAndTime] = useState(false);
     const [patientRegistrationData, setPatientRegistrationData] = useState({
-        dob: ''
+
+        creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+            .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            .replace(/ /g, '-'),
+        collectionDateAndTime: new Date('1970-01-01T00:00:00Z')
+            .toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour12: true
+            })
+            .replace(/ /g, '-') // Replace spaces with dashes in the date part
+            .replace(/(\d{2}-\w{3}-\d{4})/, '$1 00:00') // Append 00:00 as the time
+            .replace(/am|pm/g, 'AM')
     });
     const [paymentMode, setPaymentMode] = useState("");
 
@@ -47,12 +64,53 @@ export default function PatientRegistration() {
 
 
 
+    const handleDateAndTimeClick = (date) => {
+        // Format the date
+        const formatDate = (date) => {
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
+        };
+
+        // Format the time
+        const formatTime = (date) => {
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const period = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12; // Convert to 12-hour format, ensuring "12" is displayed for noon and midnight
+            return `${hours.toString().padStart(2, '0')}:${minutes} ${period}`;
+        };
+
+        // Get formatted date and time
+        const formattedDate = formatDate(date);
+        const formattedTime = formatTime(date);
+
+        // Combine date and time
+        const collectionDateAndTime = `${formattedDate} ${formattedTime}`;
+
+        // Update patient registration data
+        setPatientRegistrationData((prevData) => ({
+            ...prevData,
+            collectionDateAndTime, // Set formatted date and time in state
+        }));
+
+        //setShowCalanderAndTime(false);
+    };
+
+
+
+
+    const handelOnChangePatientRegistration = (event) => {
+
+        setPatientRegistrationData((preventData) => ({
+            ...preventData,
+            [event.target.name]: event.target.value
+        }))
+    }
+
 
 
     return (
         <>
-            {/* Header Section */}
-
             <div>
                 {/* Header Section */}
                 <div
@@ -62,7 +120,7 @@ export default function PatientRegistration() {
                     <div>
                         <FontAwesomeIcon icon="fa-solid fa-house" />
                     </div>
-                    <div>Patient Registration Master</div>
+                    <div>Patient Registration</div>
                 </div>
 
                 {/* form data */}
@@ -238,52 +296,54 @@ export default function PatientRegistration() {
                             )}
                         </div>
 
+                        <div className="flex gap-[0.25rem]">
+                            {/* Edit info */}
+                            <div className="relative flex-1">
+                                <input
+                                    type="search"
+                                    id="testName"
+                                    name="testName"
+                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
+                                    // onChange={(e) => {
+                                    //     handelOnChangeTestMappingData(e),
+                                    //         setSeleDropDown((preventData) => ({
+                                    //             ...preventData,
+                                    //             testName: ''
+                                    //         }))
+                                    // }}
 
-                        {/* Edit info */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                                    placeholder=" "
+                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                />
+                                <label htmlFor="testName" className="menuPeerLevel">
+                                    Edit info
+                                </label>
+                            </div>
 
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Edit info
-                            </label>
+                            {/* Edit Test */}
+                            <div className="relative flex-1">
+                                <input
+                                    type="search"
+                                    id="testName"
+                                    name="testName"
+                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
+                                    // onChange={(e) => {
+                                    //     handelOnChangeTestMappingData(e),
+                                    //         setSeleDropDown((preventData) => ({
+                                    //             ...preventData,
+                                    //             testName: ''
+                                    //         }))
+                                    // }}
+
+                                    placeholder=" "
+                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                />
+                                <label htmlFor="testName" className="menuPeerLevel">
+                                    Edit Test
+                                </label>
+                            </div>
                         </div>
 
-                        {/* Edit Test */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Edit Test
-                            </label>
-                        </div>
 
                         <div className="relative flex-1">
                             <button
@@ -472,7 +532,7 @@ export default function PatientRegistration() {
                         </div>
 
 
-                        <div className="flex gap-[0.25rem]">
+                        <div className="flex gap-[0.25rem] relative">
                             {/* DOB */}
                             <div className="relative flex-1 flex gap-[0.10rem] items-center">
                                 {/* Input Field */}
@@ -481,8 +541,8 @@ export default function PatientRegistration() {
                                         type="text"
                                         id="creditPeridos"
                                         name="creditPeridos"
-                                        // value={formData.creditPeridos}
-                                        // onChange={handelChangeFormData}
+                                        value={patientRegistrationData.creditPeridos}
+                                        onChange={handelOnChangePatientRegistration}
                                         placeholder=" "
                                         className={`inputPeerField pr-10 w-full border-borderColor peer focus:outline-none`}
                                     />
@@ -500,7 +560,7 @@ export default function PatientRegistration() {
                                         color: activeTheme?.iconColor,
                                     }}
                                 >
-                                    <FaCalendarAlt className="w-4 h-4 font-semibold" />
+                                    <CiCalendarDate className="w-4 h-4 font-semibold" />
                                 </div>
                             </div>
 
@@ -518,7 +578,7 @@ export default function PatientRegistration() {
                                         Select Option
                                     </option>
                                     <option value="">Male</option>
-                                    <option value="">Femail</option>
+                                    <option value="">Female</option>
                                     <option value="">Other</option>
                                 </select>
                                 <label htmlFor="isAllergyTest" className="menuPeerLevel">
@@ -526,6 +586,12 @@ export default function PatientRegistration() {
                                 </label>
                             </div>
 
+                            {/* Calendar Popup */}
+                            {showCalander && (
+                                <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
+                                    <UserCalendar onDateClick={handleDateClick} />
+                                </div>
+                            )}
                         </div>
 
 
@@ -611,6 +677,47 @@ export default function PatientRegistration() {
                             <label htmlFor="testName" className="menuPeerLevel">
                                 Refer Dr2
                             </label>
+                        </div>
+
+
+                        {/* collection date and time */}
+
+
+                        <div className="relative flex-1 flex gap-[0.10rem] items-center">
+                            {/* Input Field */}
+                            <div className="w-full">
+                                <input
+                                    type="text"
+                                    id="collectionDateAndTime"
+                                    name="collectionDateAndTime"
+                                    value={patientRegistrationData.collectionDateAndTime || ''}
+                                    onChange={handelOnChangePatientRegistration}
+                                    placeholder=" "
+                                    className={`inputPeerField pr-10 w-full border-borderColor peer focus:outline-none`}
+                                />
+                                <label htmlFor="collectionDateAndTime" className="menuPeerLevel">
+                                    Collection Date & Time
+                                </label>
+                            </div>
+
+                            {/* Calendar Icon */}
+                            <div
+                                className="flex justify-center items-center cursor-pointer rounded font-semibold w-6 h-6"
+                                onClick={() => setShowCalanderAndTime(!showCalanderAndTime)}
+                                style={{
+                                    background: activeTheme?.menuColor,
+                                    color: activeTheme?.iconColor,
+                                }}
+                            >
+                                <RiCalendarScheduleFill className="w-4 h-4 font-semibold" />
+                            </div>
+
+                            {/* Calendar Popup */}
+                            {showCalanderAndTime && (
+                                <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
+                                    <UserCalendarAndTime onDateAndTimeClick={handleDateAndTimeClick} />
+                                </div>
+                            )}
                         </div>
 
                         {/* Address */}
@@ -720,116 +827,121 @@ export default function PatientRegistration() {
                             </label>
                         </div>
 
-
-                        {/* collection date and time */}
+                        {/* investigation */}
                         <div className="relative flex-1">
-                            <input
-                                type="datetime-local"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Collection Date & Time
-                            </label>
-                        </div>
-
-
-
-
-
-                    </div>
-
-                    <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-                        {/* Invastication */}
-                        <div className="relative flex-1" ref={dropdownRef}>
                             <input
                                 type="search"
                                 id="testName"
                                 name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
                                 onClick={() => openShowSearchBarDropDown(3)}
-
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
                             <label htmlFor="testName" className="menuPeerLevel">
-                                Invastication
+                                Investigation
                             </label>
 
                             {/* Dropdown to select the menu */}
                             {showSearchBarDropDown === 3 && (
                                 <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                     <ul>
-
-                                        {
-                                            /* {filterAlltestNameData?.length > 0 ? (
-                                                filterAlltestNameData?.map((data, index) => (
-                                                    <li
-                                                        key={data?.itemId}
-                                                        name="testName"
-                                                        className="my-1 px-2 cursor-pointer"
-                                                        onClick={(e) => {
-                                                            openShowSearchBarDropDown(0);
-                                                            handelOnChangeTestMappingData({
-                                                                target: { name: 'testName', value: data?.itemId },
-                                                            });
-                                                            setSeleDropDown((preventData) => ({
-                                                                ...preventData,
-                                                                testName: data?.itemName
-                                                            }))
-                                                        }}
-                                                        onMouseEnter={() => setIsHovered(index)}
-                                                        onMouseLeave={() => setIsHovered(null)}
-                                                        style={{
-                                                            background:
-                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                        }}
-                                                    >
-                                                        {data?.itemName}
-                                                    </li>
-     
-                                                ))
-                                            )  */
-
-                                        }
-
-                                            // : (
-                                            // <li className="py-4 text-gray-500 text-center">
-                                            //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                            // </li>
-                                            // )
-
+                                        {/* Add your logic here to map dropdown items */}
                                         <div>Under Processing</div>
-
                                     </ul>
                                 </div>
                             )}
                         </div>
+
+
                     </div>
 
                     <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+                    <div className="grid grid-cols-12 gap-2 mt-1 mb-1 mx-1 lg:mx-2">
+
+
+                        {/* Other content */}
+                        <div className="col-span-12">
+                            <div className="max-h-[7.5rem] overflow-y-auto">
+                                <table className="table-auto border-collapse w-full text-xxs text-left">
+                                    {/* Table Header */}
+                                    <thead
+                                        style={{
+                                            position: 'sticky',
+                                            top: 0,
+                                            zIndex: 1,
+                                            background: activeTheme?.menuColor,
+                                            color: activeTheme?.iconColor,
+                                        }}
+                                    >
+                                        <tr>
+                                            {patientRegistrationInvestigation?.map((data, index) => (
+                                                <td
+                                                    key={index}
+                                                    className="border-b font-semibold border-gray-300 px-4 text-xxs"
+                                                >
+                                                    {data}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    </thead>
+
+                                    {/* Table Body */}
+                                    <tbody>
+                                        {dummyData.map((row, rowIndex) => (
+                                            <tr
+                                                key={rowIndex}
+                                                className={`cursor-pointer ${isHoveredTable === rowIndex
+                                                    ? ''
+                                                    : rowIndex % 2 === 0
+                                                        ? 'bg-gray-100'
+                                                        : 'bg-white'
+                                                    }`}
+                                                onMouseEnter={() => setIsHoveredTable(rowIndex)}
+                                                onMouseLeave={() => setIsHoveredTable(null)}
+                                                style={{
+                                                    background:
+                                                        isHoveredTable === rowIndex
+                                                            ? activeTheme?.subMenuColor
+                                                            : undefined,
+                                                }}
+                                            >
+                                                {row.map((cell, cellIndex) => (
+                                                    <td
+                                                        key={cellIndex}
+                                                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                                                    >
+                                                        {cell}
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className='w-full h-4 flex gap-10 items-center text-xxs px-4 font-semibold' style={{
+                                background: activeTheme?.menuColor,
+                                color: activeTheme?.iconColor,
+                            }}>
+
+                                <div className='flex gap-1'>
+                                    <div>Test Count : </div>
+                                    <div>1000</div>
+                                </div>
+                                <div className='flex gap-1'>
+                                    <div>Total : </div>
+                                    <div>500</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    {/* <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div> */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-2  mx-1 lg:mx-2">
 
                         {/* Currency */}
                         <div className="relative flex-1">
@@ -843,9 +955,8 @@ export default function PatientRegistration() {
                                 <option disabled hidden className='text-gray-400'>
                                     Select Option
                                 </option>
-                                <option value="">Currency1</option>
-                                <option value="">Currency2</option>
-                                <option value="">Currency3</option>
+                                <option value="">INR</option>
+                                <option value="">USD</option>
                             </select>
                             <label htmlFor="isAllergyTest" className="menuPeerLevel">
                                 Currency
@@ -866,66 +977,150 @@ export default function PatientRegistration() {
                                 </option>
                                 <option value="1">Cash</option>
                                 <option value="2">Debit/Credit Card</option>
+                                <option value="2">UPI</option>
                             </select>
                             <label htmlFor="paymentMode" className="menuPeerLevel">
                                 Payment Mode
                             </label>
                         </div>
 
-                        {
-                            paymentMode === '2' && (
-                                <>
-                                    {/* Credit/Debit Card */}
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="number"
-                                            id="testName"
-                                            name="testName"
-                                            // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                            // onChange={(e) => {
-                                            //     handelOnChangeTestMappingData(e),
-                                            //         setSeleDropDown((preventData) => ({
-                                            //             ...preventData,
-                                            //             testName: ''
-                                            //         }))
-                                            // }}
+                        {/* Paid Amt. */}
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                id="paidAmt"
+                                name="paidAmt"
+                                value={1000 || ''}
+                                // onChange={(e) => {
+                                //     handelChangeEmployeeDetails(e)
 
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                //     setSelectedSearchDropDownData((preventData) => ({
+                                //         ...preventData,
+                                //         paidAmt: '',
+                                //     }));
+                                // }}
+                                placeholder=" "
+                                className={`inputPeerField peer border-borderColor            focus:outline-none`}
+                                readOnly
+                            />
+                            <label htmlFor="paidAmt" className="menuPeerLevel">
+                                Paid Amt.
+                            </label>
+                        </div>
+
+                        {/* Balance Amt. */}
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                id="balanceAmt"
+                                name="balanceAmt"
+                                value={100 || ''}
+                                // onChange={(e) => {
+                                //     handelChangeEmployeeDetails(e)
+
+                                //     setSelectedSearchDropDownData((preventData) => ({
+                                //         ...preventData,
+                                //         balanceAmt: '',
+                                //     }));
+                                // }}
+                                placeholder=" "
+                                className={`inputPeerField peer border-borderColor            focus:outline-none `}
+
+                                readOnly
+                            />
+                            <label htmlFor="balanceAmt" className="menuPeerLevel">
+                                Balance Amt.
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* payment mode grid */}
+                    <div className='mx-2 mb-2'>
+                        <table className="table-auto border-collapse w-full text-xxs text-left">
+                            {/* Table Header */}
+                            <thead
+                                style={{
+                                    position: 'sticky',
+                                    top: 0,
+                                    zIndex: 1,
+                                    background: activeTheme?.menuColor,
+                                    color: activeTheme?.iconColor,
+                                }}
+                            >
+                                <tr>
+                                    {patientRegistrationPaymentMode?.map((data, index) => (
+                                        <td
+                                            key={index}
+                                            className="border-b font-semibold border-gray-300 text-center text-xxs"
+                                        >
+                                            {data}
+                                        </td>
+                                    ))}
+                                </tr>
+                            </thead>
+
+                            {/* Table Body */}
+                            <tbody>
+
+                                <tr>
+
+                                    <td className="text-xxs font-semibold text-gridTextColor"
+                                    >
+                                        <input type="number" name="" id=""
+                                            className='inputPeerField outline-none'
                                         />
-                                        <label htmlFor="testName" className="menuPeerLevel">
-                                            Credit/Debit Card
-                                        </label>
-                                    </div>
+                                    </td>
 
 
+                                    <td className="text-xxs font-semibold text-gridTextColor"
+                                    >
+                                        <input type="number" name="" id=""
+                                            className={`inputPeerField outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
 
-                                    {/* Last 4 Digit */}
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="number"
-                                            id="testName"
-                                            name="testName"
-                                            // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                            // onChange={(e) => {
-                                            //     handelOnChangeTestMappingData(e),
-                                            //         setSeleDropDown((preventData) => ({
-                                            //             ...preventData,
-                                            //             testName: ''
-                                            //         }))
-                                            // }}
-
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                            readOnly={paymentMode !== "2"}
                                         />
-                                        <label htmlFor="testName" className="menuPeerLevel">
-                                            Last 4 Digit
-                                        </label>
-                                    </div>
+                                    </td>
+
+                                    <td className="text-xxs font-semibold text-gridTextColor"
+                                    >
+                                        <input type="number" name="" id=""
+                                            className={`inputPeerField outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+
+                                            readOnly={paymentMode !== "2"}
+                                        />
+                                    </td>
 
 
-                                    {/* Bank */}
-                                    <div className="relative flex-1">
+                                    <td className='text-xxs font-semibold text-gridTextColor'>
+                                        <select
+                                            id="paymentMode"
+                                            name='paymentMode'
+                                            // value={labTestMasterData.paymentMode}
+                                            onChange={(event) => setPaymentMode(event.target.value)}
+                                            className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+
+
+                                            readOnly={paymentMode !== "2"}
+                                        >
+                                            <option disabled hidden className='text-gray-400'>
+                                                Select Option
+                                            </option>
+                                            <option value="1">Bank1</option>
+                                            <option value="2">Bank2</option>
+                                            <option value="2">Bank3</option>
+                                        </select>
+                                    </td>
+
+                                    <td className="text-xxs font-semibold text-gridTextColor"
+                                    >
+                                        <input type="number" name="" id=""
+                                            className='inputPeerField outline-none'
+                                        />
+                                    </td>
+
+
+
+                                    <td className='text-xxs font-semibold text-gridTextColor'>
                                         <select
                                             id="paymentMode"
                                             name='paymentMode'
@@ -940,36 +1135,14 @@ export default function PatientRegistration() {
                                             <option value="2">Bank2</option>
                                             <option value="2">Bank3</option>
                                         </select>
-                                        <label htmlFor="paymentMode" className="menuPeerLevel">
-                                            Bank
-                                        </label>
-                                    </div>
-                                </>
-                            )
-                        }
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
-                        {/* Paid Ammount */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
 
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Paid Ammount
-                            </label>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-2  mx-1 lg:mx-2">
 
                         {/* Discount Type */}
                         <div className="relative flex-1">
@@ -989,52 +1162,6 @@ export default function PatientRegistration() {
                             </select>
                             <label htmlFor="paymentMode" className="menuPeerLevel">
                                 Discount Type
-                            </label>
-                        </div>
-
-                        {/* Cash */}
-                        <div className="relative flex-1">
-                            <input
-                                type="number"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Cash
-                            </label>
-                        </div>
-
-                        {/* Balance Ammount */}
-                        <div className="relative flex-1">
-                            <input
-                                type="number"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Balance Ammount
                             </label>
                         </div>
 
@@ -1062,7 +1189,6 @@ export default function PatientRegistration() {
                             </label>
                         </div>
 
-
                         {/* Discount % */}
                         <div className="relative flex-1">
                             <input
@@ -1085,6 +1211,7 @@ export default function PatientRegistration() {
                                 Discount %
                             </label>
                         </div>
+
 
                         {/* Discount Reason */}
                         <div className="relative flex-1">
@@ -1130,6 +1257,7 @@ export default function PatientRegistration() {
                         </div>
 
 
+
                         <div className='flex gap-[0.25rem]'>
                             <div className="relative flex-1 flex justify-start items-center">
                                 <button
@@ -1161,12 +1289,12 @@ export default function PatientRegistration() {
                                     {/* {
                                     isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Mapping'
                                 } */}
-                                    Clear
+                                    Reset
                                 </button>
                             </div>
                         </div>
-
                     </div>
+
                 </form >
             </div >
 
@@ -1255,8 +1383,10 @@ export default function PatientRegistration() {
                                         <button
                                             type="button"
                                             data-ripple-light="true"
-                                            className="relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer"
-                                        // onClick={handelOnSaveNewMapping}
+                                            className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                            style={{
+                                                background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                            }}
                                         >
                                             {/* {
                                                 isButtonClick === 3 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'

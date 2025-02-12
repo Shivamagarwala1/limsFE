@@ -8,6 +8,7 @@ import { getAllMenus } from "./service/service";
 import LoadingPage from "./components/public/LoadingPage";
 import { Suspense } from "react";
 import { allRoutes } from "./components/private/AllRouterData";
+import ChartBoatApp from "./components/chartboat/ChartBoatApp";
 
 const Login = lazy(() => import("./components/public/Login"));
 const Base = lazy(() => import("./components/base/Base"));
@@ -74,6 +75,12 @@ const App = () => {
   return (
     <>
       <Toaster position="top-right" />
+
+      {
+        user && (
+          <ChartBoatApp />
+        )
+      }
       <Routes>
 
         {/* Redirect from root to /login if not logged in */}
@@ -96,7 +103,7 @@ const App = () => {
                 <Route
                   key={index}
                   path={route.path}
-                  exact={route.exact} 
+                  exact={route.exact}
                   element={
                     <Suspense fallback={<LoadingPage width={10} height={10} />}>
                       {Component ? <Component /> : <div>Component not found</div>}
