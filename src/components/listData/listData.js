@@ -227,21 +227,30 @@ export const uploadReportLetterHead = ['SR.NO', 'Centre', 'Report Header Height 
 export const rateListUploadByExcelHeader = ['Item ID', 'Item Code', 'Item Name', , 'Departement', 'MRP', 'Offerrate', 'Action'];
 
 
-export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Rate(Gross Amt.)', 'Discount', 'Net Rate(Net Amt.)', 'Delivery Date', 'IsUrgent', 'Delete'];
+export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross Amt.', 'Discount', 'Net Amt.', 'Sample Type(Drop down)', 'Bar Code(Text Box)', 'Delivery Date', 'IsUrgent', 'Delete'];
 
 
 export const dummyData = [
-    ['Item 1', 'View 1', '100', '90', '10%', '81', '2025-02-12', 'Yes', '❌'],
-    ['Item 2', 'View 2', '200', '180', '10%', '162', '2025-02-13', 'No', '❌'],
-    ['Item 3', 'View 3', '300', '270', '10%', '243', '2025-02-14', 'Yes', '❌'],
-    ['Item 4', 'View 4', '400', '360', '10%', '324', '2025-02-15', 'No', '❌'],
-    ['Item 5', 'View 5', '500', '450', '10%', '405', '2025-02-16', 'Yes', '❌'],
-    ['Item 6', 'View 6', '600', '540', '10%', '486', '2025-02-17', 'No', '❌'],
-    ['Item 7', 'View 7', '700', '630', '10%', '567', '2025-02-18', 'Yes', '❌'],
-    ['Item 7', 'View 7', '700', '630', '10%', '567', '2025-02-18', 'Yes', '❌'],
-    ['Item 7', 'View 7', '700', '630', '10%', '567', '2025-02-18', 'Yes', '❌'],
-    ['Item 7', 'View 7', '700', '630', '10%', '567', '2025-02-18', 'Yes', '❌'],
-    ['Item 7', 'View 7', '700', '630', '10%', '567', '2025-02-18', 'Yes', '❌'],
-    ['Item 7', 'View 7', '700', '630', '10%', '567', '2025-02-18', 'Yes', '❌'],
-    ['Item 7', 'View 7', '700', '630', '10%', '567', '2025-02-18', 'Yes', '❌'],
+    ['Item 1', 'View 1', '100', '90', '10%', '10%', '10%', '81', '2025-02-12', 'Yes', '❌'],
+    ['Item 2', 'View 2', '200', '180', '10%', '10%', '10%', '162', '2025-02-13', 'No', '❌'],
+    ['Item 3', 'View 3', '300', '270', '10%', '10%', '10%', '243', '2025-02-14', 'Yes', '❌'],
+    ['Item 4', 'View 4', '400', '360', '10%', '10%', '10%', '324', '2025-02-15', 'No', '❌'],
+    ['Item 5', 'View 5', '500', '450', '10%', '10%', '10%', '405', '2025-02-16', 'Yes', '❌'],
+    ['Item 6', 'View 6', '600', '540', '10%', '10%', '10%', '486', '2025-02-17', 'No', '❌'],
+    ['Item 7', 'View 7', '700', '630', '10%', '10%', '10%', '567', '2025-02-18', 'Yes', '❌'],
+    ['Item 7', 'View 7', '700', '630', '10%', '10%', '10%', '567', '2025-02-18', 'Yes', '❌'],
+    ['Item 7', 'View 7', '700', '630', '10%', '10%', '10%', '567', '2025-02-18', 'Yes', '❌'],
+    ['Item 7', 'View 7', '700', '630', '10%', '10%', '10%', '567', '2025-02-18', 'Yes', '❌'],
+    ['Item 7', 'View 7', '700', '630', '10%', '10%', '10%', '567', '2025-02-18', 'Yes', '❌'],
+    ['Item 7', 'View 7', '700', '630', '10%', '10%', '10%', '567', '2025-02-18', 'Yes', '❌'],
+    ['Item 7', 'View 7', '700', '630', '10%', '10%', '10%', '567', '2025-02-18', 'Yes', '❌'],
+];
+
+
+export const patientRegistrationPaymentMode = ['Cash Amt.', 'Credit/DebitCard Amt.', 'Last 4 Digit Of Card', 'Bank', 'UPI Amt.', 'UPI Type'];
+
+export const paymentModes = [
+    { value: "1", label: "Cash" },
+    { value: "2", label: "Debit/Credit Card" },
+    { value: "3", label: "UPI" },
 ];

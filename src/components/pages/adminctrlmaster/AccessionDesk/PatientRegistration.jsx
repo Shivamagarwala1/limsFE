@@ -6,9 +6,9 @@ import UserCalendar from '../../../public/UserCalendar';
 import useRippleEffect from '../../../customehook/useRippleEffect';
 import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
 import useOutsideClick from '../../../customehook/useOutsideClick';
-import UserCalendarAndTime from '../../../public/UserCalanderAndTime';
 import { RiCalendarScheduleFill } from 'react-icons/ri';
 import { dummyData, patientRegistrationInvestigation, patientRegistrationPaymentMode } from '../../../listData/listData';
+import UserCalendarAndTime from '../../../public/UserCalendarAndTime';
 
 
 export default function PatientRegistration() {
