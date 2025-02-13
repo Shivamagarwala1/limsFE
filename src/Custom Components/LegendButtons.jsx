@@ -36,4 +36,4 @@ export const LegendButtons = ({ statuses, callBack }) => {
       ))}
     </div>
   );
-};
+}
