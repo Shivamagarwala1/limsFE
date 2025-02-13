@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import React, { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
-import { dataformulaMasterHeader, formulaMasterHeader } from '../../listData/listData';
+import { formulaMasterHeader } from '../../listData/listData';
 import { IoMdMenu } from 'react-icons/io';
 import toast from 'react-hot-toast';
 import { getAllObservationData, getAllProfileDataBasedOnItemType, getCalCulatorData, saveFormulaMasterData } from '../../../service/service';
