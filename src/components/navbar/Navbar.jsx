@@ -364,7 +364,7 @@ export default function Navbar({ toggleFullScreen, routes }) {
           <div className="flex items-center gap-2">
             <div
               className="flex items-center justify-center relative"
-              // ref={dropdownRefTheme}
+            // ref={dropdownRefTheme}
             >
               <IoIosColorPalette
                 className="text-lg cursor-pointer "
@@ -379,11 +379,10 @@ export default function Navbar({ toggleFullScreen, routes }) {
                     return (
                       <div
                         key={themeColor?.id}
-                        className={`flex items-center  gap-2 cursor-pointer pl-2 py-1 rounded-md  ${
-                          themeColor?.id === activeTheme?.id
-                            ? "bg-gray-300"
-                            : "bg-transparent"
-                        }`}
+                        className={`flex items-center  gap-2 cursor-pointer pl-2 py-1 rounded-md  ${themeColor?.id === activeTheme?.id
+                          ? "bg-gray-300"
+                          : "bg-transparent"
+                          }`}
                         style={{ color: themeColor?.headerColor }}
                         onClick={() => {
                           handleThemeChange(themeColor?.id); // Handle theme change
@@ -526,7 +525,7 @@ export default function Navbar({ toggleFullScreen, routes }) {
         {/* employee wise centre */}
         <div
           className="relative"
-          //  ref={dropdownRef}
+        //  ref={dropdownRef}
         >
           <input
             type="search"
@@ -600,11 +599,10 @@ export default function Navbar({ toggleFullScreen, routes }) {
                   {listOfTheme.map((themeColor) => (
                     <div
                       key={themeColor?.id}
-                      className={`flex items-center gap-2 cursor-pointer pl-2 py-1 rounded-md ${
-                        themeColor?.id === activeTheme?.id
-                          ? "bg-gray-300"
-                          : "bg-transparent"
-                      }`}
+                      className={`flex items-center gap-2 cursor-pointer pl-2 py-1 rounded-md ${themeColor?.id === activeTheme?.id
+                        ? "bg-gray-300"
+                        : "bg-transparent"
+                        }`}
                       style={{ color: themeColor?.headerColor }}
                       onClick={() => {
                         handleThemeChange(themeColor?.id);
@@ -753,9 +751,8 @@ export default function Navbar({ toggleFullScreen, routes }) {
 
       {/* side bar */}
       <div
-        className={`fixed top-0 left-0 h-full bg-white shadow-lg overflow-y-scroll transition-transform duration-300 z-40 ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed top-0 left-0 h-full bg-white shadow-lg overflow-y-scroll transition-transform duration-300 z-40 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
         style={{ width: "250px", background: activeTheme?.headerColor }}
       >
         <div className="px-2 py-2 flex items-center justify-between">

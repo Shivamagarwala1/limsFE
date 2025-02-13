@@ -38,7 +38,7 @@ export default function EmployeePageAccess() {
     const [allSubMenuData, setAllSubMenuData] = useState([]);
     const [allPageAccessData, setAllPageAccessData] = useState([]);
     const [allPageAccessPaginationData, setAllPageAccessPaginationData] = useState({
-        top: 100, //total number of page 
+        top: 1000, //total number of page 
         skip: 0,
         totalColum: 0
     });
