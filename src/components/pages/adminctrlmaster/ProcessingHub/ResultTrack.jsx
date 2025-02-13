@@ -17,7 +17,7 @@ import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import CustomeEditor from "../../../sharecomponent/CustomeEditor";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 
-export default function MicroResultTrack() {
+export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
   const [selectedCenter, setSelectedCenter] = useState([]);
@@ -77,7 +77,7 @@ export default function MicroResultTrack() {
               submit={false}
               text={params?.row?.TestName}
               callBack={() => {
-                setUserObj(params?.row);
+                // setUserObj(params?.row);
               }}
               style={{
                 width: "30px",
@@ -159,34 +159,6 @@ export default function MicroResultTrack() {
       FromCentre: "Ayodhya",
     },
   ];
-  const columns1 = [
-    {
-      field: `PatientName`,
-      headerName: `Patient Name`,
-      flex: 1,
-    },
-    {
-      field: `AgeGender`,
-      headerName: `Age/Gender`,
-      flex: 1,
-    },
-    {
-      field: `FromCentre`,
-      headerName: `From Centre`,
-      flex: 1,
-    },
-    {
-      field: `VisitId`,
-      headerName: `Visit Id`,
-      flex: 1,
-    },
-
-    {
-      field: `Barcode`,
-      headerName: `Barcode No.`,
-      flex: 1,
-    },
-  ];
 
   //accept child to parent in editor
   const handleContentChange = (content) => {
@@ -215,7 +187,7 @@ export default function MicroResultTrack() {
         {/* <div style={{ position: "fixed", top: "100px", maxHeight: "200px", overflowY: "auto", width: "100%",backgroundColor:"white" }}> */}
         <div>
           {/* Header Section */}
-          <FormHeader title="Micro Result Track" />
+          <FormHeader title="Result Track" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
               <MultiSelectDropdown
@@ -317,9 +289,9 @@ export default function MicroResultTrack() {
           <div style={{ maxHeight: "200px" }}>
             <DynamicTable
               rows={row}
-              name="Micro Result Track Details"
+              name="Result Track Details"
               //   loading={loading}
-              tableStyle={{ marginBottom: "-6px" }}
+              tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
               activeTheme={activeTheme}
             />
@@ -327,7 +299,7 @@ export default function MicroResultTrack() {
         </div>
         {UserObj && (
           <div>
-            <FormHeader title="Micro Result Track" />
+            <FormHeader title="Result Track" />
             <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
               <div className="flex flex-wrap gap-2 mt-2 mb-1 mx-1 lg:mx-2 items-end">
                 {/* Specimen Field */}
@@ -793,7 +765,7 @@ export default function MicroResultTrack() {
                     options={[
                       {
                         label: "Save",
-                        submit: false,
+                        submit: true,
                         callBack: () => console.log("Save clicked"),
                       },
                       {
@@ -807,7 +779,7 @@ export default function MicroResultTrack() {
                     options={[
                       {
                         label: "Approve",
-                        submit: false,
+                        submit: true,
                         callBack: () => console.log("Approve clicked"),
                       },
                       {
@@ -822,7 +794,7 @@ export default function MicroResultTrack() {
                     options={[
                       {
                         label: "Add Report",
-                        submit: false,
+                        submit: true,
                         callBack: () => console.log("Add Report clicked"),
                       },
                       {
@@ -836,7 +808,7 @@ export default function MicroResultTrack() {
                     options={[
                       {
                         label: "Main List",
-                        submit: false,
+                        submit: true,
                         callBack: () => console.log("Main List clicked"),
                       },
                       {
@@ -850,7 +822,7 @@ export default function MicroResultTrack() {
                     options={[
                       {
                         label: "Next",
-                        submit: false,
+                        submit: true,
                         callBack: () => console.log("Next clicked"),
                       },
                     ]}
