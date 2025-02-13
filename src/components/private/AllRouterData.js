@@ -286,6 +286,21 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/MicroResultTrack")),
         exact: true,
     },
+    {
+        path: "/LIMS/ResultTrack",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/ResultTrack")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/WorkSheet",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/WorkSheet")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/AmendmentReport",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/AmendmentReport")),
+        exact: true,
+    },
 
 ];
 
