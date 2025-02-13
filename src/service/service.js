@@ -825,7 +825,32 @@ export const saveReferDrApi = async (addReferDrData) => {
 //get all refer dr. data
 export const getAllReferDrApi = async () => {
 
-    const response = await privateAxios.get(`/doctorReferalMaster?select=doctorId,doctorName`);
+    const response = await privateAxios.get(`/doctorReferalMaster?select=doctorId,doctorName&$filter=(isActive eq 1 and type eq 1)`);
+
+    return response?.data;
+}
+
+
+//get all refer lab data
+export const getAllReferLabApi = async () => {
+
+    const response = await privateAxios.get(`/doctorReferalMaster?select=doctorId,doctorName&$filter=(isActive eq 1 and type eq 2)`);
+
+    return response?.data;
+}
+
+//get all invastigation
+export const getAllInvestiGationApi = async (rateTypeId) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetailRate?ratetype=${rateTypeId}`);
+
+    return response?.data;
+}
+
+//get all Investigation grid data
+export const getAllInvestigationGridApi = async (rateId, itemId) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetail?ratetype=${rateId}&itemId=${itemId}`);
 
     return response?.data;
 }
@@ -853,3 +878,4 @@ export const getAllDiscountApprovedBy = async () => {
 
     return response?.data;
 }
+

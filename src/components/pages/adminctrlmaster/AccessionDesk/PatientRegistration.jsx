@@ -6,11 +6,11 @@ import UserCalendar from '../../../public/UserCalendar';
 import useRippleEffect from '../../../customehook/useRippleEffect';
 import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
 import useOutsideClick from '../../../customehook/useOutsideClick';
-import { RiArrowDropDownLine, RiArrowDropUpLine, RiCalendarScheduleFill } from 'react-icons/ri';
-import { dummyData, patientRegistrationInvestigation, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
+import { RiArrowDropDownLine, RiArrowDropUpLine, RiCalendarScheduleFill, RiDeleteBin2Fill } from 'react-icons/ri';
+import { patientRegistrationInvestigation, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import UserCalendarAndTime from '../../../public/UserCalendarAndTime';
 import toast from 'react-hot-toast';
-import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, saveReferDrApi } from '../../../../service/service';
+import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, saveReferDrApi } from '../../../../service/service';
 import { FaSpinner } from 'react-icons/fa'
 
 export default function PatientRegistration() {
@@ -41,10 +41,15 @@ export default function PatientRegistration() {
             .replace(/(\d{2}-\w{3}-\d{4})/, '$1 00:00') // Append 00:00 as the time
             .replace(/am|pm/g, 'AM'),
 
+        investigationName: '',
+        itemId: 0,
         refDoctor1: '',
         refID1: 0,
         refDoctor2: '',
         refID2: 0,
+
+        refLabID: 0,
+        refLab: '',
         bank_Id: 0,
     });
     const [patientRegistrationSelectData, setPatientRegistrationSelectData] = useState({
@@ -57,6 +62,15 @@ export default function PatientRegistration() {
 
 
     const [addReferDrData, setAddReferDrData] = useState({
+        isActive: 0,
+        createdById: 0,
+        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+            .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            .replace(/ /g, '-'),
+        updateById: 0,
+        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+            .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+            .replace(/ /g, '-'),
         doctorId: 0,
         doctorCode: '',
         title: '',
@@ -84,7 +98,8 @@ export default function PatientRegistration() {
         proId: 0,
         areaId: 0,
         city: 0,
-        state: 0
+        state: 0,
+        type: 0
     })
 
     const [isHovered, setIsHovered] = useState(null);
@@ -99,8 +114,13 @@ export default function PatientRegistration() {
     const [allDicountTypeData, setAllDicountTypeData] = useState([]);
     const [allDiscountReasonData, setAllDiscountReasonData] = useState([]);
     const [allDiscountApprovedByData, setAllDiscountApprovedByData] = useState([]);
+    const [allLabReferData, setAllLabReferData] = useState([]);
+    const [allInvastigationData, setAllInvastigationData] = useState([]);
+    const [investigationGridData, setinvestigationGridData] = useState([]);
     const [isButtonClick, setIsButtonClick] = useState(0);
     const [showPopup, setShowPopup] = useState(0);
+    const [identifyAddReferDrOrReferLab, setIdentifyAddReferDrOrReferLab] = useState(0);
+
 
     const openShowSearchBarDropDown = (val) => {
         setShowSearchBarDropDown(val);
@@ -302,6 +322,46 @@ export default function PatientRegistration() {
     }, [patientRegistrationData?.centreId])
 
 
+    useEffect(() => {
+
+        const getAllInvastigationData = async () => {
+
+            try {
+                const response = await getAllInvestiGationApi(patientRegistrationData?.rateId);
+
+                if (response?.success) {
+                    setAllInvastigationData(response?.data);
+                } else {
+                    toast.error(response?.message);
+                }
+            } catch (error) {
+                toast.error(error?.message);
+            }
+
+        }
+
+        getAllInvastigationData();
+
+
+        const getAllinvestigationGridData = async () => {
+            try {
+                const response = await getAllInvestigationGridApi(patientRegistrationData?.rateId, patientRegistrationData?.itemId)
+                // setinvestigationGridData
+
+                if (response?.success) {
+                    setinvestigationGridData(response?.data)
+                }
+                console.log(response);
+
+            } catch (error) {
+                toast.error(error?.message);
+            }
+        }
+        getAllinvestigationGridData();
+
+    }, [patientRegistrationData?.rateId, patientRegistrationData?.itemId])
+
+
     //add refer dr
     const handelChangeOnAddReferDrData = (event) => {
         setAddReferDrData((preventData) => ({
@@ -314,13 +374,32 @@ export default function PatientRegistration() {
         event.preventDefault();
         setIsButtonClick(1);
         try {
-            const response = await saveReferDrApi(addReferDrData);
+
+            const updatedAddReferDrData = {
+                ...addReferDrData,
+                isActive: 1,
+                createdById: parseInt(user?.employeeId),
+                createdDateTime: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                    .replace(/ /g, '-'),
+                type: identifyAddReferDrOrReferLab === 1 ? 1 : 2
+            }
+
+            const response = await saveReferDrApi(updatedAddReferDrData);
 
             if (response?.success) {
 
                 toast.success(response?.message);
 
                 setAddReferDrData({
+                    isActive: 0,
+                    createdById: 0,
+                    createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                        .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                        .replace(/ /g, '-'),
+                    updateById: 0,
+                    updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                        .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+                        .replace(/ /g, '-'),
                     doctorId: 0,
                     doctorCode: '',
                     title: '',
@@ -348,7 +427,8 @@ export default function PatientRegistration() {
                     proId: 0,
                     areaId: 0,
                     city: 0,
-                    state: 0
+                    state: 0,
+                    type: 0
                 });
 
             } else {
@@ -372,6 +452,18 @@ export default function PatientRegistration() {
             }
         }
         getAllReferData();
+
+
+        const getAllLabReferData = async () => {
+
+            try {
+                const response = await getAllReferLabApi();
+                setAllLabReferData(response);
+            } catch (error) {
+                toast.error(error?.message);
+            }
+        }
+        getAllLabReferData();
     }, [isButtonClick])
 
     const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
@@ -382,7 +474,13 @@ export default function PatientRegistration() {
     const filterReferDrData = allReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refDoctor1 || '').toLowerCase()));
 
 
+    const filterinvestigationNamerData = allInvastigationData.filter((data) => (data?.itemName?.toLowerCase() || '').includes(String(patientRegistrationData?.investigationName || '').toLowerCase()));
+
+
     const filterReferDrDataTwo = allReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refDoctor2 || '').toLowerCase()));
+
+
+    const filterReferLabData = allLabReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refLab || '').toLowerCase()));
 
 
     return (
@@ -680,53 +778,30 @@ export default function PatientRegistration() {
                         </div>
 
 
-                        <div className="flex gap-[0.25rem]">
-                            {/* F Name */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="text"
-                                    id="testName"
-                                    name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
+                        {/* Name */}
+                        <div className="relative flex-1">
+                            <input
+                                type="text"
+                                id="testName"
+                                name="testName"
+                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
+                                // onChange={(e) => {
+                                //     handelOnChangeTestMappingData(e),
+                                //         setSeleDropDown((preventData) => ({
+                                //             ...preventData,
+                                //             testName: ''
+                                //         }))
+                                // }}
 
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="testName" className="menuPeerLevel">
-                                    F Name
-                                </label>
-                            </div>
-
-                            {/* L Name */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="text"
-                                    id="testName"
-                                    name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="testName" className="menuPeerLevel">
-                                    L Name
-                                </label>
-                            </div>
+                                placeholder=" "
+                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                            />
+                            <label htmlFor="testName" className="menuPeerLevel">
+                                Name
+                            </label>
                         </div>
+
+
 
 
                         <div className="flex gap-[0.25rem]">
@@ -846,9 +921,9 @@ export default function PatientRegistration() {
                                     <option disabled hidden className='text-gray-400'>
                                         Select Option
                                     </option>
-                                    <option value="">Male</option>
-                                    <option value="">Female</option>
-                                    <option value="">Other</option>
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                    <option value="T">Transgender</option>
                                 </select>
                                 <label htmlFor="isAllergyTest" className="menuPeerLevel">
                                     Gender
@@ -959,7 +1034,9 @@ export default function PatientRegistration() {
                             <div>
                                 <div
                                     className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                                    onClick={() => setShowPopup(1)}
+                                    onClick={() => {
+                                        setShowPopup(1), setIdentifyAddReferDrOrReferLab(1)
+                                    }}
                                     style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                 >
                                     <IoMdAdd className="w-4 h-4 font-semibold" />
@@ -1130,30 +1207,74 @@ export default function PatientRegistration() {
                         <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
                             <div className="relative flex-1">
                                 <input
-                                    type="text"
-                                    id="city"
-                                    name="city"
-                                    // value={selectedSearchDropDownData?.city || employeeData.city || ''}
-                                    // onChange={(e) => {
-                                    //     handelChangeEmployeeDetails(e)
-
-                                    //     setSelectedSearchDropDownData((preventData) => ({
-                                    //         ...preventData,
-                                    //         city: '',
-                                    //     }));
-                                    // }}
+                                    type="search"
+                                    id="refLab"
+                                    name="refLab"
+                                    value={patientRegistrationData.refLab || ''}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
+                                    onClick={() => openShowSearchBarDropDown(7)}
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor            focus:outline-none`}
                                 />
-                                <label htmlFor="city" className="menuPeerLevel">
+                                <label htmlFor="refLab" className="menuPeerLevel">
                                     Refer Lab/Hospital
                                 </label>
+
+
+                                {/* Dropdown to select the menu */}
+                                {showSearchBarDropDown === 7 && (
+                                    <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                                        <ul>
+
+                                            {
+                                                filterReferLabData?.length > 0 ? (
+                                                    filterReferLabData?.map((data, index) => (
+                                                        <li
+                                                            key={data?.doctorId}
+                                                            name="refLab"
+                                                            className="my-1 px-2 cursor-pointer"
+                                                            onClick={(e) => {
+                                                                openShowSearchBarDropDown(0);
+                                                                handelOnChangePatientRegistration({
+                                                                    target: { name: 'refLabID', value: data?.doctorId },
+                                                                });
+
+                                                                handelOnChangePatientRegistration({
+                                                                    target: { name: 'refLab', value: data?.doctorName },
+                                                                });
+
+
+                                                            }}
+                                                            onMouseEnter={() => setIsHovered(index)}
+                                                            onMouseLeave={() => setIsHovered(null)}
+                                                            style={{
+                                                                background:
+                                                                    isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                                            }}
+                                                        >
+                                                            {data?.doctorName}
+                                                        </li>
+
+                                                    ))
+                                                )
+                                                    : (
+                                                        <li className="py-4 text-gray-500 text-center">
+                                                            {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                                        </li>
+                                                    )
+
+                                            }
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
 
                             <div>
                                 <div
                                     className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                                    onClick={() => setShowPopup(1)}
+                                    onClick={() => { setShowPopup(1), setIdentifyAddReferDrOrReferLab(0) }}
                                     style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                 >
                                     <IoMdAdd className="w-4 h-4 font-semibold" />
@@ -1190,22 +1311,60 @@ export default function PatientRegistration() {
                         <div className="relative flex-1">
                             <input
                                 type="search"
-                                id="testName"
-                                name="testName"
+                                id="investigationName"
+                                name="investigationName"
+                                value={patientRegistrationData?.investigationName || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistration(e)
+                                }}
                                 onClick={() => openShowSearchBarDropDown(3)}
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Investigation
+                            <label htmlFor="investigationName" className="menuPeerLevel">
+                                Investigation (Multi check box)
                             </label>
 
                             {/* Dropdown to select the menu */}
                             {showSearchBarDropDown === 3 && (
                                 <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                     <ul>
-                                        {/* Add your logic here to map dropdown items */}
-                                        <div>Under Processing</div>
+                                        {
+                                            filterinvestigationNamerData?.length > 0 ? (
+                                                filterinvestigationNamerData?.map((data, index) => (
+                                                    <li
+                                                        key={data?.itemId}
+                                                        name="investigationName"
+                                                        className="my-1 px-2 cursor-pointer"
+                                                        onClick={(e) => {
+                                                            openShowSearchBarDropDown(0);
+                                                            handelOnChangePatientRegistration({
+                                                                target: { name: 'investigationName', value: data?.itemName },
+                                                            });
+
+                                                            handelOnChangePatientRegistration({
+                                                                target: { name: 'itemId', value: data?.itemId },
+                                                            });
+                                                        }}
+                                                        onMouseEnter={() => setIsHovered(index)}
+                                                        onMouseLeave={() => setIsHovered(null)}
+                                                        style={{
+                                                            background:
+                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                                        }}
+                                                    >
+                                                        {data?.itemName}
+                                                    </li>
+
+                                                ))
+                                            )
+                                                : (
+                                                    <li className="py-4 text-gray-500 text-center">
+                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                                    </li>
+                                                )
+
+                                        }
                                     </ul>
                                 </div>
                             )}
@@ -1218,82 +1377,125 @@ export default function PatientRegistration() {
 
                     <div className="grid grid-cols-12 gap-2 mt-1 mb-1 mx-1 lg:mx-2">
 
+                        {
+                            investigationGridData?.length !== 0 && (
+                                <div className="col-span-12">
+                                    <div className="max-h-[7.5rem] overflow-y-auto">
+                                        <table className="table-auto border-collapse w-full text-xxs text-left">
+                                            <thead
+                                                style={{
+                                                    position: "sticky",
+                                                    top: 0,
+                                                    zIndex: 1,
+                                                    background: activeTheme?.menuColor,
+                                                    color: activeTheme?.iconColor,
+                                                }}
+                                            >
+                                                <tr>
+                                                    {patientRegistrationInvestigation?.map((data, index) => (
+                                                        <td
+                                                            key={index}
+                                                            className="border-b font-semibold border-gray-300 px-4 text-xxs"
+                                                        >
+                                                            {data}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            </thead>
 
-                        {/* Other content */}
-                        <div className="col-span-12">
-                            <div className="max-h-[7.5rem] overflow-y-auto">
-                                <table className="table-auto border-collapse w-full text-xxs text-left">
-                                    {/* Table Header */}
-                                    <thead
+                                            <tbody>
+
+                                                <tr
+                                                // Prefer unique keys
+                                                // className={`cursor-pointer ${isHoveredTable === rowIndex
+                                                //     ? ""
+                                                //     : rowIndex % 2 === 0
+                                                //         ? "bg-gray-100"
+                                                //         : "bg-white"
+                                                //     }`}
+                                                // onMouseEnter={() => setIsHoveredTable(rowIndex)}
+                                                // onMouseLeave={() => setIsHoveredTable(null)}
+                                                // style={{
+                                                //     background:
+                                                //         isHoveredTable === rowIndex
+                                                //             ? activeTheme?.subMenuColor
+                                                //             : undefined,
+                                                // }}
+                                                >
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        {investigationGridData[0]?.itemName}
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        <FontAwesomeIcon icon="fas fa-info-circle" />
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        {investigationGridData[0]?.mrp}
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        {investigationGridData[0]?.grosss}
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        {investigationGridData[0]?.discount}
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        {investigationGridData[0]?.netAmt}
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        <select className="border rounded px-2 py-1 outline-none">
+                                                            {investigationGridData?.map((item, index) => (
+                                                                <option key={index} value={item.sampleTypeName}>
+                                                                    {item.sampleTypeName}
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        <input type="text" className='border-[1.5px] rounded outline-none pl-1 w-full' />
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        {investigationGridData[0]?.deliveryDate}
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        <input type="checkbox"
+                                                        // id={`checkbox-${rowIndex}`} 
+                                                        />
+                                                        {/* <label htmlFor={`checkbox-${rowIndex}`} className="sr-only">
+                                                            Select Row
+                                                        </label> */}
+                                                    </td>
+                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                        <RiDeleteBin2Fill
+                                                            // onClick={() => handleDelete(rowIndex)}
+                                                            className="cursor-pointer text-red-500"
+                                                        />
+                                                    </td>
+                                                </tr>
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div
+                                        className="w-full h-4 flex gap-10 items-center text-xxs px-4 font-semibold"
                                         style={{
-                                            position: 'sticky',
-                                            top: 0,
-                                            zIndex: 1,
                                             background: activeTheme?.menuColor,
                                             color: activeTheme?.iconColor,
                                         }}
                                     >
-                                        <tr>
-                                            {patientRegistrationInvestigation?.map((data, index) => (
-                                                <td
-                                                    key={index}
-                                                    className="border-b font-semibold border-gray-300 px-4 text-xxs"
-                                                >
-                                                    {data}
-                                                </td>
-                                            ))}
-                                        </tr>
-                                    </thead>
-
-                                    {/* Table Body */}
-                                    <tbody>
-                                        {dummyData.map((row, rowIndex) => (
-                                            <tr
-                                                key={rowIndex}
-                                                className={`cursor-pointer ${isHoveredTable === rowIndex
-                                                    ? ''
-                                                    : rowIndex % 2 === 0
-                                                        ? 'bg-gray-100'
-                                                        : 'bg-white'
-                                                    }`}
-                                                onMouseEnter={() => setIsHoveredTable(rowIndex)}
-                                                onMouseLeave={() => setIsHoveredTable(null)}
-                                                style={{
-                                                    background:
-                                                        isHoveredTable === rowIndex
-                                                            ? activeTheme?.subMenuColor
-                                                            : undefined,
-                                                }}
-                                            >
-                                                {row.map((cell, cellIndex) => (
-                                                    <td
-                                                        key={cellIndex}
-                                                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                                                    >
-                                                        {cell}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className='w-full h-4 flex gap-10 items-center text-xxs px-4 font-semibold' style={{
-                                background: activeTheme?.menuColor,
-                                color: activeTheme?.iconColor,
-                            }}>
-
-                                <div className='flex gap-1'>
-                                    <div>Test Count : </div>
-                                    <div>1000</div>
+                                        <div className="flex gap-1">
+                                            <div>Test Count:</div>
+                                            <div>1000</div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            <div>Total:</div>
+                                            <div>500</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className='flex gap-1'>
-                                    <div>Total : </div>
-                                    <div>500</div>
-                                </div>
-                            </div>
-                        </div>
+                            )
+                        }
+
+
 
                     </div>
 
@@ -1429,7 +1631,7 @@ export default function PatientRegistration() {
                                 readOnly
                             />
                             <label htmlFor="paidAmt" className="menuPeerLevel">
-                                Paid Amt.
+                                Paid Amt.(Cash Amt+Credit/debit amt+ upi amt)
                             </label>
                         </div>
 
@@ -1764,12 +1966,18 @@ export default function PatientRegistration() {
                                 <div className=" font-semibold"
                                     style={{ color: activeTheme?.iconColor }}
                                 >
-                                    Add Refer Dr.
+                                    {
+                                        identifyAddReferDrOrReferLab === 1 ?
+                                            'Add Refer Dr.'
+                                            :
+                                            'Refer Lab/Hospital'
+                                    }
+
                                 </div>
 
                                 <IoMdCloseCircleOutline className='text-xl cursor-pointer'
                                     style={{ color: activeTheme?.iconColor }}
-                                    onClick={() => setShowPopup(0)}
+                                    onClick={() => { setShowPopup(0), setIdentifyAddReferDrOrReferLab(0) }}
                                 />
                             </div>
 
