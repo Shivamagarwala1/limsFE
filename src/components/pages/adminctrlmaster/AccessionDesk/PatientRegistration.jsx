@@ -24,9 +24,7 @@ export default function PatientRegistration() {
     const [showCalander, setShowCalander] = useState(false);
     const [showCalanderAndTime, setShowCalanderAndTime] = useState(false);
     const [patientRegistrationData, setPatientRegistrationData] = useState({
-        centreId: 0,
-        rateId: 0,
-        title_id: 0,
+
         creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
             .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
             .replace(/ /g, '-'),
@@ -176,6 +174,8 @@ export default function PatientRegistration() {
 
         //setShowCalanderAndTime(false);
     };
+
+
 
 
     const handelOnChangePatientRegistration = (event) => {
@@ -522,20 +522,22 @@ export default function PatientRegistration() {
                             </label>
                         </div>
 
+
+
                         {/* center */}
                         <div className="relative flex-1">
                             <input
                                 type="search"
-                                id="centreId"
-                                name="centreId"
-                                value={patientRegistrationSelectData?.centreId || ''}
-                                onChange={(e) => {
-                                    handelOnChangePatientRegistrationForSelect(e)
-                                    // setPatientRegistrationSelectData((preventData) => ({
-                                    //     ...preventData,
-                                    //     centreId: ''
-                                    // }))
-                                }}
+                                id="testName"
+                                name="testName"
+                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
+                                // onChange={(e) => {
+                                //     handelOnChangeTestMappingData(e),
+                                //         setSeleDropDown((preventData) => ({
+                                //             ...preventData,
+                                //             testName: ''
+                                //         }))
+                                // }}
                                 onClick={() => openShowSearchBarDropDown(1)}
 
                                 placeholder=" "
@@ -551,20 +553,20 @@ export default function PatientRegistration() {
                                     <ul>
 
                                         {
-                                            filterCentreData?.length > 0 ? (
-                                                filterCentreData?.map((data, index) => (
+                                            /* {filterAlltestNameData?.length > 0 ? (
+                                                filterAlltestNameData?.map((data, index) => (
                                                     <li
-                                                        key={data?.centreId}
-                                                        name="centreId"
+                                                        key={data?.itemId}
+                                                        name="testName"
                                                         className="my-1 px-2 cursor-pointer"
                                                         onClick={(e) => {
                                                             openShowSearchBarDropDown(0);
-                                                            handelOnChangePatientRegistration({
-                                                                target: { name: 'centreId', value: data?.centreId },
+                                                            handelOnChangeTestMappingData({
+                                                                target: { name: 'testName', value: data?.itemId },
                                                             });
-                                                            setPatientRegistrationSelectData((preventData) => ({
+                                                            setSeleDropDown((preventData) => ({
                                                                 ...preventData,
-                                                                centreId: data?.centreName
+                                                                testName: data?.itemName
                                                             }))
                                                         }}
                                                         onMouseEnter={() => setIsHovered(index)}
@@ -574,18 +576,22 @@ export default function PatientRegistration() {
                                                                 isHovered === index ? activeTheme?.subMenuColor : 'transparent',
                                                         }}
                                                     >
-                                                        {data?.centreName}
+                                                        {data?.itemName}
                                                     </li>
-
+    
                                                 ))
-                                            )
-                                                : (
-                                                    <li className="py-4 text-gray-500 text-center">
-                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                    </li>
-                                                )
+                                            )  */
 
                                         }
+
+                                            // : (
+                                            // <li className="py-4 text-gray-500 text-center">
+                                            //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                            // </li>
+                                            // )
+
+                                        <div>Under Processing</div>
+
                                     </ul>
                                 </div>
                             )}
@@ -595,19 +601,22 @@ export default function PatientRegistration() {
                         <div className="relative flex-1">
                             <input
                                 type="search"
-                                id="rateId"
-                                name="rateId"
-                                value={patientRegistrationSelectData?.rateId || ''}
-                                onChange={(e) => {
-                                    handelOnChangePatientRegistrationForSelect(e)
-
-                                }}
+                                id="testName"
+                                name="testName"
+                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
+                                // onChange={(e) => {
+                                //     handelOnChangeTestMappingData(e),
+                                //         setSeleDropDown((preventData) => ({
+                                //             ...preventData,
+                                //             testName: ''
+                                //         }))
+                                // }}
                                 onClick={() => openShowSearchBarDropDown(2)}
 
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="rateId" className="menuPeerLevel">
+                            <label htmlFor="testName" className="menuPeerLevel">
                                 Rate Type
                             </label>
 
@@ -617,20 +626,20 @@ export default function PatientRegistration() {
                                     <ul>
 
                                         {
-                                            filterRateData?.length > 0 ? (
-                                                filterRateData?.map((data, index) => (
+                                            /* {filterAlltestNameData?.length > 0 ? (
+                                                filterAlltestNameData?.map((data, index) => (
                                                     <li
-                                                        key={data?.id}
-                                                        name="rateId"
+                                                        key={data?.itemId}
+                                                        name="testName"
                                                         className="my-1 px-2 cursor-pointer"
                                                         onClick={(e) => {
                                                             openShowSearchBarDropDown(0);
-                                                            handelOnChangePatientRegistration({
-                                                                target: { name: 'rateId', value: data?.id },
+                                                            handelOnChangeTestMappingData({
+                                                                target: { name: 'testName', value: data?.itemId },
                                                             });
-                                                            setPatientRegistrationSelectData((preventData) => ({
+                                                            setSeleDropDown((preventData) => ({
                                                                 ...preventData,
-                                                                rateId: data?.rateName
+                                                                testName: data?.itemName
                                                             }))
                                                         }}
                                                         onMouseEnter={() => setIsHovered(index)}
@@ -640,18 +649,22 @@ export default function PatientRegistration() {
                                                                 isHovered === index ? activeTheme?.subMenuColor : 'transparent',
                                                         }}
                                                     >
-                                                        {data?.rateName}
+                                                        {data?.itemName}
                                                     </li>
-
+    
                                                 ))
-                                            )
-                                                : (
-                                                    <li className="py-4 text-gray-500 text-center">
-                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                    </li>
-                                                )
+                                            )  */
 
                                         }
+
+                                            // : (
+                                            // <li className="py-4 text-gray-500 text-center">
+                                            //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                            // </li>
+                                            // )
+
+                                        <div>Under Processing</div>
+
                                     </ul>
                                 </div>
                             )}
@@ -752,26 +765,20 @@ export default function PatientRegistration() {
                             {/* title */}
                             <div className="relative flex-1">
                                 <select
-                                    id="title_id"
-                                    name="title_id"
-                                    value={patientRegistrationSelectData.title_id || ""}
-                                    onChange={(event) => {
-                                        handelOnChangePatientRegistrationForSelect(event);
-                                        handelOnChangePatientRegistration(event);
-                                    }}
-                                    className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none`}
+                                    id="isAllergyTest"
+                                    name='isAllergyTest'
+                                    // value={labTestMasterData.isAllergyTest}
+                                    // onChange={handelOnChangeLabTestMasterData}
+                                    className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                                 >
-                                    <option value="" disabled className="text-gray-400">
-                                        Select Title
+                                    <option disabled hidden className='text-gray-400'>
+                                        Select Option
                                     </option>
-                                    {allTitleData?.map((data) => (
-                                        <option key={data?.id} value={parseInt(data?.id)}>
-                                            {data?.title}
-                                        </option>
-                                    ))}
+                                    <option value="">Mr.</option>
+                                    <option value="">Ms.</option>
+                                    <option value="">Other</option>
                                 </select>
-
-                                <label htmlFor="title_id" className="menuPeerLevel">
+                                <label htmlFor="isAllergyTest" className="menuPeerLevel">
                                     Title
                                 </label>
                             </div>
@@ -968,67 +975,23 @@ export default function PatientRegistration() {
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    id="refDoctor1"
-                                    name="refDoctor1"
-                                    value={patientRegistrationData.refDoctor1 || ''}
-                                    onChange={(e) => {
-                                        handelOnChangePatientRegistration(e)
-                                    }}
-                                    onClick={() => openShowSearchBarDropDown(4)}
+                                    id="city"
+                                    name="city"
+                                    // value={selectedSearchDropDownData?.city || employeeData.city || ''}
+                                    // onChange={(e) => {
+                                    //     handelChangeEmployeeDetails(e)
+
+                                    //     setSelectedSearchDropDownData((preventData) => ({
+                                    //         ...preventData,
+                                    //         city: '',
+                                    //     }));
+                                    // }}
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor            focus:outline-none`}
                                 />
-                                <label htmlFor="refDoctor1" className="menuPeerLevel">
+                                <label htmlFor="city" className="menuPeerLevel">
                                     Refer Dr.
                                 </label>
-
-
-                                {/* Dropdown to select the menu */}
-                                {showSearchBarDropDown === 4 && (
-                                    <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                                        <ul>
-
-                                            {
-                                                filterReferDrData?.length > 0 ? (
-                                                    filterReferDrData?.map((data, index) => (
-                                                        <li
-                                                            key={data?.doctorId}
-                                                            name="refDoctor1"
-                                                            className="my-1 px-2 cursor-pointer"
-                                                            onClick={(e) => {
-                                                                openShowSearchBarDropDown(0);
-                                                                handelOnChangePatientRegistration({
-                                                                    target: { name: 'refID1', value: data?.doctorId },
-                                                                });
-
-                                                                handelOnChangePatientRegistration({
-                                                                    target: { name: 'refDoctor1', value: data?.doctorName },
-                                                                });
-
-
-                                                            }}
-                                                            onMouseEnter={() => setIsHovered(index)}
-                                                            onMouseLeave={() => setIsHovered(null)}
-                                                            style={{
-                                                                background:
-                                                                    isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                            }}
-                                                        >
-                                                            {data?.doctorName}
-                                                        </li>
-
-                                                    ))
-                                                )
-                                                    : (
-                                                        <li className="py-4 text-gray-500 text-center">
-                                                            {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                        </li>
-                                                    )
-
-                                            }
-                                        </ul>
-                                    </div>
-                                )}
                             </div>
 
                             <div>
@@ -1044,75 +1007,29 @@ export default function PatientRegistration() {
                             </div>
 
 
-
-
                         </div>
 
                         {/* Refer Dr2 */}
                         <div className="relative flex-1">
                             <input
                                 type="text"
-                                id="refDoctor2"
-                                name="refDoctor2"
-                                value={patientRegistrationData.refDoctor2 || ''}
-                                onChange={(e) => {
-                                    handelOnChangePatientRegistration(e)
-                                }}
-                                onClick={() => openShowSearchBarDropDown(5)}
+                                id="testName"
+                                name="testName"
+                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
+                                // onChange={(e) => {
+                                //     handelOnChangeTestMappingData(e),
+                                //         setSeleDropDown((preventData) => ({
+                                //             ...preventData,
+                                //             testName: ''
+                                //         }))
+                                // }}
+
                                 placeholder=" "
-                                className={`inputPeerField peer border-borderColor            focus:outline-none`}
+                                className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="refDoctor2" className="menuPeerLevel">
+                            <label htmlFor="testName" className="menuPeerLevel">
                                 Refer Dr2
                             </label>
-
-
-                            {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 5 && (
-                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                                    <ul>
-
-                                        {
-                                            filterReferDrDataTwo?.length > 0 ? (
-                                                filterReferDrDataTwo?.map((data, index) => (
-                                                    <li
-                                                        key={data?.doctorId}
-                                                        name="refDoctor2"
-                                                        className="my-1 px-2 cursor-pointer"
-                                                        onClick={(e) => {
-                                                            openShowSearchBarDropDown(0);
-                                                            handelOnChangePatientRegistration({
-                                                                target: { name: 'refID2', value: data?.doctorId },
-                                                            });
-
-                                                            handelOnChangePatientRegistration({
-                                                                target: { name: 'refDoctor2', value: data?.doctorName },
-                                                            });
-
-
-                                                        }}
-                                                        onMouseEnter={() => setIsHovered(index)}
-                                                        onMouseLeave={() => setIsHovered(null)}
-                                                        style={{
-                                                            background:
-                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                        }}
-                                                    >
-                                                        {data?.doctorName}
-                                                    </li>
-
-                                                ))
-                                            )
-                                                : (
-                                                    <li className="py-4 text-gray-500 text-center">
-                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                    </li>
-                                                )
-
-                                        }
-                                    </ul>
-                                </div>
-                            )}
                         </div>
 
 
@@ -1526,89 +1443,23 @@ export default function PatientRegistration() {
 
                         {/* Payment Mode */}
                         <div className="relative flex-1">
-                            <div
-                                className={`flex peer items-center border-[1.5px] 
-                                border-borderColor rounded text-xxxs h-[1.6rem] text-[#495057] bg-white `}
-                                onClick={() => showSearchBarDropDown !== 6 ? openShowSearchBarDropDown(6) : openShowSearchBarDropDown(0)}
+                            <select
+                                id="paymentMode"
+                                name='paymentMode'
+                                // value={labTestMasterData.paymentMode}
+                                onChange={(event) => setPaymentMode(event.target.value)}
+                                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                             >
-                                <input
-                                    type="text"
-                                    id="paymentModeType"
-                                    name="paymentModeType"
-                                    // disabled={labTestMasterData?.itemType === '3'}
-                                    value={
-                                        paymentModeType.length === 0
-                                            ? ''
-                                            : paymentModeType
-                                                .map((data) => data?.label)
-                                                .join(', ')
-                                    }
-                                    // onChange={handelOnChangePatientRegistration}
-                                    readOnly
-                                    placeholder="Search Payment Mode"
-                                    className={`w-full rounded-r rounded-md border-0 text-xxxs font-semibold px-2 pt-1 focus:outline-none cursor-pointer`}
-                                />
-                                <label htmlFor="paymentModeType" className="menuPeerLevel">
-                                    Payment Mode
-                                </label>
-
-                                <div>
-                                    {
-                                        showSearchBarDropDown === 6 ? <RiArrowDropUpLine className='text-xl cursor-pointer' /> : <RiArrowDropDownLine className='text-xl cursor-pointer' />
-                                    }
-                                </div>
-                            </div>
-
-                            {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 6 && (
-                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-
-                                    {
-                                        paymentModes?.length === 0 ?
-
-                                            <div className='py-4 text-gray-500 text-center'>
-                                                {import.meta.env.VITE_API_RECORD_NOT_FOUND}
-                                            </div>
-                                            :
-                                            <ul className='w-full'>
-
-                                                {/* Individual Checkboxes */}
-                                                {paymentModes?.length > 0 ? (
-                                                    paymentModes?.map((data, index) => {
-
-                                                        return (
-                                                            <li
-                                                                key={index}
-                                                                className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2"
-                                                                onMouseEnter={() => setIsHovered(index)}
-                                                                onMouseLeave={() => setIsHovered(null)}
-                                                                style={{
-                                                                    background: isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                                }}
-                                                            >
-                                                                <div>
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={paymentModeType?.some((item) => item?.value === data?.value)}
-                                                                        onChange={(e) => handleCheckboxChange(e, data)}
-                                                                    />
-                                                                </div>
-                                                                <div>{data?.label}</div>
-                                                            </li>
-                                                        )
-                                                    })
-                                                ) : (
-                                                    <li className="py-4 text-gray-500 text-center">
-                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND}
-                                                    </li>
-                                                )}
-                                            </ul>
-                                    }
-
-
-
-                                </div>
-                            )}
+                                <option disabled hidden className='text-gray-400'>
+                                    Select Option
+                                </option>
+                                <option value="1">Cash</option>
+                                <option value="2">Debit/Credit Card</option>
+                                <option value="2">UPI</option>
+                            </select>
+                            <label htmlFor="paymentMode" className="menuPeerLevel">
+                                Payment Mode
+                            </label>
                         </div>
 
                         {/* Paid Amt. */}
@@ -1694,9 +1545,7 @@ export default function PatientRegistration() {
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
                                         <input type="number" name="" id=""
-                                            className={`inputPeerField outline-none ${paymentModeType.some((item) => item.value === "1") ? "cursor-pointer" : "cursor-not-allowed"
-                                                }`}
-                                            readOnly={!paymentModeType.some((item) => item.value === "1")}
+                                            className='inputPeerField outline-none'
                                         />
                                     </td>
 
@@ -1704,54 +1553,46 @@ export default function PatientRegistration() {
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
                                         <input type="number" name="" id=""
-                                            className={`inputPeerField outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
-                                                }`}
-                                            readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                            className={`inputPeerField outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+
+                                            readOnly={paymentMode !== "2"}
                                         />
                                     </td>
 
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
                                         <input type="number" name="" id=""
-                                            className={`inputPeerField outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
-                                                }`}
-                                            readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                            className={`inputPeerField outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+
+                                            readOnly={paymentMode !== "2"}
                                         />
                                     </td>
 
 
                                     <td className='text-xxs font-semibold text-gridTextColor'>
-
                                         <select
-                                            id="bank_Id"
-                                            name="bank_Id"
-                                            value={patientRegistrationData.bank_Id || ""}
-                                            onChange={(event) => {
+                                            id="paymentMode"
+                                            name='paymentMode'
+                                            // value={labTestMasterData.paymentMode}
+                                            onChange={(event) => setPaymentMode(event.target.value)}
+                                            className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
 
-                                                handelOnChangePatientRegistration(event);
-                                            }}
-                                            className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2") ? "cursor-not-allowed" : "cursor-pointer"
-                                                }`}
-                                            disabled={!paymentModeType.some((item) => item.value === "2")}
+
+                                            readOnly={paymentMode !== "2"}
                                         >
-                                            <option value="" disabled className="text-gray-400">
-                                                Select Bank
+                                            <option disabled hidden className='text-gray-400'>
+                                                Select Option
                                             </option>
-                                            {allBankNameData?.map((data) => (
-                                                <option key={data?.id} value={parseInt(data?.id)}>
-                                                    {data?.bankName}
-                                                </option>
-                                            ))}
+                                            <option value="1">Bank1</option>
+                                            <option value="2">Bank2</option>
+                                            <option value="2">Bank3</option>
                                         </select>
-
                                     </td>
 
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
                                         <input type="number" name="" id=""
-                                            className={`inputPeerField outline-none ${!paymentModeType.some((item) => item.value === "3") ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-
-                                            readOnly={!paymentModeType.some((item) => item.value === "3")}
+                                            className='inputPeerField outline-none'
                                         />
                                     </td>
 
@@ -1762,18 +1603,15 @@ export default function PatientRegistration() {
                                             id="paymentMode"
                                             name='paymentMode'
                                             // value={labTestMasterData.paymentMode}
-                                            // onChange={(event) => setPaymentMode(event.target.value)}
-                                            className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "3") ? "cursor-not-allowed" : "cursor-pointer"
-                                                }`}
-                                            disabled={!paymentModeType.some((item) => item.value === "3")}
+                                            onChange={(event) => setPaymentMode(event.target.value)}
+                                            className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                                         >
                                             <option disabled hidden className='text-gray-400'>
                                                 Select Option
                                             </option>
-                                            <option value="1">PayTm</option>
-                                            <option value="2">PhonePay</option>
-                                            <option value="3">BHIM</option>
-                                            <option value="4">GooglePay</option>
+                                            <option value="1">Bank1</option>
+                                            <option value="2">Bank2</option>
+                                            <option value="2">Bank3</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -1790,20 +1628,15 @@ export default function PatientRegistration() {
                                 id="paymentMode"
                                 name='paymentMode'
                                 // value={labTestMasterData.paymentMode}
-                                // onChange={(event) => setPaymentMode(event.target.value)}
+                                onChange={(event) => setPaymentMode(event.target.value)}
                                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                             >
                                 <option disabled hidden className='text-gray-400'>
                                     Select Option
                                 </option>
-
-                                {
-                                    allDicountTypeData?.map((data) => (
-                                        <option key={data?.id} value={data?.id}>{data?.type}</option>
-
-                                    ))
-                                }
-
+                                <option value="">Discount Type</option>
+                                <option value="">Discount Type</option>
+                                <option value="">Discount Type</option>
                             </select>
                             <label htmlFor="paymentMode" className="menuPeerLevel">
                                 Discount Type
@@ -1864,21 +1697,15 @@ export default function PatientRegistration() {
                                 id="paymentMode"
                                 name='paymentMode'
                                 // value={labTestMasterData.paymentMode}
-                                // onChange={(event) => setPaymentMode(event.target.value)}
+                                onChange={(event) => setPaymentMode(event.target.value)}
                                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                             >
                                 <option disabled hidden className='text-gray-400'>
                                     Select Option
                                 </option>
-
-
-                                {
-                                    allDiscountReasonData?.map((data) => (
-                                        <option key={data?.id} value={data?.id}>{data?.discountReasonName}</option>
-
-                                    ))
-                                }
-
+                                <option value="1">Discount Reason1</option>
+                                <option value="2">Discount Reason2</option>
+                                <option value="2">Discount Reason3</option>
                             </select>
                             <label htmlFor="paymentMode" className="menuPeerLevel">
                                 Discount Reason
@@ -1892,18 +1719,15 @@ export default function PatientRegistration() {
                                 id="paymentMode"
                                 name='paymentMode'
                                 // value={labTestMasterData.paymentMode}
-                                // onChange={(event) => setPaymentMode(event.target.value)}
+                                onChange={(event) => setPaymentMode(event.target.value)}
                                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                             >
                                 <option disabled hidden className='text-gray-400'>
                                     Select Option
                                 </option>
-                                {
-                                    allDiscountApprovedByData?.map((data) => (
-                                        <option key={data?.empId} value={data?.empId}>{`${data?.fName} ${data?.lName}`}</option>
-
-                                    ))
-                                }
+                                <option value="1">Discount Approved By1</option>
+                                <option value="2">Discount Approved By2</option>
+                                <option value="2">Discount Approved By3</option>
                             </select>
                             <label htmlFor="paymentMode" className="menuPeerLevel">
                                 Discount Approved By
@@ -1983,56 +1807,56 @@ export default function PatientRegistration() {
 
 
                             <form
-                                // onSubmit={}
+                                // onSubmit={onSumitUserChangePassword}
                                 autoComplete='off'>
 
                                 <div className='mx-1 mt-2 grid grid-cols-2 gap-2'>
 
-                                    {/* title */}
+                                    {/* labObservationName */}
                                     <div className="relative flex-1 ">
                                         <input
                                             type="text"
-                                            id="title"
-                                            name="title"
-                                            value={addReferDrData.title}
-                                            onChange={handelChangeOnAddReferDrData}
+                                            id="labObservationName"
+                                            name="labObservationName"
+                                            // value={newMappingData.labObservationName}
+                                            // onChange={handelChangeOnNewObseravationData}
                                             placeholder=" "
                                             className={`inputPeerField peer border-borderColor focus:outline-none`}
                                         />
-                                        <label htmlFor="title" className="menuPeerLevel">
+                                        <label htmlFor="labObservationName" className="menuPeerLevel">
                                             Title
                                         </label>
                                     </div>
 
-                                    {/* doctorName */}
+                                    {/* shortName */}
                                     <div className="relative flex-1 ">
                                         <input
                                             type="text"
-                                            id="doctorName"
-                                            name="doctorName"
-                                            value={addReferDrData.doctorName}
-                                            onChange={handelChangeOnAddReferDrData}
+                                            id="shortName"
+                                            name="shortName"
+                                            // value={newMappingData.shortName}
+                                            // onChange={handelChangeOnNewObseravationData}
                                             placeholder=" "
                                             className={`inputPeerField peer border-borderColor focus:outline-none`}
                                         />
-                                        <label htmlFor="doctorName" className="menuPeerLevel">
+                                        <label htmlFor="shortName" className="menuPeerLevel">
                                             Name
                                         </label>
                                     </div>
 
 
-                                    {/* mobileNo */}
+                                    {/* suffix */}
                                     <div className="relative flex-1 ">
                                         <input
-                                            type="number"
-                                            id="mobileNo"
-                                            name="mobileNo"
-                                            value={addReferDrData.mobileNo}
-                                            onChange={handelChangeOnAddReferDrData}
+                                            type="text"
+                                            id="suffix"
+                                            name="suffix"
+                                            // value={newMappingData.suffix}
+                                            // onChange={handelChangeOnNewObseravationData}
                                             placeholder=" "
                                             className={`inputPeerField peer border-borderColor focus:outline-none`}
                                         />
-                                        <label htmlFor="mobileNo" className="menuPeerLevel">
+                                        <label htmlFor="suffix" className="menuPeerLevel">
                                             Mobile No.
                                         </label>
                                     </div>
@@ -2047,13 +1871,11 @@ export default function PatientRegistration() {
                                             style={{
                                                 background: activeTheme?.menuColor, color: activeTheme?.iconColor
                                             }}
-                                            onClick={onSumitAddReferDrData}
                                         >
-
-                                            {
-                                                isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                            }
-
+                                            {/* {
+                                                isButtonClick === 3 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+                                            } */}
+                                            Save
                                         </button>
                                     </div>
                                 </div>

@@ -81,7 +81,6 @@ const App = () => {
           <ChartBoatApp />
         )
       }
-      
       <Routes>
 
         {/* Redirect from root to /login if not logged in */}

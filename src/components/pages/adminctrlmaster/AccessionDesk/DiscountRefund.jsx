@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import DynamicTable, {
   TableHeader,
@@ -18,7 +19,7 @@ export default function DiscountRefund() {
   const [type, setType] = useState(0);
 
   useEffect(() => {
-    const toastId = toast.info('Please Select a Type');
+    const toastId = toast.info("Please Select a Type");
     return () => {
       toast.dismiss(toastId); // Dismiss the toast when the component unmounts
     };
@@ -238,7 +239,18 @@ export default function DiscountRefund() {
               ]}
             />
           )}
-          {type !== 0 && <SubmitButton text="Search" />}
+          {type !== 0 && (
+            <>
+              <SubmitButton text="Search" />
+              <SubmitButton
+                callBack={() => {
+                  setType(0);
+                }}
+                submit={false}
+                text="Reset"
+              />
+            </>
+          )}
         </div>
       </form>
       {type === 0 && <TableHeader title="Discount/Refund Details" />}
@@ -270,13 +282,13 @@ export default function DiscountRefund() {
                 label: "Discount Type",
                 type: "select",
                 name: "Discount Type",
-                dataOptions:[]
+                dataOptions: [],
               },
               {
                 label: "Discount Reason",
                 type: "select",
                 name: "Discount Reason",
-                dataOptions:[]
+                dataOptions: [],
               },
               {
                 label: "Discount Amount",
@@ -292,11 +304,11 @@ export default function DiscountRefund() {
                 label: "Discount Approved By",
                 type: "select",
                 name: "DiscountApprovedBy",
-                dataOptions:[]
+                dataOptions: [],
               },
             ]}
           />
-          <SubmitButton text='Save' />
+          <SubmitButton text="Save" />
         </div>
       )}
     </div>
