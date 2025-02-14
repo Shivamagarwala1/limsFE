@@ -2259,7 +2259,7 @@ export default function EmployeeMaster() {
                                     <button
                                         type="button"
                                         data-ripple-light="true"
-                                        className={` overflow-hidden font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                        className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
                                         style={{
                                             background: activeTheme?.menuColor, color: activeTheme?.iconColor
                                         }}

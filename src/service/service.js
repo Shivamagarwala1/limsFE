@@ -805,3 +805,77 @@ export const getAllUploadReportLetterHeadApi = async (centreId) => {
 export const saveUploadReportLetterHeadApi = async () => {
 
 }
+
+//============= patient registration =================
+export const getAllRateTypeForPatientRegistrationData = async (centreId) => {
+
+    const response = await privateAxios.get(`/centreMaster/GetRatetypeCentreWise?CentreId=${centreId}`);
+
+    return response?.data;
+}
+
+//save refer dr.
+export const saveReferDrApi = async (addReferDrData) => {
+
+    const response = await privateAxios.post(`/doctorReferalMaster/SaveUpdateReferDoctor`, addReferDrData);
+
+    return response?.data;
+}
+
+//get all refer dr. data
+export const getAllReferDrApi = async () => {
+
+    const response = await privateAxios.get(`/doctorReferalMaster?select=doctorId,doctorName&$filter=(isActive eq 1 and type eq 1)`);
+
+    return response?.data;
+}
+
+
+//get all refer lab data
+export const getAllReferLabApi = async () => {
+
+    const response = await privateAxios.get(`/doctorReferalMaster?select=doctorId,doctorName&$filter=(isActive eq 1 and type eq 2)`);
+
+    return response?.data;
+}
+
+//get all invastigation
+export const getAllInvestiGationApi = async (rateTypeId) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetailRate?ratetype=${rateTypeId}`);
+
+    return response?.data;
+}
+
+//get all Investigation grid data
+export const getAllInvestigationGridApi = async (rateId, itemId) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetail?ratetype=${rateId}&itemId=${itemId}`);
+
+    return response?.data;
+}
+
+//get all discount type
+export const getAllDisCountType = async () => {
+
+    const response = await privateAxios.get(`/discountTypeMaster?select=id,type&$filter=(isActive eq 1)`);
+
+    return response?.data;
+}
+
+//get all discount resion
+export const getAllDicountReasionApi = async () => {
+
+    const response = await privateAxios.get(`/discountReasonMaster?select=id,discountReasonName&$filter=(isActive eq 1)`);
+
+    return response?.data;
+}
+
+//get all discount approved by
+export const getAllDiscountApprovedBy = async () => {
+
+    const response = await privateAxios.get(`/empMaster?select=empId,fName,lName&$filter=(isDiscountAppRights eq 1)`);
+
+    return response?.data;
+}
+
