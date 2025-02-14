@@ -229,8 +229,8 @@ export default function ResultTrack() {
               />
               <InputGenerator
                 inputFields={[
-                  { type: "customDateField", label: "From" },
-                  { type: "customDateField", label: "To" },
+                  { type: "customDateField", label: "From",name:"from" },
+                  { type: "customDateField", label: "To",name:"to" },
                 ]}
               />
 

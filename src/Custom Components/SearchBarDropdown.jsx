@@ -39,7 +39,7 @@ const SearchBarDropdown = ({
 
   return (
     <div className="relative flex-1" ref={dropdownRef}>
-      <div
+      <div style={{height:"1.6rem",marginTop:"0.10rem"}}
         className={`flex peer items-center border-[1.5px] rounded text-xxxs h-[1.6rem] text-[#495057] my-1 bg-white ${
           isRequired ? "border-b-red-500" : "border-b-green-300"
         }`}
