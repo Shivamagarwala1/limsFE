@@ -542,7 +542,7 @@ export default function PatientRegistration() {
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
                             <label htmlFor="centreId" className="menuPeerLevel">
-                                Center
+                                Centre
                             </label>
 
                             {/* Dropdown to select the menu */}
