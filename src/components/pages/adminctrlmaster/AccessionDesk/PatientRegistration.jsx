@@ -4,7 +4,7 @@ import { CiCalendarDate } from 'react-icons/ci';
 import { useSelector } from 'react-redux';
 import UserCalendar from '../../../public/UserCalendar';
 import useRippleEffect from '../../../customehook/useRippleEffect';
-import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
+import { IoMdAdd, IoMdCloseCircleOutline, IoMdImages } from 'react-icons/io';
 import useOutsideClick from '../../../customehook/useOutsideClick';
 import { RiArrowDropDownLine, RiArrowDropUpLine, RiCalendarScheduleFill, RiDeleteBin2Fill } from 'react-icons/ri';
 import { patientRegistrationInvestigation, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
@@ -24,10 +24,18 @@ export default function PatientRegistration() {
     const [showCalander, setShowCalander] = useState(false);
     const [showCalanderAndTime, setShowCalanderAndTime] = useState(false);
     const [patientRegistrationData, setPatientRegistrationData] = useState({
+        centreId: 0,
+        rateId: 0,
+        mobileNo: '',
+        title_id: 0,
+        name: '',
+        ageDays: 0,
+        ageMonth: 0,
+        ageYear: 0,
+        dob: '',
+        gender: '',
+        email: '',
 
-        creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-            .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-            .replace(/ /g, '-'),
         collectionDateAndTime: new Date('1970-01-01T00:00:00Z')
             .toLocaleString('en-GB', {
                 day: '2-digit',
@@ -45,19 +53,313 @@ export default function PatientRegistration() {
         refID1: 0,
         refDoctor2: '',
         refID2: 0,
-
+        address: '',
+        pinCode: 0,
+        uploadDocument: '',
         refLabID: 0,
         refLab: '',
+
+
+
+        paidAmount: 0,
+        cashAmt: 0,
+        creditCardAmt: 0,
+        onlinewalletAmt: 0,
+
         bank_Id: 0,
+
+        discountType: 0,
+        discountid: 0,
+        discountApproved: 0,
     });
     const [patientRegistrationSelectData, setPatientRegistrationSelectData] = useState({
         centreId: '',
         rateId: '',
         title_id: '',
+        discountid: '',
         //bank_Id: '',
         //refDoctor1: ''
     });
 
+    const [patientRegistrationDataForDb, setPatientRegistrationDataForDb] = useState({
+        isActive: 0,
+        createdById: 0,
+        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+            .toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            })
+            .replace(/ /g, '-'),
+        updateById: 0,
+        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+            .toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            })
+            .replace(/ /g, '-'),
+        patientId: 0,
+        title_id: 0,
+        name: '',
+        gender: '',
+        ageTotal: 0,
+        ageDays: 0,
+        ageMonth: 0,
+        ageYear: 0,
+        dob: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+            .toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            })
+            .replace(/ /g, '-'),
+        isActualDOB: 0,
+        emailId: '',
+        mobileNo: '',
+        address: '',
+        pinCode: 0,
+        cityId: 0,
+        centreId: 0,
+        areaId: 0,
+        stateId: 0,
+        districtId: 0,
+        countryId: 0,
+        visitCount: 0,
+        remarks: '',
+        documentId: 0,
+        documnetnumber: '',
+        password: '',
+        addBooking: [
+            {
+                isActive: 0,
+                createdById: 0,
+                createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                    .toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    })
+                    .replace(/ /g, '-'),
+                updateById: 0,
+                updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                    .toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    })
+                    .replace(/ /g, '-'),
+                transactionId: 0,
+                workOrderId: '',
+                billNo: 0,
+                bookingDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                    .toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    })
+                    .replace(/ /g, '-'),
+                clientCode: '',
+                patientId: 0,
+                title_id: 0,
+                name: '',
+                gender: '',
+                dob: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                    .toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                    })
+                    .replace(/ /g, '-'),
+                ageYear: 0,
+                ageMonth: 0,
+                ageDay: 0,
+                totalAge: 0,
+                mobileNo: '',
+                mrp: 999999999999,
+                grossAmount: 999999999999,
+                discount: 999999999999,
+                netAmount: 999999999999,
+                paidAmount: 999999999999,
+                sessionCentreid: 0,
+                centreId: 0,
+                rateId: 0,
+                isCredit: 0,
+                paymentMode: '',
+                source: '',
+                discountType: 0,
+                discountid: 0,
+                discountReason: '',
+                discountApproved: 0,
+                isDisCountApproved: 0,
+                patientRemarks: '',
+                labRemarks: '',
+                otherLabRefer: '',
+                otherLabReferID: 0,
+                refDoctor1: '',
+                refID1: 0,
+                refDoctor2: '',
+                refID2: 0,
+                tempDOCID: 0,
+                tempDoctroName: '',
+                uploadDocument: '',
+                invoiceNo: '',
+                salesExecutiveID: 0,
+                addBookingStatus: [
+                    {
+                        isActive: 0,
+                        createdById: 0,
+                        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                            .toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            })
+                            .replace(/ /g, '-'),
+                        updateById: 0,
+                        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                            .toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            })
+                            .replace(/ /g, '-'),
+                        id: 0,
+                        transactionId: 0,
+                        patientId: 0,
+                        barcodeNo: '',
+                        status: '',
+                        centreId: 0,
+                        roleId: 0,
+                        remarks: '',
+                        testId: 0
+                    }
+                ],
+                addBookingItem: [
+                    {
+                        isActive: 0,
+                        createdById: 0,
+                        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                            .toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            })
+                            .replace(/ /g, '-'),
+                        updateById: 0,
+                        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                            .toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            })
+                            .replace(/ /g, '-'),
+                        id: 0,
+                        workOrderId: '',
+                        transactionId: 0,
+                        testcode: '',
+                        itemId: 0,
+                        packageID: 0,
+                        deptId: 0,
+                        barcodeNo: '',
+                        departmentName: '',
+                        investigationName: '',
+                        isPackage: 0,
+                        packageName: '',
+                        itemType: 0,
+                        mrp: 999999999999,
+                        rate: 999999999999,
+                        discount: 999999999999,
+                        netAmount: 999999999999,
+                        packMrp: 999999999999,
+                        packItemRate: 999999999999,
+                        packItemDiscount: 999999999999,
+                        packItemNet: 999999999999,
+                        reportType: 0,
+                        centreId: 0,
+                        sessionCentreid: 0,
+                        isSra: 0,
+                        isMachineOrder: 0,
+                        isEmailsent: 0,
+                        sampleTypeId: 0,
+                        sampleTypeName: '',
+
+                    }
+                ],
+                addpaymentdetail: [
+                    {
+                        id: 0,
+                        transactionId: 0,
+                        transactionType: '',
+                        workOrderId: '',
+                        receiptNo: 0,
+                        receivedAmt: 0,
+                        cashAmt: 0,
+                        creditCardAmt: 0,
+                        creditCardNo: '',
+                        chequeAmt: 0,
+                        chequeNo: '',
+                        onlinewalletAmt: 0,
+                        walletno: '',
+                        nefTamt: 0,
+                        bankName: '',
+                        paymentModeId: 0,
+                        isCancel: 0,
+                        cancelDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                            .toLocaleString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit',
+                            })
+                            .replace(/ /g, '-'),
+                        canceledBy: '',
+                        cancelReason: '',
+                        bookingCentreId: 0,
+                        settlementCentreID: 0,
+                        receivedBy: '',
+                        receivedID: 0
+                    }
+                ]
+            }
+        ]
+    }
+    )
 
     const [addReferDrData, setAddReferDrData] = useState({
         isActive: 0,
@@ -118,6 +420,7 @@ export default function PatientRegistration() {
     const [isButtonClick, setIsButtonClick] = useState(0);
     const [showPopup, setShowPopup] = useState(0);
     const [identifyAddReferDrOrReferLab, setIdentifyAddReferDrOrReferLab] = useState(0);
+    const imgRef = useRef();
 
 
     const openShowSearchBarDropDown = (val) => {
@@ -133,15 +436,66 @@ export default function PatientRegistration() {
             return date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
         };
 
-        const creditPeridos = formatDate(date);
+        const dob = formatDate(date);
         setPatientRegistrationData((prevData) => ({
             ...prevData,
-            creditPeridos // Set formatted date in searchData
+            dob // Set formatted date in searchData
         }));
         setShowCalander(false);
     };
 
+    //calculate date of birth
+    useEffect(() => {
 
+        function calculateDOB(ageDay, ageMonth, ageYear) {
+            const today = new Date();
+
+            // Subtract the given age values from today's date
+            const dob = new Date(
+                today.getFullYear() - ageYear,
+                today.getMonth() - ageMonth,
+                today.getDate() - ageDay
+            );
+
+            // Format the result as "DD-MMM-YYYY"
+            const formattedDOB = dob.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: 'short', // Short month format (e.g., Jan, Feb)
+                year: 'numeric',
+            });
+
+            setPatientRegistrationData((preventData) => ({
+                ...preventData,
+                dob: formattedDOB.replace(/ /g, '-')
+            }))
+            return formattedDOB.replace(/ /g, '-'); // Replace spaces with dashes
+        }
+
+        if (patientRegistrationData?.ageDays !== 0) {
+            calculateDOB(patientRegistrationData?.ageDays, patientRegistrationData?.ageMonth, patientRegistrationData?.ageYear);
+        }
+
+    }, [patientRegistrationData?.ageDays, patientRegistrationData?.ageMonth, patientRegistrationData?.ageYear]);
+
+    //calculate paid amt.
+    useEffect(() => {
+
+        // Calculate paidAmount dynamically
+        const totalPaid =
+            parseInt(patientRegistrationData.cashAmt || 0) +
+            parseInt(patientRegistrationData.creditCardAmt || 0) +
+            parseInt(patientRegistrationData.onlinewalletAmt || 0);
+
+        // Update paidAmount in state
+        setPatientRegistrationData((prevData) => ({
+            ...prevData,
+            paidAmount: totalPaid,
+        }));
+    }, [
+        patientRegistrationData.cashAmt,
+        patientRegistrationData.creditCardAmt,
+        patientRegistrationData.onlinewalletAmt,
+    ]);
 
     const handleDateAndTimeClick = (date) => {
         // Format the date
@@ -175,8 +529,50 @@ export default function PatientRegistration() {
         //setShowCalanderAndTime(false);
     };
 
+    const handelImageChange = (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+            const fileType = file.type;
+
+            // Handle image files
+            if (fileType.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPatientRegistrationData((prevData) => ({
+                        ...prevData,
+                        uploadDocument: reader.result, // Store base64 image
+                        fileType: "image", // Store file type
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+            // Handle PDF files
+            else if (fileType === "application/pdf") {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPatientRegistrationData((prevData) => ({
+                        ...prevData,
+                        uploadDocument: reader.result, // Store base64 PDF
+                        fileType: "pdf", // Store file type
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+            // Handle unsupported files
+            else {
+                toast.error("Please upload a valid image (.jpg, .jpeg, .png) or PDF file.");
+            }
+        }
+    };
 
 
+
+    const handelClickImage = () => {
+        if (imgRef.current) {
+            imgRef.current.click();
+        }
+    };
 
     const handelOnChangePatientRegistration = (event) => {
 
@@ -349,9 +745,29 @@ export default function PatientRegistration() {
                 // setinvestigationGridData
 
                 if (response?.success) {
-                    setinvestigationGridData(response?.data)
+
+
+                    if (response?.data?.length !== 0) {
+                        const result = response?.data.reduce((acc, current) => {
+                            if (!acc) {
+                                // Initialize the accumulator with all properties from the first object
+                                acc = { ...current, sampleTypeName: [current.sampleTypeName] };
+                            } else {
+                                // Push only sampleTypeName values into the array
+                                acc.sampleTypeName.push(current.sampleTypeName);
+                            }
+                            return acc;
+                        }, null);
+
+
+
+                        setinvestigationGridData((prevData) => [
+                            ...prevData, // Existing data
+                            result       // Add the new object to the array
+                        ]);
+                    }
+
                 }
-                console.log(response);
 
             } catch (error) {
                 toast.error(error?.message);
@@ -361,6 +777,15 @@ export default function PatientRegistration() {
 
     }, [patientRegistrationData?.rateId, patientRegistrationData?.itemId])
 
+
+    // Function to delete data by itemId
+    const deleteinvestigationGridDataByItemId = (indexToDelete) => {
+
+        const updatedData = [...investigationGridData]; // Create a copy of the array to avoid mutating the original
+        updatedData.splice(indexToDelete, 1); // Remove the item at the specified index
+        setinvestigationGridData(updatedData)
+
+    };
 
     //add refer dr
     const handelChangeOnAddReferDrData = (event) => {
@@ -379,8 +804,18 @@ export default function PatientRegistration() {
                 ...addReferDrData,
                 isActive: 1,
                 createdById: parseInt(user?.employeeId),
-                createdDateTime: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                    .replace(/ /g, '-'),
+                createdDateTime: new Date()
+                    .toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false, // Use 24-hour format
+                    })
+                    .replace(/ /g, '-')
+                    .replace(',', ''),
                 type: identifyAddReferDrOrReferLab === 1 ? 1 : 2
             }
 
@@ -458,8 +893,6 @@ export default function PatientRegistration() {
 
             try {
                 const response = await getAllReferLabApi();
-                console.log(response);
-
                 setAllLabReferData(response);
             } catch (error) {
                 toast.error(error?.message);
@@ -467,6 +900,428 @@ export default function PatientRegistration() {
         }
         getAllLabReferData();
     }, [isButtonClick])
+
+    console.log(investigationGridData);
+
+
+    //save patient registration data
+    const onSubmitForSavePatientRegistrationData = async () => {
+
+        // const updatedData = {
+
+        //     isActive: 1,
+        //     createdById: parseInt(user?.employeeId),
+        //     createdDateTime: new Date().toLocaleString('en-GB', {
+        //         day: '2-digit',
+        //         month: 'short',
+        //         year: 'numeric',
+        //         hour: '2-digit',
+        //         minute: '2-digit',
+        //         second: '2-digit',
+        //     }).replace(",", "").replace(/\s/g, "-"),
+        //     updateById: 0,
+        //     updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+        //         .toLocaleString('en-GB', {
+        //             day: '2-digit',
+        //             month: 'short',
+        //             year: 'numeric',
+        //             hour: '2-digit',
+        //             minute: '2-digit',
+        //             second: '2-digit',
+        //         }).replace(",", "").replace(/\s/g, "-"),
+        //     patientId: 0,
+        //     title_id: parseInt(patientRegistrationData?.title_id),
+        //     name: patientRegistrationData?.name,
+        //     gender: patientRegistrationData?.gender,
+        //     ageTotal: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
+        //     ageDays: parseInt(patientRegistrationData?.ageDays),
+        //     ageMonth: parseInt(patientRegistrationData?.ageMonth),
+        //     ageYear: parseInt(patientRegistrationData?.ageYear),
+        //     dob: patientRegistrationData?.dob,
+        //     isActualDOB: 0,
+        //     emailId: patientRegistrationData?.email,
+        //     mobileNo: patientRegistrationData?.mobileNo,
+        //     address: patientRegistrationData?.address,
+        //     pinCode: patientRegistrationData?.pinCode,
+        //     cityId: 0,
+        //     centreId: parseInt(patientRegistrationData?.centreId),
+        //     areaId: 0,
+        //     stateId: 0,
+        //     districtId: 0,
+        //     countryId: 0,
+        //     visitCount: 0,
+        //     remarks: '',
+        //     documentId: 0,
+        //     documnetnumber: 0,
+        //     password: 0
+        // }
+
+        // console.log(updatedData);
+
+        const addBooking = investigationGridData?.map((data) => ({
+            isActive: 1,
+            createdById: parseInt(user?.employeeId),
+            createdDateTime: new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }).replace(",", "").replace(/\s/g, "-"),
+            updateById: 0,
+            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                .toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                }).replace(",", "").replace(/\s/g, "-"),
+            transactionId: 0,
+            workOrderId: '',
+            billNo: 0,
+            bookingDate: new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            }).replace(/ /g, '-'),
+            clientCode: patientRegistrationData?.centreId,
+            patientId: 0,
+            title_id: patientRegistrationData?.title_id,
+            name: patientRegistrationData?.name,
+            gender: patientRegistrationData?.gender,
+            dob: patientRegistrationData?.dob,
+            ageYear: patientRegistrationData?.ageYear,
+            ageMonth: patientRegistrationData?.ageMonth,
+            ageDay: patientRegistrationData?.ageDays,
+            totalAge: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
+            mobileNo: patientRegistrationData?.mobileNo,
+            mrp: data?.mrp,
+            grossAmount: data?.grosss,
+            discount: data?.discount,
+            netAmount: data?.netAmt,
+            paidAmount: patientRegistrationData?.paidAmount,
+            sessionCentreid: parseInt(user?.defaultCenter),
+            centreId: parseInt(patientRegistrationData?.centreId),
+            rateId: parseInt(patientRegistrationData?.rateId),
+            //====
+            isCredit: 0,
+            paymentMode: '',
+            //====
+            source: '',
+            discountType: parseInt(patientRegistrationData?.discountType),
+            discountid: parseInt(patientRegistrationData?.discountid),
+            discountReason: patientRegistrationSelectData?.discountid,
+            discountApproved: parseInt(patientRegistrationData?.discountApproved),
+            isDisCountApproved: 0,
+            patientRemarks: '',
+            labRemarks: '',
+            otherLabRefer: patientRegistrationData?.refLab,
+            otherLabReferID: patientRegistrationData?.refLabID,
+            refDoctor1: patientRegistrationData?.refDoctor1,
+            refID1: patientRegistrationData?.refID1,
+            refDoctor2: patientRegistrationData?.refDoctor2,
+            refID2: patientRegistrationData?.refID2,
+            tempDOCID: 0,
+            tempDoctroName: '',
+            uploadDocument: patientRegistrationData?.uploadDocument,
+            invoiceNo: '',
+            salesExecutiveID: 0
+        }));
+        console.log(addBooking);
+
+        const addBookingStatus = {
+            isActive: 1,
+            createdById: parseInt(user?.employeeId),
+            createdDateTime: new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }).replace(",", "").replace(/\s/g, "-"),
+            updateById: 0,
+            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                .toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                }).replace(",", "").replace(/\s/g, "-"),
+            id: 0,
+            transactionId: 0,
+            patientId: 0,
+            barcodeNo: '',
+            status: 'Patient Registration',
+            centreId: parseInt(patientRegistrationData?.centreId),
+            roleId: parseInt(user?.defaultRole),
+            remarks: '',
+            testId: 0,
+        };
+        console.log(addBookingStatus);
+
+        const addBookingItem = investigationGridData?.map((data) => ({
+            isActive: 1,
+            createdById: parseInt(user?.employeeId),
+            createdDateTime: new Date().toLocaleString('en-GB', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            }).replace(",", "").replace(/\s/g, "-"),
+            updateById: 0,
+            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                .toLocaleString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                }).replace(",", "").replace(/\s/g, "-"),
+            id: 0,
+            workOrderId: '',
+            transactionId: 0,
+            testcode: '',
+            itemId: 0,
+            packageID: 0,
+            deptId: 0,
+            barcodeNo: '',
+            departmentName: '',
+            investigationName: '',
+            isPackage: 0,
+            packageName: '',
+            itemType: data?.itemType,
+
+            mrp: data?.mrp,
+            rate: 999999999999,
+            discount: data?.discount,
+            netAmount: data?.netAmt,
+
+            packMrp: 999999999999,
+            packItemRate: 999999999999,
+            packItemDiscount: 999999999999,
+            packItemNet: 999999999999,
+            reportType: 0,
+            centreId: 0,
+            sessionCentreid: 0,
+            isSra: 0,
+            isMachineOrder: 0,
+            isEmailsent: 0,
+            sampleTypeId: 0,
+            sampleTypeName: '',
+        }));
+
+
+        // const updatedData2 = {
+        //  addBooking:[   isActive: 1,
+        //     createdById: parseInt(user?.employeeId),
+        //     createdDateTime: new Date().toLocaleString('en-GB', {
+        //         day: '2-digit',
+        //         month: 'short',
+        //         year: 'numeric',
+        //         hour: '2-digit',
+        //         minute: '2-digit',
+        //         second: '2-digit',
+        //     }).replace(",", "").replace(/\s/g, "-"),
+        //     updateById: 0,
+        //     updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+        //         .toLocaleString('en-GB', {
+        //             day: '2-digit',
+        //             month: 'short',
+        //             year: 'numeric',
+        //             hour: '2-digit',
+        //             minute: '2-digit',
+        //             second: '2-digit',
+        //         }).replace(",", "").replace(/\s/g, "-"),
+        //     transactionId: 0,
+        //     workOrderId: '',
+        //     billNo: 0,
+        //     bookingDate: new Date().toLocaleString('en-GB', {
+        //         day: '2-digit',
+        //         month: 'short',
+        //         year: 'numeric'
+        //     }).replace(/ /g, '-'),
+        //     clientCode: patientRegistrationData?.centreId,
+        //     patientId: 0,
+        //     title_id: patientRegistrationData?.title_id,
+        //     name: patientRegistrationData?.name,
+        //     gender: patientRegistrationData?.gender,
+        //     dob: patientRegistrationData?.dob,
+        //     ageYear: patientRegistrationData?.ageYear,
+        //     ageMonth: patientRegistrationData?.ageMonth,
+        //     ageDay: patientRegistrationData?.ageDays,
+        //     totalAge: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
+        //     mobileNo: patientRegistrationData?.mobileNo,
+        //     mrp: 999999999999,
+        //     grossAmount: 999999999999,
+        //     discount: 999999999999,
+        //     netAmount: 999999999999,
+        //     paidAmount: 999999999999,
+        //     sessionCentreid: 0,
+        //     centreId: 0,
+        //     rateId: 0,
+        //     isCredit: 0,
+        //     paymentMode: '',
+        //     source: '',
+        //     discountType: 0,
+        //     discountid: 0,
+        //     discountReason: '',
+        //     discountApproved: 0,
+        //     isDisCountApproved: 0,
+        //     patientRemarks: '',
+        //     labRemarks: '',
+        //     otherLabRefer: '',
+        //     otherLabReferID: 0,
+        //     refDoctor1: '',
+        //     refID1: 0,
+        //     refDoctor2: '',
+        //     refID2: 0,
+        //     tempDOCID: 0,
+        //     tempDoctroName: '',
+        //     uploadDocument: '',
+        //     invoiceNo: '',
+        //     salesExecutiveID: 0,
+        //     addBookingStatus: [
+        //         {
+        //             isActive: 0,
+        //             createdById: 0,
+        //             createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+        //                 .toLocaleString('en-GB', {
+        //                     day: '2-digit',
+        //                     month: 'short',
+        //                     year: 'numeric',
+        //                     hour: '2-digit',
+        //                     minute: '2-digit',
+        //                     second: '2-digit',
+        //                 })
+        //                 .replace(/ /g, '-'),
+        //             updateById: 0,
+        //             updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+        //                 .toLocaleString('en-GB', {
+        //                     day: '2-digit',
+        //                     month: 'short',
+        //                     year: 'numeric',
+        //                     hour: '2-digit',
+        //                     minute: '2-digit',
+        //                     second: '2-digit',
+        //                 })
+        //                 .replace(/ /g, '-'),
+        //             id: 0,
+        //             transactionId: 0,
+        //             patientId: 0,
+        //             barcodeNo: '',
+        //             status: '',
+        //             centreId: 0,
+        //             roleId: 0,
+        //             remarks: '',
+        //             testId: 0,
+        //         },
+        //     ],
+        //     addBookingItem: [
+        //         {
+        //             isActive: 0,
+        //             createdById: 0,
+        //             createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+        //                 .toLocaleString('en-GB', {
+        //                     day: '2-digit',
+        //                     month: 'short',
+        //                     year: 'numeric',
+        //                     hour: '2-digit',
+        //                     minute: '2-digit',
+        //                     second: '2-digit',
+        //                 })
+        //                 .replace(/ /g, '-'),
+        //             updateById: 0,
+        //             updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+        //                 .toLocaleString('en-GB', {
+        //                     day: '2-digit',
+        //                     month: 'short',
+        //                     year: 'numeric',
+        //                     hour: '2-digit',
+        //                     minute: '2-digit',
+        //                     second: '2-digit',
+        //                 })
+        //                 .replace(/ /g, '-'),
+        //             id: 0,
+        //             workOrderId: '',
+        //             transactionId: 0,
+        //             testcode: '',
+        //             itemId: 0,
+        //             packageID: 0,
+        //             deptId: 0,
+        //             barcodeNo: '',
+        //             departmentName: '',
+        //             investigationName: '',
+        //             isPackage: 0,
+        //             packageName: '',
+        //             itemType: 0,
+        //             mrp: 999999999999,
+        //             rate: 999999999999,
+        //             discount: 999999999999,
+        //             netAmount: 999999999999,
+        //             packMrp: 999999999999,
+        //             packItemRate: 999999999999,
+        //             packItemDiscount: 999999999999,
+        //             packItemNet: 999999999999,
+        //             reportType: 0,
+        //             centreId: 0,
+        //             sessionCentreid: 0,
+        //             isSra: 0,
+        //             isMachineOrder: 0,
+        //             isEmailsent: 0,
+        //             sampleTypeId: 0,
+        //             sampleTypeName: '',
+        //         },
+        //     ],
+        //     addpaymentdetail: [
+        //         {
+        //             id: 0,
+        //             transactionId: 0,
+        //             transactionType: '',
+        //             workOrderId: '',
+        //             receiptNo: 0,
+        //             receivedAmt: 0,
+        //             cashAmt: 0,
+        //             creditCardAmt: 0,
+        //             creditCardNo: '',
+        //             chequeAmt: 0,
+        //             chequeNo: '',
+        //             onlinewalletAmt: 0,
+        //             walletno: '',
+        //             nefTamt: 0,
+        //             bankName: '',
+        //             paymentModeId: 0,
+        //             isCancel: 0,
+        //             cancelDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+        //                 .toLocaleString('en-GB', {
+        //                     day: '2-digit',
+        //                     month: 'short',
+        //                     year: 'numeric',
+        //                     hour: '2-digit',
+        //                     minute: '2-digit',
+        //                     second: '2-digit',
+        //                 })
+        //                 .replace(/ /g, '-'),
+        //             canceledBy: '',
+        //             cancelReason: '',
+        //             bookingCentreId: 0,
+        //             settlementCentreID: 0,
+        //             receivedBy: '',
+        //             receivedID: 0,
+        //         },
+        //     ],
+        //     ]
+        // };
+
+    }
 
     const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
 
@@ -524,22 +1379,20 @@ export default function PatientRegistration() {
                             </label>
                         </div>
 
-
-
                         {/* center */}
                         <div className="relative flex-1">
                             <input
                                 type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                                id="centreId"
+                                name="centreId"
+                                value={patientRegistrationSelectData?.centreId || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistrationForSelect(e)
+                                    // setPatientRegistrationSelectData((preventData) => ({
+                                    //     ...preventData,
+                                    //     centreId: ''
+                                    // }))
+                                }}
                                 onClick={() => openShowSearchBarDropDown(1)}
 
                                 placeholder=" "
@@ -555,20 +1408,20 @@ export default function PatientRegistration() {
                                     <ul>
 
                                         {
-                                            /* {filterAlltestNameData?.length > 0 ? (
-                                                filterAlltestNameData?.map((data, index) => (
+                                            filterCentreData?.length > 0 ? (
+                                                filterCentreData?.map((data, index) => (
                                                     <li
-                                                        key={data?.itemId}
-                                                        name="testName"
+                                                        key={data?.centreId}
+                                                        name="centreId"
                                                         className="my-1 px-2 cursor-pointer"
                                                         onClick={(e) => {
                                                             openShowSearchBarDropDown(0);
-                                                            handelOnChangeTestMappingData({
-                                                                target: { name: 'testName', value: data?.itemId },
+                                                            handelOnChangePatientRegistration({
+                                                                target: { name: 'centreId', value: data?.centreId },
                                                             });
-                                                            setSeleDropDown((preventData) => ({
+                                                            setPatientRegistrationSelectData((preventData) => ({
                                                                 ...preventData,
-                                                                testName: data?.itemName
+                                                                centreId: data?.centreName
                                                             }))
                                                         }}
                                                         onMouseEnter={() => setIsHovered(index)}
@@ -578,22 +1431,18 @@ export default function PatientRegistration() {
                                                                 isHovered === index ? activeTheme?.subMenuColor : 'transparent',
                                                         }}
                                                     >
-                                                        {data?.itemName}
+                                                        {data?.centreName}
                                                     </li>
-    
+
                                                 ))
-                                            )  */
+                                            )
+                                                : (
+                                                    <li className="py-4 text-gray-500 text-center">
+                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                                    </li>
+                                                )
 
                                         }
-
-                                            // : (
-                                            // <li className="py-4 text-gray-500 text-center">
-                                            //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                            // </li>
-                                            // )
-
-                                        <div>Under Processing</div>
-
                                     </ul>
                                 </div>
                             )}
@@ -603,22 +1452,19 @@ export default function PatientRegistration() {
                         <div className="relative flex-1">
                             <input
                                 type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                                id="rateId"
+                                name="rateId"
+                                value={patientRegistrationSelectData?.rateId || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistrationForSelect(e)
+
+                                }}
                                 onClick={() => openShowSearchBarDropDown(2)}
 
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="testName" className="menuPeerLevel">
+                            <label htmlFor="rateId" className="menuPeerLevel">
                                 Rate Type
                             </label>
 
@@ -628,20 +1474,20 @@ export default function PatientRegistration() {
                                     <ul>
 
                                         {
-                                            /* {filterAlltestNameData?.length > 0 ? (
-                                                filterAlltestNameData?.map((data, index) => (
+                                            filterRateData?.length > 0 ? (
+                                                filterRateData?.map((data, index) => (
                                                     <li
-                                                        key={data?.itemId}
-                                                        name="testName"
+                                                        key={data?.id}
+                                                        name="rateId"
                                                         className="my-1 px-2 cursor-pointer"
                                                         onClick={(e) => {
                                                             openShowSearchBarDropDown(0);
-                                                            handelOnChangeTestMappingData({
-                                                                target: { name: 'testName', value: data?.itemId },
+                                                            handelOnChangePatientRegistration({
+                                                                target: { name: 'rateId', value: data?.id },
                                                             });
-                                                            setSeleDropDown((preventData) => ({
+                                                            setPatientRegistrationSelectData((preventData) => ({
                                                                 ...preventData,
-                                                                testName: data?.itemName
+                                                                rateId: data?.rateName
                                                             }))
                                                         }}
                                                         onMouseEnter={() => setIsHovered(index)}
@@ -651,22 +1497,18 @@ export default function PatientRegistration() {
                                                                 isHovered === index ? activeTheme?.subMenuColor : 'transparent',
                                                         }}
                                                     >
-                                                        {data?.itemName}
+                                                        {data?.rateName}
                                                     </li>
-    
+
                                                 ))
-                                            )  */
+                                            )
+                                                : (
+                                                    <li className="py-4 text-gray-500 text-center">
+                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                                    </li>
+                                                )
 
                                         }
-
-                                            // : (
-                                            // <li className="py-4 text-gray-500 text-center">
-                                            //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                            // </li>
-                                            // )
-
-                                        <div>Under Processing</div>
-
                                     </ul>
                                 </div>
                             )}
@@ -679,14 +1521,9 @@ export default function PatientRegistration() {
                                     type="search"
                                     id="testName"
                                     name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
 
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -702,14 +1539,9 @@ export default function PatientRegistration() {
                                     type="search"
                                     id="testName"
                                     name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
 
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -745,21 +1577,17 @@ export default function PatientRegistration() {
                             <div className="relative flex-1">
                                 <input
                                     type="number"
-                                    id="testName"
-                                    name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
+                                    id="mobileNo"
+                                    name="mobileNo"
+                                    value={patientRegistrationData?.mobileNo || ''}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
 
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor focus:outline-none`}
                                 />
-                                <label htmlFor="testName" className="menuPeerLevel">
+                                <label htmlFor="mobileNo" className="menuPeerLevel">
                                     Mobile No.
                                 </label>
                             </div>
@@ -767,20 +1595,26 @@ export default function PatientRegistration() {
                             {/* title */}
                             <div className="relative flex-1">
                                 <select
-                                    id="isAllergyTest"
-                                    name='isAllergyTest'
-                                    // value={labTestMasterData.isAllergyTest}
-                                    // onChange={handelOnChangeLabTestMasterData}
-                                    className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+                                    id="title_id"
+                                    name="title_id"
+                                    value={patientRegistrationSelectData.title_id || ""}
+                                    onChange={(event) => {
+                                        handelOnChangePatientRegistrationForSelect(event);
+                                        handelOnChangePatientRegistration(event);
+                                    }}
+                                    className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none`}
                                 >
-                                    <option disabled hidden className='text-gray-400'>
-                                        Select Option
+                                    <option value="" disabled className="text-gray-400">
+                                        Select Title
                                     </option>
-                                    <option value="">Mr.</option>
-                                    <option value="">Ms.</option>
-                                    <option value="">Other</option>
+                                    {allTitleData?.map((data) => (
+                                        <option key={data?.id} value={parseInt(data?.id)}>
+                                            {data?.title}
+                                        </option>
+                                    ))}
                                 </select>
-                                <label htmlFor="isAllergyTest" className="menuPeerLevel">
+
+                                <label htmlFor="title_id" className="menuPeerLevel">
                                     Title
                                 </label>
                             </div>
@@ -791,21 +1625,17 @@ export default function PatientRegistration() {
                         <div className="relative flex-1">
                             <input
                                 type="text"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                                id="name"
+                                name="name"
+                                value={patientRegistrationData?.name || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistration(e)
+                                }}
 
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="testName" className="menuPeerLevel">
+                            <label htmlFor="name" className="menuPeerLevel">
                                 Name
                             </label>
                         </div>
@@ -818,21 +1648,17 @@ export default function PatientRegistration() {
                             <div className="relative flex-1">
                                 <input
                                     type="number"
-                                    id="testName"
-                                    name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
+                                    id="ageDays"
+                                    name="ageDays"
+                                    value={patientRegistrationData?.ageDays || ''}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
 
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor focus:outline-none`}
                                 />
-                                <label htmlFor="testName" className="menuPeerLevel">
+                                <label htmlFor="ageDays" className="menuPeerLevel">
                                     Day
                                 </label>
                             </div>
@@ -841,21 +1667,17 @@ export default function PatientRegistration() {
                             <div className="relative flex-1">
                                 <input
                                     type="number"
-                                    id="testName"
-                                    name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
+                                    id="ageMonth"
+                                    name="ageMonth"
+                                    value={patientRegistrationData?.ageMonth || ''}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
 
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor focus:outline-none`}
                                 />
-                                <label htmlFor="testName" className="menuPeerLevel">
+                                <label htmlFor="ageMonth" className="menuPeerLevel">
                                     Month
                                 </label>
                             </div>
@@ -864,21 +1686,17 @@ export default function PatientRegistration() {
                             <div className="relative flex-1">
                                 <input
                                     type="number"
-                                    id="testName"
-                                    name="testName"
-                                    // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChangeTestMappingData(e),
-                                    //         setSeleDropDown((preventData) => ({
-                                    //             ...preventData,
-                                    //             testName: ''
-                                    //         }))
-                                    // }}
+                                    id="ageYear"
+                                    name="ageYear"
+                                    value={patientRegistrationData?.ageYear || ''}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
 
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor focus:outline-none`}
                                 />
-                                <label htmlFor="testName" className="menuPeerLevel">
+                                <label htmlFor="ageYear" className="menuPeerLevel">
                                     Year
                                 </label>
                             </div>
@@ -892,14 +1710,14 @@ export default function PatientRegistration() {
                                 <div className="w-full">
                                     <input
                                         type="text"
-                                        id="creditPeridos"
-                                        name="creditPeridos"
-                                        value={patientRegistrationData.creditPeridos}
+                                        id="dob"
+                                        name="dob"
+                                        value={patientRegistrationData.dob}
                                         onChange={handelOnChangePatientRegistration}
                                         placeholder=" "
                                         className={`inputPeerField pr-10 w-full border-borderColor peer focus:outline-none`}
                                     />
-                                    <label htmlFor="creditPeridos" className="menuPeerLevel">
+                                    <label htmlFor="dob" className="menuPeerLevel">
                                         DOB
                                     </label>
                                 </div>
@@ -921,20 +1739,20 @@ export default function PatientRegistration() {
                             <div className="relative flex-1">
                                 {/* gendersInLabTestMaster */}
                                 <select
-                                    id="isAllergyTest"
-                                    name='isAllergyTest'
-                                    // value={labTestMasterData.isAllergyTest}
-                                    // onChange={handelOnChangeLabTestMasterData}
+                                    id="gender"
+                                    name='gender'
+                                    value={patientRegistrationData?.gender}
+                                    onChange={handelOnChangePatientRegistration}
                                     className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                                 >
-                                    <option disabled hidden className='text-gray-400'>
-                                        Select Option
+                                    <option value="" disabled className="text-gray-400">
+                                        Select Gender
                                     </option>
                                     <option value="M">Male</option>
                                     <option value="F">Female</option>
                                     <option value="T">Transgender</option>
                                 </select>
-                                <label htmlFor="isAllergyTest" className="menuPeerLevel">
+                                <label htmlFor="gender" className="menuPeerLevel">
                                     Gender
                                 </label>
                             </div>
@@ -952,21 +1770,17 @@ export default function PatientRegistration() {
                         <div className="relative flex-1">
                             <input
                                 type="email"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                                id="emailId"
+                                name="emailId"
+                                value={patientRegistrationData?.emailId || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistration(e)
+                                }}
 
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="testName" className="menuPeerLevel">
+                            <label htmlFor="emailId" className="menuPeerLevel">
                                 Email
                             </label>
                         </div>
@@ -977,23 +1791,67 @@ export default function PatientRegistration() {
                             <div className="relative flex-1">
                                 <input
                                     type="text"
-                                    id="city"
-                                    name="city"
-                                    // value={selectedSearchDropDownData?.city || employeeData.city || ''}
-                                    // onChange={(e) => {
-                                    //     handelChangeEmployeeDetails(e)
-
-                                    //     setSelectedSearchDropDownData((preventData) => ({
-                                    //         ...preventData,
-                                    //         city: '',
-                                    //     }));
-                                    // }}
+                                    id="refDoctor1"
+                                    name="refDoctor1"
+                                    value={patientRegistrationData.refDoctor1 || ''}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
+                                    onClick={() => openShowSearchBarDropDown(4)}
                                     placeholder=" "
                                     className={`inputPeerField peer border-borderColor            focus:outline-none`}
                                 />
-                                <label htmlFor="city" className="menuPeerLevel">
+                                <label htmlFor="refDoctor1" className="menuPeerLevel">
                                     Refer Dr.
                                 </label>
+
+
+                                {/* Dropdown to select the menu */}
+                                {showSearchBarDropDown === 4 && (
+                                    <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                                        <ul>
+
+                                            {
+                                                filterReferDrData?.length > 0 ? (
+                                                    filterReferDrData?.map((data, index) => (
+                                                        <li
+                                                            key={data?.doctorId}
+                                                            name="refDoctor1"
+                                                            className="my-1 px-2 cursor-pointer"
+                                                            onClick={(e) => {
+                                                                openShowSearchBarDropDown(0);
+                                                                handelOnChangePatientRegistration({
+                                                                    target: { name: 'refID1', value: data?.doctorId },
+                                                                });
+
+                                                                handelOnChangePatientRegistration({
+                                                                    target: { name: 'refDoctor1', value: data?.doctorName },
+                                                                });
+
+
+                                                            }}
+                                                            onMouseEnter={() => setIsHovered(index)}
+                                                            onMouseLeave={() => setIsHovered(null)}
+                                                            style={{
+                                                                background:
+                                                                    isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                                            }}
+                                                        >
+                                                            {data?.doctorName}
+                                                        </li>
+
+                                                    ))
+                                                )
+                                                    : (
+                                                        <li className="py-4 text-gray-500 text-center">
+                                                            {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                                        </li>
+                                                    )
+
+                                            }
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -1009,29 +1867,75 @@ export default function PatientRegistration() {
                             </div>
 
 
+
+
                         </div>
 
                         {/* Refer Dr2 */}
                         <div className="relative flex-1">
                             <input
                                 type="text"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-
+                                id="refDoctor2"
+                                name="refDoctor2"
+                                value={patientRegistrationData.refDoctor2 || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistration(e)
+                                }}
+                                onClick={() => openShowSearchBarDropDown(5)}
                                 placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                className={`inputPeerField peer border-borderColor            focus:outline-none`}
                             />
-                            <label htmlFor="testName" className="menuPeerLevel">
+                            <label htmlFor="refDoctor2" className="menuPeerLevel">
                                 Refer Dr2
                             </label>
+
+
+                            {/* Dropdown to select the menu */}
+                            {showSearchBarDropDown === 5 && (
+                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                                    <ul>
+
+                                        {
+                                            filterReferDrDataTwo?.length > 0 ? (
+                                                filterReferDrDataTwo?.map((data, index) => (
+                                                    <li
+                                                        key={data?.doctorId}
+                                                        name="refDoctor2"
+                                                        className="my-1 px-2 cursor-pointer"
+                                                        onClick={(e) => {
+                                                            openShowSearchBarDropDown(0);
+                                                            handelOnChangePatientRegistration({
+                                                                target: { name: 'refID2', value: data?.doctorId },
+                                                            });
+
+                                                            handelOnChangePatientRegistration({
+                                                                target: { name: 'refDoctor2', value: data?.doctorName },
+                                                            });
+
+
+                                                        }}
+                                                        onMouseEnter={() => setIsHovered(index)}
+                                                        onMouseLeave={() => setIsHovered(null)}
+                                                        style={{
+                                                            background:
+                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                                        }}
+                                                    >
+                                                        {data?.doctorName}
+                                                    </li>
+
+                                                ))
+                                            )
+                                                : (
+                                                    <li className="py-4 text-gray-500 text-center">
+                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                                    </li>
+                                                )
+
+                                        }
+                                    </ul>
+                                </div>
+                            )}
                         </div>
 
 
@@ -1079,21 +1983,17 @@ export default function PatientRegistration() {
                         <div className="relative flex-1">
                             <input
                                 type="text"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                                id="address"
+                                name="address"
+                                value={patientRegistrationData?.address || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistration(e)
+                                }}
 
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="testName" className="menuPeerLevel">
+                            <label htmlFor="address" className="menuPeerLevel">
                                 Address
                             </label>
                         </div>
@@ -1103,27 +2003,24 @@ export default function PatientRegistration() {
                         <div className="relative flex-1">
                             <input
                                 type="number"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                                id="pinCode"
+                                name="pinCode"
+                                value={patientRegistrationData?.pinCode || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistration(e)
+                                }}
 
                                 placeholder=" "
                                 className={`inputPeerField peer border-borderColor focus:outline-none`}
                             />
-                            <label htmlFor="testName" className="menuPeerLevel">
+                            <label htmlFor="pinCode" className="menuPeerLevel">
                                 Pincode
                             </label>
                         </div>
 
                         {/* Refer Lab/Hospital */}
                         <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
                             <div className="relative flex-1">
                                 <input
                                     type="search"
@@ -1200,30 +2097,52 @@ export default function PatientRegistration() {
                                 </div>
                             </div>
 
-
                         </div>
 
                         {/* Upload Document */}
-                        <div className="relative flex-1">
-                            <input
-                                type="file"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
+                        <div className="relative flex-1 flex gap-[0.10rem]">
+                            <div
+                                name="uploadDocument"
+                                className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
+                                onClick={handelClickImage}
+                            >
+                                {
+                                    patientRegistrationData.uploadDocument === '' ? (
+                                        <div className="pt-2 z-40 font-semibold text-center">
+                                            Upload Document
+                                        </div>
+                                    ) : (
+                                        <div className="pt-2 z-40 text-center">
+                                            Upload Document Successfully
+                                        </div>
+                                    )
+                                }
 
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
+                                <input
+                                    type="file"
+                                    id="uploadDocument"
+                                    name="uploadDocument"
+                                    ref={imgRef}
+                                    onChange={handelImageChange}
+                                    style={{ display: 'none' }}
+                                    // accept=".jpg, .jpeg, .png"
+                                    max={'150px/150px'}
+                                />
+                            </div>
+
+                            <label htmlFor="uploadDocument" className="menuPeerLevel">
                                 Upload Document
                             </label>
+
+                            {
+                                patientRegistrationData?.uploadDocument && (
+                                    <div className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                                        // onClick={() => setImageView(true)}
+                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
+                                        <IoMdImages className="w-4 h-4 font-semibold" />
+                                    </div>
+                                )
+                            }
                         </div>
 
                         {/* investigation */}
@@ -1289,7 +2208,6 @@ export default function PatientRegistration() {
                             )}
                         </div>
 
-
                     </div>
 
                     <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
@@ -1299,7 +2217,7 @@ export default function PatientRegistration() {
                         {
                             investigationGridData?.length !== 0 && (
                                 <div className="col-span-12">
-                                    <div className="max-h-[7.5rem] overflow-y-auto">
+                                    <div className="max-h-[8.2rem] overflow-y-auto">
                                         <table className="table-auto border-collapse w-full text-xxs text-left">
                                             <thead
                                                 style={{
@@ -1324,71 +2242,78 @@ export default function PatientRegistration() {
 
                                             <tbody>
 
-                                                <tr
-                                                // Prefer unique keys
-                                                // className={`cursor-pointer ${isHoveredTable === rowIndex
-                                                //     ? ""
-                                                //     : rowIndex % 2 === 0
-                                                //         ? "bg-gray-100"
-                                                //         : "bg-white"
-                                                //     }`}
-                                                // onMouseEnter={() => setIsHoveredTable(rowIndex)}
-                                                // onMouseLeave={() => setIsHoveredTable(null)}
-                                                // style={{
-                                                //     background:
-                                                //         isHoveredTable === rowIndex
-                                                //             ? activeTheme?.subMenuColor
-                                                //             : undefined,
-                                                // }}
-                                                >
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        {investigationGridData[0]?.itemName}
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        <FontAwesomeIcon icon="fas fa-info-circle" />
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        {investigationGridData[0]?.mrp}
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        {investigationGridData[0]?.grosss}
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        {investigationGridData[0]?.discount}
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        {investigationGridData[0]?.netAmt}
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        <select className="border rounded px-2 py-1 outline-none">
-                                                            {investigationGridData?.map((item, index) => (
-                                                                <option key={index} value={item.sampleTypeName}>
-                                                                    {item.sampleTypeName}
-                                                                </option>
-                                                            ))}
-                                                        </select>
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        <input type="text" className='border-[1.5px] rounded outline-none pl-1 w-full' />
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        {investigationGridData[0]?.deliveryDate}
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        <input type="checkbox"
-                                                        // id={`checkbox-${rowIndex}`} 
-                                                        />
-                                                        {/* <label htmlFor={`checkbox-${rowIndex}`} className="sr-only">
-                                                            Select Row
-                                                        </label> */}
-                                                    </td>
-                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                        <RiDeleteBin2Fill
-                                                            // onClick={() => handleDelete(rowIndex)}
-                                                            className="cursor-pointer text-red-500"
-                                                        />
-                                                    </td>
-                                                </tr>
+                                                {
+                                                    investigationGridData?.map((data, rowIndex) => (
+                                                        <tr
+                                                            //Prefer unique keys
+                                                            key={rowIndex}
+                                                            className={`cursor-pointer ${isHoveredTable === rowIndex
+                                                                ? ""
+                                                                : rowIndex % 2 === 0
+                                                                    ? "bg-gray-100"
+                                                                    : "bg-white"
+                                                                }`}
+                                                            onMouseEnter={() => setIsHoveredTable(rowIndex)}
+                                                            onMouseLeave={() => setIsHoveredTable(null)}
+                                                            style={{
+                                                                background:
+                                                                    isHoveredTable === rowIndex
+                                                                        ? activeTheme?.subMenuColor
+                                                                        : undefined,
+                                                            }}
+                                                        >
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.itemName}
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                <FontAwesomeIcon icon="fas fa-info-circle" />
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.mrp}
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.grosss}
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.discount}
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.netAmt}
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                <select className="border rounded px-1 w-full outline-none">
+                                                                    {data?.sampleTypeName?.map((item, index) => (
+                                                                        <option key={index} value={item}>
+                                                                            {item}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                <input type="text" className='border-[1.5px] rounded outline-none px-1 w-full' />
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.deliveryDate}
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor text-center pt-1">
+                                                                <input type="checkbox"
+                                                                    id={`checkbox-${rowIndex}`}
+                                                                />
+                                                                {/* <label htmlFor={`checkbox-${rowIndex}`} className="sr-only">
+                                                                    Select Row
+                                                                </label> */}
+                                                            </td>
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                <RiDeleteBin2Fill
+                                                                    onClick={() => deleteinvestigationGridDataByItemId(rowIndex)}
+
+                                                                    className="cursor-pointer text-red-500 text-base"
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    ))
+                                                }
+
 
                                             </tbody>
                                         </table>
@@ -1445,46 +2370,105 @@ export default function PatientRegistration() {
 
                         {/* Payment Mode */}
                         <div className="relative flex-1">
-                            <select
-                                id="paymentMode"
-                                name='paymentMode'
-                                // value={labTestMasterData.paymentMode}
-                                onChange={(event) => setPaymentMode(event.target.value)}
-                                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+                            <div
+                                className={`flex peer items-center border-[1.5px] 
+                                border-borderColor rounded text-xxxs h-[1.6rem] text-[#495057] bg-white `}
+                                onClick={() => showSearchBarDropDown !== 6 ? openShowSearchBarDropDown(6) : openShowSearchBarDropDown(0)}
                             >
-                                <option disabled hidden className='text-gray-400'>
-                                    Select Option
-                                </option>
-                                <option value="1">Cash</option>
-                                <option value="2">Debit/Credit Card</option>
-                                <option value="2">UPI</option>
-                            </select>
-                            <label htmlFor="paymentMode" className="menuPeerLevel">
-                                Payment Mode
-                            </label>
+                                <input
+                                    type="text"
+                                    id="paymentModeType"
+                                    name="paymentModeType"
+                                    // disabled={labTestMasterData?.itemType === '3'}
+                                    value={
+                                        paymentModeType.length === 0
+                                            ? ''
+                                            : paymentModeType
+                                                .map((data) => data?.label)
+                                                .join(', ')
+                                    }
+                                    // onChange={handelOnChangePatientRegistration}
+                                    readOnly
+                                    placeholder="Search Payment Mode"
+                                    className={`w-full rounded-r rounded-md border-0 text-xxxs font-semibold px-2 pt-1 focus:outline-none cursor-pointer`}
+                                />
+                                <label htmlFor="paymentModeType" className="menuPeerLevel">
+                                    Payment Mode
+                                </label>
+
+                                <div>
+                                    {
+                                        showSearchBarDropDown === 6 ? <RiArrowDropUpLine className='text-xl cursor-pointer' /> : <RiArrowDropDownLine className='text-xl cursor-pointer' />
+                                    }
+                                </div>
+                            </div>
+
+                            {/* Dropdown to select the menu */}
+                            {showSearchBarDropDown === 6 && (
+                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+
+                                    {
+                                        paymentModes?.length === 0 ?
+
+                                            <div className='py-4 text-gray-500 text-center'>
+                                                {import.meta.env.VITE_API_RECORD_NOT_FOUND}
+                                            </div>
+                                            :
+                                            <ul className='w-full'>
+
+                                                {/* Individual Checkboxes */}
+                                                {paymentModes?.length > 0 ? (
+                                                    paymentModes?.map((data, index) => {
+
+                                                        return (
+                                                            <li
+                                                                key={index}
+                                                                className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2"
+                                                                onMouseEnter={() => setIsHovered(index)}
+                                                                onMouseLeave={() => setIsHovered(null)}
+                                                                style={{
+                                                                    background: isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                                                }}
+                                                            >
+                                                                <div>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={paymentModeType?.some((item) => item?.value === data?.value)}
+                                                                        onChange={(e) => handleCheckboxChange(e, data)}
+                                                                    />
+                                                                </div>
+                                                                <div>{data?.label}</div>
+                                                            </li>
+                                                        )
+                                                    })
+                                                ) : (
+                                                    <li className="py-4 text-gray-500 text-center">
+                                                        {import.meta.env.VITE_API_RECORD_NOT_FOUND}
+                                                    </li>
+                                                )}
+                                            </ul>
+                                    }
+
+
+
+                                </div>
+                            )}
                         </div>
 
                         {/* Paid Amt. */}
                         <div className="relative flex-1">
                             <input
                                 type="text"
-                                id="paidAmt"
-                                name="paidAmt"
-                                value={1000 || ''}
-                                // onChange={(e) => {
-                                //     handelChangeEmployeeDetails(e)
-
-                                //     setSelectedSearchDropDownData((preventData) => ({
-                                //         ...preventData,
-                                //         paidAmt: '',
-                                //     }));
-                                // }}
+                                id="paidAmount"
+                                name="paidAmount"
+                                value={patientRegistrationData?.paidAmount || ''}
                                 placeholder=" "
-                                className={`inputPeerField peer border-borderColor            focus:outline-none`}
+                                className="inputPeerField peer border-borderColor focus:outline-none"
                                 readOnly
                             />
-                            <label htmlFor="paidAmt" className="menuPeerLevel">
-                                Paid Amt.(Cash Amt+Credit/debit amt+ upi amt)
+
+                            <label htmlFor="paidAmount" className="menuPeerLevel">
+                                Paid Amt.
                             </label>
                         </div>
 
@@ -1546,55 +2530,73 @@ export default function PatientRegistration() {
 
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
-                                        <input type="number" name="" id=""
-                                            className='inputPeerField outline-none'
+                                        <input type="number" name="cashAmt" id="cashAmt"
+                                            value={patientRegistrationData?.cashAmt || ''}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            className={`inputPeerField outline-none ${paymentModeType.some((item) => item.value === "1") ? "cursor-pointer" : "cursor-not-allowed"
+                                                }`}
+                                            readOnly={!paymentModeType.some((item) => item.value === "1")}
                                         />
                                     </td>
 
 
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
-                                        <input type="number" name="" id=""
-                                            className={`inputPeerField outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-
-                                            readOnly={paymentMode !== "2"}
+                                        <input type="number"
+                                            name="creditCardAmt" id="creditCardAmt"
+                                            value={patientRegistrationData?.creditCardAmt || ''}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            className={`inputPeerField outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
+                                                }`}
+                                            readOnly={!paymentModeType.some((item) => item.value === "2")}
                                         />
                                     </td>
 
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
                                         <input type="number" name="" id=""
-                                            className={`inputPeerField outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-
-                                            readOnly={paymentMode !== "2"}
+                                            className={`inputPeerField outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
+                                                }`}
+                                            readOnly={!paymentModeType.some((item) => item.value === "2")}
                                         />
                                     </td>
 
 
                                     <td className='text-xxs font-semibold text-gridTextColor'>
+
                                         <select
-                                            id="paymentMode"
-                                            name='paymentMode'
-                                            // value={labTestMasterData.paymentMode}
-                                            onChange={(event) => setPaymentMode(event.target.value)}
-                                            className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none ${paymentMode !== '2' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                            id="bank_Id"
+                                            name="bank_Id"
+                                            value={patientRegistrationData.bank_Id || ""}
+                                            onChange={(event) => {
 
-
-                                            readOnly={paymentMode !== "2"}
+                                                handelOnChangePatientRegistration(event);
+                                            }}
+                                            className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2") ? "cursor-not-allowed" : "cursor-pointer"
+                                                }`}
+                                            disabled={!paymentModeType.some((item) => item.value === "2")}
                                         >
-                                            <option disabled hidden className='text-gray-400'>
-                                                Select Option
+                                            <option value="" disabled className="text-gray-400">
+                                                Select Bank
                                             </option>
-                                            <option value="1">Bank1</option>
-                                            <option value="2">Bank2</option>
-                                            <option value="2">Bank3</option>
+                                            {allBankNameData?.map((data) => (
+                                                <option key={data?.id} value={parseInt(data?.id)}>
+                                                    {data?.bankName}
+                                                </option>
+                                            ))}
                                         </select>
+
                                     </td>
 
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
-                                        <input type="number" name="" id=""
-                                            className='inputPeerField outline-none'
+                                        <input type="number"
+                                            name="onlinewalletAmt" id="onlinewalletAmt"
+                                            value={patientRegistrationData?.onlinewalletAmt || ''}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            className={`inputPeerField outline-none ${!paymentModeType.some((item) => item.value === "3") ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+
+                                            readOnly={!paymentModeType.some((item) => item.value === "3")}
                                         />
                                     </td>
 
@@ -1605,15 +2607,18 @@ export default function PatientRegistration() {
                                             id="paymentMode"
                                             name='paymentMode'
                                             // value={labTestMasterData.paymentMode}
-                                            onChange={(event) => setPaymentMode(event.target.value)}
-                                            className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+                                            // onChange={(event) => setPaymentMode(event.target.value)}
+                                            className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "3") ? "cursor-not-allowed" : "cursor-pointer"
+                                                }`}
+                                            disabled={!paymentModeType.some((item) => item.value === "3")}
                                         >
                                             <option disabled hidden className='text-gray-400'>
                                                 Select Option
                                             </option>
-                                            <option value="1">Bank1</option>
-                                            <option value="2">Bank2</option>
-                                            <option value="2">Bank3</option>
+                                            <option value="1">PayTm</option>
+                                            <option value="2">PhonePay</option>
+                                            <option value="3">BHIM</option>
+                                            <option value="4">GooglePay</option>
                                         </select>
                                     </td>
                                 </tr>
@@ -1627,20 +2632,25 @@ export default function PatientRegistration() {
                         {/* Discount Type */}
                         <div className="relative flex-1">
                             <select
-                                id="paymentMode"
-                                name='paymentMode'
-                                // value={labTestMasterData.paymentMode}
-                                onChange={(event) => setPaymentMode(event.target.value)}
+                                id="discountType"
+                                name='discountType'
+                                value={patientRegistrationData?.discountType}
+                                onChange={(event) => handelOnChangePatientRegistration(event)}
                                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                             >
-                                <option disabled hidden className='text-gray-400'>
+                                <option value={0} disabled hidden className='text-gray-400'>
                                     Select Option
                                 </option>
-                                <option value="">Discount Type</option>
-                                <option value="">Discount Type</option>
-                                <option value="">Discount Type</option>
+
+                                {
+                                    allDicountTypeData?.map((data) => (
+                                        <option key={data?.id} value={data?.id}>{data?.type}</option>
+
+                                    ))
+                                }
+
                             </select>
-                            <label htmlFor="paymentMode" className="menuPeerLevel">
+                            <label htmlFor="discountType" className="menuPeerLevel">
                                 Discount Type
                             </label>
                         </div>
@@ -1654,7 +2664,7 @@ export default function PatientRegistration() {
                                 name="testName"
                                 // value={selectedDropDown?.testName || testMappingData?.testName || ''}
                                 // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
+                                //     handelOnChangePatientRegistration(e),
                                 //         setSeleDropDown((preventData) => ({
                                 //             ...preventData,
                                 //             testName: ''
@@ -1677,7 +2687,7 @@ export default function PatientRegistration() {
                                 name="testName"
                                 // value={selectedDropDown?.testName || testMappingData?.testName || ''}
                                 // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
+                                //     handelOnChangePatientRegistration(e),
                                 //         setSeleDropDown((preventData) => ({
                                 //             ...preventData,
                                 //             testName: ''
@@ -1696,20 +2706,35 @@ export default function PatientRegistration() {
                         {/* Discount Reason */}
                         <div className="relative flex-1">
                             <select
-                                id="paymentMode"
-                                name='paymentMode'
-                                // value={labTestMasterData.paymentMode}
-                                onChange={(event) => setPaymentMode(event.target.value)}
-                                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+                                id="discountid"
+                                name="discountid"
+                                value={patientRegistrationData?.discountid}
+                                onChange={(event) => {
+                                    const selectedOption = event.target.options[event.target.selectedIndex];
+                                    const id = selectedOption.value;
+                                    const reasonName = selectedOption.getAttribute("data-reasonname");
+
+                                    // Call separate methods for id and reasonName
+                                    handelOnChangePatientRegistration(event);
+
+                                    setPatientRegistrationSelectData((preventData) => ({
+                                        ...preventData,
+                                        discountid: reasonName
+                                    }))
+                                }}
+                                className="inputPeerField cursor-pointer peer border-borderColor focus:outline-none"
                             >
-                                <option disabled hidden className='text-gray-400'>
+                                <option value={0} disabled hidden className="text-gray-400">
                                     Select Option
                                 </option>
-                                <option value="1">Discount Reason1</option>
-                                <option value="2">Discount Reason2</option>
-                                <option value="2">Discount Reason3</option>
+                                {allDiscountReasonData?.map((data) => (
+                                    <option key={data?.id} value={data?.id} data-reasonname={data?.discountReasonName}>
+                                        {data?.discountReasonName}
+                                    </option>
+                                ))}
                             </select>
-                            <label htmlFor="paymentMode" className="menuPeerLevel">
+
+                            <label htmlFor="discountid" className="menuPeerLevel">
                                 Discount Reason
                             </label>
                         </div>
@@ -1718,20 +2743,23 @@ export default function PatientRegistration() {
                         {/* Discount Approved By */}
                         <div className="relative flex-1">
                             <select
-                                id="paymentMode"
-                                name='paymentMode'
-                                // value={labTestMasterData.paymentMode}
-                                onChange={(event) => setPaymentMode(event.target.value)}
+                                id="discountApproved"
+                                name='discountApproved'
+                                value={patientRegistrationData?.discountApproved}
+                                onChange={(event) => handelOnChangePatientRegistration(event)}
                                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                             >
-                                <option disabled hidden className='text-gray-400'>
+                                <option value={0} disabled hidden className='text-gray-400'>
                                     Select Option
                                 </option>
-                                <option value="1">Discount Approved By1</option>
-                                <option value="2">Discount Approved By2</option>
-                                <option value="2">Discount Approved By3</option>
+                                {
+                                    allDiscountApprovedByData?.map((data) => (
+                                        <option key={data?.empId} value={data?.empId}>{`${data?.fName} ${data?.lName}`}</option>
+
+                                    ))
+                                }
                             </select>
-                            <label htmlFor="paymentMode" className="menuPeerLevel">
+                            <label htmlFor="discountApproved" className="menuPeerLevel">
                                 Discount Approved By
                             </label>
                         </div>
@@ -1747,6 +2775,8 @@ export default function PatientRegistration() {
                                     style={{
                                         background: activeTheme?.menuColor, color: activeTheme?.iconColor
                                     }}
+
+                                    onClick={onSubmitForSavePatientRegistrationData}
                                 >
 
                                     {/* {
@@ -1809,56 +2839,56 @@ export default function PatientRegistration() {
 
 
                             <form
-                                // onSubmit={onSumitUserChangePassword}
+                                // onSubmit={}
                                 autoComplete='off'>
 
                                 <div className='mx-1 mt-2 grid grid-cols-2 gap-2'>
 
-                                    {/* labObservationName */}
+                                    {/* title */}
                                     <div className="relative flex-1 ">
                                         <input
                                             type="text"
-                                            id="labObservationName"
-                                            name="labObservationName"
-                                            // value={newMappingData.labObservationName}
-                                            // onChange={handelChangeOnNewObseravationData}
+                                            id="title"
+                                            name="title"
+                                            value={addReferDrData.title}
+                                            onChange={handelChangeOnAddReferDrData}
                                             placeholder=" "
                                             className={`inputPeerField peer border-borderColor focus:outline-none`}
                                         />
-                                        <label htmlFor="labObservationName" className="menuPeerLevel">
+                                        <label htmlFor="title" className="menuPeerLevel">
                                             Title
                                         </label>
                                     </div>
 
-                                    {/* shortName */}
+                                    {/* doctorName */}
                                     <div className="relative flex-1 ">
                                         <input
                                             type="text"
-                                            id="shortName"
-                                            name="shortName"
-                                            // value={newMappingData.shortName}
-                                            // onChange={handelChangeOnNewObseravationData}
+                                            id="doctorName"
+                                            name="doctorName"
+                                            value={addReferDrData.doctorName}
+                                            onChange={handelChangeOnAddReferDrData}
                                             placeholder=" "
                                             className={`inputPeerField peer border-borderColor focus:outline-none`}
                                         />
-                                        <label htmlFor="shortName" className="menuPeerLevel">
+                                        <label htmlFor="doctorName" className="menuPeerLevel">
                                             Name
                                         </label>
                                     </div>
 
 
-                                    {/* suffix */}
+                                    {/* mobileNo */}
                                     <div className="relative flex-1 ">
                                         <input
-                                            type="text"
-                                            id="suffix"
-                                            name="suffix"
-                                            // value={newMappingData.suffix}
-                                            // onChange={handelChangeOnNewObseravationData}
+                                            type="number"
+                                            id="mobileNo"
+                                            name="mobileNo"
+                                            value={addReferDrData.mobileNo}
+                                            onChange={handelChangeOnAddReferDrData}
                                             placeholder=" "
                                             className={`inputPeerField peer border-borderColor focus:outline-none`}
                                         />
-                                        <label htmlFor="suffix" className="menuPeerLevel">
+                                        <label htmlFor="mobileNo" className="menuPeerLevel">
                                             Mobile No.
                                         </label>
                                     </div>
@@ -1873,11 +2903,13 @@ export default function PatientRegistration() {
                                             style={{
                                                 background: activeTheme?.menuColor, color: activeTheme?.iconColor
                                             }}
+                                            onClick={onSumitAddReferDrData}
                                         >
-                                            {/* {
-                                                isButtonClick === 3 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                            } */}
-                                            Save
+
+                                            {
+                                                isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+                                            }
+
                                         </button>
                                     </div>
                                 </div>
