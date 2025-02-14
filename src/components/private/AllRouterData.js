@@ -301,6 +301,31 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/AmendmentReport")),
         exact: true,
     },
+    {
+        path: "/LIMS/MachineResult",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/MachineResult")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/TATMaster",
+        component: React.lazy(() => import("../pages/labctrlmaster/TATMaster")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/TATReport",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/TATReport")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/TransferOutSource",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/TransferOutSource")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/ReportDateChange",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/ReportDateChange")),
+        exact: true,
+    },
 
 ];
 
