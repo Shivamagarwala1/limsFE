@@ -458,6 +458,8 @@ export default function PatientRegistration() {
 
             try {
                 const response = await getAllReferLabApi();
+                console.log(response);
+
                 setAllLabReferData(response);
             } catch (error) {
                 toast.error(error?.message);
