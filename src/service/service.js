@@ -879,3 +879,11 @@ export const getAllDiscountApprovedBy = async () => {
     return response?.data;
 }
 
+//save patient registaration
+export const savePatientRegistrationDataApi = async (patientRegistrationData) => {
+
+    const response = await privateAxios.post(`/tnx_BookingPatient/SavePatientRegistration`, patientRegistrationData);
+
+    return response?.data;
+}
+
