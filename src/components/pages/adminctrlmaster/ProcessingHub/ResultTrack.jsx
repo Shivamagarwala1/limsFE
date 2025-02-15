@@ -16,6 +16,7 @@ import { FaPlus, FaPrint } from "react-icons/fa";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import CustomeEditor from "../../../sharecomponent/CustomeEditor";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
+import CustomHandsontable from "../../../../Custom Components/CustomHandsontable";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -77,7 +78,7 @@ export default function ResultTrack() {
               submit={false}
               text={params?.row?.TestName}
               callBack={() => {
-                // setUserObj(params?.row);
+                setUserObj(params?.row);
               }}
               style={{
                 width: "30px",
@@ -169,6 +170,75 @@ export default function ResultTrack() {
     }));
     //setEditorContent(content);
   };
+
+  // -------------------------------------------------------------
+  const [tableData, setTableData] = useState([
+    {
+      id: 2,
+      Test: "Thyroid - T3 T4 & TSH",
+      R: true,
+      name: "John",
+      age: 28,
+      role: "Developer",
+    }
+  ]);
+
+  const columns1 = [
+    {
+      field: "c",
+      headerName: "C",
+      flex: 1,
+      editable: true,
+      width: "10px",
+      renderCell: ({ row }) => <input type="checkbox" />,
+    },
+    {
+      field: "Test",
+      headerName: "Test Name",
+      flex: 1,
+      editable: true,
+      renderCell: ({ row }) => (
+        <div className="flex gap-2 text-center">
+          {row?.Test}{" "}
+          {row?.R && (
+            <SubmitButton
+              submit={false}
+              text={"R"}
+              style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
+            />
+          )}
+        </div>
+      ),
+    },
+    {
+      field: "name",
+      headerName: "Name",
+      flex: 1,
+      editable: true,
+    },
+    {
+      field: "age",
+      headerName: "Age",
+      flex: 1,
+      editable: false,
+      type: "number",
+    },
+    {
+      field: "role",
+      headerName: "Role",
+      flex: 1,
+      editable: false,
+      options: ["Developer", "Designer", "Manager"], // Dropdown options
+    },
+    {
+      field: "action",
+      headerName: "Action",
+      flex: 1,
+      renderCell: ({ row }) => (
+        <button onClick={() => alert(`Editing ${row.name}`)}>Edit</button>
+      ),
+    },
+  ];
 
   const handleSubmit = () => {};
   const statuses = [
@@ -298,540 +368,12 @@ export default function ResultTrack() {
           </div>
         </div>
         {UserObj && (
-          <div>
-            <FormHeader title="Result Track" />
-            <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-              <div className="flex flex-wrap gap-2 mt-2 mb-1 mx-1 lg:mx-2 items-end">
-                {/* Specimen Field */}
-                <div className="w-full sm:w-[48%] md:w-[15%]">
-                  <InputGenerator
-                    inputFields={[
-                      { label: "Intrim", type: "select", name: "Intrim" },
-                    ]}
-                  />
-                </div>
-                {/* Biospy No. Field */}
-                <div className="w-full sm:w-[48%] md:w-[15%]">
-                  <InputGenerator
-                    inputFields={[
-                      {
-                        label: "Select Template",
-                        type: "select",
-                        name: "Template",
-                      },
-                    ]}
-                  />
-                </div>
-                <div className="w-full sm:w-[48%] md:w-[15%]">
-                  <InputGenerator
-                    inputFields={[
-                      {
-                        label: "Colony Counts",
-                        type: "text",
-                        name: "ColonyCounts",
-                      },
-                    ]}
-                  />
-                </div>
-                <InputGenerator
-                  inputFields={[
-                    {
-                      label: "Enter Comments",
-                      type: "text",
-                      name: "Enter Comments",
-                    },
-                  ]}
-                />
-              </div>
-            </form>
-            <TableHeader title="" />
-            <CustomeEditor
-              value={editorContent} // Controlled value for the editor
-              onContentChange={handleContentChange}
-            />
-            <FormHeader title="Organism" />
-            <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
-                <InputGenerator
-                  inputFields={[
-                    {
-                      label: "Organism",
-                      type: "select",
-                      name: "Organism",
-                      callBack: (e) => {
-                        setOrganism((prev) => [...prev, e.target.value]);
-                      },
-                      dataOptions: [
-                        { id: "E.coli", data: "E.coli" },
-                        { id: "B.coli", data: "B.coli" },
-                      ],
-                    },
-                  ]}
-                />
-                {Organism.reduce((acc, _, index, array) => {
-                  if (index % 2 === 0) {
-                    acc.push(array.slice(index, index + 2)); // Group every two items
-                  }
-                  return acc;
-                }, []).map((pair, idx) => (
-                  <TwoSubmitButton
-                    key={idx}
-                    options={pair.map((item) => ({
-                      label: `Delete ${item}`,
-                      submit: false,
-                      callBack: () => console.log(`${item} clicked`),
-                    }))}
-                  />
-                ))}
-              </div>
-            </form>
-            <div className="flex flex-col md:flex-row justify-start items-center w-full gap-2">
-              <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
-                <thead
-                  style={{
-                    background: activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
-                  }}
-                >
-                  <tr>
-                    {[
-                      {
-                        field: "Antibiotic",
-                        headerName: "Antibiotic",
-                        flex: 1,
-                      },
-                      {
-                        field: "Interpretation",
-                        headerName: "Interpretation",
-                        width: 170,
-                        renderCell: (params) => {
-                          // console.log(params.row)
-                          return (
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "20px",
-                                fontSize: "15px",
-                              }}
-                            >
-                              <InputGenerator
-                                inputFields={[
-                                  {
-                                    label: "",
-                                    type: "select",
-                                    dataOptions: [
-                                      { id: 1, data: "Option A" },
-                                      { id: 2, data: "Option B" },
-                                      { id: 3, data: "Option C" },
-                                    ],
-                                  },
-                                ]}
-                              />
-                            </div>
-                          );
-                        },
-                      },
-                      {
-                        field: "Mic",
-                        headerName: "Mic",
-                        width: 150,
-                        renderCell: (params) => {
-                          // console.log(params.row)
-                          return (
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "20px",
-                                fontSize: "15px",
-                              }}
-                            >
-                              <InputGenerator
-                                inputFields={[
-                                  {
-                                    label: "",
-                                    type: "text",
-                                  },
-                                ]}
-                              />
-                            </div>
-                          );
-                        },
-                      },
-                    ].map((col, index) => (
-                      <th
-                        key={index}
-                        className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
-                        style={{
-                          width: col.width ? `${col.width}px` : "",
-                          flex: col.flex ? col.flex : "",
-                        }}
-                      >
-                        {col.headerName}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[{ Antibiotic: "Amicasin" }].map((row, index) => (
-                    <tr
-                      key={row.id}
-                      className={`cursor-pointer ${
-                        isHoveredTable1 === row.id
-                          ? ""
-                          : index % 2 === 0
-                          ? "bg-gray-100"
-                          : "bg-white"
-                      }`}
-                      onMouseEnter={() => setIsHoveredTable1(row.id)}
-                      onMouseLeave={() => setIsHoveredTable1(null)}
-                      style={{
-                        background:
-                          isHoveredTable1 === row.id
-                            ? activeTheme?.subMenuColor
-                            : undefined,
-                      }}
-                    >
-                      {[
-                        {
-                          field: "Antibiotic",
-                          headerName: "Antibiotic",
-                          flex: 1,
-                        },
-                        {
-                          field: "Interpretation",
-                          headerName: "Interpretation",
-                          width: 170,
-                          renderCell: (params) => {
-                            // console.log(params.row)
-                            return (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "20px",
-                                  fontSize: "15px",
-                                }}
-                              >
-                                <InputGenerator
-                                  inputFields={[
-                                    {
-                                      label: "",
-                                      type: "select",
-                                      dataOptions: [
-                                        { id: 1, data: "Option A" },
-                                        { id: 2, data: "Option B" },
-                                        { id: 3, data: "Option C" },
-                                      ],
-                                    },
-                                  ]}
-                                />
-                              </div>
-                            );
-                          },
-                        },
-                        {
-                          field: "Mic",
-                          headerName: "Mic",
-                          width: 150,
-                          renderCell: (params) => {
-                            // console.log(params.row)
-                            return (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "20px",
-                                  fontSize: "15px",
-                                }}
-                              >
-                                <InputGenerator
-                                  inputFields={[
-                                    {
-                                      label: "",
-                                      type: "text",
-                                    },
-                                  ]}
-                                />
-                              </div>
-                            );
-                          },
-                        },
-                      ].map((col, idx) => (
-                        <td
-                          key={idx}
-                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                        >
-                          {col.renderCell
-                            ? col.renderCell({ row })
-                            : row[col.field]}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
-                <thead
-                  style={{
-                    background: activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
-                  }}
-                >
-                  <tr>
-                    {[
-                      {
-                        field: "Antibiotic",
-                        headerName: "Antibiotic",
-                        flex: 1,
-                      },
-                      {
-                        field: "Interpretation",
-                        headerName: "Interpretation",
-                        width: 170,
-                        renderCell: (params) => {
-                          // console.log(params.row)
-                          return (
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "20px",
-                                fontSize: "15px",
-                              }}
-                            >
-                              <InputGenerator
-                                inputFields={[
-                                  {
-                                    label: "",
-                                    type: "select",
-                                    dataOptions: [
-                                      { id: 1, data: "Option A" },
-                                      { id: 2, data: "Option B" },
-                                      { id: 3, data: "Option C" },
-                                    ],
-                                  },
-                                ]}
-                              />
-                            </div>
-                          );
-                        },
-                      },
-                      {
-                        field: "Mic",
-                        headerName: "Mic",
-                        width: 150,
-                        renderCell: (params) => {
-                          // console.log(params.row)
-                          return (
-                            <div
-                              style={{
-                                display: "flex",
-                                gap: "20px",
-                                fontSize: "15px",
-                              }}
-                            >
-                              <InputGenerator
-                                inputFields={[
-                                  {
-                                    label: "",
-                                    type: "text",
-                                  },
-                                ]}
-                              />
-                            </div>
-                          );
-                        },
-                      },
-                    ].map((col, index) => (
-                      <th
-                        key={index}
-                        className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
-                        style={{
-                          width: col.width ? `${col.width}px` : "",
-                          flex: col.flex ? col.flex : "",
-                        }}
-                      >
-                        {col.headerName}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {[{ Antibiotic: "Amicasin" }].map((row, index) => (
-                    <tr
-                      key={row.id}
-                      className={`cursor-pointer ${
-                        isHoveredTable1 === row.id
-                          ? ""
-                          : index % 2 === 0
-                          ? "bg-gray-100"
-                          : "bg-white"
-                      }`}
-                      onMouseEnter={() => setIsHoveredTable1(row.id)}
-                      onMouseLeave={() => setIsHoveredTable1(null)}
-                      style={{
-                        background:
-                          isHoveredTable1 === row.id
-                            ? activeTheme?.subMenuColor
-                            : undefined,
-                      }}
-                    >
-                      {[
-                        {
-                          field: "Antibiotic",
-                          headerName: "Antibiotic",
-                          flex: 1,
-                        },
-                        {
-                          field: "Interpretation",
-                          headerName: "Interpretation",
-                          width: 170,
-                          renderCell: (params) => {
-                            // console.log(params.row)
-                            return (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "20px",
-                                  fontSize: "15px",
-                                }}
-                              >
-                                <InputGenerator
-                                  inputFields={[
-                                    {
-                                      label: "",
-                                      type: "select",
-                                      dataOptions: [
-                                        { id: 1, data: "Option A" },
-                                        { id: 2, data: "Option B" },
-                                        { id: 3, data: "Option C" },
-                                      ],
-                                    },
-                                  ]}
-                                />
-                              </div>
-                            );
-                          },
-                        },
-                        {
-                          field: "Mic",
-                          headerName: "Mic",
-                          width: 150,
-                          renderCell: (params) => {
-                            // console.log(params.row)
-                            return (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  gap: "20px",
-                                  fontSize: "15px",
-                                }}
-                              >
-                                <InputGenerator
-                                  inputFields={[
-                                    {
-                                      label: "",
-                                      type: "text",
-                                    },
-                                  ]}
-                                />
-                              </div>
-                            );
-                          },
-                        },
-                      ].map((col, idx) => (
-                        <td
-                          key={idx}
-                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                        >
-                          {col.renderCell
-                            ? col.renderCell({ row })
-                            : row[col.field]}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {/* Scrollable section starts here */}
-            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-              <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
-                  {/* Specimen Field */}
-                  <InputGenerator
-                    inputFields={[
-                      { label: "Signature", type: "select", name: "Signature" },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Save",
-                        submit: true,
-                        callBack: () => console.log("Save clicked"),
-                      },
-                      {
-                        label: "Hold",
-                        submit: false,
-                        callBack: () => console.log("Hold clicked"),
-                      },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Approve",
-                        submit: true,
-                        callBack: () => console.log("Approve clicked"),
-                      },
-                      {
-                        label: "Print Report",
-                        submit: false,
-                        callBack: () => console.log("Print Report clicked"),
-                      },
-                    ]}
-                  />
-
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Add Report",
-                        submit: true,
-                        callBack: () => console.log("Add Report clicked"),
-                      },
-                      {
-                        label: "Add Attachment",
-                        submit: false,
-                        callBack: () => console.log("Add Attachment clicked"),
-                      },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Main List",
-                        submit: true,
-                        callBack: () => console.log("Main List clicked"),
-                      },
-                      {
-                        label: "Previous",
-                        submit: false,
-                        callBack: () => console.log("Previous clicked"),
-                      },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Next",
-                        submit: true,
-                        callBack: () => console.log("Next clicked"),
-                      },
-                    ]}
-                  />
-                </div>
-              </form>
-            </div>
-            {/* Scrollable section ends here */}
-          </div>
+          <CustomHandsontable
+            columns={columns1}
+            rows={tableData}
+            onEdit={setTableData}
+            name="User Table"
+          />
         )}
       </>
     </div>
