@@ -10,7 +10,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine, RiCalendarScheduleFill, RiDelet
 import { patientRegistrationInvestigation, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import UserCalendarAndTime from '../../../public/UserCalendarAndTime';
 import toast from 'react-hot-toast';
-import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, saveReferDrApi } from '../../../../service/service';
+import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, savePatientRegistrationDataApi, saveReferDrApi } from '../../../../service/service';
 import { FaSpinner } from 'react-icons/fa'
 
 export default function PatientRegistration() {
@@ -25,6 +25,8 @@ export default function PatientRegistration() {
     const [showCalanderAndTime, setShowCalanderAndTime] = useState(false);
     const [patientRegistrationData, setPatientRegistrationData] = useState({
         centreId: 0,
+        paymentMode: '',
+        paymentModeId: 0,
         rateId: 0,
         mobileNo: '',
         title_id: 0,
@@ -64,6 +66,8 @@ export default function PatientRegistration() {
         paidAmount: 0,
         cashAmt: 0,
         creditCardAmt: 0,
+        lastFoureDigit: 0,
+        bankName: '',
         onlinewalletAmt: 0,
 
         bank_Id: 0,
@@ -81,296 +85,15 @@ export default function PatientRegistration() {
         //refDoctor1: ''
     });
 
-    const [patientRegistrationDataForDb, setPatientRegistrationDataForDb] = useState({
-        isActive: 0,
-        createdById: 0,
-        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-            .toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            })
-            .replace(/ /g, '-'),
-        updateById: 0,
-        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-            .toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            })
-            .replace(/ /g, '-'),
-        patientId: 0,
-        title_id: 0,
-        name: '',
-        gender: '',
-        ageTotal: 0,
-        ageDays: 0,
-        ageMonth: 0,
-        ageYear: 0,
-        dob: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-            .toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            })
-            .replace(/ /g, '-'),
-        isActualDOB: 0,
-        emailId: '',
-        mobileNo: '',
-        address: '',
-        pinCode: 0,
-        cityId: 0,
-        centreId: 0,
-        areaId: 0,
-        stateId: 0,
-        districtId: 0,
-        countryId: 0,
-        visitCount: 0,
-        remarks: '',
-        documentId: 0,
-        documnetnumber: '',
-        password: '',
-        addBooking: [
-            {
-                isActive: 0,
-                createdById: 0,
-                createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                    .toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                    })
-                    .replace(/ /g, '-'),
-                updateById: 0,
-                updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                    .toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                    })
-                    .replace(/ /g, '-'),
-                transactionId: 0,
-                workOrderId: '',
-                billNo: 0,
-                bookingDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                    .toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                    })
-                    .replace(/ /g, '-'),
-                clientCode: '',
-                patientId: 0,
-                title_id: 0,
-                name: '',
-                gender: '',
-                dob: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                    .toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                    })
-                    .replace(/ /g, '-'),
-                ageYear: 0,
-                ageMonth: 0,
-                ageDay: 0,
-                totalAge: 0,
-                mobileNo: '',
-                mrp: 999999999999,
-                grossAmount: 999999999999,
-                discount: 999999999999,
-                netAmount: 999999999999,
-                paidAmount: 999999999999,
-                sessionCentreid: 0,
-                centreId: 0,
-                rateId: 0,
-                isCredit: 0,
-                paymentMode: '',
-                source: '',
-                discountType: 0,
-                discountid: 0,
-                discountReason: '',
-                discountApproved: 0,
-                isDisCountApproved: 0,
-                patientRemarks: '',
-                labRemarks: '',
-                otherLabRefer: '',
-                otherLabReferID: 0,
-                refDoctor1: '',
-                refID1: 0,
-                refDoctor2: '',
-                refID2: 0,
-                tempDOCID: 0,
-                tempDoctroName: '',
-                uploadDocument: '',
-                invoiceNo: '',
-                salesExecutiveID: 0,
-                addBookingStatus: [
-                    {
-                        isActive: 0,
-                        createdById: 0,
-                        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                            .toLocaleString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                            })
-                            .replace(/ /g, '-'),
-                        updateById: 0,
-                        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                            .toLocaleString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                            })
-                            .replace(/ /g, '-'),
-                        id: 0,
-                        transactionId: 0,
-                        patientId: 0,
-                        barcodeNo: '',
-                        status: '',
-                        centreId: 0,
-                        roleId: 0,
-                        remarks: '',
-                        testId: 0
-                    }
-                ],
-                addBookingItem: [
-                    {
-                        isActive: 0,
-                        createdById: 0,
-                        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                            .toLocaleString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                            })
-                            .replace(/ /g, '-'),
-                        updateById: 0,
-                        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                            .toLocaleString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                            })
-                            .replace(/ /g, '-'),
-                        id: 0,
-                        workOrderId: '',
-                        transactionId: 0,
-                        testcode: '',
-                        itemId: 0,
-                        packageID: 0,
-                        deptId: 0,
-                        barcodeNo: '',
-                        departmentName: '',
-                        investigationName: '',
-                        isPackage: 0,
-                        packageName: '',
-                        itemType: 0,
-                        mrp: 999999999999,
-                        rate: 999999999999,
-                        discount: 999999999999,
-                        netAmount: 999999999999,
-                        packMrp: 999999999999,
-                        packItemRate: 999999999999,
-                        packItemDiscount: 999999999999,
-                        packItemNet: 999999999999,
-                        reportType: 0,
-                        centreId: 0,
-                        sessionCentreid: 0,
-                        isSra: 0,
-                        isMachineOrder: 0,
-                        isEmailsent: 0,
-                        sampleTypeId: 0,
-                        sampleTypeName: '',
 
-                    }
-                ],
-                addpaymentdetail: [
-                    {
-                        id: 0,
-                        transactionId: 0,
-                        transactionType: '',
-                        workOrderId: '',
-                        receiptNo: 0,
-                        receivedAmt: 0,
-                        cashAmt: 0,
-                        creditCardAmt: 0,
-                        creditCardNo: '',
-                        chequeAmt: 0,
-                        chequeNo: '',
-                        onlinewalletAmt: 0,
-                        walletno: '',
-                        nefTamt: 0,
-                        bankName: '',
-                        paymentModeId: 0,
-                        isCancel: 0,
-                        cancelDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                            .toLocaleString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit',
-                            })
-                            .replace(/ /g, '-'),
-                        canceledBy: '',
-                        cancelReason: '',
-                        bookingCentreId: 0,
-                        settlementCentreID: 0,
-                        receivedBy: '',
-                        receivedID: 0
-                    }
-                ]
-            }
-        ]
-    }
-    )
 
     const [addReferDrData, setAddReferDrData] = useState({
         isActive: 0,
         createdById: 0,
-        createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-            .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-            .replace(/ /g, '-'),
+        createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
         updateById: 0,
         updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-            .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-            .replace(/ /g, '-'),
+            .toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
         doctorId: 0,
         doctorCode: '',
         title: '',
@@ -404,7 +127,14 @@ export default function PatientRegistration() {
 
     const [isHovered, setIsHovered] = useState(null);
 
+    const [gridDataBarCodeandSampleType, setGridDataBarCodeandSampleType] = useState({
 
+        barCode: [],
+        sampleType: []
+    });
+
+
+    const [selectedInvastigationList, setSelectedInvastigationList] = useState([]);
     const [allCentreData, setAllCentreData] = useState([]);
     const [allRateType, setAllRateType] = useState([]);
     const [allTitleData, setAllTitleData] = useState([]);
@@ -479,23 +209,23 @@ export default function PatientRegistration() {
 
     //calculate paid amt.
     useEffect(() => {
-
         // Calculate paidAmount dynamically
         const totalPaid =
-            parseInt(patientRegistrationData.cashAmt || 0) +
-            parseInt(patientRegistrationData.creditCardAmt || 0) +
-            parseInt(patientRegistrationData.onlinewalletAmt || 0);
+            parseFloat(patientRegistrationData.cashAmt || 0) +
+            parseFloat(patientRegistrationData.creditCardAmt || 0) +
+            parseFloat(patientRegistrationData.onlinewalletAmt || 0);
 
-        // Update paidAmount in state
+        // Update paidAmount in state, ensuring it's a double (two decimal places)
         setPatientRegistrationData((prevData) => ({
             ...prevData,
-            paidAmount: totalPaid,
+            paidAmount: parseFloat(totalPaid.toFixed(2)), // Ensures double value with 2 decimals
         }));
     }, [
         patientRegistrationData.cashAmt,
         patientRegistrationData.creditCardAmt,
         patientRegistrationData.onlinewalletAmt,
     ]);
+
 
     const handleDateAndTimeClick = (date) => {
         // Format the date
@@ -740,13 +470,14 @@ export default function PatientRegistration() {
 
 
         const getAllinvestigationGridData = async () => {
+
             try {
-                const response = await getAllInvestigationGridApi(patientRegistrationData?.rateId, patientRegistrationData?.itemId)
-                // setinvestigationGridData
+                const response = await getAllInvestigationGridApi(
+                    patientRegistrationData?.rateId,
+                    patientRegistrationData?.itemId
+                );
 
                 if (response?.success) {
-
-
                     if (response?.data?.length !== 0) {
                         const result = response?.data.reduce((acc, current) => {
                             if (!acc) {
@@ -759,19 +490,22 @@ export default function PatientRegistration() {
                             return acc;
                         }, null);
 
-
-
-                        setinvestigationGridData((prevData) => [
-                            ...prevData, // Existing data
-                            result       // Add the new object to the array
-                        ]);
+                        // Use a functional update for setState to check for duplicates
+                        let isDuplicate = false;
+                        setinvestigationGridData((prevData) => {
+                            isDuplicate = prevData.some((item) => item.itemId === result.itemId);
+                            if (isDuplicate) {
+                                return prevData; // No changes if duplicate
+                            }
+                            return [...prevData, result];
+                        });
                     }
-
                 }
-
             } catch (error) {
                 toast.error(error?.message);
             }
+
+
         }
         getAllinvestigationGridData();
 
@@ -828,13 +562,10 @@ export default function PatientRegistration() {
                 setAddReferDrData({
                     isActive: 0,
                     createdById: 0,
-                    createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                        .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                        .replace(/ /g, '-'),
+                    createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
                     updateById: 0,
                     updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                        .toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                        .replace(/ /g, '-'),
+                        .toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
                     doctorId: 0,
                     doctorCode: '',
                     title: '',
@@ -901,426 +632,256 @@ export default function PatientRegistration() {
         getAllLabReferData();
     }, [isButtonClick])
 
-    console.log(investigationGridData);
+
+    //handel on chenge grid data
+    const handleInputChange = (rowId, value) => {
+        setGridDataBarCodeandSampleType((prevState) => {
+            const updatedBarCode = prevState.barCode.filter((item) => item.itemId !== rowId); // Remove existing entry for the rowId
+            return {
+                ...prevState,
+                barCode: [...updatedBarCode, { itemId: rowId, name: value }] // Add updated entry
+            };
+        });
+    };
+
+
+    const handleSampleTypeChange = (event, index, itemType) => {
+
+        const selectedOption = event.target.value;
+        console.log(selectedOption);
+
+        const sampleTypeName = investigationGridData[index]?.sampleTypeName;
+        const updatedSampleType = {
+            id: sampleTypeName.indexOf(selectedOption) + 1,
+
+            name: selectedOption,  // The name is the selected value
+            itemType: itemType
+        };
+
+        setGridDataBarCodeandSampleType((prevState) => ({
+            ...prevState,
+            sampleType: [updatedSampleType], // Store the single selected sample type
+        }));
+    };
+
+    // console.log(investigationGridData);
 
 
     //save patient registration data
     const onSubmitForSavePatientRegistrationData = async () => {
 
-        // const updatedData = {
+        setIsButtonClick(2);
 
-        //     isActive: 1,
-        //     createdById: parseInt(user?.employeeId),
-        //     createdDateTime: new Date().toLocaleString('en-GB', {
-        //         day: '2-digit',
-        //         month: 'short',
-        //         year: 'numeric',
-        //         hour: '2-digit',
-        //         minute: '2-digit',
-        //         second: '2-digit',
-        //     }).replace(",", "").replace(/\s/g, "-"),
-        //     updateById: 0,
-        //     updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-        //         .toLocaleString('en-GB', {
-        //             day: '2-digit',
-        //             month: 'short',
-        //             year: 'numeric',
-        //             hour: '2-digit',
-        //             minute: '2-digit',
-        //             second: '2-digit',
-        //         }).replace(",", "").replace(/\s/g, "-"),
-        //     patientId: 0,
-        //     title_id: parseInt(patientRegistrationData?.title_id),
-        //     name: patientRegistrationData?.name,
-        //     gender: patientRegistrationData?.gender,
-        //     ageTotal: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
-        //     ageDays: parseInt(patientRegistrationData?.ageDays),
-        //     ageMonth: parseInt(patientRegistrationData?.ageMonth),
-        //     ageYear: parseInt(patientRegistrationData?.ageYear),
-        //     dob: patientRegistrationData?.dob,
-        //     isActualDOB: 0,
-        //     emailId: patientRegistrationData?.email,
-        //     mobileNo: patientRegistrationData?.mobileNo,
-        //     address: patientRegistrationData?.address,
-        //     pinCode: patientRegistrationData?.pinCode,
-        //     cityId: 0,
-        //     centreId: parseInt(patientRegistrationData?.centreId),
-        //     areaId: 0,
-        //     stateId: 0,
-        //     districtId: 0,
-        //     countryId: 0,
-        //     visitCount: 0,
-        //     remarks: '',
-        //     documentId: 0,
-        //     documnetnumber: 0,
-        //     password: 0
-        // }
+        console.log(gridDataBarCodeandSampleType?.sampleType);
+
+
+        const updatedData = {
+
+            isActive: 1,
+            createdById: parseInt(user?.employeeId),
+            createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            updateById: 0,
+            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                .toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            patientId: 0,
+            title_id: parseInt(patientRegistrationData?.title_id),
+            name: patientRegistrationData?.name,
+            gender: patientRegistrationData?.gender,
+            ageTotal: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
+            ageDays: parseInt(patientRegistrationData?.ageDays),
+            ageMonth: parseInt(patientRegistrationData?.ageMonth),
+            ageYear: parseInt(patientRegistrationData?.ageYear),
+            dob: patientRegistrationData?.dob,
+            isActualDOB: 0,
+            emailId: patientRegistrationData?.email,
+            mobileNo: patientRegistrationData?.mobileNo,
+            address: patientRegistrationData?.address,
+            pinCode: patientRegistrationData?.pinCode,
+            cityId: 0,
+            centreId: parseInt(patientRegistrationData?.centreId),
+            areaId: 0,
+            stateId: 0,
+            districtId: 0,
+            countryId: 0,
+            visitCount: 0,
+            remarks: '',
+            documentId: 0,
+            documnetnumber: 0,
+            password: 0,
+            addBooking: [
+                {
+                    isActive: 1,
+                    createdById: parseInt(user?.employeeId),
+                    createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+                    updateById: 0,
+                    updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                        .toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+                    transactionId: 0,
+                    workOrderId: '',
+                    billNo: 0,
+                    bookingDate: new Date().toLocaleString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    }).replace(/ /g, '-'),
+                    clientCode: patientRegistrationData?.centreId,
+                    patientId: 0,
+                    title_id: patientRegistrationData?.title_id,
+                    name: patientRegistrationData?.name,
+                    gender: patientRegistrationData?.gender,
+                    dob: patientRegistrationData?.dob,
+                    ageYear: patientRegistrationData?.ageYear,
+                    ageMonth: patientRegistrationData?.ageMonth,
+                    ageDay: patientRegistrationData?.ageDays,
+                    totalAge: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
+                    mobileNo: patientRegistrationData?.mobileNo,
+                    mrp: investigationGridData?.reduce((sum, item) => sum + (item.mrp || 0), 0),
+                    grossAmount: investigationGridData?.reduce((sum, item) => sum + (item.grosss || 0), 0),
+                    discount: investigationGridData?.reduce((sum, item) => sum + (item.discount || 0), 0),
+                    netAmount: investigationGridData?.reduce((sum, item) => sum + (item.netAmt || 0), 0),
+                    paidAmount: patientRegistrationData?.paidAmount,
+                    sessionCentreid: parseInt(user?.defaultCenter),
+                    centreId: parseInt(patientRegistrationData?.centreId),
+                    rateId: parseInt(patientRegistrationData?.rateId),
+                    isCredit: patientRegistrationData?.paymentMode === "Cash" ? 0 : 1,
+                    paymentMode: patientRegistrationData?.paymentMode,
+                    source: '',
+                    discountType: parseInt(patientRegistrationData?.discountType),
+                    discountid: parseInt(patientRegistrationData?.discountid),
+                    discountReason: patientRegistrationSelectData?.discountid,
+                    discountApproved: parseInt(patientRegistrationData?.discountApproved),
+                    isDisCountApproved: 0,
+                    patientRemarks: '',
+                    labRemarks: '',
+                    otherLabRefer: patientRegistrationData?.refLab,
+                    otherLabReferID: patientRegistrationData?.refLabID,
+                    refDoctor1: patientRegistrationData?.refDoctor1,
+                    refID1: patientRegistrationData?.refID1,
+                    refDoctor2: patientRegistrationData?.refDoctor2,
+                    refID2: patientRegistrationData?.refID2,
+                    tempDOCID: 0,
+                    tempDoctroName: '',
+                    uploadDocument: patientRegistrationData?.uploadDocument,
+                    invoiceNo: '',
+                    salesExecutiveID: 0,
+                    addBookingStatus: [
+                        {
+                            isActive: 1,
+                            createdById: parseInt(user?.employeeId),
+                            createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+                            updateById: 0,
+                            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                                .toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+                            id: 0,
+                            transactionId: 0,
+                            patientId: 0,
+                            barcodeNo: '',
+                            status: 'Patient Registration',
+                            centreId: parseInt(patientRegistrationData?.centreId),
+                            roleId: parseInt(user?.defaultRole),
+                            remarks: '',
+                            testId: 0,
+                        }
+                    ],
+                    addBookingItem: investigationGridData?.map((data) => ({
+
+                        isActive: 1,
+                        createdById: parseInt(user?.employeeId),
+                        createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+                        updateById: 0,
+                        updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
+                            .toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+                        id: 0,
+                        workOrderId: '',
+                        transactionId: 0,
+                        testcode: data?.testcode,
+                        itemId: parseInt(data?.itemId),
+                        packageID: data?.itemType === 3 ? parseInt(data?.itemType) : 0,
+                        deptId: data?.deptId,
+                        barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
+                        departmentName: data?.departmentname || '',
+                        investigationName: selectedInvastigationList?.find(barcode => barcode.itemId === data.itemType)?.itemName || '',
+                        isPackage: data?.itemType === 3 ? 1 : 0,
+                        packageName: data?.itemType === 3 ? selectedInvastigationList?.find(barcode => barcode.itemId === data.itemType)?.itemName : '',
+                        itemType: data?.itemType,
+
+                        mrp: data?.mrp,
+                        rate: data?.grosss,
+                        discount: data?.discount,
+                        netAmount: data?.netAmt,
+
+                        packMrp: data?.itemType === 3 ? data?.mrp : 0,
+                        packItemRate: data?.grosss === 3 ? data?.grosss : 0,
+                        packItemDiscount: data?.itemType === 3 ? data?.discount : 0,
+                        packItemNet: data?.itemType === 3 ? data?.netAmt : 0,
+                        reportType: 0,
+
+                        centreId: parseInt(patientRegistrationData?.centreId), //
+                        sessionCentreid: parseInt(user?.defaultCenter),
+                        isSra: 0,
+                        isMachineOrder: 0,
+                        isEmailsent: 0,
+                        sampleTypeId: gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemId === data.itemType) ? id : 0,
+                        sampleTypeName: gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemType === data.itemType)?.name,
+
+                    })),
+                    addpaymentdetail: paymentModeType?.map((data) => ({
+                        id: 0,
+                        transactionId: 0,
+                        transactionType: patientRegistrationData?.paymentMode,
+                        workOrderId: '',
+                        receiptNo: 0,
+                        receivedAmt: 0,
+                        cashAmt: data?.value === '1' && parseFloat(patientRegistrationData?.cashAmt),
+                        creditCardAmt: data?.value === '2' ? parseFloat(patientRegistrationData?.creditCardAmt) : 0,
+                        creditCardNo: patientRegistrationData?.lastFoureDigit,
+                        chequeAmt: 0,
+                        chequeNo: '',
+                        onlinewalletAmt: parseInt(patientRegistrationData?.onlinewalletAmt),
+                        walletno: '',
+                        nefTamt: 0,
+                        bankName: data?.value === '2' ? patientRegistrationData?.bankName : '',
+                        paymentModeId: parseInt(data?.value),
+                        isCancel: 0,
+                        // cancelDate: new Date().toLocaleString('en-GB', {
+                        //     day: '2-digit',
+                        //     month: 'short',
+                        //     year: 'numeric',
+                        //     hour: '2-digit',
+                        //     minute: '2-digit',
+                        //     second: '2-digit',
+                        // }).replace(",", "").replace(/\s/g, "-"),
+                        cancelDate: '',
+                        canceledBy: '',
+                        cancelReason: '',
+                        bookingCentreId: parseInt(patientRegistrationData?.centreId),
+                        settlementCentreID: 0,
+                        receivedBy: user?.name,
+                        receivedID: parseInt(user?.employeeId)
+                    }))
+
+                }
+            ]
+        };
 
         // console.log(updatedData);
 
-        const addBooking = investigationGridData?.map((data) => ({
-            isActive: 1,
-            createdById: parseInt(user?.employeeId),
-            createdDateTime: new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            }).replace(",", "").replace(/\s/g, "-"),
-            updateById: 0,
-            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                .toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                }).replace(",", "").replace(/\s/g, "-"),
-            transactionId: 0,
-            workOrderId: '',
-            billNo: 0,
-            bookingDate: new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric'
-            }).replace(/ /g, '-'),
-            clientCode: patientRegistrationData?.centreId,
-            patientId: 0,
-            title_id: patientRegistrationData?.title_id,
-            name: patientRegistrationData?.name,
-            gender: patientRegistrationData?.gender,
-            dob: patientRegistrationData?.dob,
-            ageYear: patientRegistrationData?.ageYear,
-            ageMonth: patientRegistrationData?.ageMonth,
-            ageDay: patientRegistrationData?.ageDays,
-            totalAge: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
-            mobileNo: patientRegistrationData?.mobileNo,
-            mrp: data?.mrp,
-            grossAmount: data?.grosss,
-            discount: data?.discount,
-            netAmount: data?.netAmt,
-            paidAmount: patientRegistrationData?.paidAmount,
-            sessionCentreid: parseInt(user?.defaultCenter),
-            centreId: parseInt(patientRegistrationData?.centreId),
-            rateId: parseInt(patientRegistrationData?.rateId),
-            //====
-            isCredit: 0,
-            paymentMode: '',
-            //====
-            source: '',
-            discountType: parseInt(patientRegistrationData?.discountType),
-            discountid: parseInt(patientRegistrationData?.discountid),
-            discountReason: patientRegistrationSelectData?.discountid,
-            discountApproved: parseInt(patientRegistrationData?.discountApproved),
-            isDisCountApproved: 0,
-            patientRemarks: '',
-            labRemarks: '',
-            otherLabRefer: patientRegistrationData?.refLab,
-            otherLabReferID: patientRegistrationData?.refLabID,
-            refDoctor1: patientRegistrationData?.refDoctor1,
-            refID1: patientRegistrationData?.refID1,
-            refDoctor2: patientRegistrationData?.refDoctor2,
-            refID2: patientRegistrationData?.refID2,
-            tempDOCID: 0,
-            tempDoctroName: '',
-            uploadDocument: patientRegistrationData?.uploadDocument,
-            invoiceNo: '',
-            salesExecutiveID: 0
-        }));
-        console.log(addBooking);
+        try {
+            const response = await savePatientRegistrationDataApi(updatedData);
+            console.log(response);
+            if (response?.success) {
+                toast.success(response?.message);
+            } else {
+                toast.error(response?.message);
+            }
 
-        const addBookingStatus = {
-            isActive: 1,
-            createdById: parseInt(user?.employeeId),
-            createdDateTime: new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            }).replace(",", "").replace(/\s/g, "-"),
-            updateById: 0,
-            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                .toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                }).replace(",", "").replace(/\s/g, "-"),
-            id: 0,
-            transactionId: 0,
-            patientId: 0,
-            barcodeNo: '',
-            status: 'Patient Registration',
-            centreId: parseInt(patientRegistrationData?.centreId),
-            roleId: parseInt(user?.defaultRole),
-            remarks: '',
-            testId: 0,
-        };
-        console.log(addBookingStatus);
+        } catch (error) {
+            toast.error(error?.message);
+            console.log(error);
 
-        const addBookingItem = investigationGridData?.map((data) => ({
-            isActive: 1,
-            createdById: parseInt(user?.employeeId),
-            createdDateTime: new Date().toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-            }).replace(",", "").replace(/\s/g, "-"),
-            updateById: 0,
-            updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-                .toLocaleString('en-GB', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                }).replace(",", "").replace(/\s/g, "-"),
-            id: 0,
-            workOrderId: '',
-            transactionId: 0,
-            testcode: '',
-            itemId: 0,
-            packageID: 0,
-            deptId: 0,
-            barcodeNo: '',
-            departmentName: '',
-            investigationName: '',
-            isPackage: 0,
-            packageName: '',
-            itemType: data?.itemType,
+        }
 
-            mrp: data?.mrp,
-            rate: 999999999999,
-            discount: data?.discount,
-            netAmount: data?.netAmt,
-
-            packMrp: 999999999999,
-            packItemRate: 999999999999,
-            packItemDiscount: 999999999999,
-            packItemNet: 999999999999,
-            reportType: 0,
-            centreId: 0,
-            sessionCentreid: 0,
-            isSra: 0,
-            isMachineOrder: 0,
-            isEmailsent: 0,
-            sampleTypeId: 0,
-            sampleTypeName: '',
-        }));
-
-
-        // const updatedData2 = {
-        //  addBooking:[   isActive: 1,
-        //     createdById: parseInt(user?.employeeId),
-        //     createdDateTime: new Date().toLocaleString('en-GB', {
-        //         day: '2-digit',
-        //         month: 'short',
-        //         year: 'numeric',
-        //         hour: '2-digit',
-        //         minute: '2-digit',
-        //         second: '2-digit',
-        //     }).replace(",", "").replace(/\s/g, "-"),
-        //     updateById: 0,
-        //     updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-        //         .toLocaleString('en-GB', {
-        //             day: '2-digit',
-        //             month: 'short',
-        //             year: 'numeric',
-        //             hour: '2-digit',
-        //             minute: '2-digit',
-        //             second: '2-digit',
-        //         }).replace(",", "").replace(/\s/g, "-"),
-        //     transactionId: 0,
-        //     workOrderId: '',
-        //     billNo: 0,
-        //     bookingDate: new Date().toLocaleString('en-GB', {
-        //         day: '2-digit',
-        //         month: 'short',
-        //         year: 'numeric'
-        //     }).replace(/ /g, '-'),
-        //     clientCode: patientRegistrationData?.centreId,
-        //     patientId: 0,
-        //     title_id: patientRegistrationData?.title_id,
-        //     name: patientRegistrationData?.name,
-        //     gender: patientRegistrationData?.gender,
-        //     dob: patientRegistrationData?.dob,
-        //     ageYear: patientRegistrationData?.ageYear,
-        //     ageMonth: patientRegistrationData?.ageMonth,
-        //     ageDay: patientRegistrationData?.ageDays,
-        //     totalAge: parseInt(patientRegistrationData?.ageDays + patientRegistrationData?.ageMonth * 30 + patientRegistrationData?.ageYear * 365),
-        //     mobileNo: patientRegistrationData?.mobileNo,
-        //     mrp: 999999999999,
-        //     grossAmount: 999999999999,
-        //     discount: 999999999999,
-        //     netAmount: 999999999999,
-        //     paidAmount: 999999999999,
-        //     sessionCentreid: 0,
-        //     centreId: 0,
-        //     rateId: 0,
-        //     isCredit: 0,
-        //     paymentMode: '',
-        //     source: '',
-        //     discountType: 0,
-        //     discountid: 0,
-        //     discountReason: '',
-        //     discountApproved: 0,
-        //     isDisCountApproved: 0,
-        //     patientRemarks: '',
-        //     labRemarks: '',
-        //     otherLabRefer: '',
-        //     otherLabReferID: 0,
-        //     refDoctor1: '',
-        //     refID1: 0,
-        //     refDoctor2: '',
-        //     refID2: 0,
-        //     tempDOCID: 0,
-        //     tempDoctroName: '',
-        //     uploadDocument: '',
-        //     invoiceNo: '',
-        //     salesExecutiveID: 0,
-        //     addBookingStatus: [
-        //         {
-        //             isActive: 0,
-        //             createdById: 0,
-        //             createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-        //                 .toLocaleString('en-GB', {
-        //                     day: '2-digit',
-        //                     month: 'short',
-        //                     year: 'numeric',
-        //                     hour: '2-digit',
-        //                     minute: '2-digit',
-        //                     second: '2-digit',
-        //                 })
-        //                 .replace(/ /g, '-'),
-        //             updateById: 0,
-        //             updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-        //                 .toLocaleString('en-GB', {
-        //                     day: '2-digit',
-        //                     month: 'short',
-        //                     year: 'numeric',
-        //                     hour: '2-digit',
-        //                     minute: '2-digit',
-        //                     second: '2-digit',
-        //                 })
-        //                 .replace(/ /g, '-'),
-        //             id: 0,
-        //             transactionId: 0,
-        //             patientId: 0,
-        //             barcodeNo: '',
-        //             status: '',
-        //             centreId: 0,
-        //             roleId: 0,
-        //             remarks: '',
-        //             testId: 0,
-        //         },
-        //     ],
-        //     addBookingItem: [
-        //         {
-        //             isActive: 0,
-        //             createdById: 0,
-        //             createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-        //                 .toLocaleString('en-GB', {
-        //                     day: '2-digit',
-        //                     month: 'short',
-        //                     year: 'numeric',
-        //                     hour: '2-digit',
-        //                     minute: '2-digit',
-        //                     second: '2-digit',
-        //                 })
-        //                 .replace(/ /g, '-'),
-        //             updateById: 0,
-        //             updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-        //                 .toLocaleString('en-GB', {
-        //                     day: '2-digit',
-        //                     month: 'short',
-        //                     year: 'numeric',
-        //                     hour: '2-digit',
-        //                     minute: '2-digit',
-        //                     second: '2-digit',
-        //                 })
-        //                 .replace(/ /g, '-'),
-        //             id: 0,
-        //             workOrderId: '',
-        //             transactionId: 0,
-        //             testcode: '',
-        //             itemId: 0,
-        //             packageID: 0,
-        //             deptId: 0,
-        //             barcodeNo: '',
-        //             departmentName: '',
-        //             investigationName: '',
-        //             isPackage: 0,
-        //             packageName: '',
-        //             itemType: 0,
-        //             mrp: 999999999999,
-        //             rate: 999999999999,
-        //             discount: 999999999999,
-        //             netAmount: 999999999999,
-        //             packMrp: 999999999999,
-        //             packItemRate: 999999999999,
-        //             packItemDiscount: 999999999999,
-        //             packItemNet: 999999999999,
-        //             reportType: 0,
-        //             centreId: 0,
-        //             sessionCentreid: 0,
-        //             isSra: 0,
-        //             isMachineOrder: 0,
-        //             isEmailsent: 0,
-        //             sampleTypeId: 0,
-        //             sampleTypeName: '',
-        //         },
-        //     ],
-        //     addpaymentdetail: [
-        //         {
-        //             id: 0,
-        //             transactionId: 0,
-        //             transactionType: '',
-        //             workOrderId: '',
-        //             receiptNo: 0,
-        //             receivedAmt: 0,
-        //             cashAmt: 0,
-        //             creditCardAmt: 0,
-        //             creditCardNo: '',
-        //             chequeAmt: 0,
-        //             chequeNo: '',
-        //             onlinewalletAmt: 0,
-        //             walletno: '',
-        //             nefTamt: 0,
-        //             bankName: '',
-        //             paymentModeId: 0,
-        //             isCancel: 0,
-        //             cancelDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z'))
-        //                 .toLocaleString('en-GB', {
-        //                     day: '2-digit',
-        //                     month: 'short',
-        //                     year: 'numeric',
-        //                     hour: '2-digit',
-        //                     minute: '2-digit',
-        //                     second: '2-digit',
-        //                 })
-        //                 .replace(/ /g, '-'),
-        //             canceledBy: '',
-        //             cancelReason: '',
-        //             bookingCentreId: 0,
-        //             settlementCentreID: 0,
-        //             receivedBy: '',
-        //             receivedID: 0,
-        //         },
-        //     ],
-        //     ]
-        // };
-
+        setIsButtonClick(0);
     }
 
     const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
@@ -1388,10 +949,6 @@ export default function PatientRegistration() {
                                 value={patientRegistrationSelectData?.centreId || ''}
                                 onChange={(e) => {
                                     handelOnChangePatientRegistrationForSelect(e)
-                                    // setPatientRegistrationSelectData((preventData) => ({
-                                    //     ...preventData,
-                                    //     centreId: ''
-                                    // }))
                                 }}
                                 onClick={() => openShowSearchBarDropDown(1)}
 
@@ -1419,6 +976,13 @@ export default function PatientRegistration() {
                                                             handelOnChangePatientRegistration({
                                                                 target: { name: 'centreId', value: data?.centreId },
                                                             });
+
+                                                            setPatientRegistrationData((preventData) => ({
+                                                                ...preventData,
+                                                                paymentMode: data?.paymentMode,
+                                                                paymentModeId: data?.paymentModeId
+                                                            }))
+
                                                             setPatientRegistrationSelectData((preventData) => ({
                                                                 ...preventData,
                                                                 centreId: data?.centreName
@@ -2183,7 +1747,14 @@ export default function PatientRegistration() {
                                                             handelOnChangePatientRegistration({
                                                                 target: { name: 'itemId', value: data?.itemId },
                                                             });
+
+                                                            setSelectedInvastigationList(prevList => [...prevList, { itemId: data?.itemId, itemName: data?.itemName }]);
+
                                                         }}
+
+
+
+
                                                         onMouseEnter={() => setIsHovered(index)}
                                                         onMouseLeave={() => setIsHovered(null)}
                                                         style={{
@@ -2281,7 +1852,12 @@ export default function PatientRegistration() {
                                                                 {data?.netAmt}
                                                             </td>
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                <select className="border rounded px-1 w-full outline-none">
+                                                                <select className="border rounded px-1 w-full outline-none"
+                                                                    onChange={(e) =>
+                                                                        handleSampleTypeChange(e, rowIndex, data?.itemType)
+                                                                    }
+                                                                >
+                                                                    <option disabled hidden className='text-gray-400   '>Select Option</option>
                                                                     {data?.sampleTypeName?.map((item, index) => (
                                                                         <option key={index} value={item}>
                                                                             {item}
@@ -2290,7 +1866,13 @@ export default function PatientRegistration() {
                                                                 </select>
                                                             </td>
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                <input type="text" className='border-[1.5px] rounded outline-none px-1 w-full' />
+                                                                <input
+                                                                    type="text"
+                                                                    className="border-[1.5px] rounded outline-none px-1 w-full"
+                                                                    value={gridDataBarCodeandSampleType.barCode.find((item) => item.itemId === data?.itemId)?.name || ''} // Controlled input
+                                                                    onChange={(e) => handleInputChange(data?.itemId, e.target.value)} // Update state on change
+                                                                />
+
                                                             </td>
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                 {data?.deliveryDate}
@@ -2554,7 +2136,10 @@ export default function PatientRegistration() {
 
                                     <td className="text-xxs font-semibold text-gridTextColor"
                                     >
-                                        <input type="number" name="" id=""
+                                        <input type="number" name="lastFoureDigit" id="lastFoureDigit"
+                                            value={patientRegistrationData?.lastFoureDigit || ''}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            maxLength={4}
                                             className={`inputPeerField outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
                                                 }`}
                                             readOnly={!paymentModeType.some((item) => item.value === "2")}
@@ -2569,10 +2154,23 @@ export default function PatientRegistration() {
                                             name="bank_Id"
                                             value={patientRegistrationData.bank_Id || ""}
                                             onChange={(event) => {
+                                                // Find the selected bank's data
+                                                const selectedBank = allBankNameData?.find(
+                                                    (data) => parseInt(data.id) === parseInt(event.target.value)
+                                                );
 
+                                                // Update the state
                                                 handelOnChangePatientRegistration(event);
+
+                                                setPatientRegistrationData((prevData) => ({
+                                                    ...prevData,
+                                                    bankName: selectedBank?.bankName || "",
+                                                    bank_Id: event.target.value, // Optionally store the ID as well
+                                                }));
                                             }}
-                                            className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2") ? "cursor-not-allowed" : "cursor-pointer"
+                                            className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2")
+                                                ? "cursor-not-allowed"
+                                                : "cursor-pointer"
                                                 }`}
                                             disabled={!paymentModeType.some((item) => item.value === "2")}
                                         >
@@ -2580,11 +2178,12 @@ export default function PatientRegistration() {
                                                 Select Bank
                                             </option>
                                             {allBankNameData?.map((data) => (
-                                                <option key={data?.id} value={parseInt(data?.id)}>
+                                                <option key={data?.id} value={data?.id}>
                                                     {data?.bankName}
                                                 </option>
                                             ))}
                                         </select>
+
 
                                     </td>
 
@@ -2779,10 +2378,10 @@ export default function PatientRegistration() {
                                     onClick={onSubmitForSavePatientRegistrationData}
                                 >
 
-                                    {/* {
-                                    isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Mapping'
-                                } */}
-                                    Save
+                                    {
+                                        isButtonClick === 2 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+                                    }
+
                                 </button>
                             </div>
 
