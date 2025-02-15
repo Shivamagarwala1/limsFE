@@ -18,10 +18,6 @@ export default function CreateInvoice() {
   const { fetchData, response, data, loading } = useGetData();
 
   const [isButtonClick, setIsButtonClick] = useState(0);
-  const [ColumnTab, setColumnTab] = useState({
-    field: "discountReasonName",
-    header: "Discount Reason Name",
-  });
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [isEditData, setIsEditData] = useState(false);
@@ -29,74 +25,39 @@ export default function CreateInvoice() {
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   const [isHoveredTable1, setIsHoveredTable1] = useState(null);
   // const AllCenterData = fetchAllCenterData();
+  const AllCenterData = useGetData();
+  const StateData = useGetData();
   useEffect(() => {
+    AllCenterData?.fetchData(
+      "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
+    );
+    StateData?.fetchData("/stateMaster");
     getReason();
     // console.log(AllCenterData);
-  }, [activeTab]);
+  }, []);
   console.log(data);
   const rows = [
     { id: 1, client: "client 1" },
     { id: 2, client: "client 2" },
   ];
-  const tabs = [
-    {
-      name: "Discount Reason Master",
-      fname: "discountReasonName",
-      api: "/discountReasonMaster/SaveUpdateDiscountReason",
-      getApi: "/discountReasonMaster",
-    },
-    {
-      name: "Doctor Degree Master",
-      fname: "degreeName",
-      api: "/degreeMaster/SaveUpdateDegree",
-      getApi: "/degreeMaster",
-    },
-    {
-      name: "Designation Master",
-      fname: "designationName",
-      api: "/designationMaster/SaveUpdateDesignation",
-      getApi: "/designationMaster",
-    },
-    {
-      name: "Patient Document Master",
-      fname: "documentType",
-      api: "/documentTypeMaster/SaveUpdateDocumentType",
-      getApi: "/documentTypeMaster",
-    },
-    {
-      name: "Title Master",
-      fname: "title",
-      api: "/titleMaster/SaveUpdateTitle",
-      getApi: "/titleMaster",
-    },
-    {
-      name: "Bank Master",
-      fname: "bankName",
-      api: "/bank_master/SaveUpdateBankMaster",
-      getApi: "/bank_master",
-    },
-    { name: "Discount Approval Master", fname: "lab-department-master" },
-    {
-      name: "Discount Type Master",
-      fname: "type",
-      api: "/discountTypeMaster/SaveUpdateDiscountType",
-      getApi: "/discountTypeMaster",
-    },
-    {
-      name: "Role Master",
-      fname: "roleName",
-      api: "/roleMaster/SaveUpdateRole",
-      getApi: "/roleMaster",
-    },
-  ];
 
   const columns = [
     { field: "id", headerName: "Sr. No", width: 100 },
     {
-      field: `client`,
-      headerName: `Client`,
+      field: `centreid`,
+      headerName: `Centre Id`,
       flex: 1,
     },
+    {
+      field: `labNo`,
+      headerName: `Lab No.`,
+      flex: 1,
+    },
+    // {
+    //   field: `invoiceDate`,
+    //   headerName: `Invoice Date`,
+    //   flex: 1,
+    // },
     {
       field: "",
       width: 200,
@@ -114,11 +75,11 @@ export default function CreateInvoice() {
                 onClick={() => {
                   setClickedRowId(params?.row);
                   setIsButtonClick(1);
-                  setValues([
-                    {
-                      [tabs[activeTab]?.fname]: params?.row?.discountReasonName,
-                    },
-                  ]);
+                  // setValues([
+                  //   {
+                  //     [tabs[activeTab]?.fname]: params?.row?.discountReasonName,
+                  //   },
+                  // ]);
                 }}
               />
             </button>
@@ -154,19 +115,22 @@ export default function CreateInvoice() {
             id: clickedRowId?.id,
             isActive: clickedRowId?.isActive,
           };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
+    const data1 = await PostData?.postRequest(
+      "/centreInvoice/CreateInvoice",
+      payload
+    );
     console.log(payload);
-    // if (data1?.success) {
-    //   toast.success(
-    //     isButtonClick === 0 ? data1?.message : "Updated Successfull"
-    //   );
-    //   setIsButtonClick(0);
-    //   getReason();
-    // }
+    if (data1?.success) {
+      toast.success(
+        isButtonClick === 0 ? data1?.message : "Updated Successfull"
+      );
+      setIsButtonClick(0);
+      getReason();
+    }
   };
 
   const getReason = async () => {
-    const get = await fetchData(tabs[activeTab]?.getApi);
+    const get = await fetchData("centreInvoice");
     console.log(get);
   };
 
@@ -177,13 +141,13 @@ export default function CreateInvoice() {
       updateById: lsData?.user?.employeeId,
       isActive: clickedRowId?.isActive === 1 ? 0 : 1,
     };
-    const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    if (data1?.success) {
-      toast.success("Status Updated Successfully");
-      console.log(payload);
-      getReason();
-      setShowPopup(false);
-    }
+    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
+    // if (data1?.success) {
+    //   toast.success("Status Updated Successfully");
+    //   console.log(payload);
+    //   getReason();
+    //   setShowPopup(false);
+    // }
   };
 
   //   const InputFileds = [{ label: "", type: "" }];
@@ -205,21 +169,28 @@ export default function CreateInvoice() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
           <InputGenerator
             inputFields={[
-              { label: "State", type: "select", name: "" },
+              {
+                label: "State",
+                type: "select",
+                name: "state",
+                dataOptions: StateData?.data,
+              },
               {
                 label: "Centre",
                 type: "select",
-                name: "",
-                // dataOptions: AllCenterData,
+                name: "centreid",
+                dataOptions: AllCenterData?.data,
                 keyField: "centreId",
                 showValueField: "companyName",
               },
-              { label: "From Date", type: "customDateField", name: "from" },
-              { label: "To Date", type: "customDateField", name: "to" },
+              { label: "Lab No.", type: "text", name: "labNo" },
+
+              { label: "From Date", type: "customDateField", name: "fromDate" },
+              { label: "To Date", type: "customDateField", name: "toDate" },
               {
                 label: "Invoice Date",
                 type: "customDateField",
-                name: "invoice",
+                name: "invoiceDate",
               },
             ]}
           />
@@ -255,7 +226,7 @@ export default function CreateInvoice() {
         {loading ? (
           <div className="text-center py-4 text-gray-500">Loading...</div>
         ) : (
-          <div className="flex flex-col md:flex-row justify-start items-center w-full gap-2">
+          <div className="flex flex-col md:flex-row justify-start  w-full gap-2">
             <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
               <thead
                 style={{
@@ -279,7 +250,7 @@ export default function CreateInvoice() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, index) => (
+                {data.map((row, index) => (
                   <tr
                     key={row.id}
                     className={`cursor-pointer ${

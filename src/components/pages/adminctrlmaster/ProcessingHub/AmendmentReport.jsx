@@ -109,7 +109,7 @@ export default function AmendmentReport() {
         {/* <div style={{ position: "fixed", top: "100px", maxHeight: "200px", overflowY: "auto", width: "100%",backgroundColor:"white" }}> */}
         <div>
           {/* Header Section */}
-          <FormHeader title="Result Track" />
+          <FormHeader title="Amendment Report" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
               <SearchBarDropdown
@@ -141,7 +141,7 @@ export default function AmendmentReport() {
           <div style={{ maxHeight: "200px" }}>
             <DynamicTable
               rows={row}
-              name="Result Track Details"
+              name="Amendment Report Details"
               //   loading={loading}
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
