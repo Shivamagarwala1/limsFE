@@ -633,7 +633,7 @@ export default function ResultTrack() {
         {/* <div style={{ position: "fixed", top: "100px", maxHeight: "200px", overflowY: "auto", width: "100%",backgroundColor:"white" }}> */}
         <div className="mb-1">
           {/* Header Section */}
-          <FormHeader title="Result Track" />
+          <FormHeader title="Patient Search" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
               <MultiSelectDropdown
@@ -735,7 +735,7 @@ export default function ResultTrack() {
           <div style={{ maxHeight: "200px" }}>
             <DynamicTable
               rows={row}
-              name="Result Track Details"
+              name="Patient Test Details"
               //   loading={loading}
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
@@ -749,7 +749,7 @@ export default function ResultTrack() {
               columns={columns1}
               rows={tableData}
               onEdit={setTableData}
-              name="User Table"
+              name="Result Entry"
             />
             <div
               className="w-full h-[0.10rem]"
