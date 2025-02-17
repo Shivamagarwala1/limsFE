@@ -8,12 +8,14 @@ import { FaUser } from "react-icons/fa";
 import InputGenerator, {
   ButtonWithImage,
   SubmitButton,
+  TwoSubmitButton,
 } from "./InputGenerator";
-import DynamicTable from "./DynamicTable";
+import DynamicTable, { TableHeader } from "./DynamicTable";
 import { PopupTable } from "./PopupTable";
 import { getLocal } from "usehoks";
 import { useFormHandler } from "./useFormHandler";
 import { MdDelete } from "react-icons/md";
+import { NewPopupTable } from "./NewPopupTable";
 
 const PopupModal = ({
   showPopup,
@@ -581,7 +583,6 @@ export const RejectPopupModal = ({
   setShowPopup,
   handleTheUpdateStatusMenu,
 }) => {
-  const [remark, setRemark] = useState("");
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
   if (!showPopup) return null;
@@ -598,7 +599,7 @@ export const RejectPopupModal = ({
             borderBottomLeftRadius: "0px",
             borderBottomRightRadius: "0px",
           }}
-          className="flex rounded-md justify-between items-center p-3 "
+          className="flex rounded-md justify-between items-center px-2 py-1 "
         >
           <span className="text-sm font-semibold">Sample Rejection Reason</span>
           <IoMdCloseCircleOutline
@@ -609,7 +610,7 @@ export const RejectPopupModal = ({
         </div>
 
         {/* Input Field */}
-        <div className="p-4 pb-2 border-none">
+        <div className="p-4 pb-2 flex flex-row gap-1 border-none">
           <InputGenerator
             inputFields={[
               {
@@ -620,19 +621,16 @@ export const RejectPopupModal = ({
               },
             ]}
           />
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-3 p-3 pt-0 ">
-          <button
-            className="px-4 py-1 bg-blue-600 text-white rounded"
+          <SubmitButton
+            submit={false}
+            text={"Save"}
+            callBack={() => {}}
             style={{
-              background: activeTheme?.menuColor,
-              color: activeTheme?.iconColor,
+              width: "80px",
+              fontSize: "0.75rem",
+              backgroundColor: "red !important",
             }}
-          >
-            Save
-          </button>
+          />
         </div>
       </div>
     </div>
@@ -650,7 +648,7 @@ export const InvestigationRemarkPopupModal = ({
   const storedTestName = localStorage.getItem("testName");
   let testName = storedTestName;
 
-  if (testName && typeof testName === 'string') {
+  if (testName && typeof testName === "string") {
     testName = testName.replace(/"/g, "");
   }
 
@@ -808,5 +806,107 @@ export const InvestigationRemarkPopupModal = ({
         <DynamicTable name="Test Details" rows={rows} columns={columns} />
       </div>
     </div>
+  );
+};
+
+export const InfoPopup = ({
+  showPopup,
+  setShowPopup,
+  rows = [],
+  columns = [],
+  heading = "",
+  handleSubmit,
+  handleTheUpdateStatusMenu,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+
+  return (
+    showPopup && (
+      <div className="fixed inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg shadow-lg max-w-4xl">
+          {/* Header */}
+          <div
+            style={{
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+              borderRadius: "5px",
+              borderBottomLeftRadius: "0px",
+              borderBottomRightRadius: "0px",
+            }}
+            className="flex justify-between items-center px-2 py-1 border-b"
+          >
+            <span className="text-base font-semibold">{heading}</span>
+            <IoMdCloseCircleOutline
+              className="text-xl cursor-pointer"
+              style={{ color: activeTheme?.iconColor }}
+              onClick={() => setShowPopup(false)}
+            />
+          </div>
+          {/* Content */}
+
+          <div className=" p-0 pt-0 overflow-y-auto max-h-[250px] pb-1.5 flex items-end justify-end flex-col">
+          <TableHeader title='Patient Details' />
+            <NewPopupTable
+              rows={rows}
+              // trstyle={{ height: "40px" }}
+              showDetails={false}
+              columns={columns}
+              activeTheme={activeTheme}
+            />
+          </div>
+        </div>
+      </div>
+    )
+  );
+};
+
+export const ReRunPopup = ({
+  showPopup,
+  setShowPopup,
+  rows = [],
+  columns = [],
+  heading = "",
+  handleSubmit,
+  handleTheUpdateStatusMenu,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+
+  return (
+    showPopup && (
+      <div className="fixed inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50 z-50">
+        <div className="bg-white rounded-lg shadow-lg max-w-4xl">
+          {/* Header */}
+          <div
+            style={{
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+              borderRadius: "5px",
+              borderBottomLeftRadius: "0px",
+              borderBottomRightRadius: "0px",
+            }}
+            className="flex justify-between items-center px-2 py-1 border-b"
+          >
+            <span className="text-base font-semibold">{heading}</span>
+            <IoMdCloseCircleOutline
+              className="text-xl cursor-pointer"
+              style={{ color: activeTheme?.iconColor }}
+              onClick={() => setShowPopup(false)}
+            />
+          </div>
+          {/* Content */}
+
+          <div className=" p-0 pt-0 overflow-y-auto max-h-[250px] pb-1.5 flex items-end justify-end flex-col">
+            <TableHeader title='Re-Run Remark' />
+            <NewPopupTable
+              rows={rows}
+              // trstyle={{ height: "40px" }}
+              showDetails={false}
+              columns={columns}
+              activeTheme={activeTheme}
+            />
+          </div>
+        </div>
+      </div>
+    )
   );
 };

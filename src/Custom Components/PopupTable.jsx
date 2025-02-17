@@ -16,8 +16,8 @@ export function PopupTable({
     style={{
       scrollbarWidth: "none", // Keeps it slim (Firefox)
       scrollbarColor: "#4a90e2 #f1f1f1", // Blue thumb, light gray track
-    }} className="overflow-x-auto w-full h-64 custom-scrollbar">
-      <table className="table-auto border-collapse w-full text-xxs text-left mb-2 min-w-max">
+    }} className="overflow-x-auto w-full custom-scrollbar">
+      <table className="table-auto border-collapse w-full text-xxs text-left min-w-max">
         <thead
           style={{
             background: activeTheme?.menuColor,
