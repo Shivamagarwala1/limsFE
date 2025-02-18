@@ -29,7 +29,7 @@
 }
 
 .menuPeerLevel {
-    @apply absolute left-2 -top-[0.20rem] bg-white px-1 text-xxxs text-[#795548] transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-xxxs peer-placeholder-shown:text-gray-800 peer-focus:-top-1 peer-focus:text-xxxxs font-semibold peer-focus:text-[#795548];
+    @apply absolute left-2 -top-[0.20rem] bg-white px-1 text-xxxxs text-[#795548] transition-all peer-placeholder-shown:top-2 peer-placeholder-shown:text-xxxs peer-placeholder-shown:text-gray-800 peer-focus:-top-[0.20rem] peer-focus:text-xxxxs font-semibold peer-focus:text-[#795548];
 }
 
 .inputPeerField {
