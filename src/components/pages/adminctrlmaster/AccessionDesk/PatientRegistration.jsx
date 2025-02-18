@@ -13,7 +13,10 @@ import UserCalendarAndTime from '../../../public/UserCalendarAndTime';
 import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, savePatientRegistrationDataApi, saveReferDrApi } from '../../../../service/service';
 import { FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
-import { toCamelCase } from '../../../global/ConvertCamelCase';
+import { toProperCase } from '../../../global/InputFieldValidations';
+import { CustomTextBox } from '../../../global/CustomTextBox';
+import CustomButton from '../../../global/CustomButton';
+import { CustomNumberInput } from '../../../global/CustomNumberInput';
 
 export default function PatientRegistration() {
 
@@ -38,7 +41,7 @@ export default function PatientRegistration() {
         ageYear: 0,
         dob: '',
         gender: '',
-        email: '',
+        emailId: '',
 
         collectionDateAndTime: new Date('1970-01-01T00:00:00Z')
             .toLocaleString('en-GB', {
@@ -104,7 +107,7 @@ export default function PatientRegistration() {
         title: '',
         doctorName: '',
         imaRegistartionNo: '',
-        email: '',
+        emailId: '',
         reportEmail: '',
         mobileNo: '',
         mobileno2: '',
@@ -469,6 +472,8 @@ export default function PatientRegistration() {
 
     const handelOnChangePatientRegistration = (event) => {
 
+
+
         setPatientRegistrationData((preventData) => ({
             ...preventData,
             [event.target.name]: event.target.value
@@ -735,7 +740,7 @@ export default function PatientRegistration() {
                     title: '',
                     doctorName: '',
                     imaRegistartionNo: '',
-                    email: '',
+                    emailId: '',
                     reportEmail: '',
                     mobileNo: '',
                     mobileno2: '',
@@ -866,11 +871,6 @@ export default function PatientRegistration() {
         paymentModeType?.forEach((paymentMode) => {
 
             switch (paymentMode?.label) {
-                case 'Cash':
-                    if (!patientRegistrationData.cashAmt) {
-                        errors.cashAmt = true;
-                    }
-                    break;
 
                 case 'Debit/Credit Card':
                     if (!patientRegistrationData.creditCardAmt) {
@@ -893,7 +893,7 @@ export default function PatientRegistration() {
         })
 
         //sampleTypeName filed required
-        
+
 
 
         if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
@@ -943,7 +943,7 @@ export default function PatientRegistration() {
             ageYear: parseInt(patientRegistrationData?.ageYear),
             dob: patientRegistrationData?.dob,
             isActualDOB: 0,
-            emailId: patientRegistrationData?.email,
+            emailId: patientRegistrationData?.emailId,
             mobileNo: patientRegistrationData?.mobileNo,
             address: patientRegistrationData?.address,
             pinCode: patientRegistrationData?.pinCode,
@@ -1396,9 +1396,50 @@ export default function PatientRegistration() {
 
     const filterReferLabData = allLabReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refLab || '').toLowerCase()));
 
+    const [email, setEmail] = useState('');
 
+    const handelEmail = (name, value) => {
+        setEmail(value)
+    }
+
+    const onSubmitEmail = () => {
+
+        console.log(email);
+
+    }
     return (
         <>
+
+
+            {/* <CustomTextBox
+                type="days" //email,text
+                name="email"
+                label="Digit"
+                value={email}
+                onChange={(name, value) => setEmail(value)}
+
+                isMandatory={true}
+                maxLength={100}
+            />
+
+            <CustomButton
+                activeTheme={activeTheme}
+                text={'Save'}
+                icon={FaSpinner}
+                isButtonClick={0}
+            // onClick={onSubmitEmail}
+            />
+
+            <CustomNumberInput
+                name="phoneNumber"
+                value={email}
+                onChange={handelEmail}
+                label="Phone Number"
+            />
+
+            <p className='text-xl font-semibold'>Pincode</p> */}
+
+
             <div>
                 {/* Header Section */}
                 <div
@@ -1410,6 +1451,10 @@ export default function PatientRegistration() {
                     </div>
                     <div>Patient Registration</div>
                 </div>
+
+
+
+
 
                 {/* form data */}
                 <form autoComplete='off'>
@@ -1689,7 +1734,7 @@ export default function PatientRegistration() {
                                 type="text"
                                 id="fullName"
                                 name="name"
-                                value={toCamelCase(patientRegistrationData?.name) || ''}
+                                value={toProperCase(patientRegistrationData?.name) || ''}
                                 onChange={(e) => {
                                     handelOnChangePatientRegistration(e)
                                 }}
@@ -1834,7 +1879,7 @@ export default function PatientRegistration() {
                                         maxDate={new Date(new Date().getFullYear() + 1, 11, 31)} // Default max date: December 31, 2100
                                         startDayOfWeek={0} // 0 = Sunday, 1 = Monday, etc.
 
-                                        showTime={false} // Whether to show time selection
+                                        showTime={true} // Whether to show time selection
                                         activeTheme={activeTheme}
                                         tillDate={new Date()} // Default till date: today
                                         timeFormat={"12"} // Default time format: 24-hour
@@ -2052,7 +2097,19 @@ export default function PatientRegistration() {
                             {/* Calendar Popup */}
                             {showCalanderAndTime && (
                                 <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
-                                    <UserCalendarAndTime onDateAndTimeClick={handleDateAndTimeClick} />
+                                    {/* <UserCalendarAndTime onDateAndTimeClick={handleDateAndTimeClick} /> */}
+                                    <UserCalendar
+                                        onDateClick={handleDateAndTimeClick}
+
+                                        minDate={new Date(new Date().getFullYear() - 150, 11, 31)} // Default min date: January 1, 1950
+                                        maxDate={new Date(new Date().getFullYear() + 1, 11, 31)} // Default max date: December 31, 2100
+                                        startDayOfWeek={0} // 0 = Sunday, 1 = Monday, etc.
+
+                                        showTime={true} // Whether to show time selection
+                                        activeTheme={activeTheme}
+                                        tillDate={new Date()} // Default till date: today
+                                        timeFormat={"12"} // Default time format: 24-hour
+                                    />
                                 </div>
                             )}
                         </div>

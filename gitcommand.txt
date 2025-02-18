@@ -7,3 +7,19 @@ git commit -m "message"
 git push origin <branch name(anil/main)>
 
 git pull origin anil/main
+
+
+//file upload, button , 
+
+<CustomTextBox
+    type="propercase" //years //"months" //"days" // "positive" //"negative" //"decimalpositive" //"decimalnegative" email text
+    name="displaySequence"
+    value={formData.displaySequence}
+    onChange={handleInputChange}
+    label="Display Seq."
+    allowSpecialChars={false} // Allow special characters
+    maxLength={30} // Max length of 100 characters
+    isMandatory={true}
+    isDisabled={false}
+    //decimalPrecision = {4} // New property for decimal precision
+/>
