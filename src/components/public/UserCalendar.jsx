@@ -26,7 +26,7 @@ const UserCalendar = ({
     const [yearOffset, setYearOffset] = useState(0);
     const now = new Date();
     const [selectedTime, setSelectedTime] = useState({
-        hours: now.getHours(),
+        hours: timeFormat === "12" ? (now.getHours() % 12 || 12) : now.getHours(),
         minutes: now.getMinutes(),
     });
     const [amPm, setAmPm] = useState(now.getHours() >= 12 ? "PM" : "AM"); // Track AM/PM for 12-hour format
@@ -336,6 +336,7 @@ const UserCalendar = ({
                         </button>
                     </>
                 )}
+
                 {view === "month" && (
                     <>
                         <button
@@ -347,6 +348,7 @@ const UserCalendar = ({
                         </button>
                     </>
                 )}
+
                 {view === "year" && (
                     <>
                         <button
@@ -451,14 +453,14 @@ const UserCalendar = ({
                                         value={selectedTime.hours}
                                         onChange={(e) => {
                                             let value = e.target.value.replace(/\D/g, ""); // Remove any non-numeric characters
-                                            if (value !== "" && parseInt(value, 10) < 24) {
+                                            if (value !== "" && parseInt(value, 10) < (timeFormat === "12" ? 12 : 24)) {
                                                 setSelectedTime((prev) => ({
                                                     ...prev,
                                                     hours: parseInt(value, 10),
                                                 }));
                                             }
                                         }}
-                                        className="text-lg text-center w-10 border rounded outline-none"
+                                        className=" text-center w-6 h-6 border rounded outline-none text-xs font-semibold"
                                     />
                                     <button
                                         onClick={(e) => {
@@ -494,7 +496,7 @@ const UserCalendar = ({
                                                 }));
                                             }
                                         }}
-                                        className="text-lg text-center w-10 border rounded outline-none"
+                                        className="text-center w-6 h-6 border rounded outline-none text-xs font-semibold"
                                     />
                                     <button
                                         onClick={(e) => {
@@ -533,7 +535,7 @@ const UserCalendar = ({
                                                     setAmPm(value);
                                                 }
                                             }}
-                                            className="text-lg text-center w-12 border rounded"
+                                            className="text-xs font-semibold  text-center w-6 h-6 border outline-none rounded"
                                         />
 
                                         <button
