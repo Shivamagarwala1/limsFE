@@ -14,11 +14,10 @@ export const CustomTextBox = ({
     decimalPrecision = 4, // New property for decimal precision
 }) => {
     const [isValid, setIsValid] = useState(true);
-    //const [dynamicMandatory, setDynamicMandatory] = useState(isMandatory)
     const prevIsValidRef = useRef(false);
 
     //console.log(dynamicMandatory);
-    
+
 
     const allowedSpecialChars = allowSpecialChars ? "!@#$%^&*/" : "";
 
@@ -27,6 +26,7 @@ export const CustomTextBox = ({
         //   toast.error("This field is mandatory");
         //   return false;
         // }
+        console.log(value);
 
         switch (type) {
             case "email":
@@ -54,6 +54,11 @@ export const CustomTextBox = ({
                     const regex = new RegExp(`^[A-Za-z\\s${allowedSpecialChars}]*$`);
                     return regex.test(value);
                 }
+            case "alphabetandchar":
+                console.log(/^[A-Za-z0-9]*$/.test(value));
+
+                return /^[A-Za-z0-9]*$/.test(value); // Allows only letters and numbers, no spaces or special characters
+
             default:
                 if (allowSpecialChars) {
                     const regex = new RegExp(`^[A-Za-z\\s${allowedSpecialChars}]*$`);
@@ -63,11 +68,15 @@ export const CustomTextBox = ({
         }
     };
     const handleInputChange = (e) => {
+
         let newValue = e.target.value;
         let oldValue = newValue;
+
         // Restrict input based on type
-        setIsValid(false);
+        //setIsValid(false);
+
         //setDynamicMandatory(newValue.trim() === "" || newValue === 0 || newValue === '0');
+
         switch (type) {
             case "email":
                 newValue = newValue.replace(/[^a-zA-Z0-9@._-]/g, "");
@@ -158,6 +167,14 @@ export const CustomTextBox = ({
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(" ");
                 break;
+            case "alphabetandchar":
+                if (!/^[A-Za-z0-9]*$/.test(newValue)) {
+                    newValue = newValue.replace(/[^A-Za-z0-9]/g, ""); // Remove invalid characters
+                    // return false;
+                }
+                break;
+
+
             default:
                 if (!allowSpecialChars) {
                     newValue = newValue.replace(/[^A-Za-z\s]/g, "");
@@ -170,13 +187,16 @@ export const CustomTextBox = ({
             newValue = newValue.slice(0, maxLength);
         }
 
+        e.target.value = newValue;
+
         // Update value and validate
         if (onChange) {
             onChange(e);
-
         }
 
         const valid = validateField(newValue);
+        console.log(valid);
+
         setIsValid(valid);
 
         if (oldValue.toLowerCase() != newValue.toLowerCase()) prevIsValidRef.current = valid;
@@ -208,6 +228,9 @@ export const CustomTextBox = ({
                     break;
                 case "email":
                     errorMessage = "Invalid Email Format!";
+                    break;
+                case "alphabetandchar":
+                    errorMessage = "Only letters and numbers are allowed!";
                     break;
                 default:
                     errorMessage = "Invalid input!";

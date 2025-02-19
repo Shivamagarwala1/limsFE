@@ -19,6 +19,7 @@ const UserCalendar = ({
     activeTheme,
     tillDate = new Date(), // Default till date: today
     timeFormat = "12", // Default time format: 24-hour
+    showBigerCalandar
 }) => {
     const [currentDate, setCurrentDate] = useState(new Date()); // Default to today's date
     const [selectedDate, setSelectedDate] = useState(null); // Track selected date
@@ -282,7 +283,7 @@ const UserCalendar = ({
     return (
         <div
             ref={calendarRef}
-            className={`p-2 max-w-md mx-auto border-[1.5px] bg-white rounded-md shadow-lg ${className}`}
+            className={`p-2 max-w-md mx-auto ${showBigerCalandar ? 'w-60' : ''} border-[1.5px] bg-white rounded-md shadow-lg ${className}`}
         >
             {/* Header */}
             <div className="flex justify-between items-center mb-2">

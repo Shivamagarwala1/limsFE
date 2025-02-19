@@ -20,7 +20,7 @@ export const DatePicker = ({
     maxDate,
     highlightedDates,
     disabledDates,
-
+    showBigerCalandar,
     timeFormat = "12"
 }) => {
     const [showCalendar, setShowCalendar] = useState(false);
@@ -60,7 +60,8 @@ export const DatePicker = ({
     }, []);
 
     return (
-        <div className="relative flex-1 flex items-center gap-[0.20rem] w-full justify-between">
+        <div className={`absolute flex-1 flex items-center gap-[0.20rem] w-full justify-between`}>
+
             {/* Input Field */}
             <div className="relative flex-1">
                 <input
@@ -102,11 +103,13 @@ export const DatePicker = ({
                 </div>
             </div>
 
+
+
             {/* Calendar Popup */}
             {showCalendar && (
                 <div
                     ref={calendarRef}
-                    className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50"
+                    className={` absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50`}
                 >
                     <UserCalendar
                         onDateClick={handleDateClick}
@@ -119,7 +122,7 @@ export const DatePicker = ({
                         showTime={showTime}
                         activeTheme={activeTheme}
                         tillDate={tillDate}
-
+                        showBigerCalandar={showBigerCalandar}
                     />
                 </div>
             )}

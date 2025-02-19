@@ -21,7 +21,7 @@ export const CustomEmailInput = ({
 
         // Trigger onChange callback
         if (onChange) {
-            onChange(name, newValue);
+            onChange(e);
         }
 
         // Reset validation state while typing
@@ -33,6 +33,7 @@ export const CustomEmailInput = ({
     const handleValidation = (e) => {
         const newValue = e.target.value;
 
+
         // Validate the email on blur/mouseleave
         const isValidValue = validateEmail(newValue);
         setIsValid(isValidValue);
@@ -40,7 +41,7 @@ export const CustomEmailInput = ({
         // Show toast message based on validity
         if (!isValidValue) {
             toast.error("Please enter a valid email address");
-        } 
+        }
     };
 
     return (
