@@ -15,8 +15,12 @@ import { FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
 import { toProperCase } from '../../../global/InputFieldValidations';
 import { CustomTextBox } from '../../../global/CustomTextBox';
-import CustomButton from '../../../global/CustomButton';
+import CustomFormButton from '../../../global/CustomFormButton';
 import { CustomNumberInput } from '../../../global/CustomNumberInput';
+import CustomeNormalButton from '../../../global/CustomeNormalButton';
+import { CustomEmailInput } from '../../../global/CustomEmailInput';
+import CustomDropdown from '../../../global/CustomDropdown';
+import { DatePicker } from '../../../global/DatePicker';
 
 export default function PatientRegistration() {
 
@@ -136,7 +140,6 @@ export default function PatientRegistration() {
     const [isHovered, setIsHovered] = useState(null);
 
     const [gridDataBarCodeandSampleType, setGridDataBarCodeandSampleType] = useState({
-
         barCode: [],
         sampleType: [],
         discount: []
@@ -218,16 +221,22 @@ export default function PatientRegistration() {
         let months = currentDate.getMonth() - birthDate.getMonth();
         let days = currentDate.getDate() - birthDate.getDate();
 
+        // Adjust for negative months
         if (months < 0) {
             years--;
             months += 12;
         }
 
+        // Adjust for negative days
         if (days < 0) {
             months--;
             const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
             days += lastMonth.getDate();
         }
+
+        // Ensure months and years are zero if there is no difference
+        if (years < 0) years = 0; // Handle edge cases where dob is in the future
+        if (months < 0) months = 0;
 
         // Update age only if it changes
         setPatientRegistrationData((prevData) => {
@@ -236,11 +245,24 @@ export default function PatientRegistration() {
                 prevData.ageMonth !== months ||
                 prevData.ageDays !== days
             ) {
-                return { ...prevData, ageYear: years, ageMonth: months, ageDays: days };
+                // Construct the updated data
+                const updatedData = {
+                    ...prevData,
+                    ageYear: years || "0",
+                    ageMonth: months || "0",
+                    ageDays: days || "0",
+                };
+
+
+                // Return the updated data
+                return updatedData;
             }
+            // Return the unchanged data
             return prevData;
         });
+
     };
+
 
     // Recalculate DOB if age fields change
     useEffect(() => {
@@ -263,9 +285,6 @@ export default function PatientRegistration() {
             calculateAge(patientRegistrationData?.dob);
         }
     }, [patientRegistrationData?.dob]);
-
-
-
 
 
     //calculate paid amt.
@@ -463,7 +482,6 @@ export default function PatientRegistration() {
     };
 
 
-
     const handelClickImage = () => {
         if (imgRef.current) {
             imgRef.current.click();
@@ -471,13 +489,18 @@ export default function PatientRegistration() {
     };
 
     const handelOnChangePatientRegistration = (event) => {
-
-
+        console.log(event);
 
         setPatientRegistrationData((preventData) => ({
             ...preventData,
-            [event.target.name]: event.target.value
+            [event?.target?.name]: event?.target?.value
         }))
+    }
+
+
+    const buttonClick = () => {
+        console.log(patientRegistrationData);
+
     }
 
     const handelOnChangePatientRegistrationForSelect = (event) => {
@@ -659,17 +682,25 @@ export default function PatientRegistration() {
                             return acc;
                         }, null);
 
+
                         // Use a functional update for setState to check for duplicates
                         let isDuplicate = false;
                         setinvestigationGridData((prevData) => {
+
                             isDuplicate = prevData.some((item) => item.itemId === result.itemId);
                             if (isDuplicate) {
                                 return prevData; // No changes if duplicate
                             }
                             return [...prevData, result];
                         });
+
+                        // Show toast if duplicate is detected
+                        if (isDuplicate) {
+                            toast.error("Duplicate item selected. Please select a different item.");
+                        }
                     }
                 }
+
             } catch (error) {
                 toast.error(error?.message);
             }
@@ -679,6 +710,21 @@ export default function PatientRegistration() {
         getAllinvestigationGridData();
 
     }, [patientRegistrationData?.rateId, patientRegistrationData?.itemId])
+
+
+    //selecte only single data
+    const handelSelecteOnlyUniqueTestData = (data) => {
+
+        let isDuplicate = investigationGridData?.some((item) => item.itemId === data.itemId);
+
+        if (isDuplicate) {
+            toast.info('Already select the item')
+        } else {
+            setSelectedInvastigationList(prevList => [...prevList, { itemId: data?.itemId, itemName: data?.itemName }])
+        }
+        //console.log(investigationGridData);
+
+    }
 
 
     // Function to delete data by itemId
@@ -804,6 +850,7 @@ export default function PatientRegistration() {
 
     //handel on chenge grid data
     const handleInputChange = (rowId, value, inputFields) => {
+
         if (inputFields === '1') {
             setGridDataBarCodeandSampleType((prevState) => {
                 // Filter out the existing entry for this rowId in the `discount` array
@@ -852,6 +899,7 @@ export default function PatientRegistration() {
 
     //validations
     const validateForm = () => {
+
         const errors = {};
 
         // Check for  fields
@@ -894,8 +942,6 @@ export default function PatientRegistration() {
 
         //sampleTypeName filed required
 
-
-
         if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
         if (!patientRegistrationData.discountPercentage) errors.discountPercentage = true;
         if (!patientRegistrationData.discountid) errors.discountid = true;
@@ -921,9 +967,6 @@ export default function PatientRegistration() {
     const onSubmitForSavePatientRegistrationData = async () => {
 
         setIsButtonClick(2);
-
-
-
 
         const updatedData = {
 
@@ -1396,17 +1439,26 @@ export default function PatientRegistration() {
 
     const filterReferLabData = allLabReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refLab || '').toLowerCase()));
 
-    const [email, setEmail] = useState('');
 
-    const handelEmail = (name, value) => {
-        setEmail(value)
-    }
 
-    const onSubmitEmail = () => {
+    //experiment
+    // const [email, setEmail] = useState('');
 
-        console.log(email);
+    // const handelEmail = (name, value) => {
+    //     setEmail(value)
+    // }
 
-    }
+    // const [isLoading, setIsLoading] = useState(0); // State to track loading status
+
+    // const handleButtonClick = (loadingValue) => {
+    //     setIsLoading(loadingValue); // Set loading state to 2
+    //     // Simulate an API call or async operation
+    //     setTimeout(() => {
+    //         setIsLoading(0); // Reset loading state after operation is complete
+    //     }, 2000); // Change 2000ms to any desired duration
+    // };
+
+
     return (
         <>
 
@@ -1422,23 +1474,56 @@ export default function PatientRegistration() {
                 maxLength={100}
             />
 
-            <CustomButton
+            <CustomFormButton
                 activeTheme={activeTheme}
-                text={'Save'}
+                text="Save Button 2"
                 icon={FaSpinner}
-                isButtonClick={0}
-            // onClick={onSubmitEmail}
+                isButtonClick={isLoading}
+                loadingButtonNumber={2} // Unique number for the second button
+                onClick={() => handleButtonClick(2)} // Pass button number to handler
             />
 
+
+
             <CustomNumberInput
+                type="phoneNumber"
                 name="phoneNumber"
                 value={email}
                 onChange={handelEmail}
+                maxLength={10}
                 label="Phone Number"
             />
 
-            <p className='text-xl font-semibold'>Pincode</p> */}
+            <CustomFormButton
+                activeTheme={activeTheme}
+                text="Save Button 1"
+                icon={FaSpinner}
+                isButtonClick={isLoading}
+                loadingButtonNumber={1} // Unique number for the first button
+                onClick={() => handleButtonClick(1)} // Pass button number to handler
+            />
 
+            <CustomNumberInput
+                type="pinCode"
+                name="pinCode"
+                value={email}
+                onChange={handelEmail}
+                maxLength={6}
+                label="Pin Code"
+            />
+
+            <CustomeNormalButton
+                activeTheme={activeTheme}
+                text="Open Popup"
+            />
+
+            <p className='text-xl font-semibold'>Pincode</p>
+            <CustomEmailInput
+                name="email"
+                value={email}
+                onChange={handelEmail}
+                label="Enter your email"
+            /> */}
 
             <div>
                 {/* Header Section */}
@@ -1453,13 +1538,9 @@ export default function PatientRegistration() {
                 </div>
 
 
-
-
-
                 {/* form data */}
                 <form autoComplete='off'>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-
 
                         <div className="relative flex-1">
                             <select
@@ -1622,55 +1703,38 @@ export default function PatientRegistration() {
                         <div className="flex gap-[0.25rem]">
                             {/* Edit info */}
                             <div className="relative flex-1">
-                                <input
-                                    type="search"
-                                    id="editinfo"
-                                    name="editinfo"
-                                    onChange={(e) => {
-                                        handelOnChangePatientRegistration(e)
-                                    }}
 
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                <CustomeNormalButton
+                                    activeTheme={activeTheme}
+                                    text="Edit info"
+                                    onClick={() => setShowPopup(2)}
                                 />
-                                <label htmlFor="editinfo" className="menuPeerLevel">
-                                    Edit info
-                                </label>
                             </div>
 
                             {/* Edit Test */}
                             <div className="relative flex-1">
-                                <input
-                                    type="search"
-                                    id="editTest"
-                                    name="editTest"
-                                    onChange={(e) => {
-                                        handelOnChangePatientRegistration(e)
-                                    }}
 
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                <CustomeNormalButton
+                                    activeTheme={activeTheme}
+                                    text="Edit Test"
+                                    onClick={() => setShowPopup(3)}
                                 />
-                                <label htmlFor="editTest" className="menuPeerLevel">
-                                    Edit Test
-                                </label>
                             </div>
                         </div>
 
 
-                        <div className="relative flex-1">
-                            <button
-                                type="button"
-                                data-ripple-light="true"
-                                className="relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
+                        <div className="flex gap-[0.25rem]">
+                            <div className="relative flex-1">
 
-                                style={{
-                                    background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                }}
-                            >
-                                Existing Patient
-                            </button>
+                                <CustomeNormalButton
+                                    activeTheme={activeTheme}
+                                    text="Existing Patient"
+                                    onClick={() => setShowPopup(3)}
+                                />
 
+                            </div>
+
+                            <div className="relative flex-1"></div>
                         </div>
                     </div>
 
@@ -1681,7 +1745,7 @@ export default function PatientRegistration() {
                             {/* Mobile No. */}
                             <div className="relative flex-1">
                                 <input
-                                    type="number"
+                                    type="text"
                                     id="mobileNo"
                                     name="mobileNo"
                                     value={patientRegistrationData?.mobileNo || ''}
@@ -1879,7 +1943,7 @@ export default function PatientRegistration() {
                                         maxDate={new Date(new Date().getFullYear() + 1, 11, 31)} // Default max date: December 31, 2100
                                         startDayOfWeek={0} // 0 = Sunday, 1 = Monday, etc.
 
-                                        showTime={true} // Whether to show time selection
+                                        showTime={false} // Whether to show time selection
                                         activeTheme={activeTheme}
                                         tillDate={new Date()} // Default till date: today
                                         timeFormat={"12"} // Default time format: 24-hour
@@ -2287,6 +2351,7 @@ export default function PatientRegistration() {
                                 id="investigationName"
                                 name="investigationName"
                                 value={patientRegistrationData?.investigationName || ''}
+                                // value={''}
                                 onChange={(e) => {
                                     handelOnChangePatientRegistration(e)
                                 }}
@@ -2312,14 +2377,16 @@ export default function PatientRegistration() {
                                                         onClick={(e) => {
                                                             openShowSearchBarDropDown(0);
                                                             handelOnChangePatientRegistration({
-                                                                target: { name: 'investigationName', value: data?.itemName },
+                                                                target: { name: 'investigationName', value: ' ' },
                                                             });
 
                                                             handelOnChangePatientRegistration({
                                                                 target: { name: 'itemId', value: data?.itemId },
                                                             });
 
-                                                            setSelectedInvastigationList(prevList => [...prevList, { itemId: data?.itemId, itemName: data?.itemName }]);
+                                                            // setSelectedInvastigationList(prevList => [...prevList, { itemId: data?.itemId, itemName: data?.itemName }]);
+
+                                                            handelSelecteOnlyUniqueTestData(data)
 
                                                         }}
 
@@ -2351,6 +2418,7 @@ export default function PatientRegistration() {
                         </div>
 
                     </div>
+
                     {/* Divider Line */}
                     <div
                         className="w-full h-[0.10rem]"
@@ -3082,14 +3150,6 @@ export default function PatientRegistration() {
                         )
                     }
 
-
-
-
-
-
-
-
-
                 </form >
             </div >
 
@@ -3200,6 +3260,163 @@ export default function PatientRegistration() {
                                 </div>
 
                             </form>
+
+                        </div>
+                    </div>
+                )
+            }
+
+
+            {
+                showPopup === 2 && (
+                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
+                        <div className="w-full   h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown pb-3">
+
+                            <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
+                                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
+                            >
+                                <div className=" font-semibold"
+                                    style={{ color: activeTheme?.iconColor }}
+                                >
+                                    Edit Info.
+
+                                </div>
+
+                                <IoMdCloseCircleOutline className='text-xl cursor-pointer'
+                                    style={{ color: activeTheme?.iconColor }}
+                                    onClick={() => { setShowPopup(0) }}
+                                />
+                            </div>
+
+                            <div className=''>
+
+                                <form autoComplete='off'>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2  mt-2 mb-1 items-center  mx-1 lg:mx-2">
+
+                                        {/* <div className='flex gap-[0.25rem]'> */}
+                                        <div className='relative flex-1'>
+                                            <CustomNumberInput
+                                                type="phoneNumber"
+                                                name="mobileNo"
+                                                value={patientRegistrationData?.mobileNo || ''}
+                                                onChange={(e) => {
+                                                    handelOnChangePatientRegistration(e)
+                                                }}
+                                                maxLength={10}
+                                                label="Mobile No."
+                                            />
+                                        </div>
+
+                                        <div className='relative flex-1 lg:mt-[1.9px]'>
+                                            <CustomDropdown
+                                                name="title_id"
+                                                label="Select Title"
+                                                value={patientRegistrationData?.title_id}
+                                                options={[
+                                                    { label: 'Select Option', value: 0, disabled: true },
+                                                    ...allTitleData?.map(item => ({
+                                                        label: item.title,
+                                                        value: item.id,
+                                                    })),
+                                                ]}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                defaultIndex={0}
+                                                activeTheme={activeTheme}
+                                            />
+
+                                        </div>
+
+                                        <div className='flex gap-[0.25rem]'>
+
+                                            <div className='relative flex-1'>
+                                                <CustomTextBox
+                                                    type="days"
+                                                    name="ageDays"
+                                                    value={patientRegistrationData?.ageDays || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    label="Days"
+                                                    isDisabled={false}
+                                                    maxLength={2}
+                                                    allowSpecialChars={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.ageDays)}
+                                                    decimalPrecision={4}
+                                                />
+
+                                            </div>
+
+                                            <div className='relative flex-1'>
+                                                <CustomTextBox
+                                                    type="months"
+                                                    name="ageMonth"
+                                                    value={patientRegistrationData?.ageMonth || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    label="Months"
+                                                    isDisabled={false}
+                                                    maxLength={2}
+                                                    allowSpecialChars={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.ageMonth)}
+                                                    decimalPrecision={4}
+                                                />
+                                            </div>
+
+                                            {/* 
+                                            */}
+
+                                        </div>
+
+
+                                        <div className='flex gap-[0.25rem]'>
+
+                                            <div className='relative flex-1'>
+                                                <CustomTextBox
+                                                    type="years"
+                                                    name="ageYear"
+                                                    value={patientRegistrationData?.ageYear || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    label="Years"
+                                                    isDisabled={false}
+                                                    maxLength={3}
+                                                    allowSpecialChars={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.ageYear)}
+                                                    decimalPrecision={4}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className='relative flex-1'>
+                                            <DatePicker
+                                                id="dob"
+                                                name="dob"
+                                                value={patientRegistrationData?.dob || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                placeholder=" "
+                                                label="DOB"
+                                                activeTheme={activeTheme}
+                                                //isDisabled={false}
+                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                currentDate={new Date()} // Current date: today
+                                                maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                                                highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
+                                                disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
+                                                // showTime={true}
+                                                tillDate={new Date(2025, 1, 26)}
+                                            />
+                                            {/* </div> */}
+
+                                        </div>
+
+                                        {/* </div> */}
+
+                                        <CustomeNormalButton
+                                            activeTheme={activeTheme}
+                                            text="Open Popup"
+
+                                            onClick={buttonClick}
+                                        />
+
+                                    </div>
+                                </form>
+
+                            </div>
 
                         </div>
                     </div>
