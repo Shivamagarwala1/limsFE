@@ -14,7 +14,11 @@ export const CustomTextBox = ({
     decimalPrecision = 4, // New property for decimal precision
 }) => {
     const [isValid, setIsValid] = useState(true);
+    //const [dynamicMandatory, setDynamicMandatory] = useState(isMandatory)
     const prevIsValidRef = useRef(false);
+
+    //console.log(dynamicMandatory);
+    
 
     const allowedSpecialChars = allowSpecialChars ? "!@#$%^&*/" : "";
 
@@ -62,6 +66,8 @@ export const CustomTextBox = ({
         let newValue = e.target.value;
         let oldValue = newValue;
         // Restrict input based on type
+        setIsValid(false);
+        //setDynamicMandatory(newValue.trim() === "" || newValue === 0 || newValue === '0');
         switch (type) {
             case "email":
                 newValue = newValue.replace(/[^a-zA-Z0-9@._-]/g, "");
@@ -114,12 +120,10 @@ export const CustomTextBox = ({
                 break;
 
             case "days":
-                newValue = newValue.replace(/[^0-9]/g, "");
-                if (
-                    newValue !== "" &&
-                    (parseInt(newValue) < 0 || parseInt(newValue) > 31)
-                ) {
-                    newValue = newValue.slice(0, newValue.length - 1);
+                newValue = newValue.replace(/[^0-9]/g, ""); // Allow only digits
+                if (newValue !== "" && (parseInt(newValue) < 0 || parseInt(newValue) > 12)) {
+                    toast.error("Days must be between 0 and 12"); // Show the popup when out of range
+                    newValue = newValue.slice(0, newValue.length - 1); // Remove the last character
                 }
                 break;
 
@@ -168,7 +172,8 @@ export const CustomTextBox = ({
 
         // Update value and validate
         if (onChange) {
-            onChange(name, newValue);
+            onChange(e);
+
         }
 
         const valid = validateField(newValue);

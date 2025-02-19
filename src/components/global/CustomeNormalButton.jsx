@@ -1,14 +1,12 @@
-import React from 'react';
-import useRippleEffect from '../customehook/useRippleEffect';
+import React from 'react'
 
-export default function CustomButton({
+export default function CustomeNormalButton({
     activeTheme,
     text,
-    icon: Icon, // Renamed to Icon (to follow React component conventions)
-    isButtonClick,
+    onClick, // Accept a callback for button click
 }) {
 
-    useRippleEffect();
+
 
 
     return (
@@ -16,18 +14,17 @@ export default function CustomButton({
             <button
                 type="button"
                 data-ripple-light="true"
+                onClick={onClick} // Trigger the onClick callback when button is clicked
                 className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer`}
                 style={{
                     background: activeTheme?.menuColor,
                     color: activeTheme?.iconColor,
                 }}
             >
-                {isButtonClick === 2 ? (
-                    <Icon className="text-xl animate-spin" /> // Correctly render the icon component
-                ) : (
-                    text // Correctly render the text as a child
-                )}
+
+                {text}
+
             </button>
         </div>
-    );
+    )
 }

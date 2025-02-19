@@ -5,44 +5,50 @@ export const CustomNumberInput = ({
     name = "number",
     value = "",
     onChange,
-    label = "Mobile Number",
+    label = "Change your Label Name",
     isDisabled = false,
-    maxLength = 10, // Set maxLength to 10 for a 10-digit number
+    maxLength = 10, // Default maxLength to 10
 }) => {
-    const [isValid, setIsValid] = useState(true);
-
-    // Validation function to check if the input is a 10-digit number
-    const validateNumber = (value) => {
-        return value.length === 10; // Valid only if it's exactly 10 digits
-    };
+    const [inputValue, setInputValue] = useState(value); // Local state for the input value
+    const [isInvalid, setIsInvalid] = useState(false); // State for invalid input (for red border)
 
     const handleInputChange = (e) => {
         let newValue = e.target.value;
 
-        // Allow only digits
-        newValue = newValue.replace(/[^0-9]/g, "");
-
-        // Enforce max length of 10 digits
-        if (newValue.length > maxLength) {
-            newValue = newValue.slice(0, maxLength);
+        // Check for non-numeric characters
+        if (/[^0-9]/.test(newValue)) {
+            toast.error("Only numeric values are allowed");
+            newValue = newValue.replace(/[^0-9]/g, ""); // Remove non-numeric characters
         }
 
-        // Trigger onChange callback
+        // Enforce max length
+        if (newValue.length > maxLength) {
+            toast.error(`Maximum length of ${maxLength} digits exceeded`);
+            newValue = newValue.slice(0, maxLength); // Trim the value
+        }
+
+        // Update local state
+        setInputValue(newValue);
+
+        // Trigger the parent's `onChange` callback
         if (onChange) {
-            onChange(name, newValue);
+            // onChange({
+            //     ...e,
+            //     target: { ...e.target, value: newValue }, // Update value while preserving other event properties
+            // });
+            onChange(e)
+            setIsInvalid(false);
         }
     };
 
-    const handleValidation = (e) => {
-        const newValue = e.target.value;
 
-        // Validate the value on blur/mouseleave
-        const isValidValue = validateNumber(newValue);
-        setIsValid(isValidValue);
-
-        // Show error toast if invalid
-        if (!isValidValue) {
-            toast.error("Please enter a valid 10-digit number");
+    const handleBlur = () => {
+        // Check if the input meets the maxLength condition
+        if (inputValue.length !== maxLength) {
+            toast.error(`Input must contain exactly ${maxLength} digits`); // Show toast if not valid
+            setIsInvalid(true); // Highlight border with red
+        } else {
+            setIsInvalid(false); // Valid input, remove red border
         }
     };
 
@@ -52,18 +58,16 @@ export const CustomNumberInput = ({
                 type="text"
                 id={name}
                 name={name}
-                value={value}
+                value={inputValue} // Controlled input
                 onChange={handleInputChange}
-                onBlur={handleValidation} // Validate on blur/mouseleave
+                onBlur={handleBlur} // Validate on blur
                 placeholder=" "
-                maxLength={maxLength}
+                maxLength={maxLength + 1} // Prevent users from typing more characters
                 disabled={isDisabled}
-                aria-invalid={!isValid}
-                aria-describedby={!isValid ? `${name}-error` : undefined}
                 className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed"
                     : "bg-white"
-                    } ${!isValid ? "border-red-500" : "border-gray-300"} focus:outline-none`}
+                    } ${isInvalid ? "border-red-500" : "border-gray-300"}`}
             />
             <label htmlFor={name} className={`menuPeerLevel`}>
                 {label}
