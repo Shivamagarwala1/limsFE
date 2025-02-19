@@ -8,17 +8,14 @@ import { IoMdAdd, IoMdCloseCircleOutline, IoMdImages } from 'react-icons/io';
 import useOutsideClick from '../../../customehook/useOutsideClick';
 import { RiArrowDropDownLine, RiArrowDropUpLine, RiCalendarScheduleFill, RiDeleteBin2Fill } from 'react-icons/ri';
 import { patientRegistrationInvestigation, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
-import UserCalendarAndTime from '../../../public/UserCalendarAndTime';
-
+import { CustomEmailInput } from '../../../global/CustomEmailInput'
 import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, savePatientRegistrationDataApi, saveReferDrApi } from '../../../../service/service';
-import { FaSpinner } from 'react-icons/fa'
+import { FaSearch, FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
 import { toProperCase } from '../../../global/InputFieldValidations';
 import { CustomTextBox } from '../../../global/CustomTextBox';
-import CustomFormButton from '../../../global/CustomFormButton';
 import { CustomNumberInput } from '../../../global/CustomNumberInput';
 import CustomeNormalButton from '../../../global/CustomeNormalButton';
-import { CustomEmailInput } from '../../../global/CustomEmailInput';
 import CustomDropdown from '../../../global/CustomDropdown';
 import { DatePicker } from '../../../global/DatePicker';
 
@@ -28,6 +25,7 @@ export default function PatientRegistration() {
     const activeTheme = useSelector((state) => state.theme.activeTheme);
 
     useRippleEffect();
+
     const [isHoveredTable, setIsHoveredTable] = useState(null);
     const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
     const [showCalander, setShowCalander] = useState(false);
@@ -97,7 +95,10 @@ export default function PatientRegistration() {
         //refDoctor1: ''
     });
 
-
+    const [searchData, setSearchData] = useState({
+        editInfoId: '',
+        editTestId: ''
+    })
 
     const [addReferDrData, setAddReferDrData] = useState({
         isActive: 0,
@@ -172,6 +173,16 @@ export default function PatientRegistration() {
 
     const closeDropdown = () => setShowSearchBarDropDown(0);
     const dropdownRef = useOutsideClick(closeDropdown); // Use the custom hook
+
+
+    //search data
+    const handelOnChangeSearchData = (event) => {
+        setSearchData((preventData) => ({
+            ...preventData,
+            [event.target.name]: event.target.value
+        }))
+    }
+
 
     const handleDateClick = (date) => {
         const formatDate = (date) => {
@@ -489,8 +500,6 @@ export default function PatientRegistration() {
     };
 
     const handelOnChangePatientRegistration = (event) => {
-        console.log(event);
-
         setPatientRegistrationData((preventData) => ({
             ...preventData,
             [event?.target?.name]: event?.target?.value
@@ -1701,36 +1710,122 @@ export default function PatientRegistration() {
                         </div>
 
                         <div className="flex gap-[0.25rem]">
-                            {/* Edit info */}
-                            <div className="relative flex-1">
 
-                                <CustomeNormalButton
-                                    activeTheme={activeTheme}
-                                    text="Edit info"
-                                    onClick={() => setShowPopup(2)}
-                                />
+                            <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                                <div className="relative flex-1">
+
+                                    <CustomTextBox
+                                        type="alphabetandchar"
+                                        name="editInfoId"
+                                        value={searchData?.editInfoId || ''}
+                                        onChange={(e) => handelOnChangeSearchData(e)}
+                                        label="Edit info"
+                                        isDisabled={false}
+                                        maxLength={10}
+                                        allowSpecialChars={false}
+                                        isMandatory={false}
+                                        decimalPrecision={4}
+                                    />
+
+                                </div>
+
+                                <div>
+                                    <button
+                                        type='button'
+                                        className="h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
+                                        onClick={() => {
+                                            setShowPopup(2)
+                                        }}
+                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                    >
+                                        <FaSearch className="w-3 h-3 font-semibold" />
+                                    </button>
+                                </div>
+
+
+
+
                             </div>
 
                             {/* Edit Test */}
-                            <div className="relative flex-1">
+                            <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
 
-                                <CustomeNormalButton
-                                    activeTheme={activeTheme}
-                                    text="Edit Test"
-                                    onClick={() => setShowPopup(3)}
-                                />
+                                <div className="relative flex-1">
+
+                                    <CustomTextBox
+                                        type="alphabetandchar"
+                                        name="editTestId"
+                                        value={searchData?.editTestId || ''}
+                                        onChange={(e) => handelOnChangeSearchData(e)}
+                                        label="Edit Test"
+                                        isDisabled={false}
+                                        maxLength={10}
+                                        allowSpecialChars={false}
+                                        isMandatory={false}
+                                        decimalPrecision={4}
+                                    />
+
+                                </div>
+
+                                <div>
+                                    <button
+                                        type='button'
+                                        className=" h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
+                                        onClick={() => {
+                                            setShowPopup(0)
+                                        }}
+                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                    >
+                                        <FaSearch className="w-3 h-3 font-semibold" />
+                                    </button>
+                                </div>
+
+
+
+
                             </div>
                         </div>
 
 
                         <div className="flex gap-[0.25rem]">
-                            <div className="relative flex-1">
 
-                                <CustomeNormalButton
-                                    activeTheme={activeTheme}
-                                    text="Existing Patient"
-                                    onClick={() => setShowPopup(3)}
-                                />
+
+
+                            <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                                <div className="relative flex-1">
+
+                                    <CustomTextBox
+                                        type="alphabetandchar"
+                                        name="oldPatient"
+                                        value={searchData?.editTestId || ''}
+                                        onChange={(e) => handelOnChangeSearchData(e)}
+                                        label="Old Patient"
+                                        isDisabled={false}
+                                        maxLength={10}
+                                        allowSpecialChars={false}
+                                        isMandatory={false}
+                                        decimalPrecision={4}
+                                    />
+
+                                </div>
+
+                                <div>
+                                    <button
+                                        type='button'
+                                        className="h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
+                                        onClick={() => {
+                                            setShowPopup(2), setIdentifyAddReferDrOrReferLab(1)
+                                        }}
+                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                    >
+                                        <FaSearch className="w-3 h-3 font-semibold" />
+                                    </button>
+                                </div>
+
+
+
 
                             </div>
 
@@ -3270,7 +3365,7 @@ export default function PatientRegistration() {
             {
                 showPopup === 2 && (
                     <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-                        <div className="w-full   h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown pb-3">
+                        <div className="w-full mx-2 lg:mx-32 h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown pb-3">
 
                             <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
@@ -3291,39 +3386,40 @@ export default function PatientRegistration() {
                             <div className=''>
 
                                 <form autoComplete='off'>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2  mt-2 mb-1 items-center  mx-1 lg:mx-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  mt-2 mb-1 items-center  mx-1 lg:mx-2">
 
-                                        {/* <div className='flex gap-[0.25rem]'> */}
-                                        <div className='relative flex-1'>
-                                            <CustomNumberInput
-                                                type="phoneNumber"
-                                                name="mobileNo"
-                                                value={patientRegistrationData?.mobileNo || ''}
-                                                onChange={(e) => {
-                                                    handelOnChangePatientRegistration(e)
-                                                }}
-                                                maxLength={10}
-                                                label="Mobile No."
-                                            />
-                                        </div>
+                                        <div className='flex gap-[0.25rem]'>
+                                            <div className='relative flex-1'>
+                                                <CustomNumberInput
+                                                    type="phoneNumber"
+                                                    name="mobileNo"
+                                                    value={patientRegistrationData?.mobileNo || ''}
+                                                    onChange={(e) => {
+                                                        handelOnChangePatientRegistration(e)
+                                                    }}
+                                                    maxLength={10}
+                                                    label="Mobile No."
+                                                />
+                                            </div>
 
-                                        <div className='relative flex-1 lg:mt-[1.9px]'>
-                                            <CustomDropdown
-                                                name="title_id"
-                                                label="Select Title"
-                                                value={patientRegistrationData?.title_id}
-                                                options={[
-                                                    { label: 'Select Option', value: 0, disabled: true },
-                                                    ...allTitleData?.map(item => ({
-                                                        label: item.title,
-                                                        value: item.id,
-                                                    })),
-                                                ]}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                defaultIndex={0}
-                                                activeTheme={activeTheme}
-                                            />
+                                            <div className='relative flex-1 lg:mt-[1.9px]'>
+                                                <CustomDropdown
+                                                    name="title_id"
+                                                    label="Select Title"
+                                                    value={patientRegistrationData?.title_id}
+                                                    options={[
+                                                        { label: 'Select Option', value: 0, disabled: true },
+                                                        ...allTitleData?.map(item => ({
+                                                            label: item.title,
+                                                            value: item.id,
+                                                        })),
+                                                    ]}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    defaultIndex={0}
+                                                    activeTheme={activeTheme}
+                                                />
 
+                                            </div>
                                         </div>
 
                                         <div className='flex gap-[0.25rem]'>
@@ -3359,14 +3455,6 @@ export default function PatientRegistration() {
                                                 />
                                             </div>
 
-                                            {/* 
-                                            */}
-
-                                        </div>
-
-
-                                        <div className='flex gap-[0.25rem]'>
-
                                             <div className='relative flex-1'>
                                                 <CustomTextBox
                                                     type="years"
@@ -3381,37 +3469,72 @@ export default function PatientRegistration() {
                                                     decimalPrecision={4}
                                                 />
                                             </div>
-                                        </div>
-                                        <div className='relative flex-1'>
-                                            <DatePicker
-                                                id="dob"
-                                                name="dob"
-                                                value={patientRegistrationData?.dob || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                placeholder=" "
-                                                label="DOB"
-                                                activeTheme={activeTheme}
-                                                //isDisabled={false}
-                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
-                                                currentDate={new Date()} // Current date: today
-                                                maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
-                                                highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
-                                                disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
-                                                // showTime={true}
-                                                tillDate={new Date(2025, 1, 26)}
-                                            />
-                                            {/* </div> */}
 
+                                        </div>
+
+
+                                        <div className='flex gap-[0.25rem]'>
+
+                                            <div className='relative flex-1'>
+                                                <DatePicker
+                                                    id="dob"
+                                                    name="dob"
+                                                    value={patientRegistrationData?.dob || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    placeholder=" "
+                                                    label="DOB"
+                                                    activeTheme={activeTheme}
+                                                    //isDisabled={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                    currentDate={new Date()} // Current date: today
+                                                    maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                                                    highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
+                                                    disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
+                                                    // showTime={true}
+                                                    tillDate={new Date(2025, 1, 26)}
+                                                    showBigerCalandar={true}
+                                                />
+                                                {/* </div> */}
+
+                                            </div>
+
+                                            <div className='relative flex-1 lg:mt-[1.9px]'>
+                                                <CustomDropdown
+                                                    name="gender"
+                                                    label="Select Gender"
+                                                    value={patientRegistrationData?.gender || ''}
+                                                    options={[
+                                                        { label: 'Select Option', value: '', disabled: true },
+                                                        { label: 'Male', value: 'M' },
+                                                        { label: 'Female', value: 'F' },
+                                                        { label: 'Transgender', value: 'T' },
+                                                    ]}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    defaultIndex={0}
+                                                    activeTheme={activeTheme}
+                                                />
+
+                                            </div>
+                                        </div>
+
+
+                                        <div className="relative flex-1">
+                                            <CustomEmailInput
+                                                name="emailId"
+                                                value={patientRegistrationData?.emailId}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                label="Email"
+                                            />
                                         </div>
 
                                         {/* </div> */}
 
-                                        <CustomeNormalButton
+                                        {/* <CustomeNormalButton
                                             activeTheme={activeTheme}
                                             text="Open Popup"
 
                                             onClick={buttonClick}
-                                        />
+                                        /> */}
 
                                     </div>
                                 </form>
