@@ -60,7 +60,7 @@ export const DatePicker = ({
     }, []);
 
     return (
-        <div className={`absolute flex-1 flex items-center gap-[0.20rem] w-full justify-between`}>
+        <div className={`absolute flex-1 flex items-center gap-[0.20rem] w-full justify-between `}>
 
             {/* Input Field */}
             <div className="relative flex-1">
@@ -92,7 +92,7 @@ export const DatePicker = ({
                         !isDisabled ? () => setShowCalendar(!showCalendar) : undefined
                     } // Prevent click when disabled
                     style={{
-                        background: activeTheme?.subMenuColor,
+                        background: activeTheme?.menuColor,
                         color: activeTheme?.iconColor,
                     }}
                 >
@@ -109,7 +109,7 @@ export const DatePicker = ({
             {showCalendar && (
                 <div
                     ref={calendarRef}
-                    className={` absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50`}
+                    className={` absolute top-full left-0 mt-[1px]  bg-transparent rounded-md shadow-lg  z-50`}
                 >
                     <UserCalendar
                         onDateClick={handleDateClick}

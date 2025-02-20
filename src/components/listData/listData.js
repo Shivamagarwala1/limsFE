@@ -229,10 +229,6 @@ export const rateListUploadByExcelHeader = ['Item ID', 'Item Code', 'Item Name',
 
 export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross Amt.', 'Discount', 'Net Amt.', 'Sample Type', 'Bar Code', 'Delivery Date', 'IsUrgent', 'Delete'];
 
-
-
-
-
 export const patientRegistrationPaymentMode = ['Cash Amt.', 'Credit/DebitCard Amt.', 'Last 4 Digit Of Card', 'Bank', 'UPI Amt.', 'UPI Type'];
 
 export const paymentModes = [
@@ -240,3 +236,102 @@ export const paymentModes = [
     { value: "2", label: "Debit/Credit Card" },
     { value: "3", label: "UPI" },
 ];
+
+
+export const patientRegistrationoldPatient = ['Select', 'Patient Id', 'Patient Name', 'Age', 'Gender', 'Mobile', 'Email', 'Reg. Date']
+
+
+export const dummyDataForpatientRegistrationoldPatient = [
+    {
+      "PatientId": "P001",
+      "PatientName": "John Doe",
+      Age: 30,
+      Gender: "Male",
+      Mobile: "9876543210",
+      Email: "johndoe@gmail.com",
+      "RegDate": "2025-01-01",
+    },
+    {
+      "PatientId": "P002",
+      "PatientName": "Jane Smith",
+      Age: 25,
+      Gender: "Female",
+      Mobile: "8765432109",
+      Email: "janesmith@gmail.com",
+      "RegDate": "2025-01-02",
+    },
+    {
+      "PatientId": "P003",
+      "PatientName": "Robert Brown",
+      Age: 40,
+      Gender: "Male",
+      Mobile: "7654321098",
+      Email: "robertbrown@gmail.com",
+      "RegDate": "2025-01-03",
+    },
+    {
+      "PatientId": "P004",
+      "PatientName": "Emily Davis",
+      Age: 35,
+      Gender: "Female",
+      Mobile: "6543210987",
+      Email: "emilydavis@gmail.com",
+      "RegDate": "2025-01-04",
+    },
+    {
+      "PatientId": "P005",
+      "PatientName": "Michael Wilson",
+      Age: 50,
+      Gender: "Male",
+      Mobile: "5432109876",
+      Email: "michaelwilson@gmail.com",
+      "RegDate": "2025-01-05",
+    },
+    {
+      "PatientId": "P006",
+      "PatientName": "Sophia Miller",
+      Age: 28,
+      Gender: "Female",
+      Mobile: "4321098765",
+      Email: "sophiamiller@gmail.com",
+      "RegDate": "2025-01-06",
+    },
+    {
+      "PatientId": "P007",
+      "PatientName": "James Taylor",
+      Age: 32,
+      Gender: "Male",
+      Mobile: "3210987654",
+      Email: "jamestaylor@gmail.com",
+      "RegDate": "2025-01-07",
+    },
+    {
+      "PatientId": "P008",
+      "PatientName": "Isabella Martinez",
+      Age: 45,
+      Gender: "Female",
+      Mobile: "2109876543",
+      Email: "isabellamartinez@gmail.com",
+      "RegDate": "2025-01-08",
+    },
+    {
+      "PatientId": "P009",
+      "PatientName": "William Hernandez",
+      Age: 55,
+      Gender: "Male",
+      Mobile: "1098765432",
+      Email: "williamhernandez@gmail.com",
+      "RegDate": "2025-01-09",
+    },
+    {
+      "PatientId": "P010",
+      "PatientName": "Mia Garcia",
+      Age: 22,
+      Gender: "Female",
+      Mobile: "0987654321",
+      Email: "miagarcia@gmail.com",
+      "RegDate": "2025-01-10",
+    },
+  ];
+  
+  

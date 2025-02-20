@@ -9,6 +9,7 @@ function CustomDropdown({
   onChange,
   defaultIndex = 0,
   activeTheme = { subMenuColor: "#e0f2fe" }, // Customize hover color here
+  isMandatory
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(null);
@@ -47,7 +48,7 @@ function CustomDropdown({
 
       {/* Dropdown box */}
       <div
-        className={`inputPeerField cursor-pointer peer focus:outline-none flex items-center ${value === "" ? "border-b-red-500" : "border-borderColor"
+        className={`inputPeerField cursor-pointer peer focus:outline-none flex items-center ${isMandatory ? "border-b-red-500" : "border-borderColor"
           } bg-white pl-2`}
         onClick={handleDropdownClick}
       >
