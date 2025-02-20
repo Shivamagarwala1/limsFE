@@ -60,7 +60,7 @@ export const DatePicker = ({
     }, []);
 
     return (
-        <div className={`absolute flex-1 flex items-center gap-[0.20rem] w-full justify-between `}>
+        <div className={`flex items-center gap-[0.20rem] w-full justify-between `}>
 
             {/* Input Field */}
             <div className="relative flex-1">

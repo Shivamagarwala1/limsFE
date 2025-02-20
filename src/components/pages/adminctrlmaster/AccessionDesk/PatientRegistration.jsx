@@ -21,6 +21,7 @@ import CustomFormButton from '../../../global/CustomFormButton'
 import CustomFileUpload from '../../../global/CustomFileUpload';
 import CustomSearchInputFields from '../../../global/CustomSearchInputField';
 import CustomNormalInputField from '../../../global/CustomNormalInputField';
+import { useFormattedDate, useFormattedDateTime } from '../../../customehook/useDateTimeFormate';
 
 export default function PatientRegistration() {
 
@@ -44,20 +45,11 @@ export default function PatientRegistration() {
         ageDays: 0,
         ageMonth: 0,
         ageYear: 0,
-        dob: '',
+        dob: useFormattedDate(),
         gender: '',
         emailId: '',
 
-        collectionDateAndTime: new Date('1970-01-01T00:00:00Z')
-            .toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour12: true
-            })
-            .replace(/ /g, '-') // Replace spaces with dashes in the date part
-            .replace(/(\d{2}-\w{3}-\d{4})/, '$1 00:00') // Append 00:00 as the time
-            .replace(/am|pm/g, 'AM'),
+        collectionDateAndTime: useFormattedDateTime(),
 
         investigationName: '',
         itemId: 0,
@@ -2268,7 +2260,7 @@ export default function PatientRegistration() {
                             </div>
 
                             {/* Calendar Popup */}
-                            {showCalanderAndTime===2 && (
+                            {showCalanderAndTime === 2 && (
                                 <div
                                     ref={calendarRef}
                                     className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
@@ -3295,84 +3287,87 @@ export default function PatientRegistration() {
                                 />
                             </div>
 
-
-                            <form
-                                // onSubmit={}
-                                autoComplete='off'>
-
-                                <div className='mx-1 mt-2 grid grid-cols-2 gap-2'>
-
-                                    {/* title */}
-                                    <div className="relative flex-1 ">
-                                        <input
-                                            type="text"
-                                            id="title"
-                                            name="title"
-                                            value={addReferDrData.title}
-                                            onChange={handelChangeOnAddReferDrData}
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                        />
-                                        <label htmlFor="title" className="menuPeerLevel">
-                                            Title
-                                        </label>
-                                    </div>
-
-                                    {/* doctorName */}
-                                    <div className="relative flex-1 ">
-                                        <input
-                                            type="text"
-                                            id="doctorName"
-                                            name="doctorName"
-                                            value={addReferDrData.doctorName}
-                                            onChange={handelChangeOnAddReferDrData}
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                        />
-                                        <label htmlFor="doctorName" className="menuPeerLevel">
-                                            Name
-                                        </label>
-                                    </div>
+                            <div>
 
 
-                                    {/* mobileNo */}
-                                    <div className="relative flex-1 ">
-                                        <input
-                                            type="number"
-                                            id="mobileNo"
-                                            name="mobileNo"
-                                            value={addReferDrData.mobileNo}
-                                            onChange={handelChangeOnAddReferDrData}
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                        />
-                                        <label htmlFor="mobileNo" className="menuPeerLevel">
-                                            Mobile No.
-                                        </label>
-                                    </div>
+                                <form
+                                    // onSubmit={}
+                                    autoComplete='off'>
 
-                                    <div className="flex items-stretch  text-white  rounded-md"
-                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                    >
-                                        <button
-                                            type="button"
-                                            data-ripple-light="true"
-                                            className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                            style={{
-                                                background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                            }}
-                                            onClick={onSumitAddReferDrData}
+                                    <div className='mx-1 mt-2 grid grid-cols-2 gap-2'>
+
+                                        {/* title */}
+                                        <div className="relative flex-1 ">
+                                            <input
+                                                type="text"
+                                                id="title"
+                                                name="title"
+                                                value={addReferDrData.title}
+                                                onChange={handelChangeOnAddReferDrData}
+                                                placeholder=" "
+                                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                            />
+                                            <label htmlFor="title" className="menuPeerLevel">
+                                                Title
+                                            </label>
+                                        </div>
+
+                                        {/* doctorName */}
+                                        <div className="relative flex-1 ">
+                                            <input
+                                                type="text"
+                                                id="doctorName"
+                                                name="doctorName"
+                                                value={addReferDrData.doctorName}
+                                                onChange={handelChangeOnAddReferDrData}
+                                                placeholder=" "
+                                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                            />
+                                            <label htmlFor="doctorName" className="menuPeerLevel">
+                                                Name
+                                            </label>
+                                        </div>
+
+
+                                        {/* mobileNo */}
+                                        <div className="relative flex-1 ">
+                                            <input
+                                                type="number"
+                                                id="mobileNo"
+                                                name="mobileNo"
+                                                value={addReferDrData.mobileNo}
+                                                onChange={handelChangeOnAddReferDrData}
+                                                placeholder=" "
+                                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                            />
+                                            <label htmlFor="mobileNo" className="menuPeerLevel">
+                                                Mobile No.
+                                            </label>
+                                        </div>
+
+                                        <div className="flex items-stretch  text-white  rounded-md"
+                                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                         >
+                                            <button
+                                                type="button"
+                                                data-ripple-light="true"
+                                                className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                                style={{
+                                                    background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                                }}
+                                                onClick={onSumitAddReferDrData}
+                                            >
 
-                                            {
-                                                isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                            }
+                                                {
+                                                    isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+                                                }
 
-                                        </button>
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
 
-                            </form>
+                                </form>
+                            </div>
 
                         </div>
                     </div>
@@ -3382,8 +3377,8 @@ export default function PatientRegistration() {
 
             {
                 showPopup === 2 && (
-                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-                        <div className="w-full mx-2 lg:mx-32 h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown pb-3">
+                    <div className="fixed inset-0 px-32 bg-black bg-opacity-50 z-50">
+                        <div className="w-full mx-2  mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
 
                             <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
@@ -3402,6 +3397,16 @@ export default function PatientRegistration() {
                             </div>
 
                             <div className=''>
+
+                                <div
+                                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
+                                    style={{ background: activeTheme?.blockColor }}
+                                >
+                                    <div>
+                                        <FontAwesomeIcon icon="fa-solid fa-house" />
+                                    </div>
+                                    <div>Patient Info.</div>
+                                </div>
 
                                 <form autoComplete='off'>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
@@ -3548,6 +3553,26 @@ export default function PatientRegistration() {
                                         </div>
 
 
+                                        <div className='relative flex-1'>
+                                            <DatePicker
+                                                id="collectionDateAndTime"
+                                                name="collectionDateAndTime"
+                                                value={patientRegistrationData?.collectionDateAndTime || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                placeholder=" "
+                                                label="Collection Date & Time"
+                                                activeTheme={activeTheme}
+                                                //isDisabled={false}
+                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                currentDate={new Date()} // Current date: today
+
+                                                showTime={true}
+                                                showBigerCalandar={false}
+                                            />
+
+                                        </div>
+
+
 
 
                                         <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
@@ -3598,29 +3623,6 @@ export default function PatientRegistration() {
                                             />
                                         </div>
 
-
-                                        <div className='relative flex-1 h-full text-xxxxs text-red-400 items-center'>
-                                            {/* <DatePicker
-                                                id="collectionDateAndTime"
-                                                name="collectionDateAndTime"
-                                                value={patientRegistrationData?.collectionDateAndTime || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                placeholder=" "
-                                                label="Collection Date & Time"
-                                                activeTheme={activeTheme}
-                                                //isDisabled={false}
-                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
-                                                currentDate={new Date()} // Current date: today
-                                                maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
-                                                highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
-                                                disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
-                                                showTime={true}
-                                                tillDate={new Date(2025, 1, 26)}
-                                                showBigerCalandar={false}
-                                            /> */}
-
-                                            problem with date picker
-                                        </div>
 
 
                                         <div className="relative flex-1">
@@ -3729,8 +3731,8 @@ export default function PatientRegistration() {
 
             {
                 showPopup === 3 && (
-                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-                        <div className="w-full mx-2 lg:mx-32 h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown pb-3">
+                    <div className="fixed inset-0 px-2 bg-black bg-opacity-50 z-50">
+                        <div className="w-full   mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
 
                             <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
@@ -3749,6 +3751,16 @@ export default function PatientRegistration() {
                             </div>
 
                             <div className=''>
+
+                                <div
+                                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
+                                    style={{ background: activeTheme?.blockColor }}
+                                >
+                                    <div>
+                                        <FontAwesomeIcon icon="fa-solid fa-house" />
+                                    </div>
+                                    <div>Patient Test Details</div>
+                                </div>
 
                                 <form autoComplete='off'>
 
@@ -3944,8 +3956,8 @@ export default function PatientRegistration() {
                                         </div>
 
 
-                                        <div className='relative flex-1 h-full text-xxxxs text-red-400 items-center'>
-                                            {/* <DatePicker
+                                        <div className='relative flex-1'>
+                                            <DatePicker
                                                 id="collectionDateAndTime"
                                                 name="collectionDateAndTime"
                                                 value={patientRegistrationData?.collectionDateAndTime || ''}
@@ -3956,15 +3968,12 @@ export default function PatientRegistration() {
                                                 //isDisabled={false}
                                                 isMandatory={!Boolean(patientRegistrationData?.dob)}
                                                 currentDate={new Date()} // Current date: today
-                                                maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
-                                                highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
-                                                disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
-                                                showTime={true}
-                                                tillDate={new Date(2025, 1, 26)}
-                                                showBigerCalandar={false}
-                                            /> */}
 
-                                            problem with date picker
+                                                showTime={true}
+                                                showBigerCalandar={false}
+                                            />
+
+
                                         </div>
 
 
@@ -4298,7 +4307,17 @@ export default function PatientRegistration() {
 
                             <div className=''>
 
-                                <div className="grid grid-cols-12 gap-2 mt-1 mb-1 mx-1 lg:mx-2">
+                                <div
+                                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
+                                    style={{ background: activeTheme?.blockColor }}
+                                >
+                                    <div>
+                                        <FontAwesomeIcon icon="fa-solid fa-house" />
+                                    </div>
+                                    <div>Old Patient Info.</div>
+                                </div>
+
+                                <div className="grid grid-cols-12 gap-2 mt-[2px] mb-1 mx-1 lg:mx-2">
                                     <div className="col-span-12">
                                         <div className="max-h-[8.2rem] overflow-y-auto">
                                             {/* Table */}

@@ -9,6 +9,7 @@ import LoadingPage from "./components/public/LoadingPage";
 import { Suspense } from "react";
 import { allRoutes } from "./components/private/AllRouterData";
 import ChartBoatApp from "./components/chartboat/ChartBoatApp";
+import FeedBackSave from "./components/pages/feedback/FeedBackSave";
 
 const Login = lazy(() => import("./components/public/Login"));
 const Base = lazy(() => import("./components/base/Base"));
@@ -81,6 +82,13 @@ const App = () => {
           <ChartBoatApp />
         )
       }
+
+      {
+        user && (
+          <FeedBackSave />
+        )
+      }
+
       <Routes>
 
         {/* Redirect from root to /login if not logged in */}

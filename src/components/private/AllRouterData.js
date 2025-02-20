@@ -331,6 +331,11 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/Doctor Account/CreateDoctor")),
         exact: true,
     },
+    {
+        path: "/LIMS/DoctorShareMaster",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Doctor Account/DoctorShareMaster")),
+        exact: true,
+    },
 
 ];
 
