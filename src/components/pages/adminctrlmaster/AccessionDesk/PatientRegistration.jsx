@@ -7,7 +7,7 @@ import useRippleEffect from '../../../customehook/useRippleEffect';
 import { IoMdAdd, IoMdCloseCircleOutline, IoMdImages } from 'react-icons/io';
 import useOutsideClick from '../../../customehook/useOutsideClick';
 import { RiArrowDropDownLine, RiArrowDropUpLine, RiCalendarScheduleFill, RiDeleteBin2Fill } from 'react-icons/ri';
-import { patientRegistrationInvestigation, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
+import { dummyDataForpatientRegistrationoldPatient, patientRegistrationInvestigation, patientRegistrationoldPatient, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import { CustomEmailInput } from '../../../global/CustomEmailInput'
 import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, savePatientRegistrationDataApi, saveReferDrApi } from '../../../../service/service';
 import { FaSearch, FaSpinner } from 'react-icons/fa'
@@ -15,9 +15,13 @@ import { toast } from 'react-toastify';
 import { toProperCase } from '../../../global/InputFieldValidations';
 import { CustomTextBox } from '../../../global/CustomTextBox';
 import { CustomNumberInput } from '../../../global/CustomNumberInput';
-import CustomeNormalButton from '../../../global/CustomeNormalButton';
 import CustomDropdown from '../../../global/CustomDropdown';
 import { DatePicker } from '../../../global/DatePicker';
+import CustomFormButton from '../../../global/CustomFormButton'
+import CustomFileUpload from '../../../global/CustomFileUpload';
+import CustomSearchInputFields from '../../../global/CustomSearchInputField';
+import CustomNormalInputField from '../../../global/CustomNormalInputField';
+import { useFormattedDate, useFormattedDateTime } from '../../../customehook/useDateTimeFormate';
 
 export default function PatientRegistration() {
 
@@ -41,20 +45,11 @@ export default function PatientRegistration() {
         ageDays: 0,
         ageMonth: 0,
         ageYear: 0,
-        dob: '',
+        dob: useFormattedDate(),
         gender: '',
         emailId: '',
 
-        collectionDateAndTime: new Date('1970-01-01T00:00:00Z')
-            .toLocaleString('en-GB', {
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour12: true
-            })
-            .replace(/ /g, '-') // Replace spaces with dashes in the date part
-            .replace(/(\d{2}-\w{3}-\d{4})/, '$1 00:00') // Append 00:00 as the time
-            .replace(/am|pm/g, 'AM'),
+        collectionDateAndTime: useFormattedDateTime(),
 
         investigationName: '',
         itemId: 0,
@@ -507,10 +502,10 @@ export default function PatientRegistration() {
     }
 
 
-    const buttonClick = () => {
-        console.log(patientRegistrationData);
 
-    }
+
+
+
 
     const handelOnChangePatientRegistrationForSelect = (event) => {
         setPatientRegistrationSelectData((preventData) => ({
@@ -1057,9 +1052,9 @@ export default function PatientRegistration() {
                     labRemarks: '',
                     otherLabRefer: patientRegistrationData?.refLab,
                     otherLabReferID: patientRegistrationData?.refLabID,
-                    refDoctor1: patientRegistrationData?.refDoctor1,
+                    refDoctor1: patientRegistrationData?.refDoctor1, //need to filter the data baed on refId1
                     refID1: patientRegistrationData?.refID1,
-                    refDoctor2: patientRegistrationData?.refDoctor2,
+                    refDoctor2: patientRegistrationData?.refDoctor2, //need to filter the data baed on refId2
                     refID2: patientRegistrationData?.refID2,
                     tempDOCID: 0,
                     tempDoctroName: '',
@@ -1467,6 +1462,17 @@ export default function PatientRegistration() {
     //     }, 2000); // Change 2000ms to any desired duration
     // };
 
+    const calendarRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+                setShowCalanderAndTime(0);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     return (
         <>
@@ -1773,7 +1779,7 @@ export default function PatientRegistration() {
                                         type='button'
                                         className=" h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
                                         onClick={() => {
-                                            setShowPopup(0)
+                                            setShowPopup(3)
                                         }}
                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                     >
@@ -1816,7 +1822,7 @@ export default function PatientRegistration() {
                                         type='button'
                                         className="h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
                                         onClick={() => {
-                                            setShowPopup(2), setIdentifyAddReferDrOrReferLab(1)
+                                            setShowPopup(4)
                                         }}
                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                     >
@@ -2244,7 +2250,7 @@ export default function PatientRegistration() {
                             {/* Calendar Icon */}
                             <div
                                 className="flex justify-center items-center cursor-pointer rounded font-semibold w-6 h-6"
-                                onClick={() => setShowCalanderAndTime(!showCalanderAndTime)}
+                                onClick={() => setShowCalanderAndTime(2)}
                                 style={{
                                     background: activeTheme?.menuColor,
                                     color: activeTheme?.iconColor,
@@ -2254,8 +2260,10 @@ export default function PatientRegistration() {
                             </div>
 
                             {/* Calendar Popup */}
-                            {showCalanderAndTime && (
-                                <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
+                            {showCalanderAndTime === 2 && (
+                                <div
+                                    ref={calendarRef}
+                                    className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
                                     {/* <UserCalendarAndTime onDateAndTimeClick={handleDateAndTimeClick} /> */}
                                     <UserCalendar
                                         onDateClick={handleDateAndTimeClick}
@@ -2561,16 +2569,18 @@ export default function PatientRegistration() {
                                                                 className={`cursor-pointer ${rowIndex % 2 === 0
                                                                     ? "bg-gray-100"
                                                                     : "bg-white"
-                                                                    } ${isHoveredTable === rowIndex
-                                                                        ? "bg-activeTheme.subMenuColor"
-                                                                        : ""
-                                                                    }`}
+                                                                    } `}
                                                                 onMouseEnter={() =>
                                                                     setIsHoveredTable(rowIndex)
                                                                 }
                                                                 onMouseLeave={() =>
                                                                     setIsHoveredTable(null)
                                                                 }
+
+                                                                style={{
+                                                                    background:
+                                                                        isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
+                                                                }}
                                                             >
                                                                 {/* Table Cells */}
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
@@ -3277,84 +3287,87 @@ export default function PatientRegistration() {
                                 />
                             </div>
 
-
-                            <form
-                                // onSubmit={}
-                                autoComplete='off'>
-
-                                <div className='mx-1 mt-2 grid grid-cols-2 gap-2'>
-
-                                    {/* title */}
-                                    <div className="relative flex-1 ">
-                                        <input
-                                            type="text"
-                                            id="title"
-                                            name="title"
-                                            value={addReferDrData.title}
-                                            onChange={handelChangeOnAddReferDrData}
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                        />
-                                        <label htmlFor="title" className="menuPeerLevel">
-                                            Title
-                                        </label>
-                                    </div>
-
-                                    {/* doctorName */}
-                                    <div className="relative flex-1 ">
-                                        <input
-                                            type="text"
-                                            id="doctorName"
-                                            name="doctorName"
-                                            value={addReferDrData.doctorName}
-                                            onChange={handelChangeOnAddReferDrData}
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                        />
-                                        <label htmlFor="doctorName" className="menuPeerLevel">
-                                            Name
-                                        </label>
-                                    </div>
+                            <div>
 
 
-                                    {/* mobileNo */}
-                                    <div className="relative flex-1 ">
-                                        <input
-                                            type="number"
-                                            id="mobileNo"
-                                            name="mobileNo"
-                                            value={addReferDrData.mobileNo}
-                                            onChange={handelChangeOnAddReferDrData}
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                        />
-                                        <label htmlFor="mobileNo" className="menuPeerLevel">
-                                            Mobile No.
-                                        </label>
-                                    </div>
+                                <form
+                                    // onSubmit={}
+                                    autoComplete='off'>
 
-                                    <div className="flex items-stretch  text-white  rounded-md"
-                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                    >
-                                        <button
-                                            type="button"
-                                            data-ripple-light="true"
-                                            className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                            style={{
-                                                background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                            }}
-                                            onClick={onSumitAddReferDrData}
+                                    <div className='mx-1 mt-2 grid grid-cols-2 gap-2'>
+
+                                        {/* title */}
+                                        <div className="relative flex-1 ">
+                                            <input
+                                                type="text"
+                                                id="title"
+                                                name="title"
+                                                value={addReferDrData.title}
+                                                onChange={handelChangeOnAddReferDrData}
+                                                placeholder=" "
+                                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                            />
+                                            <label htmlFor="title" className="menuPeerLevel">
+                                                Title
+                                            </label>
+                                        </div>
+
+                                        {/* doctorName */}
+                                        <div className="relative flex-1 ">
+                                            <input
+                                                type="text"
+                                                id="doctorName"
+                                                name="doctorName"
+                                                value={addReferDrData.doctorName}
+                                                onChange={handelChangeOnAddReferDrData}
+                                                placeholder=" "
+                                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                            />
+                                            <label htmlFor="doctorName" className="menuPeerLevel">
+                                                Name
+                                            </label>
+                                        </div>
+
+
+                                        {/* mobileNo */}
+                                        <div className="relative flex-1 ">
+                                            <input
+                                                type="number"
+                                                id="mobileNo"
+                                                name="mobileNo"
+                                                value={addReferDrData.mobileNo}
+                                                onChange={handelChangeOnAddReferDrData}
+                                                placeholder=" "
+                                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                            />
+                                            <label htmlFor="mobileNo" className="menuPeerLevel">
+                                                Mobile No.
+                                            </label>
+                                        </div>
+
+                                        <div className="flex items-stretch  text-white  rounded-md"
+                                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                         >
+                                            <button
+                                                type="button"
+                                                data-ripple-light="true"
+                                                className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                                style={{
+                                                    background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                                }}
+                                                onClick={onSumitAddReferDrData}
+                                            >
 
-                                            {
-                                                isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                            }
+                                                {
+                                                    isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+                                                }
 
-                                        </button>
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
 
-                            </form>
+                                </form>
+                            </div>
 
                         </div>
                     </div>
@@ -3364,8 +3377,8 @@ export default function PatientRegistration() {
 
             {
                 showPopup === 2 && (
-                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-                        <div className="w-full mx-2 lg:mx-32 h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown pb-3">
+                    <div className="fixed inset-0 px-32 bg-black bg-opacity-50 z-50">
+                        <div className="w-full mx-2  mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
 
                             <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
@@ -3385,8 +3398,18 @@ export default function PatientRegistration() {
 
                             <div className=''>
 
+                                <div
+                                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
+                                    style={{ background: activeTheme?.blockColor }}
+                                >
+                                    <div>
+                                        <FontAwesomeIcon icon="fa-solid fa-house" />
+                                    </div>
+                                    <div>Patient Info.</div>
+                                </div>
+
                                 <form autoComplete='off'>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  mt-2 mb-1 items-center  mx-1 lg:mx-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
 
                                         <div className='flex gap-[0.25rem]'>
                                             <div className='relative flex-1'>
@@ -3402,7 +3425,7 @@ export default function PatientRegistration() {
                                                 />
                                             </div>
 
-                                            <div className='relative flex-1 lg:mt-[1.9px]'>
+                                            <div className='relative flex-1 mt-[1.9px]'>
                                                 <CustomDropdown
                                                     name="title_id"
                                                     label="Select Title"
@@ -3417,6 +3440,7 @@ export default function PatientRegistration() {
                                                     onChange={(e) => handelOnChangePatientRegistration(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
+                                                    isMandatory={!Boolean(patientRegistrationData?.title_id)}
                                                 />
 
                                             </div>
@@ -3490,7 +3514,7 @@ export default function PatientRegistration() {
                                                     maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
                                                     highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
                                                     disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
-                                                    // showTime={true}
+                                                    showTime={false}
                                                     tillDate={new Date(2025, 1, 26)}
                                                     showBigerCalandar={true}
                                                 />
@@ -3498,7 +3522,7 @@ export default function PatientRegistration() {
 
                                             </div>
 
-                                            <div className='relative flex-1 lg:mt-[1.9px]'>
+                                            <div className='relative flex-1 mt-[1.9px]'>
                                                 <CustomDropdown
                                                     name="gender"
                                                     label="Select Gender"
@@ -3512,6 +3536,7 @@ export default function PatientRegistration() {
                                                     onChange={(e) => handelOnChangePatientRegistration(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
+                                                    isMandatory={false}
                                                 />
 
                                             </div>
@@ -3527,6 +3552,162 @@ export default function PatientRegistration() {
                                             />
                                         </div>
 
+
+                                        <div className='relative flex-1'>
+                                            <DatePicker
+                                                id="collectionDateAndTime"
+                                                name="collectionDateAndTime"
+                                                value={patientRegistrationData?.collectionDateAndTime || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                placeholder=" "
+                                                label="Collection Date & Time"
+                                                activeTheme={activeTheme}
+                                                //isDisabled={false}
+                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                currentDate={new Date()} // Current date: today
+
+                                                showTime={true}
+                                                showBigerCalandar={false}
+                                            />
+
+                                        </div>
+
+
+
+
+                                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                                            <div className="relative flex-1">
+                                                <CustomSearchInputFields
+                                                    id="refID1"
+                                                    name="refID1"
+                                                    label="Refer Dr."
+                                                    value={patientRegistrationData?.refID1}
+                                                    options={allReferData}
+                                                    onChange={handelOnChangePatientRegistration}
+                                                    filterText="No records found"
+                                                    placeholder=" "
+                                                    searchWithName='doctorName'
+                                                    uniqueKey='doctorId'
+                                                    activeTheme={activeTheme}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div
+                                                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                                                    onClick={() => {
+                                                        setShowPopup(1), setIdentifyAddReferDrOrReferLab(1)
+                                                    }}
+                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                >
+                                                    <IoMdAdd className="w-4 h-4 font-semibold" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div className="relative flex-1">
+                                            <CustomSearchInputFields
+                                                id="refID2"
+                                                name="refID2"
+                                                label="Refer Dr2"
+                                                value={patientRegistrationData?.refID2}
+                                                options={allReferData}
+                                                onChange={handelOnChangePatientRegistration}
+                                                filterText="No records found"
+                                                placeholder=" "
+                                                searchWithName='doctorName'
+                                                uniqueKey='doctorId'
+                                                activeTheme={activeTheme}
+                                            />
+                                        </div>
+
+
+
+                                        <div className="relative flex-1">
+                                            <CustomNormalInputField
+                                                // type="text", name, id, value, placeholder, onChange, label
+                                                type='text'
+                                                name='address'
+                                                value={patientRegistrationData?.address}
+                                                placeholder=' '
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                label='Address'
+                                            />
+                                        </div>
+
+
+                                        <div className='relative flex-1'>
+                                            <CustomNumberInput
+                                                type="pinCode"
+                                                name="pinCode"
+                                                value={patientRegistrationData?.pinCode || ''}
+                                                onChange={(e) => {
+                                                    handelOnChangePatientRegistration(e)
+                                                }}
+                                                maxLength={6}
+                                                label="Pin Code"
+                                            />
+                                        </div>
+
+                                        {/* Refer Lab/Hospital */}
+                                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                                            <div className="relative flex-1">
+                                                <CustomSearchInputFields
+                                                    id="refLabID"
+                                                    name="refLabID"
+                                                    label="Refer Lab/Hospital"
+                                                    value={patientRegistrationData?.refLabID}
+                                                    options={allLabReferData}
+                                                    onChange={handelOnChangePatientRegistration}
+                                                    filterText="No records found"
+                                                    placeholder=" "
+                                                    searchWithName='doctorName'
+                                                    uniqueKey='doctorId'
+                                                    activeTheme={activeTheme}
+                                                />
+
+                                            </div>
+
+                                            <div>
+                                                <div
+                                                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                                                    onClick={() => { setShowPopup(1), setIdentifyAddReferDrOrReferLab(0) }}
+                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                >
+                                                    <IoMdAdd className="w-4 h-4 font-semibold" />
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+
+                                        <div className="relative flex-1">
+                                            <CustomFileUpload
+                                                value={patientRegistrationData?.uploadDocument}
+                                                handelImageChange={handelImageChange}
+                                                activeTheme={activeTheme}
+                                            />
+                                        </div>
+
+                                        <div className='flex gap-[0.25rem]'>
+                                            <div className='relative flex-1'>
+                                                <CustomFormButton
+                                                    activeTheme={activeTheme}
+                                                    text="Update"
+                                                    icon={FaSpinner}
+                                                    isButtonClick={isButtonClick}
+                                                    loadingButtonNumber={3} // Unique number for the first button
+                                                    onClick={() => onSubmitForSavePatientRegistrationData} // Pass button number to handler
+                                                />
+                                            </div>
+
+                                            <div className='relative flex-1'>
+                                            </div>
+                                        </div>
+
                                         {/* </div> */}
 
                                         {/* <CustomeNormalButton
@@ -3538,6 +3719,690 @@ export default function PatientRegistration() {
 
                                     </div>
                                 </form>
+
+                            </div>
+
+                        </div>
+                    </div>
+                )
+            }
+
+
+
+            {
+                showPopup === 3 && (
+                    <div className="fixed inset-0 px-2 bg-black bg-opacity-50 z-50">
+                        <div className="w-full   mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
+
+                            <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
+                                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
+                            >
+                                <div className=" font-semibold"
+                                    style={{ color: activeTheme?.iconColor }}
+                                >
+                                    Edit Test
+
+                                </div>
+
+                                <IoMdCloseCircleOutline className='text-xl cursor-pointer'
+                                    style={{ color: activeTheme?.iconColor }}
+                                    onClick={() => { setShowPopup(0) }}
+                                />
+                            </div>
+
+                            <div className=''>
+
+                                <div
+                                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
+                                    style={{ background: activeTheme?.blockColor }}
+                                >
+                                    <div>
+                                        <FontAwesomeIcon icon="fa-solid fa-house" />
+                                    </div>
+                                    <div>Patient Test Details</div>
+                                </div>
+
+                                <form autoComplete='off'>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
+
+                                        <div className='flex gap-[0.25rem]'>
+                                            <div className='relative flex-1'>
+                                                <CustomNumberInput
+                                                    type="phoneNumber"
+                                                    name="mobileNo"
+                                                    value={patientRegistrationData?.mobileNo || ''}
+                                                    onChange={(e) => {
+                                                        handelOnChangePatientRegistration(e)
+                                                    }}
+                                                    maxLength={10}
+                                                    label="Mobile No."
+                                                />
+                                            </div>
+
+                                            <div className='relative flex-1 mt-[1.9px]'>
+                                                <CustomDropdown
+                                                    name="title_id"
+                                                    label="Select Title"
+                                                    value={patientRegistrationData?.title_id}
+                                                    options={[
+                                                        { label: 'Select Option', value: 0, disabled: true },
+                                                        ...allTitleData?.map(item => ({
+                                                            label: item.title,
+                                                            value: item.id,
+                                                        })),
+                                                    ]}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    defaultIndex={0}
+                                                    activeTheme={activeTheme}
+                                                    isMandatory={!Boolean(patientRegistrationData?.title_id)}
+                                                />
+
+                                            </div>
+                                        </div>
+
+                                        <div className='flex gap-[0.25rem]'>
+
+                                            <div className='relative flex-1'>
+                                                <CustomTextBox
+                                                    type="days"
+                                                    name="ageDays"
+                                                    value={patientRegistrationData?.ageDays || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    label="Days"
+                                                    isDisabled={false}
+                                                    maxLength={2}
+                                                    allowSpecialChars={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.ageDays)}
+                                                    decimalPrecision={4}
+                                                />
+
+                                            </div>
+
+                                            <div className='relative flex-1'>
+                                                <CustomTextBox
+                                                    type="months"
+                                                    name="ageMonth"
+                                                    value={patientRegistrationData?.ageMonth || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    label="Months"
+                                                    isDisabled={false}
+                                                    maxLength={2}
+                                                    allowSpecialChars={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.ageMonth)}
+                                                    decimalPrecision={4}
+                                                />
+                                            </div>
+
+                                            <div className='relative flex-1'>
+                                                <CustomTextBox
+                                                    type="years"
+                                                    name="ageYear"
+                                                    value={patientRegistrationData?.ageYear || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    label="Years"
+                                                    isDisabled={false}
+                                                    maxLength={3}
+                                                    allowSpecialChars={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.ageYear)}
+                                                    decimalPrecision={4}
+                                                />
+                                            </div>
+
+                                        </div>
+
+
+                                        <div className='flex gap-[0.25rem]'>
+
+                                            <div className='relative flex-1'>
+                                                <DatePicker
+                                                    id="dob"
+                                                    name="dob"
+                                                    value={patientRegistrationData?.dob || ''}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    placeholder=" "
+                                                    label="DOB"
+                                                    activeTheme={activeTheme}
+                                                    //isDisabled={false}
+                                                    isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                    currentDate={new Date()} // Current date: today
+                                                    maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                                                    highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
+                                                    disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
+                                                    showTime={false}
+                                                    tillDate={new Date(2025, 1, 26)}
+                                                    showBigerCalandar={true}
+                                                />
+                                                {/* </div> */}
+
+                                            </div>
+
+                                            <div className='relative flex-1 mt-[1.9px]'>
+                                                <CustomDropdown
+                                                    name="gender"
+                                                    label="Select Gender"
+                                                    value={patientRegistrationData?.gender || ''}
+                                                    options={[
+                                                        { label: 'Select Option', value: '', disabled: true },
+                                                        { label: 'Male', value: 'M' },
+                                                        { label: 'Female', value: 'F' },
+                                                        { label: 'Transgender', value: 'T' },
+                                                    ]}
+                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    defaultIndex={0}
+                                                    activeTheme={activeTheme}
+                                                    isMandatory={false}
+                                                />
+
+                                            </div>
+                                        </div>
+
+
+                                        <div className="relative flex-1">
+                                            <CustomEmailInput
+                                                name="emailId"
+                                                value={patientRegistrationData?.emailId}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                label="Email"
+                                            />
+                                        </div>
+
+                                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                                            <div className="relative flex-1">
+                                                <CustomSearchInputFields
+                                                    id="refID1"
+                                                    name="refID1"
+                                                    label="Refer Dr."
+                                                    value={patientRegistrationData?.refID1}
+                                                    options={allReferData}
+                                                    onChange={handelOnChangePatientRegistration}
+                                                    filterText="No records found"
+                                                    placeholder=" "
+                                                    searchWithName='doctorName'
+                                                    uniqueKey='doctorId'
+                                                    activeTheme={activeTheme}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <div
+                                                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                                                    onClick={() => {
+                                                        setShowPopup(1), setIdentifyAddReferDrOrReferLab(1)
+                                                    }}
+                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                >
+                                                    <IoMdAdd className="w-4 h-4 font-semibold" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div className="relative flex-1">
+                                            <CustomSearchInputFields
+                                                id="refID2"
+                                                name="refID2"
+                                                label="Refer Dr2"
+                                                value={patientRegistrationData?.refID2}
+                                                options={allReferData}
+                                                onChange={handelOnChangePatientRegistration}
+                                                filterText="No records found"
+                                                placeholder=" "
+                                                searchWithName='doctorName'
+                                                uniqueKey='doctorId'
+                                                activeTheme={activeTheme}
+                                            />
+                                        </div>
+
+
+                                        <div className='relative flex-1'>
+                                            <DatePicker
+                                                id="collectionDateAndTime"
+                                                name="collectionDateAndTime"
+                                                value={patientRegistrationData?.collectionDateAndTime || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                placeholder=" "
+                                                label="Collection Date & Time"
+                                                activeTheme={activeTheme}
+                                                //isDisabled={false}
+                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                currentDate={new Date()} // Current date: today
+
+                                                showTime={true}
+                                                showBigerCalandar={false}
+                                            />
+
+
+                                        </div>
+
+
+                                        <div className="relative flex-1">
+                                            <CustomNormalInputField
+                                                // type="text", name, id, value, placeholder, onChange, label
+                                                type='text'
+                                                name='address'
+                                                value={patientRegistrationData?.address}
+                                                placeholder=' '
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                label='Address'
+                                            />
+                                        </div>
+
+
+                                        <div className='relative flex-1'>
+                                            <CustomNumberInput
+                                                type="pinCode"
+                                                name="pinCode"
+                                                value={patientRegistrationData?.pinCode || ''}
+                                                onChange={(e) => {
+                                                    handelOnChangePatientRegistration(e)
+                                                }}
+                                                maxLength={6}
+                                                label="Pin Code"
+                                            />
+                                        </div>
+
+                                        {/* Refer Lab/Hospital */}
+                                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                                            <div className="relative flex-1">
+                                                <CustomSearchInputFields
+                                                    id="refLabID"
+                                                    name="refLabID"
+                                                    label="Refer Lab/Hospital"
+                                                    value={patientRegistrationData?.refLabID}
+                                                    options={allLabReferData}
+                                                    onChange={handelOnChangePatientRegistration}
+                                                    filterText="No records found"
+                                                    placeholder=" "
+                                                    searchWithName='doctorName'
+                                                    uniqueKey='doctorId'
+                                                    activeTheme={activeTheme}
+                                                />
+
+                                            </div>
+
+                                            <div>
+                                                <div
+                                                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                                                    onClick={() => { setShowPopup(1), setIdentifyAddReferDrOrReferLab(0) }}
+                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                >
+                                                    <IoMdAdd className="w-4 h-4 font-semibold" />
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+
+                                        <div className="relative flex-1">
+                                            <CustomFileUpload
+                                                value={patientRegistrationData?.uploadDocument}
+                                                handelImageChange={handelImageChange}
+                                                activeTheme={activeTheme}
+                                            />
+                                        </div>
+
+                                        <div className="relative flex-1">
+
+                                            <CustomSearchInputFields
+                                                id="itemId"
+                                                name="itemId"
+                                                label="Test Search By Name Or Code"
+                                                value={patientRegistrationData?.itemId}
+                                                options={allInvastigationData}
+                                                onChange={handelOnChangePatientRegistration}
+                                                filterText="No records found"
+                                                placeholder=" "
+                                                searchWithName='itemName'
+                                                uniqueKey='itemId'
+                                                activeTheme={activeTheme}
+                                            />
+
+                                        </div>
+
+
+
+
+
+                                        <div className='flex gap-[0.25rem]'>
+                                            <div className='relative flex-1'>
+                                                <CustomFormButton
+                                                    activeTheme={activeTheme}
+                                                    text="Update"
+                                                    icon={FaSpinner}
+                                                    isButtonClick={isButtonClick}
+                                                    loadingButtonNumber={3} // Unique number for the first button
+                                                    onClick={() => onSubmitForSavePatientRegistrationData} // Pass button number to handler
+                                                />
+                                            </div>
+
+                                            <div className='relative flex-1'>
+                                            </div>
+                                        </div>
+
+                                        {/* </div> */}
+
+                                        {/* <CustomeNormalButton
+                                            activeTheme={activeTheme}
+                                            text="Open Popup"
+
+                                            onClick={buttonClick}
+                                        /> */}
+
+                                    </div>
+
+
+                                    {/* grid data */}
+                                    {
+                                        investigationGridData?.length !== 0 && (
+                                            // Table Container
+                                            <div className="grid grid-cols-12 gap-2 mt-1 mb-1 mx-1 lg:mx-2">
+                                                <div className="col-span-12">
+                                                    <div className="max-h-[8.2rem] overflow-y-auto">
+                                                        {/* Table */}
+                                                        <table className="table-auto border-collapse w-full text-xxs text-left">
+                                                            <thead
+                                                                style={{
+                                                                    position: "sticky",
+                                                                    top: 0,
+                                                                    zIndex: 1,
+                                                                    background: activeTheme?.menuColor,
+                                                                    color: activeTheme?.iconColor,
+                                                                }}
+                                                            >
+                                                                <tr>
+                                                                    {patientRegistrationInvestigation?.map((data, index) => (
+                                                                        <td
+                                                                            key={index}
+                                                                            className="border-b font-semibold border-gray-300 px-4 text-xxs"
+                                                                        >
+                                                                            {data}
+                                                                        </td>
+                                                                    ))}
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {/* Data Rows */}
+                                                                {investigationGridData?.map((data, rowIndex) => (
+                                                                    <tr
+                                                                        key={rowIndex}
+                                                                        className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                                                                            } `}
+                                                                        onMouseEnter={() => setIsHoveredTable(rowIndex)}
+                                                                        onMouseLeave={() => setIsHoveredTable(null)}
+
+                                                                        style={{
+                                                                            background:
+                                                                                isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
+                                                                        }}
+                                                                    >
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            {data?.itemName}
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            <FontAwesomeIcon icon="fas fa-info-circle" />
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            {data?.mrp}
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            {data?.grosss}
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor w-24">
+                                                                            <input
+                                                                                type="text"
+                                                                                className="border-[1.5px] rounded outline-none px-1 w-full"
+                                                                                value={
+                                                                                    gridDataBarCodeandSampleType?.discount.find(
+                                                                                        (item) => item.itemId === data?.itemId
+                                                                                    )?.discount || ""
+                                                                                }
+                                                                                onChange={(e) =>
+                                                                                    handleInputChange(data?.itemId, e.target.value, "1")
+                                                                                }
+                                                                            />
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            {(
+                                                                                (data?.netAmt || 0) -
+                                                                                parseFloat(
+                                                                                    gridDataBarCodeandSampleType?.discount.find(
+                                                                                        (item) => item.itemId === data?.itemId
+                                                                                    )?.discount || 0
+                                                                                )
+                                                                            ).toFixed(2)}
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            <select
+                                                                                className="border rounded px-1 w-full outline-none"
+                                                                                onChange={(e) =>
+                                                                                    handleSampleTypeChange(e, rowIndex, data?.itemType)
+                                                                                }
+                                                                                defaultValue={0}
+                                                                            >
+                                                                                <option
+                                                                                    value={0}
+                                                                                    disabled
+                                                                                    hidden
+                                                                                    className="text-gray-400"
+                                                                                >
+                                                                                    Select Option
+                                                                                </option>
+                                                                                {data?.sampleTypeName?.map((item, index) => (
+                                                                                    <option key={index} value={item}>
+                                                                                        {item}
+                                                                                    </option>
+                                                                                ))}
+                                                                            </select>
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            <input
+                                                                                type="text"
+                                                                                className="border-[1.5px] rounded outline-none px-1 w-[6.2rem]"
+                                                                                value={
+                                                                                    gridDataBarCodeandSampleType?.barCode.find(
+                                                                                        (item) => item.itemId === data?.itemId
+                                                                                    )?.name || ""
+                                                                                }
+                                                                                onChange={(e) =>
+                                                                                    handleInputChange(data?.itemId, e.target.value, "2")
+                                                                                }
+                                                                            />
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            {data?.deliveryDate}
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor text-center pt-1">
+                                                                            <input type="checkbox" id={`checkbox-${rowIndex}`} />
+                                                                        </td>
+                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                            <RiDeleteBin2Fill
+                                                                                onClick={() => deleteinvestigationGridDataByItemId(rowIndex)}
+                                                                                className="cursor-pointer text-red-500 text-base"
+                                                                            />
+                                                                        </td>
+                                                                    </tr>
+                                                                ))}
+                                                                {/* Footer Row */}
+                                                                <tr
+                                                                    style={{
+                                                                        background: activeTheme?.menuColor,
+                                                                        color: activeTheme?.iconColor,
+                                                                    }}
+                                                                >
+                                                                    <td className="px-4 h-5 text-xxs font-semibold">
+                                                                        Test Count: {investigationGridData?.length}
+                                                                    </td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold">Total Amt.</td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold">
+                                                                        {investigationGridData.reduce((sum, data) => sum + (data?.mrp || 0), 0)}
+                                                                    </td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold">
+                                                                        {investigationGridData.reduce(
+                                                                            (sum, data) => sum + (data?.grosss || 0),
+                                                                            0
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold">
+                                                                        {investigationGridData.reduce(
+                                                                            (sum, data) =>
+                                                                                sum +
+                                                                                parseFloat(
+                                                                                    gridDataBarCodeandSampleType?.discount.find(
+                                                                                        (item) => item.itemId === data?.itemId
+                                                                                    )?.discount || 0
+                                                                                ),
+                                                                            0
+                                                                        )}
+                                                                    </td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold">
+                                                                        {patientRegistrationData?.grossAmount}
+                                                                    </td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )
+                                    }
+
+                                </form>
+
+                            </div>
+
+                        </div>
+                    </div>
+                )
+            }
+
+
+
+            {
+                showPopup === 4 && (
+                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
+                        <div className="w-full mx-2 lg:mx-32 h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown pb-3">
+
+                            <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
+                                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
+                            >
+                                <div className=" font-semibold"
+                                    style={{ color: activeTheme?.iconColor }}
+                                >
+                                    Old Patient
+                                </div>
+
+                                <IoMdCloseCircleOutline className='text-xl cursor-pointer'
+                                    style={{ color: activeTheme?.iconColor }}
+                                    onClick={() => { setShowPopup(0) }}
+                                />
+                            </div>
+
+                            <div className=''>
+
+                                <div
+                                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
+                                    style={{ background: activeTheme?.blockColor }}
+                                >
+                                    <div>
+                                        <FontAwesomeIcon icon="fa-solid fa-house" />
+                                    </div>
+                                    <div>Old Patient Info.</div>
+                                </div>
+
+                                <div className="grid grid-cols-12 gap-2 mt-[2px] mb-1 mx-1 lg:mx-2">
+                                    <div className="col-span-12">
+                                        <div className="max-h-[8.2rem] overflow-y-auto">
+                                            {/* Table */}
+                                            <table className="table-auto border-collapse w-full text-xxs text-left">
+                                                <thead
+                                                    style={{
+                                                        position: "sticky",
+                                                        top: 0,
+                                                        zIndex: 1,
+                                                        background: activeTheme?.menuColor,
+                                                        color: activeTheme?.iconColor,
+                                                    }}
+                                                >
+                                                    <tr>
+                                                        {patientRegistrationoldPatient?.map((data, index) => (
+                                                            <td
+                                                                key={index}
+                                                                className="border-b font-semibold border-gray-300 px-4 text-xxs"
+                                                            >
+                                                                {data}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {
+                                                        console.log(patientRegistrationoldPatient)
+
+                                                    }
+                                                    {/* Data Rows */}
+                                                    {dummyDataForpatientRegistrationoldPatient?.map((data, rowIndex) => (
+                                                        <tr
+                                                            key={rowIndex}
+                                                            className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                                                                } `}
+
+                                                            onMouseEnter={() => setIsHoveredTable(rowIndex)}
+                                                            onMouseLeave={() => setIsHoveredTable(null)}
+
+
+                                                            style={{
+                                                                background:
+                                                                    isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
+                                                            }}
+                                                        >
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                Selected
+                                                            </td>
+
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.PatientId}
+                                                            </td>
+
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.PatientName}
+                                                            </td>
+
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.age}
+                                                            </td>
+
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.Gender}
+                                                            </td>
+
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.Mobile}
+                                                            </td>
+
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.Email}
+                                                            </td>
+
+
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                {data?.RegDate}
+                                                            </td>
+
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
 
                             </div>
 
