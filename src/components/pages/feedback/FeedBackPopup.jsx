@@ -16,7 +16,6 @@ export const IconData = [
     { icon: <RiEmotionUnhappyLine />, color: '#ff965c', title: 'Poor' },
     { icon: <BiSad />, color: '#ff6838', title: 'Bad' },
 
-
 ]
 
 export default function FeedBackSave() {
