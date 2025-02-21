@@ -11,6 +11,7 @@ import { allRoutes } from "./components/private/AllRouterData";
 import ChartBoatApp from "./components/chartboat/ChartBoatApp";
 import FeedBackPopup from "./components/pages/feedback/FeedBackPopup";
 import HelpAndSupprot from "./components/pages/helpandsupport/HelpAndSupprot";
+import TicketsPopup from "./components/pages/tickets/TicketsPopup";
 
 const Login = lazy(() => import("./components/public/Login"));
 const Base = lazy(() => import("./components/base/Base"));
@@ -94,6 +95,13 @@ const App = () => {
       {
         user && (
           <HelpAndSupprot />
+        )
+      }
+
+
+      {
+        user && (
+          <TicketsPopup />
         )
       }
 

@@ -1,14 +1,30 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import FormHeader from '../../global/FormHeader'
 import FeedbackDashboardCard from './FeedbackDashboardCard'
 
-import { IconData } from './FeedBackPopup'
+
 import GridDataDetails from '../../global/GridDataDetails'
 import { DatePicker } from '../../global/DatePicker'
 import { useFormattedDate } from '../../customehook/useDateTimeFormate'
 import { useSelector } from 'react-redux'
 import CustomSearchInputFields from '../../global/CustomSearchInputField'
 import CustomeNormalButton from '../../global/CustomeNormalButton'
+import { IoMdHappy } from 'react-icons/io'
+import { RiEmotionHappyLine, RiEmotionUnhappyLine } from 'react-icons/ri'
+import { MdOutlineSentimentNeutral } from 'react-icons/md'
+import { BiSad } from 'react-icons/bi'
+import { FaPeopleGroup } from 'react-icons/fa6';
+import { getAllEmojiColorCodeApi } from '../../../service/service'
+import toast from 'react-hot-toast'
+
+const IconData = [
+    { icon: <FaPeopleGroup />, title: 'Total ' },
+    { icon: <IoMdHappy />, title: 'Excellent' },
+    { icon: <RiEmotionHappyLine />, title: 'Good' },
+    { icon: <MdOutlineSentimentNeutral />, title: 'Average' },
+    { icon: <RiEmotionUnhappyLine />, title: 'Poor' },
+    { icon: <BiSad />, title: 'Bad' },
+]
 
 export default function FeedbackDashboard() {
 
@@ -20,6 +36,21 @@ export default function FeedbackDashboard() {
         centre: '',
         filterWithTitle: ''
     })
+    const [allIconColor, setAllIconColor] = useState([]);
+
+    useEffect(() => {
+
+        const getIconColor = async () => {
+
+            try {
+                const response = await getAllEmojiColorCodeApi();
+                setAllIconColor(response);
+            } catch (error) {
+                toast.error(error?.message);
+            }
+        }
+        getIconColor();
+    }, [])
 
 
     const handelOnChangeFilterFeedbackData = (e) => {
@@ -41,19 +72,19 @@ export default function FeedbackDashboard() {
             <FormHeader headerData='Feedback DashBoard' />
 
             {/* feedback card */}
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 my-2 items-center  mx-1 lg:mx-2'>
+            <div className='flex justify-between items-center m-2'>
 
                 {
                     IconData?.map((data, index) => {
                         // Define the number of feedback dynamically inside the map
-                        const numberOfFeedbacks = [12, 8, 15, 25, 30]; // Corresponding feedback numbers
+                        const numberOfFeedbacks = [30, 12, 8, 15, 25, 30]; // Corresponding feedback numbers
                         const numberOfFeedback = numberOfFeedbacks[index]; // Get the number based on the index
-
+                        const colorCode = allIconColor[index]?.colourCode;
                         return (
                             <FeedbackDashboardCard
                                 key={index}
                                 icon={data.icon}
-                                color={data?.color}
+                                color={colorCode}
                                 title={data?.title}
                                 numberOfFeedback={numberOfFeedback} // Pass the number dynamically
                             />
@@ -122,15 +153,25 @@ export default function FeedbackDashboard() {
                     />
                 </div>
 
+                <div className='flex gap-[0.25rem]'>
 
-                <div className="relative flex-1">
-                    <CustomeNormalButton
+                    <div className="relative flex-1">
+                        <CustomeNormalButton
+                            activeTheme={activeTheme}
+                            text='Search'
+                            onClick={exportDataInExcelFormate}
+                        />
+                    </div>
 
-                        activeTheme={activeTheme}
-                        text='Export Data In Excel'
-                        onClick={exportDataInExcelFormate}
-                    />
+                    <div className="relative flex-1">
+                        <CustomeNormalButton
+                            activeTheme={activeTheme}
+                            text='Export Excel'
+                            onClick={exportDataInExcelFormate}
+                        />
+                    </div>
                 </div>
+
             </div>
 
 

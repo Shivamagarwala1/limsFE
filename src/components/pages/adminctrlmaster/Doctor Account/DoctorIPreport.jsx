@@ -73,10 +73,10 @@ export default function DoctorIPreport() {
 
                     <div className="relative flex-1">
                         <CustomSearchInputFields
-                            id="doctor"
-                            name="doctor"
-                            label="Doctor"
-                            value={doctorIpReportData?.doctor}
+                            id="pro"
+                            name="pro"
+                            label="Pro"
+                            value={doctorIpReportData?.pro}
                             options={[{ id: 1, label: 'Label1' }, { id: 2, label: 'Label1' }, { id: 3, label: 'Label1' }, { id: 4, label: 'Label1' },]}
                             onChange={handelOnChangeFilterFeedbackData}
                             filterText="No records found"
@@ -88,12 +88,14 @@ export default function DoctorIPreport() {
                     </div>
 
 
+
+
                     <div className="relative flex-1">
                         <CustomSearchInputFields
-                            id="pro"
-                            name="pro"
-                            label="Pro"
-                            value={doctorIpReportData?.pro}
+                            id="doctor"
+                            name="doctor"
+                            label="Doctor"
+                            value={doctorIpReportData?.doctor}
                             options={[{ id: 1, label: 'Label1' }, { id: 2, label: 'Label1' }, { id: 3, label: 'Label1' }, { id: 4, label: 'Label1' },]}
                             onChange={handelOnChangeFilterFeedbackData}
                             filterText="No records found"
