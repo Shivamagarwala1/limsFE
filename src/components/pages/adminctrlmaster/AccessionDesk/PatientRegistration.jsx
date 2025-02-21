@@ -3511,11 +3511,8 @@ export default function PatientRegistration() {
                                                     //isDisabled={false}
                                                     isMandatory={!Boolean(patientRegistrationData?.dob)}
                                                     currentDate={new Date()} // Current date: today
-                                                    maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
-                                                    highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
-                                                    disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
+                                                    maxDate={new Date(2025, 11, 31)}
                                                     showTime={false}
-                                                    tillDate={new Date(2025, 1, 26)}
                                                     showBigerCalandar={true}
                                                 />
                                                 {/* </div> */}
@@ -3867,10 +3864,8 @@ export default function PatientRegistration() {
                                                     isMandatory={!Boolean(patientRegistrationData?.dob)}
                                                     currentDate={new Date()} // Current date: today
                                                     maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
-                                                    highlightedDates={[{ date: "2025-01-01", msg: "New Year" }, { date: "2025-02-25", msg: "highlighted future" }]} // Highlighted dates
-                                                    disabledDates={[{ date: "2025-01-02", msg: "Event!" }, { date: "2025-02-21", msg: "disable future" }]} // Disabled dates
+
                                                     showTime={false}
-                                                    tillDate={new Date(2025, 1, 26)}
                                                     showBigerCalandar={true}
                                                 />
                                                 {/* </div> */}

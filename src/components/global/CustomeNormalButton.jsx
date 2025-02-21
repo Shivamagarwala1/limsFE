@@ -1,4 +1,5 @@
 import React from 'react'
+import useRippleEffect from '../customehook/useRippleEffect'
 
 export default function CustomeNormalButton({
     activeTheme,
@@ -7,7 +8,7 @@ export default function CustomeNormalButton({
 }) {
 
 
-
+    useRippleEffect()
 
     return (
         <div>

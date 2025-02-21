@@ -42,7 +42,7 @@ export const DatePicker = ({
                 value: formattedDate,
             },
         };
-
+        
         onChange(event); // Pass the event to the parent
         setShowCalendar(false); // Close the calendar
     };

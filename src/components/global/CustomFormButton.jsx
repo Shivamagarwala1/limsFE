@@ -1,4 +1,5 @@
 import React from "react";
+import useRippleEffect from "../customehook/useRippleEffect";
 
 export default function CustomFormButton({
     activeTheme,
@@ -8,7 +9,8 @@ export default function CustomFormButton({
     loadingButtonNumber,
     onClick, // Accept a callback for button click
 }) {
-   
+
+    useRippleEffect();
 
     return (
         <div>

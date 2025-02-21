@@ -12,6 +12,12 @@ export const allRoutes = [
         exact: true,
     },
     {
+        path: "/LIMS/RolePageBind",
+        component: React.lazy(() => import("../pages/adminctrlmaster/RolePageBind")),
+        exact: true,
+    },
+    
+    {
         path: "/LIMS/clientmaster",
         component: React.lazy(() => import("../pages/adminctrlmaster/client/ClientMaster")),
         exact: true,
@@ -336,6 +342,19 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/Doctor Account/DoctorShareMaster")),
         exact: true,
     },
+    {
+        path: "/LIMS/DoctorIPreport",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Doctor Account/DoctorIPreport")),
+        exact: true,
+    },
+
+
+    {
+        path: "/LIMS/FeedbackDashboard",
+        component: React.lazy(() => import("../pages/feedback/FeedbackDashboard")),
+        exact: true,
+    },
+
 
 ];
 
