@@ -9,7 +9,8 @@ import LoadingPage from "./components/public/LoadingPage";
 import { Suspense } from "react";
 import { allRoutes } from "./components/private/AllRouterData";
 import ChartBoatApp from "./components/chartboat/ChartBoatApp";
-import FeedBackSave from "./components/pages/feedback/FeedBackSave";
+import FeedBackPopup from "./components/pages/feedback/FeedBackPopup";
+import HelpAndSupprot from "./components/pages/helpandsupport/HelpAndSupprot";
 
 const Login = lazy(() => import("./components/public/Login"));
 const Base = lazy(() => import("./components/base/Base"));
@@ -85,7 +86,14 @@ const App = () => {
 
       {
         user && (
-          <FeedBackSave />
+          <FeedBackPopup />
+        )
+      }
+
+
+      {
+        user && (
+          <HelpAndSupprot />
         )
       }
 

@@ -14,7 +14,6 @@ const[patientRegistrationData,setPatientRegistrationData]=useState({
         departmentName123: []
 })
 
-console.log("dfxsguhdnfuchfouygwherifugyth);
 
 <div className="relative flex-1">
 

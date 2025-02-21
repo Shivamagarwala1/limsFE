@@ -337,4 +337,3 @@ export const dummyDataForpatientRegistrationoldPatient = [
 
 export const doctorShareMasterHeaderApi = ['SR. NO.', 'Departement', 'Percentage(%)', 'Amount'];
 
-

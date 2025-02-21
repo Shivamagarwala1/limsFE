@@ -77,7 +77,7 @@ const MultiSelectDropdown = ({
                         type="text"
                         id={id}
                         name={name}
-                        value={`${selectedItems?.length !== 0 ? selectedItems?.length : ''} item selected`}
+                        value={`${selectedItems?.length !== 0 ? selectedItems?.length + ` item selected` : ''} `}
                         readOnly
                         placeholder={placeholder}
                         className={`border-none outline-none`}
@@ -108,6 +108,7 @@ const MultiSelectDropdown = ({
                         <input
                             type="search"
                             placeholder="Search..."
+                            name="searchTerm"
                             value={searchTerm}
                             onChange={handleSearchChange}
                             className="w-full border-[1px] rounded-md px-2 py-1 outline-none"

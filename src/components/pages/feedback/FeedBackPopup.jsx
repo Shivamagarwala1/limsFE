@@ -8,6 +8,17 @@ import { BiSad } from 'react-icons/bi'
 import CustomFormButton from '../../global/CustomFormButton';
 import { FaSpinner } from 'react-icons/fa';
 
+export const IconData = [
+
+    { icon: <IoMdHappy />, color: '#139c43', title: 'Excellent' },
+    { icon: <RiEmotionHappyLine />, color: '#25f06f', title: 'Good' },
+    { icon: <MdOutlineSentimentNeutral />, color: '#99ef2afe', title: 'Average' },
+    { icon: <RiEmotionUnhappyLine />, color: '#ff965c', title: 'Poor' },
+    { icon: <BiSad />, color: '#ff6838', title: 'Bad' },
+
+
+]
+
 export default function FeedBackSave() {
     const activeTheme = useSelector((state) => state.theme.activeTheme);
     const user = useSelector((state) => state.userSliceName?.user || null);
@@ -15,28 +26,17 @@ export default function FeedBackSave() {
     const [showChartPopup, setShowChartPopup] = useState(false);
 
 
-    // {/* 1st */ }
-    // <BiSad className='text-8xl text-[]' />
-    // {/* 2nd */ }
-    // <RiEmotionUnhappyLine className='text-8xl text-[#ff965c]' />
 
-    // {/* 3rd */ }
-    // <MdOutlineSentimentNeutral className='text-8xl text-[#99ef2afe]' />
-
-    // {/* 4th */ }
-    // <RiEmotionHappyLine className='text-8xl text-[#25f06f] ' />
-
-    // {/* 5th */ }
-    // <IoMdHappy className='text-8xl text-[#139c43]' />
-
-    const IconData = [
-        { icon: <BiSad />, color: '#ff6838', title: 'Bad' },
-        { icon: <RiEmotionUnhappyLine />, color: '#ff965c', title: 'Poor' },
-        { icon: <MdOutlineSentimentNeutral />, color: '#99ef2afe', title: 'Average' },
-        { icon: <RiEmotionHappyLine />, color: '#25f06f', title: 'Good' },
-        { icon: <IoMdHappy />, color: '#139c43', title: 'Excellent' },
-    ]
     const [isButtonClick, setIsButtonClick] = useState(0);
+
+    const [selectedIcon, setSelectedIcon] = useState([null, null]); // State to hold two selections
+
+    // Function to handle selection
+    const handleSelect = (data, index) => {
+        const updatedSelection = [...selectedIcon]; // Create a copy of the current state
+        updatedSelection[index] = data; // Update the appropriate index
+        setSelectedIcon(updatedSelection); // Set the updated state
+    };
 
     const onsubmitFeedBackData = () => {
         setIsButtonClick(1);
@@ -45,7 +45,7 @@ export default function FeedBackSave() {
     }
     return (
         <>
-            <div className='fixed bottom-20 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Chart With Friends'
+            <div className='fixed bottom-20 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Share your Feedback'
                 style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
 
                 onClick={() => setShowChartPopup(!showChartPopup)}
@@ -86,7 +86,7 @@ export default function FeedBackSave() {
 
                                     {/* icon */}
 
-                                    <div className='flex justify-between items-center '>
+                                    <div className='flex  justify-between items-center '>
 
                                         <div className='font-semibold text-sm'>
                                             <span className='text-red-700'>Q.1)</span> Overall Software experience
@@ -96,17 +96,20 @@ export default function FeedBackSave() {
                                             IconData?.reverse().map((data, index) => (
                                                 <div
                                                     key={index}
-                                                    className={`flex  flex-col items-center justify-between text-[${data?.color}] text-4xl cursor-pointer `}>
+                                                    className={`flex  flex-col items-center justify-between text-[${data?.color}] text-4xl cursor-pointer ${selectedIcon[0]?.title === data.title ? 'opacity-100' : 'opacity-50'
+                                                        } `}>
 
-                                                    <div className={`border-2 rounded-full border-[${data?.color}] text-white`}
+                                                    <div className={`rounded-full border-[${data?.color}] text-white`}
                                                         style={{
                                                             background: data?.color
                                                         }}
+
+                                                        onClick={() => handleSelect(data, 0)}
                                                     >
                                                         {data?.icon}
                                                     </div>
 
-                                                    <div className={`text-xs -mt-1 font-semibold mb-1`} >{data?.title}</div>
+                                                    <div className={`text-xs  font-semibold mb-1`} style={{ color: data?.color }}>{data?.title}</div>
                                                 </div>
                                             ))
                                         }
@@ -121,6 +124,7 @@ export default function FeedBackSave() {
 
                                 </div>
 
+                                <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
                                 <FormHeader
                                     headerData='Service Feedback'
                                     activeTheme={activeTheme}
@@ -140,17 +144,20 @@ export default function FeedBackSave() {
                                             IconData?.map((data, index) => (
                                                 <div
                                                     key={index}
-                                                    className={`flex  flex-col items-center justify-between text-[${data?.color}] text-4xl cursor-pointer `}>
+                                                    className={`flex  flex-col items-center justify-between text-[${data?.color}] text-4xl cursor-pointer ${selectedIcon[1]?.title === data.title ? 'opacity-100' : 'opacity-50'
+                                                        } `}>
 
-                                                    <div className={`border-2 rounded-full border-[${data?.color}] text-white`}
+                                                    <div className={`rounded-full border-[${data?.color}] text-white`}
                                                         style={{
                                                             background: data?.color
                                                         }}
+
+                                                        onClick={() => handleSelect(data, 1)}
                                                     >
                                                         {data?.icon}
                                                     </div>
 
-                                                    <div className={`text-xs -mt-1 font-semibold mb-1`} >{data?.title}</div>
+                                                    <div className={`text-xs  font-semibold mb-1`} style={{ color: data?.color }}>{data?.title}</div>
                                                 </div>
                                             ))
                                         }
@@ -165,6 +172,7 @@ export default function FeedBackSave() {
 
                                 </div>
 
+                                <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
                                 <FormHeader
                                     headerData='Comment and Suggestions'
                                     activeTheme={activeTheme}
