@@ -227,7 +227,9 @@ export const uploadReportLetterHead = ['SR.NO', 'Centre', 'Report Header Height 
 export const rateListUploadByExcelHeader = ['Item ID', 'Item Code', 'Item Name', , 'Departement', 'MRP', 'Offerrate', 'Action'];
 
 
-export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross Amt.', 'Discount', 'Net Amt.', 'Sample Type', 'Bar Code', 'Delivery Date', 'IsUrgent', 'Delete'];
+export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross Amt.', 'Discount', 'Net Amt.',
+  // 'Sample Type', 'Bar Code', 
+  'Delivery Date', 'IsUrgent', 'Delete'];
 
 export const patientRegistrationPaymentMode = ['Cash Amt.', 'Credit/DebitCard Amt.', 'Last 4 Digit Of Card', 'Bank', 'UPI Amt.', 'UPI Type'];
 

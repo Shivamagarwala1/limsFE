@@ -16,21 +16,14 @@ export const CustomTextBox = ({
     const [isValid, setIsValid] = useState(true);
     const prevIsValidRef = useRef(false);
 
-    //console.log(dynamicMandatory);
 
 
     const allowedSpecialChars = allowSpecialChars ? "!@#$%^&*/" : "";
 
     const validateField = (value) => {
-        // if (isMandatory && !value.trim()) {
-        //   toast.error("This field is mandatory");
-        //   return false;
-        // }
-        console.log(value);
 
         switch (type) {
-            case "email":
-                return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
+
             case "number":
                 return /^\d+$/.test(value);
             case "positive":
@@ -54,14 +47,26 @@ export const CustomTextBox = ({
                     const regex = new RegExp(`^[A-Za-z\\s${allowedSpecialChars}]*$`);
                     return regex.test(value);
                 }
-            case "alphabetandchar":
-                console.log(/^[A-Za-z0-9]*$/.test(value));
+                return /^[A-Za-z\s]*$/.test(value);
+            case "charNumber":
+                if (allowSpecialChars) {
+                    const regex = new RegExp(`^[A-Za-z0-9${allowedSpecialChars}]*$`);
+                    return regex.test(value);
+                }
+                return /^[A-Za-z0-9]*$/.test(value);
+            case "charNumberWithSpace":
+                if (allowSpecialChars) {
+                    const regex = new RegExp(`^[A-Za-z0-9\\s${allowedSpecialChars}]*$`);
+                    return regex.test(value);
+                }
+                return /^[A-Za-z0-9\\s]*$/.test(value);
 
-                return /^[A-Za-z0-9]*$/.test(value); // Allows only letters and numbers, no spaces or special characters
+            case "barcode":
+                return /^[A-Za-z0-9-]*$/.test(value); // Allows only letters and numbers, no spaces or special characters
 
             default:
                 if (allowSpecialChars) {
-                    const regex = new RegExp(`^[A-Za-z\\s${allowedSpecialChars}]*$`);
+                    const regex = new RegExp(`^[A-Za-z0-9\\s${allowedSpecialChars}]*$`);
                     return regex.test(value);
                 }
                 return /^[A-Za-z\s]*$/.test(value);
@@ -72,19 +77,7 @@ export const CustomTextBox = ({
         let newValue = e.target.value;
         let oldValue = newValue;
 
-        // Restrict input based on type
-        //setIsValid(false);
-
-        //setDynamicMandatory(newValue.trim() === "" || newValue === 0 || newValue === '0');
-
         switch (type) {
-            case "email":
-                newValue = newValue.replace(/[^a-zA-Z0-9@._-]/g, "");
-                const atCount = (newValue.match(/@/g) || []).length;
-                if (atCount > 1) {
-                    newValue = newValue.slice(0, newValue.lastIndexOf("@"));
-                }
-                break;
 
             case "positive":
                 newValue = newValue.replace(/[^0-9]/g, ""); // Allow only positive numbers
@@ -129,11 +122,15 @@ export const CustomTextBox = ({
                 break;
 
             case "days":
-                newValue = newValue.replace(/[^0-9]/g, ""); // Allow only digits
-                if (newValue !== "" && (parseInt(newValue) < 0 || parseInt(newValue) > 12)) {
-                    toast.error("Days must be between 0 and 12"); // Show the popup when out of range
-                    newValue = newValue.slice(0, newValue.length - 1); // Remove the last character
+                newValue = newValue.replace(/[^0-9]/g, "");
+                if (
+                    newValue !== "" &&
+                    (parseInt(newValue) < 0 || parseInt(newValue) > 30)
+                ) {
+                    newValue = newValue.slice(0, newValue.length - 1);
                 }
+                // Remove leading zeros (e.g., "01" becomes "1")
+                newValue = String(parseInt(newValue !== "" ? newValue : "0", 10));
                 break;
 
             case "months":
@@ -167,13 +164,24 @@ export const CustomTextBox = ({
                     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
                     .join(" ");
                 break;
-            case "alphabetandchar":
+            case "barcode":
+                if (!/^[A-Za-z0-9\\s-]*$/.test(newValue)) {
+                    newValue = newValue.replace(/[^A-Za-z0-9\\s-]/g, ""); // Remove invalid characters
+                    // return false;
+                }
+                break;
+            case "charNumberWithSpace":
+                if (!/^[A-Za-z0-9\\s]*$/.test(newValue)) {
+                    newValue = newValue.replace(/[^A-Za-z0-9\\s]/g, ""); // Remove invalid characters
+                    // return false;
+                }
+                break;
+            case "charNumber":
                 if (!/^[A-Za-z0-9]*$/.test(newValue)) {
                     newValue = newValue.replace(/[^A-Za-z0-9]/g, ""); // Remove invalid characters
                     // return false;
                 }
                 break;
-
 
             default:
                 if (!allowSpecialChars) {
@@ -218,18 +226,28 @@ export const CustomTextBox = ({
                     errorMessage = `Max ${decimalPrecision} decimal places allowed`;
                     break;
                 case "days":
-                    errorMessage = "Days must be between 0 and 31";
+                    errorMessage = "Days must be between 0 and 30";
                     break;
                 case "months":
-                    errorMessage = "Months must be between 1 and 12";
+                    errorMessage = "Months must be between 1 and 11";
                     break;
                 case "years":
                     errorMessage = "Years must be between 1 and 150";
                     break;
-                case "email":
-                    errorMessage = "Invalid Email Format!";
+                case "propercase":
+                    errorMessage = "Only letters" +
+                        (allowSpecialChars
+                            ? " with these special characters " + allowedSpecialChars
+                            : "") +
+                        " are allowed!";
                     break;
-                case "alphabetandchar":
+                case "barcode":
+                    errorMessage = "Invalid barcode Format!";
+                    break;
+                case "charNumberWithSpace":
+                    errorMessage = "Only letters, numbers & space are allowed!";
+                    break;
+                case "charNumber":
                     errorMessage = "Only letters and numbers are allowed!";
                     break;
                 default:

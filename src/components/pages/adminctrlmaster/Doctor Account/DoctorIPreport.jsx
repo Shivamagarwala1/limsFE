@@ -4,7 +4,7 @@ import FormHeader from '../../../global/FormHeader';
 import { DatePicker } from '../../../global/DatePicker';
 import CustomeNormalButton from '../../../global/CustomeNormalButton';
 import { useFormattedDate } from '../../../customehook/useDateTimeFormate';
-import CustomSearchInputFields from '../../../global/CustomSearchInputField';
+import CustomSearchInputFields from '../../../global/CustomSearchDropdown';
 import GridDataDetails from '../../../global/GridDataDetails';
 
 export default function DoctorIPreport() {

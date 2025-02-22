@@ -14,10 +14,9 @@ import { IoMdMenu } from "react-icons/io";
 import { ImSwitch } from "react-icons/im";
 import { IoAlertCircleOutline } from "react-icons/io5";
 import useRippleEffect from "../../customehook/useRippleEffect";
-import { faL } from "@fortawesome/free-solid-svg-icons";
 
 
-export default function PatientRegistration() {
+export default function MenuMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const user = useSelector((state) => state.userSliceName?.user || null);
   useRippleEffect();
@@ -85,7 +84,6 @@ export default function PatientRegistration() {
   const handleParentMenuChange = (e) => {
     const selectedValue = e.target.value;
     setIsParentMenu(selectedValue);
-    console.log(selectedValue);
     setIsValid({
       menuName: false,// !!formData.menuName.trim(),
       displaySequence: false, //!!String(formData.displaySequence).trim(),

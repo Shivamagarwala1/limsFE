@@ -1,8 +1,10 @@
 import React, { useState } from 'react'
+import Draggable from 'react-draggable';
 import { FaUserCircle, FaUserEdit } from 'react-icons/fa';
 import { IoMdCloseCircleOutline } from 'react-icons/io';
 import { LuMessageCircleMore } from "react-icons/lu";
 import { useSelector } from 'react-redux';
+import { useRef } from 'react';
 
 export default function ChartBoatApp() {
 
@@ -11,16 +13,19 @@ export default function ChartBoatApp() {
 
     const [showChartPopup, setShowChartPopup] = useState(false);
 
+    const dragRef = useRef(null);
+
     return (
         <>
-            <div className='fixed bottom-6 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Chart With Friends'
-                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+            <Draggable nodeRef={dragRef} >
+                <div ref={dragRef} className='fixed bottom-6 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Chart With Friends'
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
 
-                onClick={() => setShowChartPopup(!showChartPopup)}
-            >
-                <LuMessageCircleMore className='text-2xl' />
-            </div>
-
+                    onClick={() => setShowChartPopup(!showChartPopup)}
+                >
+                    <LuMessageCircleMore className='text-2xl' />
+                </div>
+            </Draggable>
 
             {
                 showChartPopup === true && (
