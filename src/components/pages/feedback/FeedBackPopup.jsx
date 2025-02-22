@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { IoMdCloseCircleOutline, IoMdHappy } from 'react-icons/io';
 import { MdOutlineFeedback, MdOutlineSentimentNeutral } from 'react-icons/md';
 import { useSelector } from 'react-redux';
@@ -7,6 +7,7 @@ import { RiEmotionUnhappyLine, RiEmotionHappyLine } from 'react-icons/ri';
 import { BiSad } from 'react-icons/bi'
 import CustomFormButton from '../../global/CustomFormButton';
 import { FaSpinner } from 'react-icons/fa';
+import Draggable from 'react-draggable';
 
 export const IconData = [
 
@@ -42,15 +43,21 @@ export default function FeedBackSave() {
 
         setIsButtonClick(0);
     }
+    
+    const dragRef = useRef(null);
+
     return (
         <>
-            <div className='fixed bottom-20 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Share your Feedback'
-                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+            <Draggable nodeRef={dragRef} >
+                <div ref={dragRef} className='fixed bottom-20 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Share your Feedback'
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
 
-                onClick={() => setShowChartPopup(!showChartPopup)}
-            >
-                <MdOutlineFeedback className='text-2xl' />
-            </div>
+                    onClick={() => setShowChartPopup(!showChartPopup)}
+                >
+                    <MdOutlineFeedback className='text-2xl' />
+                </div>
+            </Draggable>
+
 
 
             {

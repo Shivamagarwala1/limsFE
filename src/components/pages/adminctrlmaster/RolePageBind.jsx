@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import FormHeader from '../../global/FormHeader'
-import CustomSearchInputFields from '../../global/CustomSearchInputField'
+import CustomSearchInputFields from '../../global/CustomSearchDropdown'
 import CustomMultiSelectDropdown from '../../global/CustomMultiSelectDropdown'
 import { useSelector } from 'react-redux';
 import { FaSpinner } from 'react-icons/fa';

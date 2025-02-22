@@ -8,6 +8,7 @@ function CustomDropdown({
   options,
   onChange,
   defaultIndex = 0,
+  showLabel = true,
   activeTheme = { subMenuColor: "#e0f2fe" }, // Customize hover color here
   isMandatory
 }) {
@@ -85,12 +86,17 @@ function CustomDropdown({
       )}
 
       {/* Dropdown label */}
-      <label
-        htmlFor={id}
-        className={`menuPeerLevel ${options?.length !== 0 && "-mt-[2px]"}`}
-      >
-        {label}
-      </label>
+      {
+        showLabel && (
+          <label
+            htmlFor={id}
+            className={`menuPeerLevel ${options?.length !== 0 && "-mt-[2px]"}`}
+          >
+            {label}
+          </label>
+        )
+      }
+
     </div>
 
   );

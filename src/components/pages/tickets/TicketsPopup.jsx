@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { IoMdCloseCircleOutline } from 'react-icons/io';
 import { LuNotebookPen } from 'react-icons/lu';
 import { useSelector } from 'react-redux';
@@ -6,7 +6,7 @@ import FromHeader from '../../global/FormHeader'
 import { CustomTextBox } from '../../global/CustomTextBox';
 import CustomDropdown from '../../global/CustomDropdown';
 import { useFormattedDate } from '../../customehook/useDateTimeFormate';
-import { DatePicker } from '../../global/DatePicker';
+import Draggable from 'react-draggable';
 import CustomFileUpload from '../../global/CustomFileUpload';
 import { toast } from 'react-toastify';
 import CustomFormButton from '../../global/CustomFormButton';
@@ -83,16 +83,20 @@ export default function TicketsPopup() {
             setIsButtonClick(0)
         }, 2000);
     }
+    const dragRef = useRef(null);
 
     return (
         <>
-            <div className='fixed bottom-52 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Help And Support'
-                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+            <Draggable nodeRef={dragRef} >
+                <div ref={dragRef} className='fixed bottom-52 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Support Ticket'
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
 
-                onClick={() => setShowhelpAndSupportPopup(!showhelpAndSupportPopup)}
-            >
-                <LuNotebookPen className='text-2xl' />
-            </div>
+                    onClick={() => setShowhelpAndSupportPopup(!showhelpAndSupportPopup)}
+                >
+                    <LuNotebookPen className='text-2xl' />
+                </div>
+            </Draggable>
+
 
 
             {
@@ -111,7 +115,16 @@ export default function TicketsPopup() {
 
                                 <IoMdCloseCircleOutline className='text-xl cursor-pointer'
                                     style={{ color: activeTheme?.iconColor }}
-                                    onClick={() => setShowhelpAndSupportPopup(!showhelpAndSupportPopup)}
+                                    onClick={() => {
+                                        setShowhelpAndSupportPopup(!showhelpAndSupportPopup), setTicketsPopupData({
+                                            ticketType: '',
+                                            ticketSubject: '',
+                                            ticketDescription: '',
+                                            priority: '',
+                                            uploadDocument: '',
+                                            deliveryDate: useFormattedDate()
+                                        })
+                                    }}
                                 />
                             </div>
 
@@ -122,19 +135,23 @@ export default function TicketsPopup() {
                             <form autoComplete='off'>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2 mt-2 mb-1 items-center  mx-1">
 
-                                    <div className="relative flex-1 ">
-                                        <CustomTextBox
-                                            type="alphabetandchar"
+                                    <div className='relative flex-1 mt-[1.9px]'>
+                                        <CustomDropdown
                                             name="ticketType"
-                                            value={ticketsPopupData?.ticketType || ''}
-                                            onChange={(e) => handelOnChangeTicketPopup(e)}
                                             label="Ticket Type"
-                                            isDisabled={false}
-                                            maxLength={2}
-                                            allowSpecialChars={false}
+                                            value={ticketsPopupData?.ticketType || ''}
+                                            options={[
+                                                { label: 'Select Option', value: '', disabled: true },
+                                                { label: 'Ticket type1', value: '1' },
+                                                { label: 'Ticket type2', value: '2' },
+                                                { label: 'Ticket type3', value: '3' },
+                                            ]}
+                                            onChange={(e) => handelOnChangeTicketPopup(e)}
+                                            defaultIndex={0}
+                                            activeTheme={activeTheme}
                                             isMandatory={!Boolean(ticketsPopupData?.ticketType)}
-                                            decimalPrecision={4}
                                         />
+
                                     </div>
 
 
@@ -159,13 +176,13 @@ export default function TicketsPopup() {
 
                                     <div className="relative flex-1 ">
                                         <CustomTextBox
-                                            type="alphabetandchar"
+                                            type="alphabetandcharWithSpace"
                                             name="ticketSubject"
                                             value={ticketsPopupData?.ticketSubject || ''}
                                             onChange={(e) => handelOnChangeTicketPopup(e)}
                                             label="Ticket Subject"
                                             isDisabled={false}
-                                            maxLength={2}
+                                            maxLength={50}
                                             allowSpecialChars={false}
                                             isMandatory={!Boolean(ticketsPopupData?.ticketSubject)}
                                             decimalPrecision={4}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { IoMdCloseCircleOutline, IoMdHelpCircle } from 'react-icons/io';
 import { useSelector } from 'react-redux';
 import hellpandsupport from '../../../assets/helpandsupport.png'
@@ -7,6 +7,7 @@ import { MdEmail, MdHome, } from 'react-icons/md';
 import { FaSquarePhone } from 'react-icons/fa6';
 import { FaWhatsappSquare } from 'react-icons/fa'
 import GridDataDetails from '../../global/GridDataDetails'
+import Draggable from 'react-draggable';
 
 export default function HelpAndSupprot() {
 
@@ -14,17 +15,19 @@ export default function HelpAndSupprot() {
     const user = useSelector((state) => state.userSliceName?.user || null);
 
     const [showhelpAndSupportPopup, setShowhelpAndSupportPopup] = useState(false);
+    const dragRef = useRef(null);
 
     return (
         <>
-            <div className='fixed bottom-36 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Help And Support'
-                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+            <Draggable nodeRef={dragRef} >
+                <div ref={dragRef} className='fixed bottom-36 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Help And Support'
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
 
-                onClick={() => setShowhelpAndSupportPopup(!showhelpAndSupportPopup)}
-            >
-                <IoMdHelpCircle className='text-2xl' />
-            </div>
-
+                    onClick={() => setShowhelpAndSupportPopup(!showhelpAndSupportPopup)}
+                >
+                    <IoMdHelpCircle className='text-2xl' />
+                </div>
+            </Draggable>
 
             {
                 showhelpAndSupportPopup === true && (
