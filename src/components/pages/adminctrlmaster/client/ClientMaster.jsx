@@ -20,7 +20,7 @@ export default function ClientMaster() {
 
     useRippleEffect();
 
-
+    const [billingType, setBillingType] = useState('');
     const [formData, setFormData] = useState({
         createdById: parseInt(user?.employeeId),
         centretype: '',
@@ -33,7 +33,8 @@ export default function ClientMaster() {
         mobileNo: '',
         address: '',
         pinCode: 0,
-        creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+        //creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+        creditPeridos: '',
         minBookingAmt: 0,
         creditLimt: 0,
         email: '',
@@ -927,48 +928,72 @@ export default function ClientMaster() {
             <form autoComplete='off'>
                 <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
 
-                    {/* centerType */}
-                    <div className="relative flex-1">
-                        <select
-                            id="centretype"
-                            value={formData?.centretype || ''}
-                            name="centretype"
-                            onChange={(e) => {
 
-                                const selectedOption = allCenterTypeMasterData.find(
-                                    (data) => data.centerTypeName === e.target.value
-                                );
-
-                                setFormData((prevData) => ({
-                                    ...prevData,
-                                    centretype: e.target.value,
-                                    centretypeid: selectedOption?.id,
-                                }));
-
-                                setShoRateTypeData((preventData) => ({
-                                    ...preventData,
-                                    centerTypeId: selectedOption?.id
-                                }))
-                            }}
-                            className={`inputPeerField cursor-pointer peer border focus:outline-none 
-                                ${formErrors.centretype ? "border-b-red-500" : "border-borderColor"
-                                }`}
-                        >
-                            <option value="" disabled className="text-gray-400">
-                                Select Option
-                            </option>
-                            {allCenterTypeMasterData?.map((data) => (
-                                <option key={data.id} value={data.centerTypeName}>
-                                    {data.centerTypeName}
+                    <div className='flex gap-[0.25rem]'>
+                        <div className="relative flex-1">
+                            <select
+                                id="billingType"
+                                name='billingType'
+                                value={billingType || ''}
+                                onChange={(e) => setBillingType(e.target.value)}
+                                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none ${billingType === '' ? "border-b-red-500" : "border-borderColor"}`}
+                            >
+                                <option value="" disabled className="text-gray-400">
+                                    Select Option
                                 </option>
-                            ))}
-                        </select>
-                        <label htmlFor="centretype" className="menuPeerLevel">
-                            Center Type
-                        </label>
-                        {/* {formErrors.centretype && (
+                                <option value="1">B2B</option>
+                                <option value="2">DPS-Walking</option>
+                                <option value="3">Camp</option>
+                                <option value="4">DSA Agent</option>
+                            </select>
+                            <label htmlFor="billingType" className="menuPeerLevel">
+                                Billing Type
+                            </label>
+                        </div>
+
+                        {/* centerType */}
+                        <div className="relative flex-1">
+                            <select
+                                id="centretype"
+                                value={formData?.centretype || ''}
+                                name="centretype"
+                                onChange={(e) => {
+
+                                    const selectedOption = allCenterTypeMasterData.find(
+                                        (data) => data.centerTypeName === e.target.value
+                                    );
+
+                                    setFormData((prevData) => ({
+                                        ...prevData,
+                                        centretype: e.target.value,
+                                        centretypeid: selectedOption?.id,
+                                    }));
+
+                                    setShoRateTypeData((preventData) => ({
+                                        ...preventData,
+                                        centerTypeId: selectedOption?.id
+                                    }))
+                                }}
+                                className={`inputPeerField cursor-pointer peer border focus:outline-none 
+                                ${formErrors.centretype ? "border-b-red-500" : "border-borderColor"
+                                    }`}
+                            >
+                                <option value="" disabled className="text-gray-400">
+                                    Select Option
+                                </option>
+                                {allCenterTypeMasterData?.map((data) => (
+                                    <option key={data.id} value={data.centerTypeName}>
+                                        {data.centerTypeName}
+                                    </option>
+                                ))}
+                            </select>
+                            <label htmlFor="centretype" className="menuPeerLevel">
+                                Centre Type
+                            </label>
+                            {/* {formErrors.centretype && (
                             <span className="text-red-500 text-xs">{formErrors.centretype}</span>
                         )} */}
+                        </div>
                     </div>
 
 

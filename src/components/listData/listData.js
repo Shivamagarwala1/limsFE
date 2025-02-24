@@ -10,37 +10,37 @@ export const clientMasterHeaderList = ['SNo.', '⁠Centre Code', '⁠Centre Type
 export const employeeMasterHeaderList = ['SNo.', 'Emp Code', 'Employee Name', '⁠Mobile No.', 'Email', 'Action'];
 
 export const allItemTypeInLabTestMaster = [
-    { id: 1, value: 'Test' },
-    { id: 2, value: 'Profile' },
-    { id: 3, value: 'Package' }
+  { id: 1, value: 'Test' },
+  { id: 2, value: 'Profile' },
+  { id: 3, value: 'Package' }
 ];
 
 export const allSampleVolumeInLabTestMaster = ['1 ml', '2 ml', '3 ml', '4 ml', '5 ml', '7 ml', '10 ml', '15 ml', '20 ml', '25 ml', '40 ml'];
 
 export const colorsAndTypesInLabTestMaster = [
-    { id: 1, value: 'Black' },
-    { id: 2, value: 'Blue' },
-    { id: 3, value: 'Green' },
-    { id: 4, value: 'Grey' },
-    { id: 5, value: 'Light Blue' },
-    { id: 6, value: 'Light Green' },
-    { id: 7, value: 'Orange' },
-    { id: 8, value: 'Other' },
-    { id: 9, value: 'Purple' },
-    { id: 10, value: 'Red' },
-    { id: 11, value: 'Separator with Heparin' },
-    { id: 12, value: 'Separator Tube with Heparin' },
-    { id: 13, value: 'VTM' },
-    { id: 14, value: 'Yellow' }
+  { id: 1, value: 'Black' },
+  { id: 2, value: 'Blue' },
+  { id: 3, value: 'Green' },
+  { id: 4, value: 'Grey' },
+  { id: 5, value: 'Light Blue' },
+  { id: 6, value: 'Light Green' },
+  { id: 7, value: 'Orange' },
+  { id: 8, value: 'Other' },
+  { id: 9, value: 'Purple' },
+  { id: 10, value: 'Red' },
+  { id: 11, value: 'Separator with Heparin' },
+  { id: 12, value: 'Separator Tube with Heparin' },
+  { id: 13, value: 'VTM' },
+  { id: 14, value: 'Yellow' }
 ];
 
 export const reportTypesInLabTestMaster = [
-    { id: 1, value: 'Numeric' },
-    { id: 2, value: 'TextReport' },
-    { id: 3, value: 'Radiology' },
-    { id: 4, value: 'Microbiology' },
-    { id: 5, value: 'HistoReport' },
-    { id: 6, value: 'Not Require' }
+  { id: 1, value: 'Numeric' },
+  { id: 2, value: 'TextReport' },
+  { id: 3, value: 'Radiology' },
+  { id: 4, value: 'Microbiology' },
+  { id: 5, value: 'HistoReport' },
+  { id: 6, value: 'Not Require' }
 ];
 
 export const gendersInLabTestMaster = ['Both (F/M)', "Male", "Female", "Transgender"];
@@ -58,34 +58,34 @@ export const referanceRangePopUpHeaderInTestMapping = ["FromAge", "ToAge", "MinV
 
 
 export const allFontForCustomeEditor = ["Arial",
-    "Verdana",
-    "Helvetica",
-    "Tahoma",
-    "Trebuchet MS",
-    "Gill Sans",
-    "Times New Roman",
-    "Georgia",
-    "Garamond",
-    "Palatino",
-    "Bookman",
-    "Courier New",
-    "Lucida Console",
-    "Monaco",
-    "Consolas",
-    "Comic Sans MS",
-    "Brush Script MT",
-    "Impact",
-    "Papyrus",
+  "Verdana",
+  "Helvetica",
+  "Tahoma",
+  "Trebuchet MS",
+  "Gill Sans",
+  "Times New Roman",
+  "Georgia",
+  "Garamond",
+  "Palatino",
+  "Bookman",
+  "Courier New",
+  "Lucida Console",
+  "Monaco",
+  "Consolas",
+  "Comic Sans MS",
+  "Brush Script MT",
+  "Impact",
+  "Papyrus",
 ];
 
 export const fontSizesForCustome = [
-    { key: "1", value: "Small", size: "12px" },
-    { key: "2", value: "Normal", size: "16px" },
-    { key: "3", value: "Large", size: "20px" },
-    { key: "4", value: "Larger", size: "24px" },
-    { key: "5", value: "Extra Large", size: "30px" },
-    { key: "6", value: "Huge", size: "36px" },
-    { key: "7", value: "Maximum", size: "48px" },
+  { key: "1", value: "Small", size: "12px" },
+  { key: "2", value: "Normal", size: "16px" },
+  { key: "3", value: "Large", size: "20px" },
+  { key: "4", value: "Larger", size: "24px" },
+  { key: "5", value: "Extra Large", size: "30px" },
+  { key: "6", value: "Huge", size: "36px" },
+  { key: "7", value: "Maximum", size: "48px" },
 ];
 
 export const commentMasterHeader = ['ID', 'Centre Name', 'Type', 'Item/Observation', 'Comment Name', 'Comment Data', 'Actions']
@@ -227,16 +227,115 @@ export const uploadReportLetterHead = ['SR.NO', 'Centre', 'Report Header Height 
 export const rateListUploadByExcelHeader = ['Item ID', 'Item Code', 'Item Name', , 'Departement', 'MRP', 'Offerrate', 'Action'];
 
 
-export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross Amt.', 'Discount', 'Net Amt.', 'Sample Type', 'Bar Code', 'Delivery Date', 'IsUrgent', 'Delete'];
-
-
-
-
+export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross Amt.', 'Discount', 'Net Amt.',
+  // 'Sample Type', 'Bar Code', 
+  'Delivery Date', 'IsUrgent', 'Delete'];
 
 export const patientRegistrationPaymentMode = ['Cash Amt.', 'Credit/DebitCard Amt.', 'Last 4 Digit Of Card', 'Bank', 'UPI Amt.', 'UPI Type'];
 
 export const paymentModes = [
-    { value: "1", label: "Cash" },
-    { value: "2", label: "Debit/Credit Card" },
-    { value: "3", label: "UPI" },
+  { value: "1", label: "Cash" },
+  { value: "2", label: "Debit/Credit Card" },
+  { value: "3", label: "UPI" },
 ];
+
+
+export const patientRegistrationoldPatient = ['Select', 'Patient Id', 'Patient Name', 'Age', 'Gender', 'Mobile', 'Email', 'Reg. Date']
+
+
+export const dummyDataForpatientRegistrationoldPatient = [
+  {
+    "PatientId": "P001",
+    "PatientName": "John Doe",
+    Age: 30,
+    Gender: "Male",
+    Mobile: "9876543210",
+    Email: "johndoe@gmail.com",
+    "RegDate": "2025-01-01",
+  },
+  {
+    "PatientId": "P002",
+    "PatientName": "Jane Smith",
+    Age: 25,
+    Gender: "Female",
+    Mobile: "8765432109",
+    Email: "janesmith@gmail.com",
+    "RegDate": "2025-01-02",
+  },
+  {
+    "PatientId": "P003",
+    "PatientName": "Robert Brown",
+    Age: 40,
+    Gender: "Male",
+    Mobile: "7654321098",
+    Email: "robertbrown@gmail.com",
+    "RegDate": "2025-01-03",
+  },
+  {
+    "PatientId": "P004",
+    "PatientName": "Emily Davis",
+    Age: 35,
+    Gender: "Female",
+    Mobile: "6543210987",
+    Email: "emilydavis@gmail.com",
+    "RegDate": "2025-01-04",
+  },
+  {
+    "PatientId": "P005",
+    "PatientName": "Michael Wilson",
+    Age: 50,
+    Gender: "Male",
+    Mobile: "5432109876",
+    Email: "michaelwilson@gmail.com",
+    "RegDate": "2025-01-05",
+  },
+  {
+    "PatientId": "P006",
+    "PatientName": "Sophia Miller",
+    Age: 28,
+    Gender: "Female",
+    Mobile: "4321098765",
+    Email: "sophiamiller@gmail.com",
+    "RegDate": "2025-01-06",
+  },
+  {
+    "PatientId": "P007",
+    "PatientName": "James Taylor",
+    Age: 32,
+    Gender: "Male",
+    Mobile: "3210987654",
+    Email: "jamestaylor@gmail.com",
+    "RegDate": "2025-01-07",
+  },
+  {
+    "PatientId": "P008",
+    "PatientName": "Isabella Martinez",
+    Age: 45,
+    Gender: "Female",
+    Mobile: "2109876543",
+    Email: "isabellamartinez@gmail.com",
+    "RegDate": "2025-01-08",
+  },
+  {
+    "PatientId": "P009",
+    "PatientName": "William Hernandez",
+    Age: 55,
+    Gender: "Male",
+    Mobile: "1098765432",
+    Email: "williamhernandez@gmail.com",
+    "RegDate": "2025-01-09",
+  },
+  {
+    "PatientId": "P010",
+    "PatientName": "Mia Garcia",
+    Age: 22,
+    Gender: "Female",
+    Mobile: "0987654321",
+    Email: "miagarcia@gmail.com",
+    "RegDate": "2025-01-10",
+  },
+];
+
+
+export const doctorShareMasterHeaderApi = ['SR. NO.', 'Departement', 'Percentage(%)', 'Amount'];
+

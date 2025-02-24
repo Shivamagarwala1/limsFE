@@ -887,3 +887,10 @@ export const savePatientRegistrationDataApi = async (patientRegistrationData) =>
     return response?.data;
 }
 
+//===================================
+export const getAllEmojiColorCodeApi = async () => {
+
+    const response = await privateAxios.get(`/LegendColorMaster?select=id,colourCode,contantName&$filter=(id eq 26 or id eq 27 or id eq 28 or id eq 29 or id eq 30 or id eq 31)`);
+
+    return response?.data;
+}
