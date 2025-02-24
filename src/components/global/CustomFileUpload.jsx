@@ -97,7 +97,7 @@ import { IoMdImages } from 'react-icons/io'
 
 export default function CustomFileUpload({
     value,
-  
+    label = 'Upload Document',
     handelImageChange,
     activeTheme
 }) {
@@ -119,11 +119,11 @@ export default function CustomFileUpload({
                 {
                     value === '' ? (
                         <div className="pt-2 z-40 font-semibold text-center">
-                            Upload Document
+                            {label}
                         </div>
                     ) : (
                         <div className="pt-2 z-40 text-center">
-                            Upload Document Successfully
+                            {label} Successfully
                         </div>
                     )
                 }
@@ -141,7 +141,7 @@ export default function CustomFileUpload({
             </div>
 
             <label htmlFor="uploadDocument" className="menuPeerLevel">
-                Upload Document
+                {label}
             </label>
 
             {

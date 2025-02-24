@@ -12,7 +12,8 @@ const MultiSelectDropdown = ({
     activeTheme = { hoverColor: "#e0f2fe" },
     noDataMessage = "No records found",
     isMandatory,
-    searchWithName = ''
+    uniqueId,
+    searchWithName = "label", // New prop for searching dynamically
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -21,7 +22,6 @@ const MultiSelectDropdown = ({
     const dropdownRef = useRef(null);
 
     const toggleDropdown = () => setIsOpen(!isOpen);
-
 
     const handleOutsideClick = (event) => {
         if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -33,30 +33,28 @@ const MultiSelectDropdown = ({
         setSearchTerm(e.target.value.toLowerCase());
     };
 
-    const handleCheckboxChange = (e) => {
-        const { checked, dataset } = e.target; // Extract the state and metadata
-        const itemId = dataset.id; // Extract item ID from the data attribute
-        const itemName = dataset.name; // Extract item name from the data attribute
 
+
+    const handleCheckboxChange = (e) => {
+        const { checked, dataset } = e.target;
+        const itemId = dataset.uniqueId; // Use uniqueId instead of value
+        const itemName = dataset.searchWithName; // Keep label
 
         if (checked) {
-            const newItem = { id: itemId, deptName: itemName }; // Create a new item object
+            const newItem = { [uniqueId]: itemId, [searchWithName]: itemName }; // Change value to uniqueId
             onSelectionChange([...selectedItems, newItem]);
         } else {
-            onSelectionChange(selectedItems.filter((selected) => selected.id !== itemId));
+            onSelectionChange(selectedItems.filter((selected) => selected[uniqueId] !== itemId));
         }
     };
 
-
     const filteredOptions = options.filter((option) => {
-        const searchField = option[searchWithName]; // Dynamically access the property
         return (
-            searchField &&
-            typeof searchField === "string" &&
-            searchField.toLowerCase().includes(searchTerm)
+            option?.[searchWithName] &&
+            typeof option?.[searchWithName] === "string" &&
+            option?.[searchWithName].toLowerCase().includes(searchTerm)
         );
     });
-
 
     useEffect(() => {
         document.addEventListener("mousedown", handleOutsideClick);
@@ -65,7 +63,6 @@ const MultiSelectDropdown = ({
 
     return (
         <div ref={dropdownRef}>
-
             {/* Input Field */}
             <div className="relative">
                 <div
@@ -99,7 +96,6 @@ const MultiSelectDropdown = ({
                 </label>
             </div>
 
-
             {/* Dropdown Menu */}
             {isOpen && (
                 <div className="absolute border-[1px] mt-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
@@ -118,11 +114,17 @@ const MultiSelectDropdown = ({
                     <ul>
                         {filteredOptions.length > 0 ? (
                             filteredOptions.map((option, index) => {
-                                const isChecked = selectedItems.some((item) => item.id === option.id.toString());
+                                const uniqueId2 = option[uniqueId];
+                                const itemName = option[searchWithName];
+
+                                const isChecked = selectedItems.some((item) => {
+                                    return item[uniqueId] === option[uniqueId]; // Use dynamic key access
+                                });
+
 
                                 return (
                                     <li
-                                        key={option.id}
+                                        key={uniqueId2}
                                         className="my-1 px-2 py-1 cursor-pointer flex items-center gap-2"
                                         onMouseEnter={() => setIsHovered(index)}
                                         onMouseLeave={() => setIsHovered(null)}
@@ -130,7 +132,7 @@ const MultiSelectDropdown = ({
                                             handleCheckboxChange({
                                                 target: {
                                                     checked: !isChecked,
-                                                    dataset: { id: option.id.toString(), name: option.deptName },
+                                                    dataset: { searchWithName: itemName, uniqueId: uniqueId2 },
                                                 },
                                             })
                                         }
@@ -141,22 +143,25 @@ const MultiSelectDropdown = ({
                                     >
                                         <input
                                             type="checkbox"
-                                            data-id={option.id.toString()} // Ensure string format
-                                            data-name={option.deptName}
-                                            checked={isChecked} // Compare as strings
-                                            onChange={(e) => handleCheckboxChange(e)} // Handle checkbox change
-                                            onClick={(e) => e.stopPropagation()} // Prevent <li> click when clicking checkbox
+                                            data-uniqueid={uniqueId2} // Use uniqueId instead of value
+                                            data-label={itemName} // Use searchWithName dynamically
+                                            checked={isChecked}
+                                            onChange={() => handleCheckboxChange({
+                                                target: {
+                                                    checked: !isChecked,
+                                                    dataset: { searchWithName: itemName, uniqueId: uniqueId2 },
+                                                },
+                                            })}
+                                            onClick={(e) => e.stopPropagation()}
                                         />
-                                        <span>{option.deptName}</span>
+                                        <span>{itemName}</span> {/* Display dynamically */}
                                     </li>
                                 );
                             })
                         ) : (
                             <li className="py-4 text-gray-500 text-center">{noDataMessage}</li>
                         )}
-
                     </ul>
-
                 </div>
             )}
         </div>

@@ -55,7 +55,7 @@ export const CustomNumberInput = ({
     return (
         <div className="relative flex-1">
             <input
-                type="text"
+                type='text'
                 id={name}
                 name={name}
                 value={inputValue} // Controlled input

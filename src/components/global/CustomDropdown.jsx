@@ -8,6 +8,7 @@ function CustomDropdown({
   options,
   onChange,
   defaultIndex = 0,
+  isDisabled = false,
   showLabel = true,
   activeTheme = { subMenuColor: "#e0f2fe" }, // Customize hover color here
   isMandatory
@@ -19,6 +20,10 @@ function CustomDropdown({
   const handleDropdownClick = () => {
     setIsOpen((prev) => !prev);
   };
+
+
+
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,7 +38,7 @@ function CustomDropdown({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
+  
   return (
     <div ref={dropdownRef}>
       {/* Hidden input for accessibility */}
@@ -49,9 +54,10 @@ function CustomDropdown({
 
       {/* Dropdown box */}
       <div
-        className={`inputPeerField cursor-pointer peer focus:outline-none flex items-center ${isMandatory ? "border-b-red-500" : "border-borderColor"
-          } bg-white pl-2`}
+        className={`inputPeerField  mt-[1.9px] peer focus:outline-none flex items-center ${isMandatory ? "border-b-red-500" : "border-borderColor"
+          }  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer bg-white'} pl-2`}
         onClick={handleDropdownClick}
+
       >
         {value !== ""
           ? options.find((opt) => opt.value === value)?.label
@@ -59,31 +65,41 @@ function CustomDropdown({
       </div>
 
       {/* Dropdown menu */}
-      {isOpen && (
-        <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-          {options.map((option, index) => (
-            <div
-              key={index}
-              className={`my-1 py-1 px-2 cursor-pointer ${option.disabled ? "text-gray-400 cursor-not-allowed" : ""
-                }`}
-              onMouseEnter={() => setIsHovered(index)}
-              onMouseLeave={() => setIsHovered(null)}
-              style={{
-                background:
-                  isHovered === index ? activeTheme?.subMenuColor : "transparent",
-              }}
-              onClick={() => {
-                if (!option.disabled) {
-                  onChange({ target: { name, value: option.value } });
-                  setIsOpen(false);
-                }
-              }}
-            >
-              {option.label}
+      {
+        !isDisabled && (
+          isOpen && (
+            <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+              {options.map((option, index) => {
+
+                return (
+                  <div
+                    key={index}
+                    className={`my-1 py-1 px-2 cursor-pointer ${isDisabled ? 'cursor-not-allowed ' : option.disabled ? "text-gray-400 cursor-not-allowed" : ""
+                      }`}
+                    onMouseEnter={() => setIsHovered(index)}
+                    onMouseLeave={() => setIsHovered(null)}
+                    style={{
+                      background:
+                        isHovered === index ? activeTheme?.subMenuColor : "transparent",
+                    }}
+                    onClick={() => {
+                      if (!isDisabled) {
+                        if (!option.disabled) {
+                          onChange({ target: { name, value: option.value } });
+                          setIsOpen(false);
+                        }
+                      }
+
+                    }}
+                  >
+                    {option.label}
+                  </div>
+                )
+              }
+              )}
             </div>
-          ))}
-        </div>
-      )}
+          ))
+      }
 
       {/* Dropdown label */}
       {
