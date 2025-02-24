@@ -15,7 +15,7 @@ function CustomSearchInputFields({
     const [isOpen, setIsOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(null);
     const [displayValue, setDisplayValue] = useState(""); // Value shown in the input
-    const dropdownRef = useRef(null);
+    const dropdownRef = useRef(null);    
 
     const handleDropdownToggle = (openState) => {
         setIsOpen(openState);
@@ -34,13 +34,8 @@ function CustomSearchInputFields({
         };
     }, []);
 
-    // Filter data based on input
-    // const filterData = options?.filter((option) =>
-    //     (option.value || "").toLowerCase().includes(String(displayValue || "").toLowerCase())
-    // );
-
     const filteredOptions = options.filter((option) => {
-        const searchField = option[searchWithName]; // Dynamically access the property
+        const searchField = option[searchWithName]; 
         return (
             searchField &&
             typeof searchField === "string" &&

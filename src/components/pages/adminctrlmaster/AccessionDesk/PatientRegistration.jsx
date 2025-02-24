@@ -4,26 +4,25 @@ import { CiCalendarDate } from 'react-icons/ci';
 import { useSelector } from 'react-redux';
 import UserCalendar from '../../../public/UserCalendar';
 import useRippleEffect from '../../../customehook/useRippleEffect';
-import { IoMdAdd, IoMdCloseCircleOutline, IoMdImages } from 'react-icons/io';
+import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
 import useOutsideClick from '../../../customehook/useOutsideClick';
-import { RiArrowDropDownLine, RiArrowDropUpLine, RiCalendarScheduleFill, RiDeleteBin2Fill } from 'react-icons/ri';
+import { RiDeleteBin2Fill } from 'react-icons/ri';
 import { dummyDataForpatientRegistrationoldPatient, patientRegistrationInvestigation, patientRegistrationoldPatient, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import { CustomEmailInput } from '../../../global/CustomEmailInput'
 import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, savePatientRegistrationDataApi, saveReferDrApi } from '../../../../service/service';
 import { FaSearch, FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
-import { toProperCase } from '../../../global/InputFieldValidations';
 import { CustomTextBox } from '../../../global/CustomTextBox';
 import { CustomNumberInput } from '../../../global/CustomNumberInput';
 import CustomDropdown from '../../../global/CustomDropdown';
 import { DatePicker } from '../../../global/DatePicker';
 import CustomFormButton from '../../../global/CustomFormButton'
 import CustomFileUpload from '../../../global/CustomFileUpload';
+import CustomMultiSelectDropdown from '../../../global/CustomMultiSelectDropdown'
 import CustomSearchInputFields from '../../../global/CustomSearchDropdown';
 import { useFormattedDate, useFormattedDateTime } from '../../../customehook/useDateTimeFormate';
 import FormHeader from '../../../global/FormHeader';
 import PopupFooter from '../../../global/PopupFooter';
-import GridDataDetails from '../../../global/GridDataDetails';
 import CustomeNormalButton from '../../../global/CustomeNormalButton';
 
 export default function PatientRegistration() {
@@ -34,9 +33,9 @@ export default function PatientRegistration() {
     useRippleEffect();
 
     const [isHoveredTable, setIsHoveredTable] = useState(null);
-    const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
+    //const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
     const [showCalander, setShowCalander] = useState(false);
-    const [showCalanderAndTime, setShowCalanderAndTime] = useState(false);
+    // const [showCalanderAndTime, setShowCalanderAndTime] = useState(false);
     const [patientRegistrationData, setPatientRegistrationData] = useState({
 
         //additional
@@ -140,7 +139,7 @@ export default function PatientRegistration() {
         type: 0
     })
 
-    const [isHovered, setIsHovered] = useState(null);
+    // const [isHovered, setIsHovered] = useState(null);
 
     const [gridDataBarCodeandSampleType, setGridDataBarCodeandSampleType] = useState({
         barCode: [],
@@ -169,12 +168,12 @@ export default function PatientRegistration() {
     const imgRef = useRef();
 
 
-    const openShowSearchBarDropDown = (val) => {
-        setShowSearchBarDropDown(val);
-    }
+    // const openShowSearchBarDropDown = (val) => {
+    //     setShowSearchBarDropDown(val);
+    // }
 
-    const closeDropdown = () => setShowSearchBarDropDown(0);
-    const dropdownRef = useOutsideClick(closeDropdown); // Use the custom hook
+    // const closeDropdown = () => setShowSearchBarDropDown(0);
+    // const dropdownRef = useOutsideClick(closeDropdown); // Use the custom hook
 
 
     //search data
@@ -245,6 +244,16 @@ export default function PatientRegistration() {
             months--;
             const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
             days += lastMonth.getDate();
+        }
+
+        //check if years is grater then 150 
+        if (years > 150) {
+            toast.error('150 exceeds professional age limit.');
+            setPatientRegistrationData((preventData) => ({
+                ...preventData,
+                ageMonth: 0
+            }))
+            return;
         }
 
         // Ensure months and years are zero if there is no difference
@@ -509,11 +518,6 @@ export default function PatientRegistration() {
     }
 
 
-
-
-
-
-
     const handelOnChangePatientRegistrationForSelect = (event) => {
         setPatientRegistrationSelectData((preventData) => ({
             ...preventData,
@@ -522,35 +526,41 @@ export default function PatientRegistration() {
     }
 
 
-    const handleCheckboxChange = (e, data) => {
-        const isChecked = e.target.checked;
+    // const handleCheckboxChange = (e, data) => {
+    //     const isChecked = e.target.checked;
 
-        setPaymentModeType((prevData) => {
-            // Create a copy of the previous state
-            const updatedAccess = [...prevData];
+    //     setPaymentModeType((prevData) => {
+    //         // Create a copy of the previous state
+    //         const updatedAccess = [...prevData];
 
-            if (isChecked) {
-                // Check if the item already exists to avoid duplicates
-                const exists = updatedAccess.some(
-                    (item) => item.value === data?.value
-                );
-                if (!exists) {
-                    updatedAccess.push(data);
-                }
-            } else {
-                // Remove the item from the array when unchecked
-                const index = updatedAccess.findIndex(
-                    (item) => item?.value === data?.value
-                );
-                if (index !== -1) {
-                    updatedAccess.splice(index, 1);
-                }
-            }
+    //         if (isChecked) {
+    //             // Check if the item already exists to avoid duplicates
+    //             const exists = updatedAccess.some(
+    //                 (item) => item.value === data?.value
+    //             );
+    //             if (!exists) {
+    //                 updatedAccess.push(data);
+    //             }
+    //         } else {
+    //             // Remove the item from the array when unchecked
+    //             const index = updatedAccess.findIndex(
+    //                 (item) => item?.value === data?.value
+    //             );
+    //             if (index !== -1) {
+    //                 updatedAccess.splice(index, 1);
+    //             }
+    //         }
 
-            // Return the updated state
-            return updatedAccess;
-        });
+    //         // Return the updated state
+    //         return updatedAccess;
+    //     });
+    // };
+
+    const handelOnChangePaymentMode = (updatedSelectedItems) => {
+        setPaymentModeType(updatedSelectedItems);
     };
+
+
 
     useEffect(() => {
 
@@ -724,6 +734,7 @@ export default function PatientRegistration() {
 
 
     //selecte only single data
+
     const handelSelecteOnlyUniqueTestData = (data) => {
 
         let isDuplicate = investigationGridData?.some((item) => item.itemId === data.itemId);
@@ -733,8 +744,6 @@ export default function PatientRegistration() {
         } else {
             setSelectedInvastigationList(prevList => [...prevList, { itemId: data?.itemId, itemName: data?.itemName }])
         }
-        //console.log(investigationGridData);
-
     }
 
 
@@ -944,6 +953,9 @@ export default function PatientRegistration() {
                     if (!patientRegistrationData.lastFoureDigit) {
                         errors.lastFoureDigit = true;
                     }
+                    if (!patientRegistrationData.bank_Id) {
+                        errors.bank_Id = true;
+                    }
                     break;
 
                 case 'UPI':
@@ -979,6 +991,7 @@ export default function PatientRegistration() {
             setIsButtonClick(0);
         }
     }, [patientRegistrationData, paymentModeType]);
+
 
     //save patient registration data
     const onSubmitForSavePatientRegistrationData = async () => {
@@ -1065,9 +1078,10 @@ export default function PatientRegistration() {
                     labRemarks: '',
                     otherLabRefer: patientRegistrationData?.refLab,
                     otherLabReferID: patientRegistrationData?.refLabID,
-                    refDoctor1: patientRegistrationData?.refDoctor1, //need to filter the data baed on refId1
+                    refDoctor1: allReferData.filter((data) => data?.doctorId === patientRegistrationData?.refID1)[0]?.doctorName, //need to filter the data baed on refId1
                     refID1: patientRegistrationData?.refID1,
-                    refDoctor2: patientRegistrationData?.refDoctor2, //need to filter the data baed on refId2
+
+                    refDoctor2: allReferData.filter((data) => data?.doctorId === patientRegistrationData?.refID2)[0]?.doctorName, //need to filter the data baed on refId2
                     refID2: patientRegistrationData?.refID2,
                     tempDOCID: 0,
                     tempDoctroName: '',
@@ -1150,7 +1164,7 @@ export default function PatientRegistration() {
                         onlinewalletAmt: parseInt(patientRegistrationData?.onlinewalletAmt),
                         walletno: '',
                         nefTamt: 0,
-                        bankName: data?.value === '2' ? patientRegistrationData?.bankName : '',
+                        bankName: data?.value === '2' ? allBankNameData.filter((data) => data?.id === patientRegistrationData?.bank_Id)[0]?.bankName : '',//need to find bank name from allbankdata isequal to patientRegistrationData?.bank_Id
                         paymentModeId: parseInt(data?.value),
                         isCancel: 0,
                         // cancelDate: new Date().toLocaleString('en-GB', {
@@ -1440,161 +1454,69 @@ export default function PatientRegistration() {
         setIsButtonClick(0);
     }
 
-    const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
+    // const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
 
 
-    const filterRateData = allRateType.filter((data) => (data?.rateName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.rateId || '').toLowerCase()));
-    //
-    const filterReferDrData = allReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refDoctor1 || '').toLowerCase()));
+    // const filterRateData = allRateType.filter((data) => (data?.rateName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.rateId || '').toLowerCase()));
+    // //
+    // const filterReferDrData = allReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refDoctor1 || '').toLowerCase()));
 
 
-    const filterinvestigationNamerData = allInvastigationData.filter((data) => (data?.itemName?.toLowerCase() || '').includes(String(patientRegistrationData?.investigationName || '').toLowerCase()));
+    // const filterinvestigationNamerData = allInvastigationData.filter((data) => (data?.itemName?.toLowerCase() || '').includes(String(patientRegistrationData?.investigationName || '').toLowerCase()));
 
 
-    const filterReferDrDataTwo = allReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refDoctor2 || '').toLowerCase()));
+    // const filterReferDrDataTwo = allReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refDoctor2 || '').toLowerCase()));
 
 
-    const filterReferLabData = allLabReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refLab || '').toLowerCase()));
+    // const filterReferLabData = allLabReferData.filter((data) => (data?.doctorName?.toLowerCase() || '').includes(String(patientRegistrationData?.refLab || '').toLowerCase()));
 
 
+    // const calendarRef = useRef(null);
 
-    //experiment
-    // const [email, setEmail] = useState('');
-
-    // const handelEmail = (name, value) => {
-    //     setEmail(value)
-    // }
-
-    // const [isLoading, setIsLoading] = useState(0); // State to track loading status
-
-    // const handleButtonClick = (loadingValue) => {
-    //     setIsLoading(loadingValue); // Set loading state to 2
-    //     // Simulate an API call or async operation
-    //     setTimeout(() => {
-    //         setIsLoading(0); // Reset loading state after operation is complete
-    //     }, 2000); // Change 2000ms to any desired duration
-    // };
-
-    const calendarRef = useRef(null);
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-                setShowCalanderAndTime(0);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    // useEffect(() => {
+    //     const handleClickOutside = (event) => {
+    //         if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+    //             setShowCalanderAndTime(0);
+    //         }
+    //     };
+    //     document.addEventListener("mousedown", handleClickOutside);
+    //     return () => document.removeEventListener("mousedown", handleClickOutside);
+    // }, []);
 
     return (
         <>
-
-
-            {/* <CustomTextBox
-                type="days" //email,text
-                name="email"
-                label="Digit"
-                value={email}
-                onChange={(name, value) => setEmail(value)}
-
-                isMandatory={true}
-                maxLength={100}
-            />
-
-            <CustomFormButton
-                activeTheme={activeTheme}
-                text="Save Button 2"
-                icon={FaSpinner}
-                isButtonClick={isLoading}
-                loadingButtonNumber={2} // Unique number for the second button
-                onClick={() => handleButtonClick(2)} // Pass button number to handler
-            />
-
-
-
-            <CustomNumberInput
-                type="phoneNumber"
-                name="phoneNumber"
-                value={email}
-                onChange={handelEmail}
-                maxLength={10}
-                label="Phone Number"
-            />
-
-            <CustomFormButton
-                activeTheme={activeTheme}
-                text="Save Button 1"
-                icon={FaSpinner}
-                isButtonClick={isLoading}
-                loadingButtonNumber={1} // Unique number for the first button
-                onClick={() => handleButtonClick(1)} // Pass button number to handler
-            />
-
-            <CustomNumberInput
-                type="pinCode"
-                name="pinCode"
-                value={email}
-                onChange={handelEmail}
-                maxLength={6}
-                label="Pin Code"
-            />
-
-            <CustomeNormalButton
-                activeTheme={activeTheme}
-                text="Open Popup"
-            />
-
-            <p className='text-xl font-semibold'>Pincode</p>
-            <CustomEmailInput
-                name="email"
-                value={email}
-                onChange={handelEmail}
-                label="Enter your email"
-            /> */}
-
             <div>
                 {/* Header Section */}
-                <div
-                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-                    style={{ background: activeTheme?.blockColor }}
-                >
-                    <div>
-                        <FontAwesomeIcon icon="fa-solid fa-house" />
-                    </div>
-                    <div>Patient Registration</div>
-                </div>
-
+                <FormHeader headerData='Patient Registration' />
 
                 {/* form data */}
                 <form autoComplete='off'>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
 
                         <div className="relative flex-1">
-                            <select
-                                id="billingType"
-                                name='billingType'
+                            <CustomDropdown
+                                name="billingType"
+                                label="Select Billing Type"
                                 value={patientRegistrationData?.billingType}
+                                options={[
+                                    { label: 'Select Option', value: 0, disabled: true },
+                                    { label: 'B2B', value: 1 },
+                                    { label: 'DPS-Walking', value: 2 },
+                                    { label: 'Camp', value: 3 },
+                                    { label: 'DSA Agent', value: 4 },
+                                ]}
                                 onChange={(e) => handelOnChangePatientRegistration(e)}
-                                className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError?.billingType ? "border-b-red-500" : "border-borderColor"
-                                    } focus:outline-none `}
-                            >
-                                <option value='' disabled hidden className='text-gray-400'>
-                                    Select Option
-                                </option>
-                                <option value="1">B2B</option>
-                                <option value="2">DPS-Walking</option>
-                                <option value="3">Camp</option>
-                                <option value="4">DSA Agent</option>
-                            </select>
-                            <label htmlFor="billingType" className="menuPeerLevel">
-                                Billing Type
-                            </label>
+                                defaultIndex={0}
+                                activeTheme={activeTheme}
+                                // isMandatory={!Boolean(patientRegistrationData?.title_id)}
+                                isMandatory={patientRegistrationDataError?.billingType}
+
+                            />
                         </div>
 
                         {/* center */}
                         <div className="relative flex-1">
-                            <input
+                            {/* <input
                                 type="search"
                                 id="centreId"
                                 name="centreId"
@@ -1609,10 +1531,10 @@ export default function PatientRegistration() {
                             />
                             <label htmlFor="centreId" className="menuPeerLevel">
                                 Centre
-                            </label>
+                            </label> */}
 
                             {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 1 && (
+                            {/* {showSearchBarDropDown === 1 && (
                                 <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                     <ul>
 
@@ -1661,12 +1583,27 @@ export default function PatientRegistration() {
                                         }
                                     </ul>
                                 </div>
-                            )}
+                            )} */}
+
+                            <CustomSearchInputFields
+                                id="centreId"
+                                name="centreId"
+                                label="Centre"
+                                value={patientRegistrationData?.centreId}
+                                options={allCentreData}
+                                onChange={handelOnChangePatientRegistration}
+                                filterText="No records found"
+                                placeholder=" "
+                                searchWithName="centreName"
+                                uniqueKey="centreId"
+                                activeTheme={activeTheme}
+                            />
+
                         </div>
 
                         {/* Rate Type */}
                         <div className="relative flex-1">
-                            <input
+                            {/* <input
                                 type="search"
                                 id="rateId"
                                 name="rateId"
@@ -1682,10 +1619,10 @@ export default function PatientRegistration() {
                             />
                             <label htmlFor="rateId" className="menuPeerLevel">
                                 Rate Type
-                            </label>
+                            </label> */}
 
                             {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 2 && (
+                            {/* {showSearchBarDropDown === 2 && (
                                 <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                     <ul>
 
@@ -1727,7 +1664,21 @@ export default function PatientRegistration() {
                                         }
                                     </ul>
                                 </div>
-                            )}
+                            )} */}
+
+                            <CustomSearchInputFields
+                                id="rateId"
+                                name="rateId"
+                                label="Rate Type"
+                                value={patientRegistrationData?.rateId}
+                                options={allRateType}
+                                onChange={handelOnChangePatientRegistration}
+                                filterText="No records found"
+                                placeholder=" "
+                                searchWithName="rateName"
+                                uniqueKey="id"
+                                activeTheme={activeTheme}
+                            />
                         </div>
 
                         <div className="flex gap-[0.25rem]">
@@ -1811,8 +1762,6 @@ export default function PatientRegistration() {
 
                         <div className="flex gap-[0.25rem]">
 
-
-
                             <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
 
                                 <div className="relative flex-1">
@@ -1860,7 +1809,7 @@ export default function PatientRegistration() {
                         <div className="flex gap-[0.25rem]">
                             {/* Mobile No. */}
                             <div className="relative flex-1">
-                                <input
+                                {/* <input
                                     type="text"
                                     id="mobileNo"
                                     name="mobileNo"
@@ -1874,12 +1823,21 @@ export default function PatientRegistration() {
                                 />
                                 <label htmlFor="mobileNo" className="menuPeerLevel">
                                     Mobile No.
-                                </label>
+                                </label> */}
+                                <CustomNumberInput
+                                    name="mobileNo"
+                                    value={patientRegistrationData?.mobileNo || ''}
+                                    onChange={(e) => {
+                                        handelOnChangePatientRegistration(e)
+                                    }}
+                                    label="Mobile No."
+                                    maxLength={10}
+                                />
                             </div>
 
                             {/* title */}
                             <div className="relative flex-1">
-                                <select
+                                {/* <select
                                     id="title_id"
                                     name="title_id"
                                     value={patientRegistrationData?.title_id || ""}
@@ -1902,15 +1860,35 @@ export default function PatientRegistration() {
 
                                 <label htmlFor="title_id" className="menuPeerLevel">
                                     Title
-                                </label>
+                                </label> */}
 
+
+
+                                <div className="relative flex-1">
+                                    <CustomDropdown
+                                        name="title_id"
+                                        label="Select Title"
+                                        value={patientRegistrationData?.title_id}
+                                        options={[
+                                            { label: 'Select Option', value: 0, disabled: true },
+                                            ...allTitleData?.map(item => ({
+                                                label: item.title,
+                                                value: item.id,
+                                            })),
+                                        ]}
+                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                        defaultIndex={0}
+                                        activeTheme={activeTheme}
+                                        isMandatory={patientRegistrationDataError?.title_id}
+                                    />
+                                </div>
                             </div>
                         </div>
 
 
                         {/* Name */}
                         <div className="relative flex-1">
-                            <input
+                            {/* <input
                                 type="text"
                                 id="fullName"
                                 name="name"
@@ -1924,7 +1902,16 @@ export default function PatientRegistration() {
                             />
                             <label htmlFor="fullName" className="menuPeerLevel">
                                 Name
-                            </label>
+                            </label> */}
+                            <CustomTextBox
+                                type="propercase"
+                                name="name"
+                                value={patientRegistrationData?.name || ''}
+                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                label="Name"
+                                isDisabled={false}
+                                isMandatory={patientRegistrationDataError?.name}
+                            />
                         </div>
 
 
@@ -1934,7 +1921,7 @@ export default function PatientRegistration() {
 
                             {/*  Year */}
                             <div className="relative flex-1">
-                                <input
+                                {/* <input
                                     type="number"
                                     id="ageYear"
                                     name="ageYear"
@@ -1948,14 +1935,22 @@ export default function PatientRegistration() {
                                 />
                                 <label htmlFor="ageYear" className="menuPeerLevel">
                                     Year
-                                </label>
+                                </label> */}
+                                <CustomTextBox
+                                    type="years"
+                                    name="ageYear"
+                                    value={patientRegistrationData?.ageYear || ''}
+                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                    label="Year"
+                                    isMandatory={patientRegistrationDataError?.ageYear}
+                                />
                             </div>
 
 
 
                             {/*  Month */}
                             <div className="relative flex-1">
-                                <input
+                                {/* <input
                                     type="number"
                                     id="ageMonth"
                                     name="ageMonth"
@@ -1969,12 +1964,20 @@ export default function PatientRegistration() {
                                 />
                                 <label htmlFor="ageMonth" className="menuPeerLevel">
                                     Month
-                                </label>
+                                </label> */}
+                                <CustomTextBox
+                                    type="months"
+                                    name="ageMonth"
+                                    value={patientRegistrationData?.ageMonth || ''}
+                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                    label="Month"
+                                    isMandatory={patientRegistrationDataError?.ageMonth}
+                                />
                             </div>
 
                             {/*  Day */}
                             <div className="relative flex-1">
-                                <input
+                                {/* <input
                                     type="text"
                                     id="ageDays"
                                     name="ageDays"
@@ -1988,7 +1991,15 @@ export default function PatientRegistration() {
                                 />
                                 <label htmlFor="ageDays" className="menuPeerLevel">
                                     Days
-                                </label>
+                                </label> */}
+                                <CustomTextBox
+                                    type="days"
+                                    name="ageDays"
+                                    value={patientRegistrationData?.ageDays || ''}
+                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                    label="Month"
+                                    isMandatory={patientRegistrationDataError?.ageDays}
+                                />
                             </div>
 
                         </div>
@@ -2030,7 +2041,7 @@ export default function PatientRegistration() {
                             {/* gender */}
                             <div className="relative flex-1">
                                 {/* gendersInLabTestMaster */}
-                                <select
+                                {/* <select
                                     id="gender"
                                     name='gender'
                                     value={patientRegistrationData?.gender}
@@ -2046,7 +2057,22 @@ export default function PatientRegistration() {
                                 </select>
                                 <label htmlFor="gender" className="menuPeerLevel">
                                     Gender
-                                </label>
+                                </label> */}
+                                <CustomDropdown
+                                    name="gender"
+                                    label="Select Gender"
+                                    value={patientRegistrationData?.gender || ''}
+                                    options={[
+                                        { label: 'Select Option', value: '', disabled: true },
+                                        { label: 'Male', value: 'M' },
+                                        { label: 'Female', value: 'F' },
+                                        { label: 'Transgender', value: 'T' },
+                                    ]}
+                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                    defaultIndex={0}
+                                    activeTheme={activeTheme}
+                                    isMandatory={patientRegistrationDataError?.gender}
+                                />
                             </div>
 
                             {/* Calendar Popup */}
@@ -2071,7 +2097,7 @@ export default function PatientRegistration() {
 
                         {/* Email */}
                         <div className="relative flex-1">
-                            <input
+                            {/* <input
                                 type="email"
                                 id="emailId"
                                 name="emailId"
@@ -2085,12 +2111,19 @@ export default function PatientRegistration() {
                             />
                             <label htmlFor="emailId" className="menuPeerLevel">
                                 Email
-                            </label>
+                            </label> */}
+
+                            <CustomEmailInput
+                                name="emailId"
+                                value={patientRegistrationData?.emailId}
+                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                label="Email"
+                            />
                         </div>
 
 
                         {/*  Refer Dr. */}
-                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+                        {/* <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
                             <div className="relative flex-1">
                                 <input
                                     type="text"
@@ -2109,7 +2142,6 @@ export default function PatientRegistration() {
                                 </label>
 
 
-                                {/* Dropdown to select the menu */}
                                 {showSearchBarDropDown === 4 && (
                                     <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                         <ul>
@@ -2169,13 +2201,42 @@ export default function PatientRegistration() {
                                 </div>
                             </div>
 
+                        </div> */}
 
+                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
 
+                            <div className="relative flex-1">
+                                <CustomSearchInputFields
+                                    id="refID1"
+                                    name="refID1"
+                                    label="Refer Dr."
+                                    value={patientRegistrationData?.refID1}
+                                    options={allReferData}
+                                    onChange={handelOnChangePatientRegistration}
+                                    filterText="No records found"
+                                    placeholder=" "
+                                    searchWithName='doctorName'
+                                    uniqueKey='doctorId'
+                                    activeTheme={activeTheme}
+                                />
+                            </div>
 
+                            <div>
+                                <div
+                                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                                    onClick={() => {
+                                        setShowPopup(1), setIdentifyAddReferDrOrReferLab(1)
+                                    }}
+                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                >
+                                    <IoMdAdd className="w-4 h-4 font-semibold" />
+                                </div>
+                            </div>
                         </div>
 
+
                         {/* Refer Dr2 */}
-                        <div className="relative flex-1">
+                        {/* <div className="relative flex-1">
                             <input
                                 type="text"
                                 id="refDoctor2"
@@ -2193,7 +2254,7 @@ export default function PatientRegistration() {
                             </label>
 
 
-                            {/* Dropdown to select the menu */}
+                         
                             {showSearchBarDropDown === 5 && (
                                 <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                     <ul>
@@ -2239,14 +2300,29 @@ export default function PatientRegistration() {
                                     </ul>
                                 </div>
                             )}
+                        </div> */}
+                        <div className="relative flex-1">
+                            <CustomSearchInputFields
+                                id="refID2"
+                                name="refID2"
+                                label="Refer Dr2"
+                                value={patientRegistrationData?.refID2}
+                                options={allReferData}
+                                onChange={handelOnChangePatientRegistration}
+                                filterText="No records found"
+                                placeholder=" "
+                                searchWithName='doctorName'
+                                uniqueKey='doctorId'
+                                activeTheme={activeTheme}
+                            />
                         </div>
+
 
 
                         {/* collection date and time */}
 
-
-                        <div className="relative flex-1 flex gap-[0.10rem] items-center">
-                            {/* Input Field */}
+                        {/* <div className="relative flex-1 flex gap-[0.10rem] items-center">
+                          
                             <div className="w-full">
                                 <input
                                     type="text"
@@ -2262,7 +2338,7 @@ export default function PatientRegistration() {
                                 </label>
                             </div>
 
-                            {/* Calendar Icon */}
+                          
                             <div
                                 className="flex justify-center items-center cursor-pointer rounded font-semibold w-6 h-6"
                                 onClick={() => setShowCalanderAndTime(2)}
@@ -2274,12 +2350,12 @@ export default function PatientRegistration() {
                                 <RiCalendarScheduleFill className="w-4 h-4 font-semibold" />
                             </div>
 
-                            {/* Calendar Popup */}
+                            
                             {showCalanderAndTime === 2 && (
                                 <div
                                     ref={calendarRef}
                                     className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
-                                    {/* <UserCalendarAndTime onDateAndTimeClick={handleDateAndTimeClick} /> */}
+                                    
                                     <UserCalendar
                                         onDateClick={handleDateAndTimeClick}
 
@@ -2294,11 +2370,27 @@ export default function PatientRegistration() {
                                     />
                                 </div>
                             )}
+                        </div> */}
+                        <div className='relative flex-1'>
+                            <DatePicker
+                                id="collectionDateAndTime"
+                                name="collectionDateAndTime"
+                                value={patientRegistrationData?.collectionDateAndTime || ''}
+                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                placeholder=" "
+                                label="Collection Date & Time"
+                                activeTheme={activeTheme}
+
+                                currentDate={new Date()} // Current date: today
+                                maxDate={new Date(2025, 11, 31)}
+                                showTime={true}
+                                showBigerCalandar={true}
+                            />
                         </div>
 
                         {/* Address */}
                         <div className="relative flex-1">
-                            <input
+                            {/* <input
                                 type="text"
                                 id="patientAddress"
                                 name="address"
@@ -2312,13 +2404,21 @@ export default function PatientRegistration() {
                             />
                             <label htmlFor="patientAddress" className="menuPeerLevel">
                                 Address
-                            </label>
+                            </label> */}
+                            <CustomTextBox
+                                type="text"
+                                name="address"
+                                value={patientRegistrationData?.address || ''}
+                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                label="Address"
+                                isDisabled={false}
+                            />
                         </div>
 
 
                         {/* Pincode */}
                         <div className="relative flex-1">
-                            <input
+                            {/* <input
                                 type="number"
                                 id="pinCode"
                                 name="pinCode"
@@ -2332,11 +2432,21 @@ export default function PatientRegistration() {
                             />
                             <label htmlFor="pinCode" className="menuPeerLevel">
                                 Pincode
-                            </label>
+                            </label> */}
+                            <CustomNumberInput
+                                type="pinCode"
+                                name="pinCode"
+                                value={patientRegistrationData?.pinCode || ''}
+                                onChange={(e) => {
+                                    handelOnChangePatientRegistration(e)
+                                }}
+                                maxLength={6}
+                                label="Pin Code"
+                            />
                         </div>
 
                         {/* Refer Lab/Hospital */}
-                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+                        {/* <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
 
                             <div className="relative flex-1">
                                 <input
@@ -2356,7 +2466,7 @@ export default function PatientRegistration() {
                                 </label>
 
 
-                                {/* Dropdown to select the menu */}
+                              =
                                 {showSearchBarDropDown === 7 && (
                                     <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                         <ul>
@@ -2414,10 +2524,42 @@ export default function PatientRegistration() {
                                 </div>
                             </div>
 
+                        </div> */}
+                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                            <div className="relative flex-1">
+                                <CustomSearchInputFields
+                                    id="refLabID"
+                                    name="refLabID"
+                                    label="Refer Lab/Hospital"
+                                    value={patientRegistrationData?.refLabID}
+                                    options={allLabReferData}
+                                    onChange={handelOnChangePatientRegistration}
+                                    filterText="No records found"
+                                    placeholder=" "
+                                    searchWithName='doctorName'
+                                    uniqueKey='doctorId'
+                                    activeTheme={activeTheme}
+                                />
+
+                            </div>
+
+                            <div>
+                                <div
+                                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                                    onClick={() => { setShowPopup(1), setIdentifyAddReferDrOrReferLab(0) }}
+                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                >
+                                    <IoMdAdd className="w-4 h-4 font-semibold" />
+                                </div>
+                            </div>
+
                         </div>
 
+
+
                         {/* Upload Document */}
-                        <div className="relative flex-1 flex gap-[0.10rem]">
+                        {/* <div className="relative flex-1 flex gap-[0.10rem]">
                             <div
                                 name="uploadDocument"
                                 className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
@@ -2460,10 +2602,21 @@ export default function PatientRegistration() {
                                     </div>
                                 )
                             }
+                        </div> */}
+
+                        <div className="relative flex-1">
+                            <CustomFileUpload
+                                value={patientRegistrationData?.uploadDocument}
+                                label='Upload Document'
+                                handelImageChange={handelImageChange}
+                                activeTheme={activeTheme}
+                            />
                         </div>
 
+
+
                         {/* investigation */}
-                        <div className="relative flex-2 lg:col-span-2">
+                        {/* <div className="relative flex-2 lg:col-span-2">
                             <input
                                 type="search"
                                 id="investigationName"
@@ -2481,7 +2634,7 @@ export default function PatientRegistration() {
                                 Test Search By Name or Code
                             </label>
 
-                            {/* Dropdown to select the menu */}
+                          
                             {showSearchBarDropDown === 3 && (
                                 <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                     <ul>
@@ -2502,7 +2655,7 @@ export default function PatientRegistration() {
                                                                 target: { name: 'itemId', value: data?.itemId },
                                                             });
 
-                                                            // setSelectedInvastigationList(prevList => [...prevList, { itemId: data?.itemId, itemName: data?.itemName }]);
+                                                          
 
                                                             handelSelecteOnlyUniqueTestData(data)
 
@@ -2533,6 +2686,21 @@ export default function PatientRegistration() {
                                     </ul>
                                 </div>
                             )}
+                        </div> */}
+                        <div className="relative flex-1">
+                            <CustomSearchInputFields
+                                id="itemId"
+                                name="itemId"
+                                label="Test Search By Name Or Code"
+                                value={patientRegistrationData?.itemId}
+                                options={allInvastigationData}
+                                onChange={handelOnChangePatientRegistration}
+                                filterText="No records found"
+                                placeholder=" "
+                                searchWithName='itemName'
+                                uniqueKey='itemId'
+                                activeTheme={activeTheme}
+                            />
                         </div>
 
                     </div>
@@ -2542,10 +2710,11 @@ export default function PatientRegistration() {
                         className="w-full h-[0.10rem]"
                         style={{ background: activeTheme?.menuColor }}
                     ></div>
+
+
                     {
                         investigationGridData?.length !== 0 && (
                             <>
-
 
                                 {/* Table Container */}
                                 <div className="grid grid-cols-12 gap-2 mt-1 mb-1 mx-1 lg:mx-2">
@@ -2782,7 +2951,7 @@ export default function PatientRegistration() {
 
                                     {/* Currency */}
                                     <div className="relative flex-1">
-                                        <select
+                                        {/* <select
                                             id="currency"
                                             name='currency'
                                             // value={labTestMasterData.currency}
@@ -2797,11 +2966,26 @@ export default function PatientRegistration() {
                                         </select>
                                         <label htmlFor="currency" className="menuPeerLevel">
                                             Currency
-                                        </label>
+                                        </label> */}
+
+                                        <CustomDropdown
+                                            name="Currency"
+                                            label="Select Currency"
+                                            value={patientRegistrationData?.gender || ''}
+                                            options={[
+                                                { label: 'Select Option', value: '', disabled: true },
+                                                { label: 'INR', value: '1' },
+                                                { label: 'USD', value: '2' },
+                                            ]}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            defaultIndex={0}
+                                            activeTheme={activeTheme}
+                                            isMandatory={false}
+                                        />
                                     </div>
 
                                     {/* Payment Mode */}
-                                    <div className="relative flex-1">
+                                    {/* <div className="relative flex-1">
                                         <div
                                             className={`flex peer items-center border-[1.5px] 
         border-borderColor rounded text-xxxs h-[1.6rem] text-[#495057] bg-white `}
@@ -2811,7 +2995,7 @@ export default function PatientRegistration() {
                                                 type="text"
                                                 id="paymentModeType"
                                                 name="paymentModeType"
-                                                // disabled={labTestMasterData?.itemType === '3'}
+                                               
                                                 value={
                                                     paymentModeType.length === 0
                                                         ? ''
@@ -2835,7 +3019,6 @@ export default function PatientRegistration() {
                                             </div>
                                         </div>
 
-                                        {/* Dropdown to select the menu */}
                                         {showSearchBarDropDown === 6 && (
                                             <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
 
@@ -2848,7 +3031,6 @@ export default function PatientRegistration() {
                                                         :
                                                         <ul className='w-full'>
 
-                                                            {/* Individual Checkboxes */}
                                                             {paymentModes?.length > 0 ? (
                                                                 paymentModes?.map((data, index) => {
 
@@ -2885,7 +3067,25 @@ export default function PatientRegistration() {
 
                                             </div>
                                         )}
+                                    </div> */}
+
+                                    <div className="relative flex-1">
+
+                                        <CustomMultiSelectDropdown
+                                            id="paymentModeType"
+                                            name="paymentModeType"
+                                            label="Select Payment Modes"
+                                            options={paymentModes}
+                                            selectedItems={paymentModeType}
+                                            onSelectionChange={handelOnChangePaymentMode}
+                                            placeholder=" "
+                                            activeTheme={activeTheme}
+                                            uniqueId={'value'}
+                                            searchWithName={'label'}
+                                        />
                                     </div>
+
+
 
                                     {/* Paid Amt. */}
                                     <div className="relative flex-1">
@@ -2902,6 +3102,14 @@ export default function PatientRegistration() {
                                         <label htmlFor="paidAmount" className="menuPeerLevel">
                                             Paid Amt.
                                         </label>
+                                        {/* <CustomTextBox
+                                    type="decimalpositive"
+                                    name="paidAmount"
+                                    value={patientRegistrationData?.paidAmount || ''}
+                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                    label="Paid Amt."
+                                    isDisabled={false}
+                                /> */}
                                     </div>
 
                                     {/* Balance Amt. */}
@@ -2948,7 +3156,7 @@ export default function PatientRegistration() {
                                                 color: activeTheme?.iconColor,
                                             }}
                                         >
-                                            <tr>
+                                            <tr className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2'>
                                                 {patientRegistrationPaymentMode?.map((data, index) => (
                                                     <td
                                                         key={index}
@@ -2963,123 +3171,211 @@ export default function PatientRegistration() {
                                         {/* Table Body */}
                                         <tbody>
 
-                                            <tr>
+                                            <tr className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2'>
 
-                                                <td className="text-xxs font-semibold text-gridTextColor"
+                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
                                                 >
-                                                    <input type="number" name="cashAmt" id="cashAmt"
+                                                    {/* <input type="number" name="cashAmt" id="cashAmt"
+                                                value={patientRegistrationData?.cashAmt || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                className={`inputPeerField  ${patientRegistrationDataError.cashAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${paymentModeType.some((item) => item.value === "1") ? "cursor-pointer" : "cursor-not-allowed"
+                                                    }`}
+                                                readOnly={!paymentModeType.some((item) => item.value === "1")}
+                                            /> */}
+                                                    <CustomTextBox
+                                                        type="decimalpositive"
+                                                        name="cashAmt"
                                                         value={patientRegistrationData?.cashAmt || ''}
                                                         onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        className={`inputPeerField  ${patientRegistrationDataError.cashAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${paymentModeType.some((item) => item.value === "1") ? "cursor-pointer" : "cursor-not-allowed"
-                                                            }`}
+                                                        label="Paid Amt."
+                                                        isDisabled={!paymentModeType.some((item) => item.value === "1")}
+                                                        isMandatory={patientRegistrationDataError.cashAmt}
                                                         readOnly={!paymentModeType.some((item) => item.value === "1")}
+                                                        showLabel={true}
                                                     />
                                                 </td>
 
 
-                                                <td className="text-xxs font-semibold text-gridTextColor"
+                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
                                                 >
-                                                    <input type="number"
-                                                        name="creditCardAmt" id="creditCardAmt"
-                                                        value={patientRegistrationData?.creditCardAmt || ''}
-                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        className={`inputPeerField
+                                                    {/* <input type="number"
+                                                name="creditCardAmt" id="creditCardAmt"
+                                                value={patientRegistrationData?.creditCardAmt || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                className={`inputPeerField
                                                             
                                                             ${patientRegistrationDataError.creditCardAmt ? "border-b-red-500" : "border-borderColor"}
 
                                                             outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
-                                                            }`}
+                                                    }`}
+                                                readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                            /> */}
+
+                                                    <CustomTextBox
+                                                        type="decimalpositive"
+                                                        name="creditCardAmt"
+                                                        value={patientRegistrationData?.creditCardAmt || ''}
+                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        label="Credit Card Amt."
+                                                        isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                                                        isMandatory={patientRegistrationDataError.creditCardAmt}
                                                         readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                                        showLabel={true}
                                                     />
                                                 </td>
 
-                                                <td className="text-xxs font-semibold text-gridTextColor"
+                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
                                                 >
-                                                    <input type="number" name="lastFoureDigit" id="lastFoureDigit"
-                                                        value={patientRegistrationData?.lastFoureDigit || ''}
-                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        maxLength={4}
-                                                        className={`inputPeerField
+                                                    {/* <input type="number" name="lastFoureDigit" id="lastFoureDigit"
+                                                value={patientRegistrationData?.lastFoureDigit || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                maxLength={4}
+                                                className={`inputPeerField
                                                             ${patientRegistrationDataError.lastFoureDigit ? "border-b-red-500" : "border-borderColor"}
                                                             outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
-                                                            }`}
+                                                    }`}
+                                                readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                            /> */}
+
+                                                    <CustomTextBox
+                                                        type="positive"
+                                                        name="lastFoureDigit"
+                                                        value={patientRegistrationData?.lastFoureDigit || ''}
+                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        label="Last 4 digits"
+                                                        isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                                                        isMandatory={patientRegistrationDataError.lastFoureDigit}
+                                                        maxLength={4}
                                                         readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                                        showLabel={true}
                                                     />
                                                 </td>
 
 
-                                                <td className='text-xxs font-semibold text-gridTextColor'>
+                                                <td className='text-xxs font-semibold text-gridTextColor relative flex-1 -mt-[1.9px]'>
+                                                    {/* 
+                                            <select
+                                                id="bank_Id"
+                                                name="bank_Id"
+                                                value={patientRegistrationData.bank_Id || ""}
+                                                onChange={(event) => {
+                                                    // Find the selected bank's data
+                                                    const selectedBank = allBankNameData?.find(
+                                                        (data) => parseInt(data.id) === parseInt(event.target.value)
+                                                    );
 
-                                                    <select
-                                                        id="bank_Id"
+                                                    // Update the state
+                                                    handelOnChangePatientRegistration(event);
+
+                                                    setPatientRegistrationData((prevData) => ({
+                                                        ...prevData,
+                                                        bankName: selectedBank?.bankName || "",
+                                                        bank_Id: event.target.value, // Optionally store the ID as well
+                                                    }));
+                                                }}
+                                                className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2")
+                                                    ? "cursor-not-allowed"
+                                                    : "cursor-pointer"
+                                                    }`}
+                                                disabled={!paymentModeType.some((item) => item.value === "2")}
+                                            >
+                                                <option value="" disabled className="text-gray-400">
+                                                    Select Bank
+                                                </option>
+                                                {allBankNameData?.map((data) => (
+                                                    <option key={data?.id} value={data?.id}>
+                                                        {data?.bankName}
+                                                    </option>
+                                                ))}
+                                            </select>
+
+                                            */}
+
+
+                                                    <CustomDropdown
                                                         name="bank_Id"
-                                                        value={patientRegistrationData.bank_Id || ""}
-                                                        onChange={(event) => {
-                                                            // Find the selected bank's data
-                                                            const selectedBank = allBankNameData?.find(
-                                                                (data) => parseInt(data.id) === parseInt(event.target.value)
-                                                            );
-
-                                                            // Update the state
-                                                            handelOnChangePatientRegistration(event);
-
-                                                            setPatientRegistrationData((prevData) => ({
-                                                                ...prevData,
-                                                                bankName: selectedBank?.bankName || "",
-                                                                bank_Id: event.target.value, // Optionally store the ID as well
-                                                            }));
-                                                        }}
-                                                        className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2")
-                                                            ? "cursor-not-allowed"
-                                                            : "cursor-pointer"
-                                                            }`}
-                                                        disabled={!paymentModeType.some((item) => item.value === "2")}
-                                                    >
-                                                        <option value="" disabled className="text-gray-400">
-                                                            Select Bank
-                                                        </option>
-                                                        {allBankNameData?.map((data) => (
-                                                            <option key={data?.id} value={data?.id}>
-                                                                {data?.bankName}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-
-
+                                                        label="Select Bank"
+                                                        value={patientRegistrationData?.bank_Id}
+                                                        options={[
+                                                            { label: 'Select Bank Name', value: 0, disabled: true },
+                                                            ...allBankNameData?.map(item => ({
+                                                                label: item.bankName,
+                                                                value: parseInt(item.id),
+                                                            })),
+                                                        ]}
+                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        defaultIndex={0}
+                                                        isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                                                        activeTheme={activeTheme}
+                                                        showLabel={false}
+                                                        isMandatory={patientRegistrationDataError?.bank_Id}
+                                                    />
                                                 </td>
 
-                                                <td className="text-xxs font-semibold text-gridTextColor"
+                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
                                                 >
-                                                    <input type="number"
-                                                        name="onlinewalletAmt" id="onlinewalletAmt"
+                                                    {/* <input type="number"
+                                                name="onlinewalletAmt" id="onlinewalletAmt"
+                                                value={patientRegistrationData?.onlinewalletAmt || ''}
+                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                className={`inputPeerField  ${patientRegistrationDataError.onlinewalletAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${!paymentModeType.some((item) => item.value === "3") ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+
+                                                readOnly={!paymentModeType.some((item) => item.value === "3")}
+                                            /> */}
+
+                                                    <CustomTextBox
+                                                        type="decimalpositive"
+                                                        name="onlinewalletAmt"
                                                         value={patientRegistrationData?.onlinewalletAmt || ''}
                                                         onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        className={`inputPeerField  ${patientRegistrationDataError.onlinewalletAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${!paymentModeType.some((item) => item.value === "3") ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                                        label="Last 4 digits"
+                                                        isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                                                        isMandatory={patientRegistrationDataError.onlinewalletAmt}
 
                                                         readOnly={!paymentModeType.some((item) => item.value === "3")}
+                                                        showLabel={true}
                                                     />
                                                 </td>
 
 
 
-                                                <td className='text-xxs font-semibold text-gridTextColor'>
-                                                    <select
-                                                        id="paymentMode"
-                                                        name='paymentMode'
-                                                        // value={labTestMasterData.paymentMode}
-                                                        // onChange={(event) => setPaymentMode(event.target.value)}
-                                                        className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "3") ? "cursor-not-allowed" : "cursor-pointer"
-                                                            }`}
-                                                        disabled={!paymentModeType.some((item) => item.value === "3")}
-                                                    >
-                                                        <option disabled hidden className='text-gray-400'>
-                                                            Select Option
-                                                        </option>
-                                                        <option value="1">PayTm</option>
-                                                        <option value="2">PhonePay</option>
-                                                        <option value="3">BHIM</option>
-                                                        <option value="4">GooglePay</option>
-                                                    </select>
+                                                <td className='text-xxs font-semibold text-gridTextColor relative flex-1'>
+                                                    {/* <select
+                                                id="paymentMode"
+                                                name='paymentMode'
+                                                // value={labTestMasterData.paymentMode}
+                                                // onChange={(event) => setPaymentMode(event.target.value)}
+                                                className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "3") ? "cursor-not-allowed" : "cursor-pointer"
+                                                    }`}
+                                                disabled={!paymentModeType.some((item) => item.value === "3")}
+                                            >
+                                                <option disabled hidden className='text-gray-400'>
+                                                    Select Option
+                                                </option>
+                                                <option value="1">PayTm</option>
+                                                <option value="2">PhonePay</option>
+                                                <option value="3">BHIM</option>
+                                                <option value="4">GooglePay</option>
+                                            </select> */}
+
+                                                    <CustomDropdown
+                                                        name="paymentModeId"
+                                                        label="Select Bank"
+                                                        value={patientRegistrationData?.paymentModeId}
+                                                        options={[
+                                                            { label: 'Select Payment Mode', value: 0, disabled: true },
+                                                            { label: 'Paytm', value: 1, },
+                                                            { label: 'PhonePay', value: 2, },
+                                                            { label: 'BHIM', value: 3, },
+                                                            { label: 'GooglePay', value: 4, },
+                                                        ]}
+                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        defaultIndex={0}
+                                                        isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                                                        activeTheme={activeTheme}
+                                                        showLabel={false}
+                                                        isMandatory={patientRegistrationDataError?.paymentModeId}
+                                                    />
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -3091,126 +3387,195 @@ export default function PatientRegistration() {
 
                                     {/* Discount Type */}
                                     <div className="relative flex-1">
-                                        <select
-                                            id="discountType"
-                                            name='discountType'
+                                        {/* <select
+                                    id="discountType"
+                                    name='discountType'
+                                    value={patientRegistrationData?.discountType}
+                                    onChange={(event) => handelOnChangePatientRegistration(event)}
+                                    className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+                                >
+                                    <option value={0} disabled hidden className='text-gray-400'>
+                                        Select Option
+                                    </option>
+
+                                    {
+                                        allDicountTypeData?.map((data) => (
+                                            <option key={data?.id} value={data?.id}>{data?.type}</option>
+
+                                        ))
+                                    }
+
+                                </select>
+                                <label htmlFor="discountType" className="menuPeerLevel">
+                                    Discount Type
+                                </label> */}
+
+                                        <CustomDropdown
+                                            name="discountType"
+                                            label="Discount Type"
                                             value={patientRegistrationData?.discountType}
-                                            onChange={(event) => handelOnChangePatientRegistration(event)}
-                                            className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
-                                        >
-                                            <option value={0} disabled hidden className='text-gray-400'>
-                                                Select Option
-                                            </option>
-
-                                            {
-                                                allDicountTypeData?.map((data) => (
-                                                    <option key={data?.id} value={data?.id}>{data?.type}</option>
-
-                                                ))
-                                            }
-
-                                        </select>
-                                        <label htmlFor="discountType" className="menuPeerLevel">
-                                            Discount Type
-                                        </label>
+                                            options={[
+                                                { label: 'Discount Type', value: 0, disabled: true },
+                                                ...allDicountTypeData?.map(item => ({
+                                                    label: item.type,
+                                                    value: parseInt(item.id),
+                                                })),
+                                            ]}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            defaultIndex={0}
+                                            activeTheme={activeTheme}
+                                            isMandatory={patientRegistrationDataError?.discountType}
+                                        />
                                     </div>
 
 
                                     {/* Discount Ammount */}
                                     <div className="relative flex-1">
-                                        <input
-                                            type="number"
-                                            id="discountAmmount"
-                                            name="discountAmmount"
-                                            value={patientRegistrationData?.discountAmmount}
-                                            onChange={(event) => handelOnChangePatientRegistration(event)}
-                                            placeholder=" "
-                                            className={`inputPeerField peer ${patientRegistrationDataError.discountAmmount ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
-                                        />
+                                        {/* <input
+                                    type="number"
+                                    id="discountAmmount"
+                                    name="discountAmmount"
+                                    value={patientRegistrationData?.discountAmmount}
+                                    onChange={(event) => handelOnChangePatientRegistration(event)}
+                                    placeholder=" "
+                                    className={`inputPeerField peer ${patientRegistrationDataError.discountAmmount ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
+                                />
 
-                                        <label htmlFor="discountAmmount" className="menuPeerLevel">
-                                            Discount Ammount
-                                        </label>
+                                <label htmlFor="discountAmmount" className="menuPeerLevel">
+                                    Discount Ammount
+                                </label> */}
+
+                                        <CustomTextBox
+                                            type="decimalpositive"
+                                            name="discountAmmount"
+                                            value={patientRegistrationData?.discountAmmount || ''}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            label="Discount Ammount"
+                                            isMandatory={patientRegistrationDataError.discountAmmount}
+                                        />
                                     </div>
 
                                     {/* Discount % */}
                                     <div className="relative flex-1">
-                                        <input
-                                            type="number"
-                                            id="discountPercentage"
+                                        {/* <input
+                                    type="number"
+                                    id="discountPercentage"
+                                    name="discountPercentage"
+                                    value={patientRegistrationData?.discountPercentage}
+
+                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+
+                                    placeholder=" "
+                                    className={`inputPeerField  ${patientRegistrationDataError.discountPercentage ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
+                                />
+                                <label htmlFor="discountPercentage" className="menuPeerLevel">
+                                    Discount %
+                                </label> */}
+
+                                        <CustomTextBox
+                                            type="decimalpositive"
                                             name="discountPercentage"
-                                            value={patientRegistrationData?.discountPercentage}
-
+                                            value={patientRegistrationData?.discountPercentage || ''}
                                             onChange={(e) => handelOnChangePatientRegistration(e)}
-
-                                            placeholder=" "
-                                            className={`inputPeerField  ${patientRegistrationDataError.discountPercentage ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
+                                            label="Discount %"
+                                            isMandatory={patientRegistrationDataError.discountPercentage}
                                         />
-                                        <label htmlFor="discountPercentage" className="menuPeerLevel">
-                                            Discount %
-                                        </label>
                                     </div>
 
 
                                     {/* Discount Reason */}
                                     <div className="relative flex-1">
-                                        <select
-                                            id="discountid"
+                                        {/* <select
+                                    id="discountid"
+                                    name="discountid"
+                                    value={patientRegistrationData?.discountid}
+                                    onChange={(event) => {
+                                        const selectedOption = event.target.options[event.target.selectedIndex];
+                                        const id = selectedOption.value;
+                                        const reasonName = selectedOption.getAttribute("data-reasonname");
+
+                                        // Call separate methods for id and reasonName
+                                        handelOnChangePatientRegistration(event);
+
+                                        setPatientRegistrationSelectData((preventData) => ({
+                                            ...preventData,
+                                            discountid: reasonName
+                                        }))
+                                    }}
+                                    className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountid ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
+                                >
+                                    <option value={0} disabled hidden className="text-gray-400">
+                                        Select Option
+                                    </option>
+                                    {allDiscountReasonData?.map((data) => (
+                                        <option key={data?.id} value={data?.id} data-reasonname={data?.discountReasonName}>
+                                            {data?.discountReasonName}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <label htmlFor="discountid" className="menuPeerLevel">
+                                    Discount Reason
+                                </label> */}
+
+                                        <CustomDropdown
                                             name="discountid"
+                                            label="Discount Reason"
                                             value={patientRegistrationData?.discountid}
-                                            onChange={(event) => {
-                                                const selectedOption = event.target.options[event.target.selectedIndex];
-                                                const id = selectedOption.value;
-                                                const reasonName = selectedOption.getAttribute("data-reasonname");
-
-                                                // Call separate methods for id and reasonName
-                                                handelOnChangePatientRegistration(event);
-
-                                                setPatientRegistrationSelectData((preventData) => ({
-                                                    ...preventData,
-                                                    discountid: reasonName
-                                                }))
-                                            }}
-                                            className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountid ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
-                                        >
-                                            <option value={0} disabled hidden className="text-gray-400">
-                                                Select Option
-                                            </option>
-                                            {allDiscountReasonData?.map((data) => (
-                                                <option key={data?.id} value={data?.id} data-reasonname={data?.discountReasonName}>
-                                                    {data?.discountReasonName}
-                                                </option>
-                                            ))}
-                                        </select>
-
-                                        <label htmlFor="discountid" className="menuPeerLevel">
-                                            Discount Reason
-                                        </label>
+                                            options={[
+                                                { label: 'Select Discount Reason', value: 0, disabled: true },
+                                                ...allDiscountReasonData?.map(item => ({
+                                                    label: item.discountReasonName,
+                                                    value: item.id,
+                                                })),
+                                            ]}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            defaultIndex={0}
+                                            activeTheme={activeTheme}
+                                            isMandatory={patientRegistrationDataError?.discountid}
+                                        />
                                     </div>
 
 
                                     {/* Discount Approved By */}
                                     <div className="relative flex-1">
-                                        <select
-                                            id="discountApproved"
-                                            name='discountApproved'
-                                            value={patientRegistrationData?.discountApproved}
-                                            onChange={(event) => handelOnChangePatientRegistration(event)}
-                                            className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountApproved ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
-                                        >
-                                            <option value={0} disabled hidden className='text-gray-400'>
-                                                Select Option
-                                            </option>
-                                            {
-                                                allDiscountApprovedByData?.map((data) => (
-                                                    <option key={data?.empId} value={data?.empId}>{`${data?.fName} ${data?.lName}`}</option>
+                                        {/* <select
+                                    id="discountApproved"
+                                    name='discountApproved'
+                                    value={patientRegistrationData?.discountApproved}
+                                    onChange={(event) => handelOnChangePatientRegistration(event)}
+                                    className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountApproved ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
+                                >
+                                    <option value={0} disabled hidden className='text-gray-400'>
+                                        Select Option
+                                    </option>
+                                    {
+                                        allDiscountApprovedByData?.map((data) => (
+                                            <option key={data?.empId} value={data?.empId}>{`${data?.fName} ${data?.lName}`}</option>
 
-                                                ))
-                                            }
-                                        </select>
-                                        <label htmlFor="discountApproved" className="menuPeerLevel">
-                                            Discount Approved By
-                                        </label>
+                                        ))
+                                    }
+                                </select>
+                                <label htmlFor="discountApproved" className="menuPeerLevel">
+                                    Discount Approved By
+                                </label> */}
+
+                                        <CustomDropdown
+                                            name="discountApproved"
+                                            label="Discount Approved By"
+                                            value={patientRegistrationData?.discountApproved}
+                                            options={[
+                                                { label: 'Select Discount Approved By', value: 0, disabled: true },
+                                                ...allDiscountApprovedByData?.map(item => ({
+                                                    label: `${item?.fName} ${item?.lName}`,
+                                                    value: item.empId,
+                                                })),
+                                            ]}
+                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+                                            defaultIndex={0}
+                                            activeTheme={activeTheme}
+                                            isMandatory={patientRegistrationDataError?.discountApproved}
+                                        />
                                     </div>
 
 
@@ -3441,7 +3806,7 @@ export default function PatientRegistration() {
                                                 />
                                             </div>
 
-                                            <div className='relative flex-1 mt-[1.9px]'>
+                                            <div className='relative flex-1 '>
                                                 <CustomDropdown
                                                     name="title_id"
                                                     label="Select Title"
@@ -3456,7 +3821,7 @@ export default function PatientRegistration() {
                                                     onChange={(e) => handelOnChangePatientRegistration(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    isMandatory={!Boolean(patientRegistrationData?.title_id)}
+                                                    isMandatory={patientRegistrationDataError?.title_id}
                                                 />
 
                                             </div>
@@ -3544,11 +3909,9 @@ export default function PatientRegistration() {
                                                     showTime={false}
                                                     showBigerCalandar={true}
                                                 />
-                                                {/* </div> */}
-
                                             </div>
 
-                                            <div className='relative flex-1 mt-[1.9px]'>
+                                            <div className='relative flex-1 '>
                                                 <CustomDropdown
                                                     name="gender"
                                                     label="Select Gender"
@@ -3807,7 +4170,7 @@ export default function PatientRegistration() {
                                                 />
                                             </div>
 
-                                            <div className='relative flex-1 mt-[1.9px]'>
+                                            <div className='relative flex-1 '>
                                                 <CustomDropdown
                                                     name="title_id"
                                                     label="Select Title"
@@ -3915,7 +4278,7 @@ export default function PatientRegistration() {
 
                                             </div>
 
-                                            <div className='relative flex-1 mt-[1.9px]'>
+                                            <div className='relative flex-1 '>
                                                 <CustomDropdown
                                                     name="gender"
                                                     label="Select Gender"

@@ -50,3 +50,85 @@ const[patientRegistrationData,setPatientRegistrationData]=useState({
         }));
     };
 
+==========================multiple file upload============================
+import React, { useRef } from "react";
+import { IoMdImages } from "react-icons/io";
+
+export default function CustomFileUpload({ value, handleImageChange, activeTheme }) {
+  const imgRef = useRef();
+
+  const handleClickImage = () => {
+    if (imgRef.current) {
+      imgRef.current.click();
+    }
+  };
+
+  return (
+    <div className="relative flex-1 flex flex-col gap-2">
+      <div
+        name="uploadDocument"
+        className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer p-2"
+        onClick={handleClickImage}
+      >
+        {value.length === 0 ? (
+          <div className="pt-2 z-40 font-semibold text-center">
+            Upload Documents
+          </div>
+        ) : (
+          <div className="pt-2 z-40 text-center">
+            {value.length} file(s) uploaded successfully
+          </div>
+        )}
+
+        <input
+          type="file"
+          id="uploadDocument"
+          name="uploadDocument"
+          ref={imgRef}
+          multiple
+          onChange={handleImageChange}
+          style={{ display: "none" }}
+          accept=".jpg, .jpeg, .png"
+        />
+      </div>
+
+      <label htmlFor="uploadDocument" className="menuPeerLevel cursor-pointer">
+        Upload Documents
+      </label>
+
+      {value.length > 0 && (
+        <div className="mt-2">
+          <ul className="list-disc pl-5 text-sm">
+            {value.map((file, index) => (
+              <li key={index} className="flex items-center gap-2">
+                <IoMdImages className="w-4 h-4 text-gray-500" />
+                {file.name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+
+const handleImageChange = (event) => {
+    const files = Array.from(event.target.files);
+    const base64Files = [];
+
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        base64Files.push({ name: file.name, base64: reader.result });
+
+        if (base64Files.length === files.length) {
+          setSelectedFiles(base64Files);
+        }
+      };
+    });
+  };
