@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import toast from "react-hot-toast";
 import { FaRegEdit, FaSpinner } from "react-icons/fa";
 import { IoMdClose, IoMdCloseCircleOutline } from "react-icons/io";
 import { IoAlertCircleOutline } from "react-icons/io5";
@@ -16,6 +15,8 @@ import { getLocal } from "usehoks";
 import { useFormHandler } from "./useFormHandler";
 import { MdDelete } from "react-icons/md";
 import { NewPopupTable } from "./NewPopupTable";
+import { useGetData, usePostData } from "../service/apiService";
+import { toast } from "react-toastify";
 
 const PopupModal = ({
   showPopup,
@@ -637,6 +638,97 @@ export const RejectPopupModal = ({
   );
 };
 
+export const SampleCollectionRejectPopupModal = ({
+  showPopup,
+  setShowPopup,
+  handleTheUpdateStatusMenu,
+  rowData,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const { formRef, getValues } = useFormHandler();
+  const AllCenterData = useGetData();
+  const PostData = usePostData();
+  useEffect(() => {
+    AllCenterData?.fetchData(
+      "https://imarsar.com:8084/api/sampleRejectionReason?select=id,rejectionreason&$filter=(isactive eq 1)"
+    );
+  }, []);
+
+  if (!showPopup) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const values = getValues();
+    const lsData = getLocal("imarsar_laboratory");
+
+    const payload = {
+      ...rowData,
+      rejectionReason: values?.RejectionReason,
+      empId: parseInt(lsData?.user?.employeeId),
+    };
+    PostData?.postRequest("/tnx_BookingItem/UpdateSampleStatus", [payload]);
+    console.log(values);
+    if (PostData?.response?.success) {
+      toast.success(PostData?.response?.message);
+      setReason(null);
+    } else {
+      toast.info(PostData?.response?.message);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">Sample Rejection Reason</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+
+        {/* Input Field */}
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          <div className="p-4 pb-2 flex flex-row gap-1 border-none">
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "RejectionReason",
+                  type: "select",
+                  name: "Rejection Reason",
+                  keyField: "rejectionReason",
+                  required: true,
+                  dataOptions: AllCenterData?.data,
+                },
+              ]}
+            />
+            <SubmitButton
+              submit={true}
+              text={"Save"}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export const InvestigationRemarkPopupModal = ({
   showPopup,
   setShowPopup,
@@ -652,7 +744,7 @@ export const InvestigationRemarkPopupModal = ({
     testName = testName.replace(/"/g, "");
   }
 
-  console.log(testName);
+  // console.log(testName);
   if (!showPopup) return null;
 
   const handleSubmit = (event) => {
@@ -809,6 +901,135 @@ export const InvestigationRemarkPopupModal = ({
   );
 };
 
+export const SampleCollectionRemarkPopupModal = ({
+  showPopup,
+  setShowPopup,
+  rowData,
+  handleTheUpdateStatusMenu,
+}) => {
+  const [rows, setRows] = useState([]); // Proper state name
+  const [remark, setRemark] = useState("");
+  const { formRef, getValues, setValues } = useFormHandler();
+  const [refreshData, setRefreshData] = useState(false); // New state to trigger re-fetch
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const GetRemark = useGetData();
+  const Remark = useGetData();
+  const PostData = usePostData();
+  useEffect(() => {
+    Remark?.fetchData(
+      "/LabRemarkMaster?select=id,remark&$filter=(isactive eq 1 and type eq 'LabRemark')"
+    );
+    GetRemark?.fetchData(
+      `/tnx_InvestigationRemarks/GetSampleremark?transacctionId=${rowData?.transactionId}&WorkOrderId=${rowData?.workOrderId}&itemId=${rowData?.itemId}`
+    );
+    // setTimeout(()=>{
+    //   setRefreshData(!refreshData)
+    // },500)
+  }, [showPopup,refreshData]);
+
+  if (!showPopup) return null;
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const values = getValues();
+    const lsData = getLocal("imarsar_laboratory");
+    const payload = {
+      itemName:rowData?.investigationName,
+      isActive:1,
+      id:0,
+      itemId:rowData?.itemId,
+      workOrderId:rowData?.workOrderId,
+      transactionId:rowData?.transactionId,
+      invRemarks: values?.invRemarks,
+      isInternal:0,
+      createdById: parseInt(lsData?.user?.employeeId),
+    };
+    console.log("Form values:", values);
+    PostData?.postRequest('/tnx_InvestigationRemarks/AddSampleremark',payload) 
+    if (PostData?.response?.success) {
+      toast.success(PostData?.response?.message);
+      setRemark(""); // Clear the input field
+      setRefreshData((prev) => !prev); // Trigger re-fetching of data
+    } else {
+      toast.info(PostData?.response?.message);
+    }
+  };
+ 
+  console.log(GetRemark);
+  const columns = [
+    { field: "id", headerName: "Sr. No", width: 20 },
+    {
+      field: `invRemarks`,
+      headerName: `Remark`,
+      flex: 1,
+    }
+  ];
+
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-120 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center py-1 px-2 "
+        >
+          <span className="text-sm font-semibold">Test Remark</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          {/* Input Field */}
+          <div className="p-2 pb-0  flex gap-2 border-none">
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "Test Name",
+                  type: "text",
+                  name: "testname",
+                  readOnly: true,
+                  value: `${rowData?.investigationName}`,
+                },
+                {
+                  label: "Remark",
+                  type: "select",
+                  name: "Remark",
+                  keyField: "remark",
+                  callBack:(e)=>{setRemark(e.target.value)},
+                  dataOptions: Remark?.data,
+                },
+                {
+                  label: "Remark",
+                  type: "text",
+                  name: "invRemarks",
+                  onChange: (value) => {
+                    setRemark(value); // Update the state
+                  },
+                  value: `${remark}`,
+                },
+              ]}
+            />
+            <SubmitButton
+              text={"Save"}
+              style={{ padding: "5px 10px", width: "100px" }}
+            />
+            {/* <div className="flex items-center gap-1"><input type="checkbox" /> Show In House</div>  */}
+          </div>
+        </form>
+        <DynamicTable name="Test Details" rows={GetRemark?.data?.data} columns={columns} />
+      </div>
+    </div>
+  );
+};
+
 export const InfoPopup = ({
   showPopup,
   setShowPopup,
@@ -845,7 +1066,7 @@ export const InfoPopup = ({
           {/* Content */}
 
           <div className=" p-0 pt-0 overflow-y-auto max-h-[250px] pb-1.5 flex items-end justify-end flex-col">
-          <TableHeader title='Patient Details' />
+            <TableHeader title="Patient Details" />
             <NewPopupTable
               rows={rows}
               // trstyle={{ height: "40px" }}
@@ -896,7 +1117,7 @@ export const ReRunPopup = ({
           {/* Content */}
 
           <div className=" p-0 pt-0 overflow-y-auto max-h-[250px] pb-1.5 flex items-end justify-end flex-col">
-            <TableHeader title='Re-Run Remark' />
+            <TableHeader title="Re-Run Remark" />
             <NewPopupTable
               rows={rows}
               // trstyle={{ height: "40px" }}

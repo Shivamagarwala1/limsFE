@@ -2,69 +2,85 @@ import React, { useEffect, useState } from "react";
 import DynamicTable from "../../../../Custom Components/DynamicTable";
 import InputGenerator, {
   SubmitButton,
+  TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
-import { useGetData } from "../../../../service/apiService";
+import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
 import { FaPlus } from "react-icons/fa";
-import { InvestigationRemarkPopupModal, RejectPopupModal } from "../../../../Custom Components/PopupModal";
-import { setLocal } from "usehoks";
+import {
+  InvestigationRemarkPopupModal,
+  RejectPopupModal,
+  SampleCollectionRejectPopupModal,
+  SampleCollectionRemarkPopupModal,
+} from "../../../../Custom Components/PopupModal";
+import { getLocal, setLocal } from "usehoks";
+import {
+  addObjectId,
+  SampleCollectionStatus,
+} from "../../../../service/RedendentData";
+import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 
 export default function SampleCollection() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
   const [RejectPopup, setRejectPopup] = useState(false);
   const [RemarkPopup, setRemarkPopup] = useState(false);
-  const [selectedCenter, setSelectedCenter] = useState([]);
+  const [AllCollected, setAllCollected] = useState([]);
+  const [AllReceived, setAllReceived] = useState([]);
+  const [Row, setRow] = useState({});
   const AllCenterData = useGetData();
+  const BulkPostData = usePostData();
+  const PostData = usePostData();
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
     );
-    // console.log(AllCenterData);
   }, []);
+  console.log(AllCollected);
+  const updatedArray = addObjectId(PostData?.data);
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
     {
-      field: `Centre`,
+      field: `centreName`,
       headerName: `Centre`,
       flex: 1,
     },
     {
-      field: `Department`,
+      field: `departmentName`,
       headerName: `Department`,
       flex: 1,
     },
+    // {
+    //   field: `RegId`,
+    //   headerName: `Reg. Id`,
+    //   flex: 1,
+    // },
     {
-      field: `RegId`,
-      headerName: `Reg. Id`,
+      field: `patientId`,
+      headerName: `Patient Id`,
+      flex: 1,
+    },
+    // {
+    //   field: `RateType`,
+    //   headerName: `Rate Type`,
+    //   flex: 1,
+    // },
+    {
+      field: `patientName`,
+      headerName: `Patient Name`,
       flex: 1,
     },
     {
-      field: `VisiotId`,
-      headerName: `Visiot Id`,
-      flex: 1,
-    },
-    {
-      field: `RateType`,
-      headerName: `Rate Type`,
-      flex: 1,
-    },
-    {
-      field: `VisitorName`,
-      headerName: `Visitor Name`,
-      flex: 1,
-    },
-    {
-      field: `AgeGender`,
+      field: `age`,
       headerName: `Age/Gender`,
       flex: 1,
     },
     {
-      field: `TestName`,
+      field: `investigationName`,
       headerName: `Test Name`,
       flex: 1,
     },
@@ -75,9 +91,14 @@ export default function SampleCollection() {
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px" }}>
-            <InputGenerator
-              inputFields={[{ type: "text", placeholder: "Barcode" }]}
-            />
+            {params?.row?.barcodeNo !== "" ? (
+              <>{params?.row?.barcodeNo}</>
+            ) : (
+              // <InputGenerator
+              //   inputFields={[{ type: "text", placeholder: "Barcode" }]}
+              // />
+              ""
+            )}
           </div>
         );
       },
@@ -102,14 +123,35 @@ export default function SampleCollection() {
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px" }}>
-            <input type="checkbox" /> Collected
+            <input
+              type="checkbox"
+              checked={
+                params?.row?.isSampleCollected === "S" ||
+                params?.row?.isSampleCollected === "Y"
+                  ? false
+                  : AllCollected.some((item) => item.id === params?.row.id)
+              }
+              disabled={
+                params?.row?.isSampleCollected === "S" ||
+                params?.row?.isSampleCollected === "Y"
+              }
+              onClick={() =>
+                setAllCollected(
+                  (prev) =>
+                    prev.some((item) => item.id === params?.row.id)
+                      ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
+                      : [...prev, { ...params?.row, isSampleCollected: "S" }] // Add if not
+                )
+              }
+            />
+            Collected
           </div>
         );
       },
       renderHeaderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px" }}>
-            <p>Sample Coll.</p> <input type="checkbox" />
+            <p>Sample Collected</p> {/* <input type="checkbox" /> */}
           </div>
         );
       },
@@ -121,14 +163,39 @@ export default function SampleCollection() {
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px" }}>
-            <input type="checkbox" /> Recived
+            <input
+              type="checkbox"
+              disabled={params?.row?.isSampleCollected === "Y"}
+              checked={
+                params?.row?.isSampleCollected === "Y"
+                  ? false
+                  : AllReceived.some((item) => item.id === params?.row.id)
+              }
+              onClick={() =>
+                setAllReceived(
+                  (prev) =>
+                    prev.some((item) => item.id === params?.row.id)
+                      ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
+                      : [
+                          ...prev,
+                          {
+                            ...params?.row,
+                            isSampleCollected: "Y",
+                            empId: 1,
+                          },
+                        ] // Add if not
+                )
+              }
+            />
+            Received
           </div>
         );
       },
       renderHeaderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px" }}>
-            <p>Dept. Rec.</p> <input type="checkbox" />
+            <p>Dept. Receive</p>
+            {/* <input type="checkbox" /> */}
           </div>
         );
       },
@@ -144,9 +211,10 @@ export default function SampleCollection() {
               submit={false}
               text={"R"}
               callBack={() => {
+                setRow(params?.row);
                 setRejectPopup(true);
               }}
-              style={{ width: "30px",fontSize:"0.75rem" }}
+              style={{ width: "30px", fontSize: "0.75rem" }}
             />
             {/* <ImCross /> */}
           </div>
@@ -165,43 +233,53 @@ export default function SampleCollection() {
               submit={false}
               text={"+"}
               callBack={() => {
-                setLocal("testName",params?.row?.TestName);
+                setRow(params?.row);
                 setRemarkPopup(true);
               }}
-              style={{ width: "30px", fontSize:"0.75rem" }}
+              style={{ width: "30px", fontSize: "0.75rem" }}
             />
           </div>
         );
       },
     },
     {
-      field: `Comments`,
+      field: `comment`,
       headerName: `Comments`,
       flex: 1,
     },
   ];
-  const row = [
-    {
-      id: 1,
-      Centre: "105 - center 1",
-      Department: "Nursing",
-      RegId: "10993",
-      VisiotId: "302",
-      RateType: "Type 1",
-      VisitorName: "John Doe",
-      AgeGender: "25,Male",
-      TestName: "CBC",
-      Comments: "lorem ipsum",
-    },
-  ];
 
-  const handleSubmit = () => {};
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const values = getValues();
+    const lsData = getLocal("imarsar_laboratory");
+    const payload = { ...values, createdById: lsData?.user?.employeeId };
+    console.log(payload);
+    PostData?.postRequest("/tnx_BookingItem/GetSampleProcessingData", payload);
+    console.log(PostData?.data);
+  };
+
+  const statuses = [
+    { Data: 11, CallBack: () => {} },
+    { Data: 1, CallBack: () => {} },
+    { Data: 24, CallBack: () => {} },
+    { Data: 3, CallBack: () => {} },
+    { Data: 25, CallBack: () => {} },
+  ];
 
   return (
     <div>
       {/* Header Section */}
-      <InvestigationRemarkPopupModal setShowPopup={setRemarkPopup} showPopup={RemarkPopup} />
-      <RejectPopupModal setShowPopup={setRejectPopup} showPopup={RejectPopup} />
+      <SampleCollectionRemarkPopupModal
+        setShowPopup={setRemarkPopup}
+        showPopup={RemarkPopup}
+        rowData={Row}
+      />
+      <SampleCollectionRejectPopupModal
+        rowData={Row}
+        setShowPopup={setRejectPopup}
+        showPopup={RejectPopup}
+      />
       <div
         className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
         style={{ background: activeTheme?.blockColor }}
@@ -219,97 +297,78 @@ export default function SampleCollection() {
               {
                 label: "Centre",
                 type: "select",
-                name: "centre",
+                name: "centreId",
                 dataOptions: AllCenterData?.data,
               },
               {
                 label: "From Date",
                 type: "customDateField",
-                name: "FromDate",
+                name: "fromDate",
               },
               {
                 label: "To Date",
                 type: "customDateField",
-                name: "ToDate",
-              },
-              {
-                label: "Rate Type",
-                type: "select",
-                name: "RateType",
-                dataOptions: [],
+                name: "toDate",
               },
               {
                 label: "Barcode",
                 type: "text",
-                name: "Barcode",
+                name: "barcodeNo",
               },
               {
                 label: "Status",
                 type: "select",
-                name: "Status",
-                dataOptions: [],
+                name: "status",
+                keyField: "value",
+                dataOptions: SampleCollectionStatus,
               },
             ]}
           />
-          <div className="flex gap-[0.25rem]">
-            <div className="relative flex-1 gap-1 flex justify-center items-center">
-              <div className="relative flex-1 gap-1 flex justify-center items-center text-xs">
-                <div className="w-5 h-5 bg-blue-300 rounded-full"></div>
-                Pending
-              </div>
-              <div className="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div className="w-5 h-5 bg-green-300 rounded-full"></div>
-                Collected
-              </div>
-              <div className="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div className="w-5 h-5 bg-fuchsia-500 rounded-full"></div>
-                Recived
-              </div>
-            </div>
-          </div>
-          <div className="flex">
-            <div className="relative flex-1 gap-4 flex justify-center items-center">
-              <div className="relative gap-1 ml-5 flex justify-start items-center text-xs">
-                <div className="w-5 h-5 bg-red-500 rounded-full"></div>
-                Reject
-              </div>
-              {/* <div className="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div className="w-5 h-5 bg-green-300 rounded-full"></div>
-                Urgent Sample
-              </div> */}
-              <div className="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div className="w-5 h-5 bg-amber-300 rounded-full"></div>
-                Urgent Sample
-              </div>
-            </div>
-          </div>
           <SubmitButton text={"Search"} />
         </div>
+        <LegendButtons statuses={statuses} />
       </form>
-      <div style={{ height: "300px" }}>
+      <div style={{ maxHeight: "350px", overflowY: "auto" }}>
         <DynamicTable
-          rows={row}
+          rows={updatedArray}
           name="Sample Details"
-          //   loading={loading}
+          loading={PostData?.loading}
           columns={columns}
           activeTheme={activeTheme}
+          legendColors={true}
         />
       </div>
-      <div className="flex gap-3 flex-row items-end justify-end mx-2 ">
-        {" "}
-        <SubmitButton
-          text={"Sample Collection"}
-          submit={false}
-          callBack={() => {}}
-          style={{ padding: "5px 10px", width: "150px" }}
-        />
-        <SubmitButton
-          text={"Department Receive"}
-          submit={false}
-          callBack={() => {}}
-          style={{ padding: "5px 10px", width: "150px" }}
-        />
-      </div>
+
+      {PostData?.data.length !== 0 && (
+        <div className="flex gap-3 mb-4 flex-row items-end justify-end mx-2">
+          <TwoSubmitButton
+            options={[
+              {
+                submit: false,
+                label: "Sample Collection",
+                style: { width: "120px" },
+                callBack: () => {
+                  BulkPostData?.postRequest(
+                    "/tnx_BookingItem/UpdateSampleStatus",
+                    AllCollected
+                  );
+                },
+              },
+              {
+                submit: false,
+                label: "Sample Receive",
+                style: { width: "120px" },
+                callBack: () => {
+                  BulkPostData?.postRequest(
+                    "/tnx_BookingItem/UpdateSampleStatus",
+                    AllReceived
+                  );
+                },
+              },
+            ]}
+          />
+        </div>
+      )}
     </div>
   );
 }
