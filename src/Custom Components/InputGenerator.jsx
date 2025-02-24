@@ -37,7 +37,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
   }
 
   const todayDate = getFormattedDate(); // Example output: 07-Feb-2025
-  console.log("input generator ", inputFields);
+  // console.log("input generator ", inputFields);
   return (
     <>
       {inputFields.map((field, index) => (
@@ -47,6 +47,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
               <select
                 style={field?.style}
                 name={field?.name}
+                required={field?.required}
                 onChange={field?.callBack}
                 className={`inputPeerField cursor-pointer ${
                   field?.required ? "border-b-red-500" : "border-b-green-300"
