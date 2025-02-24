@@ -9,7 +9,7 @@ import useOutsideClick from '../../../customehook/useOutsideClick';
 import { RiDeleteBin2Fill } from 'react-icons/ri';
 import { dummyDataForpatientRegistrationoldPatient, patientRegistrationInvestigation, patientRegistrationoldPatient, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import { CustomEmailInput } from '../../../global/CustomEmailInput'
-import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, savePatientRegistrationDataApi, saveReferDrApi } from '../../../../service/service';
+import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getSingleEditInfoApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi } from '../../../../service/service';
 import { FaSearch, FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
 import { CustomTextBox } from '../../../global/CustomTextBox';
@@ -87,6 +87,7 @@ export default function PatientRegistration() {
         discountid: 0,
         discountApproved: 0,
     });
+
     const [patientRegistrationSelectData, setPatientRegistrationSelectData] = useState({
         centreId: '',
         rateId: '',
@@ -139,7 +140,7 @@ export default function PatientRegistration() {
         type: 0
     })
 
-    // const [isHovered, setIsHovered] = useState(null);
+    const [editInfoData, seteditInfoData] = useState(null);
 
     const [gridDataBarCodeandSampleType, setGridDataBarCodeandSampleType] = useState({
         barCode: [],
@@ -165,7 +166,7 @@ export default function PatientRegistration() {
     const [isButtonClick, setIsButtonClick] = useState(0);
     const [showPopup, setShowPopup] = useState(0);
     const [identifyAddReferDrOrReferLab, setIdentifyAddReferDrOrReferLab] = useState(0);
-    const imgRef = useRef();
+    //const imgRef = useRef();
 
 
     // const openShowSearchBarDropDown = (val) => {
@@ -434,37 +435,37 @@ export default function PatientRegistration() {
 
 
 
-    const handleDateAndTimeClick = (date) => {
-        // Format the date
-        const formatDate = (date) => {
-            const options = { day: '2-digit', month: 'short', year: 'numeric' };
-            return date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
-        };
+    // const handleDateAndTimeClick = (date) => {
+    //     // Format the date
+    //     const formatDate = (date) => {
+    //         const options = { day: '2-digit', month: 'short', year: 'numeric' };
+    //         return date.toLocaleDateString('en-GB', options).replace(/ /g, '-');
+    //     };
 
-        // Format the time
-        const formatTime = (date) => {
-            let hours = date.getHours();
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            const period = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12; // Convert to 12-hour format, ensuring "12" is displayed for noon and midnight
-            return `${hours.toString().padStart(2, '0')}:${minutes} ${period}`;
-        };
+    //     // Format the time
+    //     const formatTime = (date) => {
+    //         let hours = date.getHours();
+    //         const minutes = date.getMinutes().toString().padStart(2, '0');
+    //         const period = hours >= 12 ? 'PM' : 'AM';
+    //         hours = hours % 12 || 12; // Convert to 12-hour format, ensuring "12" is displayed for noon and midnight
+    //         return `${hours.toString().padStart(2, '0')}:${minutes} ${period}`;
+    //     };
 
-        // Get formatted date and time
-        const formattedDate = formatDate(date);
-        const formattedTime = formatTime(date);
+    //     // Get formatted date and time
+    //     const formattedDate = formatDate(date);
+    //     const formattedTime = formatTime(date);
 
-        // Combine date and time
-        const collectionDateAndTime = `${formattedDate} ${formattedTime}`;
+    //     // Combine date and time
+    //     const collectionDateAndTime = `${formattedDate} ${formattedTime}`;
 
-        // Update patient registration data
-        setPatientRegistrationData((prevData) => ({
-            ...prevData,
-            collectionDateAndTime, // Set formatted date and time in state
-        }));
+    //     // Update patient registration data
+    //     setPatientRegistrationData((prevData) => ({
+    //         ...prevData,
+    //         collectionDateAndTime, // Set formatted date and time in state
+    //     }));
 
-        //setShowCalanderAndTime(false);
-    };
+    //     //setShowCalanderAndTime(false);
+    // };
 
     const handelImageChange = (e) => {
         const file = e.target.files[0];
@@ -504,11 +505,11 @@ export default function PatientRegistration() {
     };
 
 
-    const handelClickImage = () => {
-        if (imgRef.current) {
-            imgRef.current.click();
-        }
-    };
+    // const handelClickImage = () => {
+    //     if (imgRef.current) {
+    //         imgRef.current.click();
+    //     }
+    // };
 
     const handelOnChangePatientRegistration = (event) => {
         setPatientRegistrationData((preventData) => ({
@@ -734,7 +735,6 @@ export default function PatientRegistration() {
 
 
     //selecte only single data
-
     const handelSelecteOnlyUniqueTestData = (data) => {
 
         let isDuplicate = investigationGridData?.some((item) => item.itemId === data.itemId);
@@ -895,7 +895,6 @@ export default function PatientRegistration() {
             });
         }
     };
-
 
 
     const handleSampleTypeChange = (event, index, itemType) => {
@@ -1454,6 +1453,124 @@ export default function PatientRegistration() {
         setIsButtonClick(0);
     }
 
+    //edit info
+    const handelOnClickEditInfoData = async () => {
+        try {
+            const response = await getSingleEditInfoApi(searchData?.editInfoId);
+
+            if (response?.success) {
+
+                const matchedDoctor1 = allReferData?.find((data) => data?.doctorId === response?.data?.refID1);
+
+                const matchedDoctor2 = allReferData?.find((data) => data?.doctorId === response?.data?.refID2);
+
+                const matchedLab = allLabReferData?.find((data) => data?.doctorId === response?.data?.otherLabReferID);
+
+
+                seteditInfoData({
+                    ...response?.data,
+                    dob: new Date(response?.data?.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(" ", "-"),
+                    refID1: matchedDoctor1
+                        ? { doctorId: matchedDoctor1?.doctorId, doctorName: matchedDoctor1?.doctorName }
+                        : null, // If no match, set to null
+                    refID2: matchedDoctor2
+                        ? { doctorId: matchedDoctor2?.doctorId, doctorName: matchedDoctor2?.doctorName }
+                        : null,
+                    otherLabReferID: matchedLab
+                        ? { otherLabReferID: matchedLab?.doctorId, otherLabRefer: matchedLab?.doctorName }
+                        : null
+                });
+
+                setShowPopup(2);
+            } else {
+                toast.error(response?.message);
+            }
+        } catch (error) {
+            toast.error(error?.message);
+        }
+    };
+
+
+    const handelOnChangeEditInfo = (e) => {
+        seteditInfoData((preventData) => ({
+            ...preventData,
+            [e.target.name]: e.target.value
+        }))
+    }
+
+    const handelImageChangeForEditInfo = (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+            const fileType = file.type;
+
+            // Handle image files
+            if (fileType.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    seteditInfoData((prevData) => ({
+                        ...prevData,
+                        uploadDocument: reader.result, // Store base64 image
+                        fileType: "image", // Store file type
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+            // Handle PDF files
+            else if (fileType === "application/pdf") {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    seteditInfoData((prevData) => ({
+                        ...prevData,
+                        uploadDocument: reader.result, // Store base64 PDF
+                        fileType: "pdf", // Store file type
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+            // Handle unsupported files
+            else {
+                toast.info("Please upload a valid image (.jpg, .jpeg, .png) or PDF file.")
+            }
+        }
+    };
+
+
+    const onSubmitForSaveEditInfoData = async () => {
+        setIsButtonClick(3);
+
+        const { refID1, refID2, otherLabReferID, ...filteredEditInfoData } = editInfoData;
+
+        const updatedData = {
+            ...filteredEditInfoData, // Keeps all properties except refID1, refID2, and otherLabReferID
+            refID1: editInfoData?.refID1?.doctorId,
+            refID2: editInfoData?.refID2?.doctorId,
+            otherLabReferID: editInfoData?.otherLabReferID?.otherLabReferID, // Extract doctorId from otherLabReferID
+            otherLabRefer: editInfoData?.otherLabReferID?.otherLabRefer, // Extract doctorName from otherLabReferID
+        };
+
+        console.log(updatedData);
+
+
+        try {
+            const response = await updateEditInfoApi(updatedData);
+            if (response?.success) {
+                toast.success(response?.message);
+                seteditInfoData('')
+            } else {
+                toast.error(response?.message)
+            }
+
+        } catch (error) {
+            toast.error(error?.message);
+            console.log(error);
+
+        }
+
+        setIsButtonClick(0);
+
+    }
+
     // const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
 
 
@@ -1688,16 +1805,16 @@ export default function PatientRegistration() {
                                 <div className="relative flex-1">
 
                                     <CustomTextBox
-                                        type="alphabetandchar"
+                                        type="charNumber"
                                         name="editInfoId"
                                         value={searchData?.editInfoId || ''}
                                         onChange={(e) => handelOnChangeSearchData(e)}
                                         label="Edit info"
                                         isDisabled={false}
-                                        maxLength={10}
+                                        maxLength={15}
                                         allowSpecialChars={false}
                                         isMandatory={false}
-                                        decimalPrecision={4}
+
                                     />
 
                                 </div>
@@ -1707,7 +1824,7 @@ export default function PatientRegistration() {
                                         type='button'
                                         className="h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
                                         onClick={() => {
-                                            setShowPopup(2)
+                                            handelOnClickEditInfoData()
                                         }}
                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                     >
@@ -1735,7 +1852,7 @@ export default function PatientRegistration() {
                                         maxLength={10}
                                         allowSpecialChars={false}
                                         isMandatory={false}
-                                        decimalPrecision={4}
+
                                     />
 
                                 </div>
@@ -1776,7 +1893,7 @@ export default function PatientRegistration() {
                                         maxLength={10}
                                         allowSpecialChars={false}
                                         isMandatory={false}
-                                        decimalPrecision={4}
+
                                     />
 
                                 </div>
@@ -3797,9 +3914,9 @@ export default function PatientRegistration() {
                                                 <CustomNumberInput
                                                     type="phoneNumber"
                                                     name="mobileNo"
-                                                    value={patientRegistrationData?.mobileNo || ''}
+                                                    value={editInfoData?.mobileNo || ''}
                                                     onChange={(e) => {
-                                                        handelOnChangePatientRegistration(e)
+                                                        (e) => handelOnChangeEditInfo(e)
                                                     }}
                                                     maxLength={10}
                                                     label="Mobile No."
@@ -3810,7 +3927,7 @@ export default function PatientRegistration() {
                                                 <CustomDropdown
                                                     name="title_id"
                                                     label="Select Title"
-                                                    value={patientRegistrationData?.title_id}
+                                                    value={editInfoData?.title_id}
                                                     options={[
                                                         { label: 'Select Option', value: 0, disabled: true },
                                                         ...allTitleData?.map(item => ({
@@ -3818,10 +3935,10 @@ export default function PatientRegistration() {
                                                             value: item.id,
                                                         })),
                                                     ]}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    onChange={(e) => handelOnChangeEditInfo(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    isMandatory={patientRegistrationDataError?.title_id}
+                                                    isMandatory={false}
                                                 />
 
                                             </div>
@@ -3832,11 +3949,11 @@ export default function PatientRegistration() {
                                             <CustomTextBox
                                                 type="propercase"
                                                 name="name"
-                                                value={patientRegistrationData?.name || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                value={editInfoData?.name || ''}
+                                                onChange={(e) => handelOnChangeEditInfo(e)}
                                                 label="Name"
                                                 isDisabled={false}
-                                                isMandatory={!Boolean(patientRegistrationData?.name)}
+                                                isMandatory={!Boolean(editInfoData?.name)}
                                             />
                                         </div>
 
@@ -3846,14 +3963,14 @@ export default function PatientRegistration() {
                                                 <CustomTextBox
                                                     type="years"
                                                     name="ageYear"
-                                                    value={patientRegistrationData?.ageYear || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    value={editInfoData?.ageYear || ''}
+                                                    onChange={(e) => handelOnChangeEditInfo(e)}
                                                     label="Years"
                                                     isDisabled={false}
                                                     maxLength={3}
                                                     allowSpecialChars={false}
-                                                    isMandatory={!Boolean(patientRegistrationData?.ageYear)}
-                                                    decimalPrecision={4}
+                                                    isMandatory={!Boolean(editInfoData?.ageYear)}
+
                                                 />
                                             </div>
 
@@ -3861,29 +3978,29 @@ export default function PatientRegistration() {
                                                 <CustomTextBox
                                                     type="months"
                                                     name="ageMonth"
-                                                    value={patientRegistrationData?.ageMonth || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    value={editInfoData?.ageMonth || ''}
+                                                    onChange={(e) => handelOnChangeEditInfo(e)}
                                                     label="Months"
                                                     isDisabled={false}
                                                     maxLength={2}
                                                     allowSpecialChars={false}
-                                                    isMandatory={!Boolean(patientRegistrationData?.ageMonth)}
-                                                    decimalPrecision={4}
+                                                    isMandatory={!Boolean(editInfoData?.ageMonth)}
+
                                                 />
                                             </div>
 
                                             <div className='relative flex-1'>
                                                 <CustomTextBox
                                                     type="days"
-                                                    name="ageDays"
-                                                    value={patientRegistrationData?.ageDays || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    name="ageDay"
+                                                    value={editInfoData?.ageDay || ''}
+                                                    onChange={(e) => handelOnChangeEditInfo(e)}
                                                     label="Days"
                                                     isDisabled={false}
                                                     maxLength={2}
                                                     allowSpecialChars={false}
-                                                    isMandatory={!Boolean(patientRegistrationData?.ageDays)}
-                                                    decimalPrecision={4}
+                                                    isMandatory={!Boolean(editInfoData?.ageDay)}
+
                                                 />
 
                                             </div>
@@ -3897,13 +4014,13 @@ export default function PatientRegistration() {
                                                 <DatePicker
                                                     id="dob"
                                                     name="dob"
-                                                    value={patientRegistrationData?.dob || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    value={editInfoData?.dob || ''}
+                                                    onChange={(e) => handelOnChangeEditInfo(e)}
                                                     placeholder=" "
-                                                    label="DOB"
+                                                    label="Dob"
                                                     activeTheme={activeTheme}
                                                     //isDisabled={false}
-                                                    isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                    isMandatory={!Boolean(editInfoData?.dob)}
                                                     currentDate={new Date()} // Current date: today
                                                     maxDate={new Date(2025, 11, 31)}
                                                     showTime={false}
@@ -3915,14 +4032,14 @@ export default function PatientRegistration() {
                                                 <CustomDropdown
                                                     name="gender"
                                                     label="Select Gender"
-                                                    value={patientRegistrationData?.gender || ''}
+                                                    value={editInfoData?.gender || ''}
                                                     options={[
                                                         { label: 'Select Option', value: '', disabled: true },
                                                         { label: 'Male', value: 'M' },
                                                         { label: 'Female', value: 'F' },
                                                         { label: 'Transgender', value: 'T' },
                                                     ]}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    onChange={(e) => handelOnChangeEditInfo(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
                                                     isMandatory={false}
@@ -3935,8 +4052,8 @@ export default function PatientRegistration() {
                                         <div className="relative flex-1">
                                             <CustomEmailInput
                                                 name="emailId"
-                                                value={patientRegistrationData?.emailId}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                value={editInfoData?.emailId}
+                                                onChange={(e) => handelOnChangeEditInfo(e)}
                                                 label="Email"
                                             />
                                         </div>
@@ -3946,13 +4063,13 @@ export default function PatientRegistration() {
                                             <DatePicker
                                                 id="collectionDateAndTime"
                                                 name="collectionDateAndTime"
-                                                value={patientRegistrationData?.collectionDateAndTime || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                value={editInfoData?.collectionDateAndTime || ''}
+                                                onChange={(e) => handelOnChangeEditInfo(e)}
                                                 placeholder=" "
                                                 label="Collection Date & Time"
                                                 activeTheme={activeTheme}
                                                 //isDisabled={false}
-                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                isMandatory={!Boolean(editInfoData?.dob)}
                                                 currentDate={new Date()} // Current date: today
 
                                                 showTime={true}
@@ -3971,15 +4088,24 @@ export default function PatientRegistration() {
                                                     id="refID1"
                                                     name="refID1"
                                                     label="Refer Dr."
-                                                    value={patientRegistrationData?.refID1}
+                                                    value={editInfoData?.refID1 || { doctorId: "", doctorName: "" }} // Ensure an object is passed
                                                     options={allReferData}
-                                                    onChange={handelOnChangePatientRegistration}
+                                                    onChange={(e) => {
+                                                        // const { name, value } = e.target;
+                                                        // seteditInfoData((prev) => ({
+                                                        //     ...prev,
+                                                        //     [name]: value, // Store entire selected object
+                                                        // }));
+                                                        handelOnChangeEditInfo(e)
+                                                    }}
                                                     filterText="No records found"
                                                     placeholder=" "
-                                                    searchWithName='doctorName'
-                                                    uniqueKey='doctorId'
+                                                    searchWithName="doctorName"
+                                                    uniqueKey="doctorId"
                                                     activeTheme={activeTheme}
                                                 />
+
+
                                             </div>
 
                                             <div>
@@ -4001,9 +4127,9 @@ export default function PatientRegistration() {
                                                 id="refID2"
                                                 name="refID2"
                                                 label="Refer Dr2"
-                                                value={patientRegistrationData?.refID2}
+                                                value={editInfoData?.refID2}
                                                 options={allReferData}
-                                                onChange={handelOnChangePatientRegistration}
+                                                onChange={(e) => handelOnChangeEditInfo(e)}
                                                 filterText="No records found"
                                                 placeholder=" "
                                                 searchWithName='doctorName'
@@ -4019,10 +4145,10 @@ export default function PatientRegistration() {
                                                 // type="text", name, id, value, placeholder, onChange, label
                                                 type='alphabetandcharWithSpace'
                                                 name='address'
-                                                value={patientRegistrationData?.address}
+                                                value={editInfoData?.address}
                                                 placeholder=' '
                                                 allowSpecialChars={true}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                onChange={(e) => handelOnChangeEditInfo(e)}
                                                 label='Address'
                                             />
                                         </div>
@@ -4032,9 +4158,9 @@ export default function PatientRegistration() {
                                             <CustomNumberInput
                                                 type="pinCode"
                                                 name="pinCode"
-                                                value={patientRegistrationData?.pinCode || ''}
+                                                value={editInfoData?.pinCode || ''}
                                                 onChange={(e) => {
-                                                    handelOnChangePatientRegistration(e)
+                                                    (e) => handelOnChangeEditInfo(e)
                                                 }}
                                                 maxLength={6}
                                                 label="Pin Code"
@@ -4045,19 +4171,25 @@ export default function PatientRegistration() {
                                         <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
 
                                             <div className="relative flex-1">
+
                                                 <CustomSearchInputFields
-                                                    id="refLabID"
-                                                    name="refLabID"
+                                                    id="otherLabReferID"
+                                                    name="otherLabReferID"
                                                     label="Refer Lab/Hospital"
-                                                    value={patientRegistrationData?.refLabID}
-                                                    options={allLabReferData}
-                                                    onChange={handelOnChangePatientRegistration}
+                                                    value={editInfoData?.otherLabReferID || null} // Pass the selected object instead of just ID
+                                                    options={allLabReferData.map(({ doctorId, doctorName }) => ({
+                                                        otherLabReferID: doctorId,
+                                                        otherLabRefer: doctorName
+                                                    }))}
+                                                    onChange={(e) => handelOnChangeEditInfo(e)}
                                                     filterText="No records found"
                                                     placeholder=" "
-                                                    searchWithName='doctorName'
-                                                    uniqueKey='doctorId'
+                                                    searchWithName="otherLabRefer"
+                                                    uniqueKey="otherLabReferID"
                                                     activeTheme={activeTheme}
                                                 />
+
+
 
                                             </div>
 
@@ -4076,8 +4208,8 @@ export default function PatientRegistration() {
 
                                         <div className="relative flex-1">
                                             <CustomFileUpload
-                                                value={patientRegistrationData?.uploadDocument}
-                                                handelImageChange={handelImageChange}
+                                                value={editInfoData?.uploadDocument}
+                                                handelImageChange={handelImageChangeForEditInfo}
                                                 activeTheme={activeTheme}
                                             />
                                         </div>
@@ -4090,7 +4222,7 @@ export default function PatientRegistration() {
                                                     icon={FaSpinner}
                                                     isButtonClick={isButtonClick}
                                                     loadingButtonNumber={3} // Unique number for the first button
-                                                    onClick={() => onSubmitForSavePatientRegistrationData} // Pass button number to handler
+                                                    onClick={() => onSubmitForSaveEditInfoData()} // Pass button number to handler
                                                 />
                                             </div>
 
@@ -4185,7 +4317,7 @@ export default function PatientRegistration() {
                                                     onChange={(e) => handelOnChangePatientRegistration(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    isMandatory={!Boolean(patientRegistrationData?.title_id)}
+                                                    isMandatory={false}
                                                 />
 
                                             </div>
@@ -4233,7 +4365,7 @@ export default function PatientRegistration() {
                                                     maxLength={2}
                                                     allowSpecialChars={false}
                                                     isMandatory={!Boolean(patientRegistrationData?.ageMonth)}
-                                                    decimalPrecision={4}
+
                                                 />
                                             </div>
 
@@ -4248,7 +4380,7 @@ export default function PatientRegistration() {
                                                     maxLength={3}
                                                     allowSpecialChars={false}
                                                     isMandatory={!Boolean(patientRegistrationData?.ageYear)}
-                                                    decimalPrecision={4}
+
                                                 />
                                             </div>
 
