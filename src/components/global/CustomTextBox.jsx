@@ -11,6 +11,8 @@ export const CustomTextBox = ({
     maxLength = 50,
     allowSpecialChars = false,
     isMandatory = false,
+    readOnly = false,
+    showLabel = false,
     decimalPrecision = 4, // New property for decimal precision
 }) => {
     const [isValid, setIsValid] = useState(true);
@@ -203,7 +205,6 @@ export const CustomTextBox = ({
         }
 
         const valid = validateField(newValue);
-        console.log(valid);
 
         setIsValid(valid);
 
@@ -280,18 +281,25 @@ export const CustomTextBox = ({
                             ? "border-b-red-500"
                             : "border-borderColor"
                     } focus:outline-none`}
+
+                readOnly={readOnly}
             />
-            <label
-                htmlFor={name}
-                className={`menuPeerLevel
-             ${isDisabled
-                        ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                        : "bg-white"
-                    } 
-            `}
-            >
-                {label}
-            </label>
+            {
+                !showLabel && (
+                    <label
+                        htmlFor={name}
+                        className={`menuPeerLevel
+                 ${isDisabled
+                                ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                                : "bg-white"
+                            } 
+                `}
+                    >
+                        {label}
+                    </label>
+                )
+            }
+
         </div>
     );
 };
