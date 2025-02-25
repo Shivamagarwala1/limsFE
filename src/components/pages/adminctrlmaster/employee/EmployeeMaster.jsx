@@ -118,7 +118,17 @@ export default function EmployeeMaster() {
 
         async function getAllEmp() {
             await getAllEmployeeDataApi().then((resp) => {
-                setAllEmpMasterData(resp);
+
+                if (parseInt(user?.employeeId) === parseInt(1)) {
+                    console.log(user?.employeeId);
+
+
+                    setAllEmpMasterData(resp);
+                } else {
+
+                    setAllEmpMasterData(resp?.filter((data) => parseInt(data?.empId) !== parseInt(1)))
+                }
+
             }).catch((err) => {
                 toast.error(err?.message);
             })
@@ -1232,19 +1242,24 @@ export default function EmployeeMaster() {
                             </label>
                         </div>
 
-                        <div className='h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6'
-                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                        {
+                            !isEditData && (
+                                <div className='h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6'
+                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
 
-                            onClick={() => setShowPass(!showPass)}
-                        >
-                            {
-                                showPass ?
-                                    <FaEyeSlash className='w-3 h-3' />
-                                    :
-                                    <FaEye className='w-3 h-3' />
+                                    onClick={() => setShowPass(!showPass)}
+                                >
+                                    {
+                                        showPass ?
+                                            <FaEyeSlash className='w-3 h-3' />
+                                            :
+                                            <FaEye className='w-3 h-3' />
 
-                            }
-                        </div>
+                                    }
+                                </div>
+                            )
+                        }
+
 
                     </div>
 

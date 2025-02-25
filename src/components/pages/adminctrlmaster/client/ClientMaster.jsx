@@ -104,7 +104,9 @@ export default function ClientMaster() {
         isDefault: 0,
         isLab: 0,
         showClientCode: 0,
-        isLock: 0
+        isLock: 0,
+        billingType: 0,
+        billingTypeName: '',
     });
     const [isHovered, setIsHovered] = useState(null);
     const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
@@ -195,6 +197,7 @@ export default function ClientMaster() {
         }));
         setShowCalander(false);
     };
+
 
     useEffect(() => {
 
@@ -620,6 +623,10 @@ export default function ClientMaster() {
         }
     }, [formData, listOfSelectedEmployee]);
 
+
+    // console.log(allBillingTypeData?.find((data) => data?.id === parseInt(billingType))?.billingTypeName);
+
+
     //save client master data
     const onSubmitClientMasterData = async (event) => {
         event.preventDefault();
@@ -634,6 +641,8 @@ export default function ClientMaster() {
 
         const updatedFormData = {
             ...formData,
+            billingType: parseInt(billingType),
+            billingTypeName: allBillingTypeData?.find((data) => data?.id === parseInt(billingType))?.billingTypeName,
             addEmpCenterAccess: listOfSelectedEmployee,
             createdDateTime: new Date().toISOString()
         };
@@ -760,12 +769,13 @@ export default function ClientMaster() {
                             setRateTypeData(resp?.data);
 
 
+
                             setSelectedSearchDropDownData((...prevData) => ({
                                 ...prevData,
                                 parentCentreID: allParentCenterData?.find((item) => item?.centreId === data?.parentCentreID)?.companyName || '',
                                 //need to change==================
-                                processingLab: allParentCenterData?.filter((item) => item?.centreId
-                                    === data?.parentCentreID)[0]?.companyName || '',
+                                processingLab: allProcessingLabData?.find((item) => item?.centreId
+                                    === data?.processingLab)?.companyName || '',
                                 state: data?.state || '',
                                 district: data?.district || '',
                                 city: data?.city || '',
@@ -790,6 +800,7 @@ export default function ClientMaster() {
                                 addEmpCenterAccess: centerData?.data?.employeeAccess || ''
                             })
 
+                            setBillingType(data?.billingType)
                         }
                     }).catch((err) => {
                         toast.error(err.message);
@@ -835,6 +846,94 @@ export default function ClientMaster() {
             if (resp.success) {
                 toast.success(resp?.message);
                 setIsEditData(false);
+                setBillingType('');
+                setFormData({
+                    createdById: parseInt(user?.employeeId),
+                    centretype: '',
+                    centretypeid: 0,
+                    centreId: 0,//add new
+                    parentCentreID: 0,
+                    processingLab: 0,
+                    centrecode: '',
+                    companyName: '',
+                    mobileNo: '',
+                    address: '',
+                    pinCode: 0,
+                    //creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+                    creditPeridos: '',
+                    minBookingAmt: 0,
+                    creditLimt: 0,
+                    email: '',
+                    paymentMode: '',
+                    paymentModeId: 0,
+                    //====add new===
+                    reportHeader: '',
+                    reciptHeader: '',
+                    reciptFooter: '',
+                    reportBackImage: '',
+                    lockedBy: 0,
+                    lockDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+                    unlockBy: '',
+                    unlockDate: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+                    //===end add new====
+                    zoneId: 0,
+                    state: 0,
+                    districtId: 0,
+                    cityId: 0,
+                    clientmrpId: 0,
+                    patientRate: 0,
+                    clientmrp: 0,
+                    clientRate: 0,
+                    adharNo: '',
+                    reportEmail: '',
+                    ownerName: '',
+                    pan: '',
+                    addEmpCenterAccess: [],
+                    salesExecutiveID: 0,
+                    documentType: 0,
+                    document: '',
+                    chequeNo: '',
+                    bankName: '',
+                    bankID: 0,
+                    ifscCode: '',
+                    isPrePrintedBarcode: 0,
+                    isActive: 1,
+                    showBackcover: 0,
+                    showISO: 0,
+                    receptionarea: 0,
+                    waitingarea: 0,
+                    watercooler: 0,
+                    ac: 0,
+                    chequeAmount: 0,
+                    proId: 0,
+                    allowDueReport: 0,
+                    reportLock: 0,
+                    bookingLock: 0,
+                    unlockTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+                    createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+                    updateById: 0,
+                    updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+                    reporrtHeaderHeightY: 0,
+                    patientYHeader: 0,
+                    barcodeXPosition: 0,
+                    barcodeYPosition: 0,
+                    qrCodeXPosition: 0,
+                    qrCodeYPosition: 0,
+                    isQRheader: 0,
+                    isBarcodeHeader: 0,
+                    footerHeight: 0,
+                    nabLxPosition: 0,
+                    nabLyPosition: 0,
+                    docSignYPosition: 0,
+                    receiptHeaderY: 0,
+                    bankAccount: '',
+                    isDefault: 0,
+                    isLab: 0,
+                    showClientCode: 0,
+                    isLock: 0,
+                    billingType: 0,
+                    billingTypeName: '',
+                })
             } else {
                 toast.error(resp?.message);
             }
@@ -951,8 +1050,11 @@ export default function ClientMaster() {
                                 id="billingType"
                                 name='billingType'
                                 value={billingType || ''}
-                                onChange={(e) => setBillingType(e.target.value)}
-                                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none ${billingType === '' ? "border-b-red-500" : "border-borderColor"}`}
+                                onChange={(e) => {
+                                    setBillingType(e.target.value)
+                                }}
+                                className={`inputPeerField ${isEditData ? 'cursor-not-allowed' : 'cursor-pointer'} peer border-borderColor focus:outline-none ${billingType === '' ? "border-b-red-500" : "border-borderColor"}`}
+                                disabled={isEditData}
                             >
                                 <option value="" disabled className="text-gray-400">
                                     Select Option
@@ -992,9 +1094,11 @@ export default function ClientMaster() {
                                         centerTypeId: selectedOption?.id
                                     }))
                                 }}
-                                className={`inputPeerField cursor-pointer peer border focus:outline-none 
+                                className={`inputPeerField ${isEditData ? 'cursor-not-allowed' : 'cursor-pointer'} peer border focus:outline-none 
                                 ${formErrors.centretype ? "border-b-red-500" : "border-borderColor"
                                     }`}
+
+                                disabled={isEditData}
                             >
                                 <option value="" disabled className="text-gray-400">
                                     Select Option
