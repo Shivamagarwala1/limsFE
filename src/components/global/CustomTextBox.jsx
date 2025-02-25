@@ -56,6 +56,10 @@ export const CustomTextBox = ({
                     return regex.test(value);
                 }
                 return /^[A-Za-z0-9]*$/.test(value);
+
+            case "allCharacters":
+                return /^[\s\S]*$/.test(value);
+
             case "charNumberWithSpace":
                 if (allowSpecialChars) {
                     const regex = new RegExp(`^[A-Za-z0-9\\s${allowedSpecialChars}]*$`);
@@ -184,6 +188,11 @@ export const CustomTextBox = ({
                     // return false;
                 }
                 break;
+            case "allCharacters":
+                if (!/^[\s\S]*$/.test(newValue)) {
+                    newValue = newValue.replace(/[^\s\S]/g, ""); // Allow everything
+                }
+                break;
 
             default:
                 if (!allowSpecialChars) {
@@ -250,6 +259,9 @@ export const CustomTextBox = ({
                     break;
                 case "charNumber":
                     errorMessage = "Only letters and numbers are allowed!";
+                    break;
+                case "allCharacters":
+                    errorMessage = ' '
                     break;
                 default:
                     errorMessage = "Invalid input!";

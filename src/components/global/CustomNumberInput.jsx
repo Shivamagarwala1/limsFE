@@ -9,48 +9,39 @@ export const CustomNumberInput = ({
     isDisabled = false,
     maxLength = 10, // Default maxLength to 10
 }) => {
-    const [inputValue, setInputValue] = useState(value); // Local state for the input value
-    const [isInvalid, setIsInvalid] = useState(false); // State for invalid input (for red border)
+    // const [inputValue, setInputValue] = useState(value); // Local state for the input value
+    const [isInvalid, setIsInvalid] = useState(false); // State for invalid input (for red border)    
 
     const handleInputChange = (e) => {
-        let newValue = e.target.value;
+        let newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
 
-        // Check for non-numeric characters
-        if (/[^0-9]/.test(newValue)) {
-            toast.error("Only numeric values are allowed");
-            newValue = newValue.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-        }
-
-        // Enforce max length
         if (newValue.length > maxLength) {
             toast.error(`Maximum length of ${maxLength} digits exceeded`);
-            newValue = newValue.slice(0, maxLength); // Trim the value
+            newValue = newValue.slice(0, maxLength);
         }
 
-        // Update local state
-        setInputValue(newValue);
-
-        // Trigger the parent's `onChange` callback
         if (onChange) {
-            // onChange({
-            //     ...e,
-            //     target: { ...e.target, value: newValue }, // Update value while preserving other event properties
-            // });
-            onChange(e)
+            onChange({ target: { name, value: newValue } });
+        }
+
+        // ✅ Reset error when input becomes valid
+        if (newValue.length === maxLength) {
             setIsInvalid(false);
         }
     };
 
 
+
     const handleBlur = () => {
-        // Check if the input meets the maxLength condition
-        if (inputValue.length !== maxLength) {
-            toast.error(`Input must contain exactly ${maxLength} digits`); // Show toast if not valid
-            setIsInvalid(true); // Highlight border with red
+
+        if (value.toString().length !== maxLength) {
+            toast.error(`Input must contain exactly ${maxLength} digits`);
+            setIsInvalid(true); // Set error if not valid
         } else {
-            setIsInvalid(false); // Valid input, remove red border
+            setIsInvalid(false); // ✅ Reset error when valid
         }
     };
+
 
     return (
         <div className="relative flex-1">
@@ -58,11 +49,11 @@ export const CustomNumberInput = ({
                 type='text'
                 id={name}
                 name={name}
-                value={inputValue} // Controlled input
+                value={value} // Controlled input
                 onChange={handleInputChange}
                 onBlur={handleBlur} // Validate on blur
                 placeholder=" "
-                maxLength={maxLength + 1} // Prevent users from typing more characters
+                maxLength={maxLength} // Prevent users from typing more characters
                 disabled={isDisabled}
                 className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed"
