@@ -5,11 +5,10 @@ import { useSelector } from 'react-redux';
 import UserCalendar from '../../../public/UserCalendar';
 import useRippleEffect from '../../../customehook/useRippleEffect';
 import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
-import useOutsideClick from '../../../customehook/useOutsideClick';
 import { RiDeleteBin2Fill } from 'react-icons/ri';
 import { dummyDataForpatientRegistrationoldPatient, patientRegistrationInvestigation, patientRegistrationoldPatient, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import { CustomEmailInput } from '../../../global/CustomEmailInput'
-import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getSingleEditInfoApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi } from '../../../../service/service';
+import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getOldPatientApi, getSingleEditInfoApi, getSingleEditTestApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi } from '../../../../service/service';
 import { FaSearch, FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
 import { CustomTextBox } from '../../../global/CustomTextBox';
@@ -24,6 +23,7 @@ import { useFormattedDate, useFormattedDateTime } from '../../../customehook/use
 import FormHeader from '../../../global/FormHeader';
 import PopupFooter from '../../../global/PopupFooter';
 import CustomeNormalButton from '../../../global/CustomeNormalButton';
+
 
 export default function PatientRegistration() {
 
@@ -99,7 +99,8 @@ export default function PatientRegistration() {
 
     const [searchData, setSearchData] = useState({
         editInfoId: '',
-        editTestId: ''
+        editTestId: '',
+        oldPatientId: ''
     })
 
     const [addReferDrData, setAddReferDrData] = useState({
@@ -141,6 +142,8 @@ export default function PatientRegistration() {
     })
 
     const [editInfoData, seteditInfoData] = useState(null);
+    const [editTestData, setEditTestData] = useState(null);
+    const [oldPatientId, setOLdPatientId] = useState(null);
 
     const [gridDataBarCodeandSampleType, setGridDataBarCodeandSampleType] = useState({
         barCode: [],
@@ -149,6 +152,8 @@ export default function PatientRegistration() {
     });
 
     const [patientRegistrationDataError, setPatientRegistrationDataError] = useState([]);
+    const [patientRegistrationForEditInfoDataError, setPatientRegistrationForEditInfoDataError] = useState([]);
+    const [patientRegistrationForEditTestDataError, setPatientRegistrationForEditTestDataError] = useState([]);
 
     const [selectedInvastigationList, setSelectedInvastigationList] = useState([]);
     const [allCentreData, setAllCentreData] = useState([]);
@@ -1482,6 +1487,7 @@ export default function PatientRegistration() {
                 });
 
                 setShowPopup(2);
+
             } else {
                 toast.error(response?.message);
             }
@@ -1497,6 +1503,7 @@ export default function PatientRegistration() {
             [e.target.name]: e.target.value
         }))
     }
+
 
     const handelImageChangeForEditInfo = (e) => {
         const file = e.target.files[0];
@@ -1536,6 +1543,172 @@ export default function PatientRegistration() {
     };
 
 
+    //calculate date of birth
+    const calculateDOBForEditInfo = (ageDay, ageMonth, ageYear) => {
+
+        const today = new Date();
+        const dob = new Date(
+            today.getFullYear() - ageYear,
+            today.getMonth() - ageMonth,
+            today.getDate() - ageDay
+        );
+
+        const formattedDOB = dob.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+
+        // Update DOB only if it changes
+        seteditInfoData((prevData) => {
+            const newDOB = formattedDOB.replace(/ /g, '-');
+            if (prevData.dob !== newDOB) {
+                return { ...prevData, dob: newDOB };
+            }
+            return prevData;
+        });
+    };
+
+
+    // Function to calculate age based on DOB
+    const calculateAgeForEditInfo = (dob) => {
+        const birthDate = new Date(dob);
+        const currentDate = new Date();
+
+        let years = currentDate.getFullYear() - birthDate.getFullYear();
+        let months = currentDate.getMonth() - birthDate.getMonth();
+        let days = currentDate.getDate() - birthDate.getDate();
+
+        // Adjust for negative months
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        // Adjust for negative days
+        if (days < 0) {
+            months--;
+            const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+            days += lastMonth.getDate();
+        }
+
+        //check if years is grater then 150 
+        if (years > 150) {
+            toast.error('150 exceeds professional age limit.');
+            setPatientRegistrationData((preventData) => ({
+                ...preventData,
+                ageMonth: 0
+            }))
+            return;
+        }
+
+        // Ensure months and years are zero if there is no difference
+        if (years < 0) years = 0; // Handle edge cases where dob is in the future
+        if (months < 0) months = 0;
+
+        // Update age only if it changes
+        seteditInfoData((prevData) => {
+            if (
+                prevData.ageYear !== years ||
+                prevData.ageMonth !== months ||
+                prevData.ageDay !== days
+            ) {
+                // Construct the updated data
+                const updatedData = {
+                    ...prevData,
+                    ageYear: years || "0",
+                    ageMonth: months || "0",
+                    ageDay: days || "0",
+                };
+
+
+                // Return the updated data
+                return updatedData;
+            }
+            // Return the unchanged data
+            return prevData;
+        });
+
+    };
+
+
+    const [isUpdating, setIsUpdating] = useState(false);
+
+    // Recalculate DOB if age fields change
+    useEffect(() => {
+        if (!isUpdating && (editInfoData?.ageYear || editInfoData?.ageMonth || editInfoData?.ageDay)) {
+            setIsUpdating(true); // Prevent loop
+            calculateDOBForEditInfo(
+                editInfoData?.ageDay,
+                editInfoData?.ageMonth,
+                editInfoData?.ageYear
+            );
+        }
+    }, [editInfoData?.ageDay, editInfoData?.ageMonth, editInfoData?.ageYear]);
+
+    // Recalculate age if DOB changes
+    useEffect(() => {
+        if (isUpdating) {
+            setIsUpdating(false); // Allow updates again
+        } else if (editInfoData?.dob) {
+            setIsUpdating(true);
+            calculateAgeForEditInfo(editInfoData?.dob);
+        }
+    }, [editInfoData?.dob]);
+
+
+
+    //validations
+    const validateFormForEditInfo = () => {
+
+        const errors = {};
+
+
+
+        // Check for  fields
+        if (!editInfoData?.mobileNo) errors.mobileNo = true;
+
+
+
+        if (!editInfoData?.title_id) errors.title_id = true;
+        if (!editInfoData?.name) errors.name = true;
+
+        if (!editInfoData?.ageDay) errors.ageDay = true;
+        if (!editInfoData?.ageMonth) errors.ageMonth = true;
+        if (!editInfoData?.ageYear) errors.ageYear = true;
+        if (!editInfoData?.dob) errors.dob = true;
+
+        if (!editInfoData?.gender) errors.gender = true;
+        if (!editInfoData?.emailId) errors.emailId = true;
+
+        //sampleTypeName filed required
+
+        if (!editInfoData?.refID1) errors.refID1 = true;
+        if (!editInfoData?.refID2) errors.refID2 = true;
+        if (!editInfoData?.address) errors.address = true;
+        if (!editInfoData?.otherLabReferID) errors.otherLabReferID = true;
+        if (!editInfoData?.pinCode) errors.pinCode = true;
+        if (!editInfoData?.uploadDocument) errors.uploadDocument = true;
+
+        // Update state with errors
+        setPatientRegistrationForEditInfoDataError(errors);
+        // console.log(errors);
+
+        // Return true if no errors exist
+        return Object.keys(errors).length === 0;
+    };
+
+
+    useEffect(() => {
+
+        if (!validateFormForEditInfo()) {
+            setIsButtonClick(0);
+        }
+
+    }, [editInfoData]);
+
+
+
     const onSubmitForSaveEditInfoData = async () => {
         setIsButtonClick(3);
 
@@ -1549,8 +1722,29 @@ export default function PatientRegistration() {
             otherLabRefer: editInfoData?.otherLabReferID?.otherLabRefer, // Extract doctorName from otherLabReferID
         };
 
-        console.log(updatedData);
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+
+        if (updatedData?.mobileNo.toString().length !== 10) {
+            toast.error('Mobile number must be exactly 10 digits.');
+            setIsButtonClick(0);
+            return;
+        } else if (updatedData?.pinCode.toString().length !== 6) {
+            toast.error('Pincode must be exactly 6 digits.');
+            setIsButtonClick(0);
+            return;
+        } else if (!emailRegex.test(updatedData?.emailId)) {
+            toast.error("Enter a valid email address.");
+            setIsButtonClick(0);
+            return;
+        }
+
+        // Validate form before submitting                                                      
+        if (!validateFormForEditInfo()) {
+            toast.info("Please fill in all mandatory fields.");
+            setIsButtonClick(0);
+            return;
+        }
 
         try {
             const response = await updateEditInfoApi(updatedData);
@@ -1570,6 +1764,357 @@ export default function PatientRegistration() {
         setIsButtonClick(0);
 
     }
+
+
+    //edit test
+    const handelOnClickEditTestData = async () => {
+
+        try {
+
+            const response = await getSingleEditTestApi(searchData?.editTestId);
+
+            if (response?.success) {
+
+
+                const matchedDoctor1 = allReferData?.find((data) => data?.doctorId === response?.data[0]?.refID1);
+
+                const matchedDoctor2 = allReferData?.find((data) => data?.doctorId === response?.data[0]?.refID2);
+
+                const matchedLab = allLabReferData?.find((data) => data?.doctorId === response?.data[0]?.otherLabReferID);
+
+                setEditTestData({
+                    ...response?.data[0],
+                    dob: new Date(response?.data[0]?.dob).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(" ", "-"),
+                    refID1: matchedDoctor1
+                        ? { doctorId: matchedDoctor1?.doctorId, doctorName: matchedDoctor1?.doctorName }
+                        : null, // If no match, set to null
+                    refID2: matchedDoctor2
+                        ? { doctorId: matchedDoctor2?.doctorId, doctorName: matchedDoctor2?.doctorName }
+                        : null,
+                    otherLabReferID: matchedLab
+                        ? { otherLabReferID: matchedLab?.doctorId, otherLabRefer: matchedLab?.doctorName }
+                        : null,
+                    testData: response?.data.slice(0, 3).map(({ investigationName, mrp,
+                        netAmount, rate, deliveryDate, isUrgent, itemId, discount, id, itemType }) => ({
+                            itemName: investigationName,
+                            mrp,
+                            netAmt: netAmount,
+                            grosss: rate,
+                            isUrgent,
+                            deliveryDate,
+                            itemId,
+                            discount,
+                            id,
+                            itemType
+                        }))
+                })
+
+                setShowPopup(3)
+
+            } else {
+                toast.error(error?.message);
+            }
+
+        } catch (error) {
+            toast.error(error?.message);
+        }
+    }
+
+
+    // console.log(editTestData?.testData);
+    const handelOnChangeEditTest = (e) => {
+        setEditTestData((preventData) => ({
+            ...preventData,
+            [e.target.name]: e.target.value
+        }))
+    }
+
+
+    const handelImageChangeForEditTest = (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+            const fileType = file.type;
+
+            // Handle image files
+            if (fileType.startsWith("image/")) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setEditTestData((prevData) => ({
+                        ...prevData,
+                        uploadDocument: reader.result, // Store base64 image
+                        fileType: "image", // Store file type
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+            // Handle PDF files
+            else if (fileType === "application/pdf") {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    seteditInfoData((prevData) => ({
+                        ...prevData,
+                        uploadDocument: reader.result, // Store base64 PDF
+                        fileType: "pdf", // Store file type
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+            // Handle unsupported files
+            else {
+                toast.info("Please upload a valid image (.jpg, .jpeg, .png) or PDF file.")
+            }
+        }
+    };
+
+    //calculate date of birth
+    const calculateDOBForEditTest = (ageDay, ageMonth, ageYear) => {
+
+        const today = new Date();
+        const dob = new Date(
+            today.getFullYear() - ageYear,
+            today.getMonth() - ageMonth,
+            today.getDate() - ageDay
+        );
+
+        const formattedDOB = dob.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+
+        // Update DOB only if it changes
+        setEditTestData((prevData) => {
+            const newDOB = formattedDOB.replace(/ /g, '-');
+            if (prevData.dob !== newDOB) {
+                return { ...prevData, dob: newDOB };
+            }
+            return prevData;
+        });
+    };
+
+
+    // Function to calculate age based on DOB
+    const calculateAgeForEditTest = (dob) => {
+        const birthDate = new Date(dob);
+        const currentDate = new Date();
+
+        let years = currentDate.getFullYear() - birthDate.getFullYear();
+        let months = currentDate.getMonth() - birthDate.getMonth();
+        let days = currentDate.getDate() - birthDate.getDate();
+
+        // Adjust for negative months
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+
+        // Adjust for negative days
+        if (days < 0) {
+            months--;
+            const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+            days += lastMonth.getDate();
+        }
+
+        //check if years is grater then 150 
+        if (years > 150) {
+            toast.error('150 exceeds professional age limit.');
+            setEditTestData((preventData) => ({
+                ...preventData,
+                ageMonth: 0
+            }))
+            return;
+        }
+
+        // Ensure months and years are zero if there is no difference
+        if (years < 0) years = 0; // Handle edge cases where dob is in the future
+        if (months < 0) months = 0;
+
+        // Update age only if it changes
+        setEditTestData((prevData) => {
+            if (
+                prevData.ageYear !== years ||
+                prevData.ageMonth !== months ||
+                prevData.ageDay !== days
+            ) {
+                // Construct the updated data
+                const updatedData = {
+                    ...prevData,
+                    ageYear: years || "0",
+                    ageMonth: months || "0",
+                    ageDay: days || "0",
+                };
+
+
+                // Return the updated data
+                return updatedData;
+            }
+            // Return the unchanged data
+            return prevData;
+        });
+
+    };
+
+
+    const [isUpdating1, setIsUpdating1] = useState(false);
+
+    // Recalculate DOB if age fields change
+    useEffect(() => {
+        if (!isUpdating1 && (editTestData?.ageYear || editTestData?.ageMonth || editTestData?.ageDay)) {
+            setIsUpdating1(true); // Prevent loop
+            calculateDOBForEditTest(
+                editTestData?.ageDay,
+                editTestData?.ageMonth,
+                editTestData?.ageYear
+            );
+        }
+    }, [editTestData?.ageDay, editTestData?.ageMonth, editTestData?.ageYear]);
+
+    // Recalculate age if DOB changes
+    useEffect(() => {
+        if (isUpdating1) {
+            setIsUpdating1(false); // Allow updates again
+        } else if (editTestData?.dob) {
+            setIsUpdating1(true);
+            calculateAgeForEditTest(editTestData?.dob);
+        }
+    }, [editTestData?.dob]);
+
+
+
+    //validations
+    const validateFormForEditTest = () => {
+
+        const errors = {};
+
+        // Check for  fields
+        if (!editTestData?.mobileNo) errors.mobileNo = true;
+
+        if (!editTestData?.title_id) errors.title_id = true;
+        if (!editTestData?.name) errors.name = true;
+
+        if (!editTestData?.ageDay) errors.ageDay = true;
+        if (!editTestData?.ageMonth) errors.ageMonth = true;
+        if (!editTestData?.ageYear) errors.ageYear = true;
+        if (!editTestData?.dob) errors.dob = true;
+
+        if (!editTestData?.gender) errors.gender = true;
+        if (!editTestData?.emailId) errors.emailId = true;
+
+        //sampleTypeName filed required
+
+        if (!editTestData?.refID1) errors.refID1 = true;
+        if (!editTestData?.refID2) errors.refID2 = true;
+        if (!editTestData?.address) errors.address = true;
+        if (!editTestData?.otherLabReferID) errors.otherLabReferID = true;
+        if (!editTestData?.pinCode) errors.pinCode = true;
+        if (!editTestData?.uploadDocument) errors.uploadDocument = true;
+
+        // Update state with errors
+        setPatientRegistrationForEditTestDataError(errors);
+        // console.log(errors);
+
+        // Return true if no errors exist
+        return Object.keys(errors).length === 0;
+    };
+
+
+    useEffect(() => {
+
+        if (!validateFormForEditTest()) {
+            setIsButtonClick(0);
+        }
+
+    }, [editTestData]);
+
+    const handleInputChangeEditTestDsicount = (itemId, value, type) => {
+        setEditTestData((prevData) => ({
+            ...prevData,
+            testData: prevData?.testData?.map((item) =>
+                item.itemId === itemId
+                    ? {
+                        ...item,
+                        discount: value,
+                        netAmt: value === "0" || value === 0 ? item.grosss : item.grosss - value // Reset netAmt if discount is zero
+                    }
+                    : item
+            ),
+        }));
+    };
+
+
+
+    const onSubmitForSaveEditTestData = async () => {
+        setIsButtonClick(4);
+
+        console.log(editTestData);
+
+
+        // Generate the transformed list based on testData
+        const transformedList = editTestData?.testData.map((test) => ({
+            address: editTestData?.address,
+            ageDay: editTestData?.ageDay,
+            ageMonth: editTestData?.ageMonth,
+            ageYear: editTestData?.ageYear,
+            deliveryDate: test.deliveryDate || editTestData.deliveryDate, // Keep delivery date
+            discount: test?.discount,
+            dob: editTestData?.dob,
+            emailId: editTestData?.emailId,
+            gender: editTestData?.gender,
+            investigationName: test.itemName,
+            isUrgent: test?.isUrgent,
+            itemId: test?.itemId,
+            itemType: test?.itemType,
+            mobileNo: editTestData?.mobileNo,
+            mrp: test?.mrp,
+            name: editTestData?.name,
+            netAmount: test.netAmt, // Override net amount
+            otherLabRefer: editTestData?.otherLabRefer,
+            otherLabReferID: editTestData?.otherLabReferID?.otherLabReferID,
+            patientId: editTestData?.patientId,
+            pinCode: editTestData?.pinCode,
+            rate: test?.grosss,
+            discount: test?.discount,
+            isUrgent: test.isUrgent, // Override urgency
+            id: test.id, // Override with testData id
+            title_id: editTestData?.title_id,
+            transactionId: editTestData?.transactionId,
+            uploadDocument: editTestData?.uploadDocument,
+            workOrderId: editTestData?.workOrderId
+            // Override investigation name
+
+            // }));
+        }))
+
+        console.log(transformedList);
+
+        setIsButtonClick(0);
+    }
+
+
+    //old patient
+    const handelOnClickOldPatientData = async () => {
+        try {
+
+            const response = await getOldPatientApi(searchData?.oldPatientId);
+
+            if (response?.success) {
+
+                console.log(response);
+                setOLdPatientId([response?.data])
+                setShowPopup(4)
+
+            } else {
+                toast.error(error?.message);
+            }
+
+        } catch (error) {
+            toast.error(error?.message);
+        }
+    }
+
+    console.log(oldPatientId);
+    
 
     // const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
 
@@ -1843,13 +2388,13 @@ export default function PatientRegistration() {
                                 <div className="relative flex-1">
 
                                     <CustomTextBox
-                                        type="alphabetandchar"
+                                        type="charNumber"
                                         name="editTestId"
                                         value={searchData?.editTestId || ''}
                                         onChange={(e) => handelOnChangeSearchData(e)}
                                         label="Edit Test"
                                         isDisabled={false}
-                                        maxLength={10}
+                                        maxLength={15}
                                         allowSpecialChars={false}
                                         isMandatory={false}
 
@@ -1862,7 +2407,8 @@ export default function PatientRegistration() {
                                         type='button'
                                         className=" h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
                                         onClick={() => {
-                                            setShowPopup(3)
+                                            // setShowPopup(3)
+                                            handelOnClickEditTestData()
                                         }}
                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                     >
@@ -1884,13 +2430,13 @@ export default function PatientRegistration() {
                                 <div className="relative flex-1">
 
                                     <CustomTextBox
-                                        type="alphabetandchar"
-                                        name="oldPatient"
-                                        value={searchData?.editTestId || ''}
+                                        type="charNumber"
+                                        name="oldPatientId"
+                                        value={searchData?.oldPatientId || ''}
                                         onChange={(e) => handelOnChangeSearchData(e)}
                                         label="Old Patient"
                                         isDisabled={false}
-                                        maxLength={10}
+                                        maxLength={15}
                                         allowSpecialChars={false}
                                         isMandatory={false}
 
@@ -1903,7 +2449,7 @@ export default function PatientRegistration() {
                                         type='button'
                                         className="h-[1.6rem] w-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold "
                                         onClick={() => {
-                                            setShowPopup(4)
+                                            handelOnClickOldPatientData()
                                         }}
                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                     >
@@ -2114,7 +2660,7 @@ export default function PatientRegistration() {
                                     name="ageDays"
                                     value={patientRegistrationData?.ageDays || ''}
                                     onChange={(e) => handelOnChangePatientRegistration(e)}
-                                    label="Month"
+                                    label="Days"
                                     isMandatory={patientRegistrationDataError?.ageDays}
                                 />
                             </div>
@@ -3916,10 +4462,11 @@ export default function PatientRegistration() {
                                                     name="mobileNo"
                                                     value={editInfoData?.mobileNo || ''}
                                                     onChange={(e) => {
-                                                        (e) => handelOnChangeEditInfo(e)
+                                                        handelOnChangeEditInfo(e)
                                                     }}
                                                     maxLength={10}
                                                     label="Mobile No."
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.mobileNo}
                                                 />
                                             </div>
 
@@ -3938,7 +4485,7 @@ export default function PatientRegistration() {
                                                     onChange={(e) => handelOnChangeEditInfo(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    isMandatory={false}
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.title_id}
                                                 />
 
                                             </div>
@@ -3953,7 +4500,7 @@ export default function PatientRegistration() {
                                                 onChange={(e) => handelOnChangeEditInfo(e)}
                                                 label="Name"
                                                 isDisabled={false}
-                                                isMandatory={!Boolean(editInfoData?.name)}
+                                                isMandatory={patientRegistrationForEditInfoDataError?.name}
                                             />
                                         </div>
 
@@ -3969,7 +4516,7 @@ export default function PatientRegistration() {
                                                     isDisabled={false}
                                                     maxLength={3}
                                                     allowSpecialChars={false}
-                                                    isMandatory={!Boolean(editInfoData?.ageYear)}
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.ageYear}
 
                                                 />
                                             </div>
@@ -3984,7 +4531,7 @@ export default function PatientRegistration() {
                                                     isDisabled={false}
                                                     maxLength={2}
                                                     allowSpecialChars={false}
-                                                    isMandatory={!Boolean(editInfoData?.ageMonth)}
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.ageMonth}
 
                                                 />
                                             </div>
@@ -3999,8 +4546,7 @@ export default function PatientRegistration() {
                                                     isDisabled={false}
                                                     maxLength={2}
                                                     allowSpecialChars={false}
-                                                    isMandatory={!Boolean(editInfoData?.ageDay)}
-
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.ageDay}
                                                 />
 
                                             </div>
@@ -4020,7 +4566,7 @@ export default function PatientRegistration() {
                                                     label="Dob"
                                                     activeTheme={activeTheme}
                                                     //isDisabled={false}
-                                                    isMandatory={!Boolean(editInfoData?.dob)}
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.dob}
                                                     currentDate={new Date()} // Current date: today
                                                     maxDate={new Date(2025, 11, 31)}
                                                     showTime={false}
@@ -4042,7 +4588,7 @@ export default function PatientRegistration() {
                                                     onChange={(e) => handelOnChangeEditInfo(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    isMandatory={false}
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.gender}
                                                 />
 
                                             </div>
@@ -4055,11 +4601,12 @@ export default function PatientRegistration() {
                                                 value={editInfoData?.emailId}
                                                 onChange={(e) => handelOnChangeEditInfo(e)}
                                                 label="Email"
+                                                isMandatory={patientRegistrationForEditInfoDataError?.emailId}
                                             />
                                         </div>
 
 
-                                        <div className='relative flex-1'>
+                                        {/* <div className='relative flex-1'>
                                             <DatePicker
                                                 id="collectionDateAndTime"
                                                 name="collectionDateAndTime"
@@ -4076,7 +4623,7 @@ export default function PatientRegistration() {
                                                 showBigerCalandar={false}
                                             />
 
-                                        </div>
+                                        </div> */}
 
 
 
@@ -4103,6 +4650,7 @@ export default function PatientRegistration() {
                                                     searchWithName="doctorName"
                                                     uniqueKey="doctorId"
                                                     activeTheme={activeTheme}
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.refID1}
                                                 />
 
 
@@ -4135,6 +4683,7 @@ export default function PatientRegistration() {
                                                 searchWithName='doctorName'
                                                 uniqueKey='doctorId'
                                                 activeTheme={activeTheme}
+                                                isMandatory={patientRegistrationForEditInfoDataError?.refID2}
                                             />
                                         </div>
 
@@ -4142,14 +4691,14 @@ export default function PatientRegistration() {
 
                                         <div className="relative flex-1">
                                             <CustomTextBox
-                                                // type="text", name, id, value, placeholder, onChange, label
-                                                type='alphabetandcharWithSpace'
+                                                type='allCharacters'
                                                 name='address'
                                                 value={editInfoData?.address}
                                                 placeholder=' '
                                                 allowSpecialChars={true}
                                                 onChange={(e) => handelOnChangeEditInfo(e)}
                                                 label='Address'
+                                                isMandatory={patientRegistrationForEditInfoDataError?.address}
                                             />
                                         </div>
 
@@ -4160,10 +4709,11 @@ export default function PatientRegistration() {
                                                 name="pinCode"
                                                 value={editInfoData?.pinCode || ''}
                                                 onChange={(e) => {
-                                                    (e) => handelOnChangeEditInfo(e)
+                                                    handelOnChangeEditInfo(e)
                                                 }}
                                                 maxLength={6}
                                                 label="Pin Code"
+                                                isMandatory={patientRegistrationForEditInfoDataError?.pinCode}
                                             />
                                         </div>
 
@@ -4187,6 +4737,7 @@ export default function PatientRegistration() {
                                                     searchWithName="otherLabRefer"
                                                     uniqueKey="otherLabReferID"
                                                     activeTheme={activeTheme}
+                                                    isMandatory={patientRegistrationForEditInfoDataError?.otherLabReferID}
                                                 />
 
 
@@ -4211,6 +4762,7 @@ export default function PatientRegistration() {
                                                 value={editInfoData?.uploadDocument}
                                                 handelImageChange={handelImageChangeForEditInfo}
                                                 activeTheme={activeTheme}
+                                                isMandatory={patientRegistrationForEditInfoDataError?.uploadDocument}
                                             />
                                         </div>
 
@@ -4254,7 +4806,7 @@ export default function PatientRegistration() {
             {
                 showPopup === 3 && (
                     <div className="fixed inset-0 px-2 bg-black bg-opacity-50 z-50">
-                        <div className="w-full   mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
+                        <div className="w-full max-h-screen overflow-scroll mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
 
                             <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
@@ -4293,12 +4845,13 @@ export default function PatientRegistration() {
                                                 <CustomNumberInput
                                                     type="phoneNumber"
                                                     name="mobileNo"
-                                                    value={patientRegistrationData?.mobileNo || ''}
+                                                    value={editTestData?.mobileNo || ''}
                                                     onChange={(e) => {
-                                                        handelOnChangePatientRegistration(e)
+                                                        handelOnChangeEditTest(e)
                                                     }}
                                                     maxLength={10}
                                                     label="Mobile No."
+                                                    isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
                                                 />
                                             </div>
 
@@ -4306,7 +4859,7 @@ export default function PatientRegistration() {
                                                 <CustomDropdown
                                                     name="title_id"
                                                     label="Select Title"
-                                                    value={patientRegistrationData?.title_id}
+                                                    value={editTestData?.title_id}
                                                     options={[
                                                         { label: 'Select Option', value: 0, disabled: true },
                                                         ...allTitleData?.map(item => ({
@@ -4314,10 +4867,10 @@ export default function PatientRegistration() {
                                                             value: item.id,
                                                         })),
                                                     ]}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    onChange={(e) => handelOnChangeEditTest(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    isMandatory={false}
+                                                    isMandatory={patientRegistrationForEditTestDataError?.title_id}
                                                 />
 
                                             </div>
@@ -4328,60 +4881,61 @@ export default function PatientRegistration() {
                                             <CustomTextBox
                                                 type="propercase"
                                                 name="name"
-                                                value={patientRegistrationData?.name || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                value={editTestData?.name || ''}
+                                                onChange={(e) => handelOnChangeEditTest(e)}
                                                 label="Name"
-                                                isMandatory={!Boolean(patientRegistrationData?.name)}
+                                                isMandatory={patientRegistrationForEditTestDataError?.name}
                                             />
                                         </div>
 
 
                                         <div className='flex gap-[0.25rem]'>
 
+
                                             <div className='relative flex-1'>
                                                 <CustomTextBox
-                                                    type="days"
-                                                    name="ageDays"
-                                                    value={patientRegistrationData?.ageDays || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                    label="Days"
+                                                    type="years"
+                                                    name="ageYear"
+                                                    value={editTestData?.ageYear || ''}
+                                                    onChange={(e) => handelOnChangeEditTest(e)}
+                                                    label="Years"
                                                     isDisabled={false}
-                                                    maxLength={2}
-
-                                                    isMandatory={!Boolean(patientRegistrationData?.ageDays)}
+                                                    maxLength={3}
+                                                    allowSpecialChars={false}
+                                                    isMandatory={patientRegistrationForEditTestDataError?.ageYear}
 
                                                 />
-
                                             </div>
 
                                             <div className='relative flex-1'>
                                                 <CustomTextBox
                                                     type="months"
                                                     name="ageMonth"
-                                                    value={patientRegistrationData?.ageMonth || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    value={editTestData?.ageMonth || ''}
+                                                    onChange={(e) => handelOnChangeEditTest(e)}
                                                     label="Months"
                                                     isDisabled={false}
                                                     maxLength={2}
                                                     allowSpecialChars={false}
-                                                    isMandatory={!Boolean(patientRegistrationData?.ageMonth)}
+                                                    isMandatory={patientRegistrationForEditTestDataError?.ageMonth}
 
                                                 />
                                             </div>
 
                                             <div className='relative flex-1'>
                                                 <CustomTextBox
-                                                    type="years"
-                                                    name="ageYear"
-                                                    value={patientRegistrationData?.ageYear || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                    label="Years"
+                                                    type="days"
+                                                    name="ageDay"
+                                                    value={editTestData?.ageDay || ''}
+                                                    onChange={(e) => handelOnChangeEditTest(e)}
+                                                    label="Days"
                                                     isDisabled={false}
-                                                    maxLength={3}
-                                                    allowSpecialChars={false}
-                                                    isMandatory={!Boolean(patientRegistrationData?.ageYear)}
+                                                    maxLength={2}
+
+                                                    isMandatory={patientRegistrationForEditTestDataError?.ageDay}
 
                                                 />
+
                                             </div>
 
                                         </div>
@@ -4393,8 +4947,8 @@ export default function PatientRegistration() {
                                                 <DatePicker
                                                     id="dob"
                                                     name="dob"
-                                                    value={patientRegistrationData?.dob || ''}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    value={editTestData?.dob || ''}
+                                                    onChange={(e) => handelOnChangeEditTest(e)}
                                                     placeholder=" "
                                                     label="DOB"
                                                     activeTheme={activeTheme}
@@ -4405,6 +4959,7 @@ export default function PatientRegistration() {
 
                                                     showTime={false}
                                                     showBigerCalandar={true}
+
                                                 />
                                                 {/* </div> */}
 
@@ -4414,17 +4969,17 @@ export default function PatientRegistration() {
                                                 <CustomDropdown
                                                     name="gender"
                                                     label="Select Gender"
-                                                    value={patientRegistrationData?.gender || ''}
+                                                    value={editTestData?.gender || ''}
                                                     options={[
                                                         { label: 'Select Option', value: '', disabled: true },
                                                         { label: 'Male', value: 'M' },
                                                         { label: 'Female', value: 'F' },
                                                         { label: 'Transgender', value: 'T' },
                                                     ]}
-                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                    onChange={(e) => handelOnChangeEditTest(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    isMandatory={false}
+                                                    isMandatory={patientRegistrationForEditTestDataError?.gender}
                                                 />
 
                                             </div>
@@ -4434,9 +4989,10 @@ export default function PatientRegistration() {
                                         <div className="relative flex-1">
                                             <CustomEmailInput
                                                 name="emailId"
-                                                value={patientRegistrationData?.emailId}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                value={editTestData?.emailId}
+                                                onChange={(e) => handelOnChangeEditTest(e)}
                                                 label="Email"
+                                                isMandatory={patientRegistrationForEditTestDataError?.emailId}
                                             />
                                         </div>
 
@@ -4447,14 +5003,15 @@ export default function PatientRegistration() {
                                                     id="refID1"
                                                     name="refID1"
                                                     label="Refer Dr."
-                                                    value={patientRegistrationData?.refID1}
+                                                    value={editTestData?.refID1}
                                                     options={allReferData}
-                                                    onChange={handelOnChangePatientRegistration}
+                                                    onChange={handelOnChangeEditTest}
                                                     filterText="No records found"
                                                     placeholder=" "
                                                     searchWithName='doctorName'
                                                     uniqueKey='doctorId'
                                                     activeTheme={activeTheme}
+                                                    isMandatory={patientRegistrationForEditTestDataError?.refID1}
                                                 />
                                             </div>
 
@@ -4477,24 +5034,25 @@ export default function PatientRegistration() {
                                                 id="refID2"
                                                 name="refID2"
                                                 label="Refer Dr2"
-                                                value={patientRegistrationData?.refID2}
+                                                value={editTestData?.refID2}
                                                 options={allReferData}
-                                                onChange={handelOnChangePatientRegistration}
+                                                onChange={handelOnChangeEditTest}
                                                 filterText="No records found"
                                                 placeholder=" "
                                                 searchWithName='doctorName'
                                                 uniqueKey='doctorId'
                                                 activeTheme={activeTheme}
+                                                isMandatory={patientRegistrationForEditTestDataError?.refID2}
                                             />
                                         </div>
 
 
-                                        <div className='relative flex-1'>
+                                        {/* <div className='relative flex-1'>
                                             <DatePicker
                                                 id="collectionDateAndTime"
                                                 name="collectionDateAndTime"
                                                 value={patientRegistrationData?.collectionDateAndTime || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                onChange={(e) => handelOnChangeEditTest(e)}
                                                 placeholder=" "
                                                 label="Collection Date & Time"
                                                 activeTheme={activeTheme}
@@ -4507,19 +5065,20 @@ export default function PatientRegistration() {
                                             />
 
 
-                                        </div>
+                                        </div> */}
 
 
                                         <div className="relative flex-1">
                                             <CustomTextBox
                                                 // type="text", name, id, value, placeholder, onChange, label
-                                                type='alphabetandcharWithSpace'
+                                                type='allCharacters'
                                                 name='address'
                                                 allowSpecialChars={true}
-                                                value={patientRegistrationData?.address}
+                                                value={editTestData?.address}
                                                 placeholder=' '
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                onChange={(e) => handelOnChangeEditTest(e)}
                                                 label='Address'
+                                                isMandatory={patientRegistrationForEditTestDataError?.address}
                                             />
                                         </div>
 
@@ -4528,12 +5087,13 @@ export default function PatientRegistration() {
                                             <CustomNumberInput
                                                 type="pinCode"
                                                 name="pinCode"
-                                                value={patientRegistrationData?.pinCode || ''}
+                                                value={editTestData?.pinCode || ''}
                                                 onChange={(e) => {
-                                                    handelOnChangePatientRegistration(e)
+                                                    handelOnChangeEditTest(e)
                                                 }}
                                                 maxLength={6}
                                                 label="Pin Code"
+                                                isMandatory={patientRegistrationForEditTestDataError?.pinCode}
                                             />
                                         </div>
 
@@ -4542,17 +5102,21 @@ export default function PatientRegistration() {
 
                                             <div className="relative flex-1">
                                                 <CustomSearchInputFields
-                                                    id="refLabID"
-                                                    name="refLabID"
+                                                    id="otherLabReferID"
+                                                    name="otherLabReferID"
                                                     label="Refer Lab/Hospital"
-                                                    value={patientRegistrationData?.refLabID}
-                                                    options={allLabReferData}
-                                                    onChange={handelOnChangePatientRegistration}
+                                                    value={editTestData?.otherLabReferID || null} // Pass the selected object instead of just ID
+                                                    options={allLabReferData.map(({ doctorId, doctorName }) => ({
+                                                        otherLabReferID: doctorId,
+                                                        otherLabRefer: doctorName
+                                                    }))}
+                                                    onChange={(e) => handelOnChangeEditTest(e)}
                                                     filterText="No records found"
                                                     placeholder=" "
-                                                    searchWithName='doctorName'
-                                                    uniqueKey='doctorId'
+                                                    searchWithName="otherLabRefer"
+                                                    uniqueKey="otherLabReferID"
                                                     activeTheme={activeTheme}
+                                                    isMandatory={patientRegistrationForEditTestDataError?.otherLabReferID}
                                                 />
 
                                             </div>
@@ -4572,19 +5136,19 @@ export default function PatientRegistration() {
 
                                         <div className="relative flex-1">
                                             <CustomFileUpload
-                                                value={patientRegistrationData?.uploadDocument}
-                                                handelImageChange={handelImageChange}
+                                                value={editTestData?.uploadDocument}
+                                                handelImageChange={handelImageChangeForEditTest}
                                                 activeTheme={activeTheme}
                                             />
                                         </div>
 
-                                        <div className="relative flex-1">
+                                        {/* <div className="relative flex-1">
 
                                             <CustomSearchInputFields
                                                 id="itemId"
                                                 name="itemId"
                                                 label="Test Search By Name Or Code"
-                                                value={patientRegistrationData?.itemId}
+                                                value={editTestData?.itemId}
                                                 options={allInvastigationData}
                                                 onChange={handelOnChangePatientRegistration}
                                                 filterText="No records found"
@@ -4594,7 +5158,7 @@ export default function PatientRegistration() {
                                                 activeTheme={activeTheme}
                                             />
 
-                                        </div>
+                                        </div> */}
 
 
 
@@ -4607,8 +5171,8 @@ export default function PatientRegistration() {
                                                     text="Update"
                                                     icon={FaSpinner}
                                                     isButtonClick={isButtonClick}
-                                                    loadingButtonNumber={3} // Unique number for the first button
-                                                    onClick={() => onSubmitForSavePatientRegistrationData} // Pass button number to handler
+                                                    loadingButtonNumber={4} // Unique number for the first button
+                                                    onClick={() => onSubmitForSaveEditTestData()} // Pass button number to handler
                                                 />
                                             </div>
 
@@ -4630,7 +5194,7 @@ export default function PatientRegistration() {
 
                                     {/* grid data */}
                                     {
-                                        investigationGridData?.length !== 0 && (
+                                        editTestData?.testData?.length !== 0 && (
                                             // Table Container
                                             <div className="grid grid-cols-12 gap-2 mt-1 mb-1 mx-1 lg:mx-2">
                                                 <div className="col-span-12">
@@ -4659,7 +5223,7 @@ export default function PatientRegistration() {
                                                             </thead>
                                                             <tbody>
                                                                 {/* Data Rows */}
-                                                                {investigationGridData?.map((data, rowIndex) => (
+                                                                {editTestData?.testData?.map((data, rowIndex) => (
                                                                     <tr
                                                                         key={rowIndex}
                                                                         className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
@@ -4694,13 +5258,12 @@ export default function PatientRegistration() {
                                                                             <input
                                                                                 type="text"
                                                                                 className="border-[1.5px] rounded outline-none px-1 w-full"
-                                                                                value={
-                                                                                    gridDataBarCodeandSampleType?.discount.find(
-                                                                                        (item) => item.itemId === data?.itemId
-                                                                                    )?.discount || ""
-                                                                                }
+
+                                                                                value={editTestData?.testData?.find((item) => item.itemId === data?.itemId)?.discount ?? 0}
+
+
                                                                                 onChange={(e) =>
-                                                                                    handleInputChange(data?.itemId, e.target.value, "1")
+                                                                                    handleInputChangeEditTestDsicount(data?.itemId, e.target.value, "1")
                                                                                 }
                                                                             />
                                                                         </td>
@@ -4714,7 +5277,8 @@ export default function PatientRegistration() {
                                                                                 )
                                                                             ).toFixed(2)}
                                                                         </td>
-                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+
+                                                                        {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                             <select
                                                                                 className="border rounded px-1 w-full outline-none"
                                                                                 onChange={(e) =>
@@ -4736,8 +5300,9 @@ export default function PatientRegistration() {
                                                                                     </option>
                                                                                 ))}
                                                                             </select>
-                                                                        </td>
-                                                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        </td> */}
+
+                                                                        {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                             <input
                                                                                 type="text"
                                                                                 className="border-[1.5px] rounded outline-none px-1 w-[6.2rem]"
@@ -4750,7 +5315,7 @@ export default function PatientRegistration() {
                                                                                     handleInputChange(data?.itemId, e.target.value, "2")
                                                                                 }
                                                                             />
-                                                                        </td>
+                                                                        </td> */}
                                                                         <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                             {data?.deliveryDate}
                                                                         </td>
@@ -4777,16 +5342,16 @@ export default function PatientRegistration() {
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">Total Amt.</td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
-                                                                        {investigationGridData.reduce((sum, data) => sum + (data?.mrp || 0), 0)}
+                                                                        {editTestData?.testData.reduce((sum, data) => sum + (data?.mrp || 0), 0)}
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
-                                                                        {investigationGridData.reduce(
+                                                                        {editTestData?.testData.reduce(
                                                                             (sum, data) => sum + (data?.grosss || 0),
                                                                             0
                                                                         )}
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
-                                                                        {investigationGridData.reduce(
+                                                                        {editTestData?.testData.reduce(
                                                                             (sum, data) =>
                                                                                 sum +
                                                                                 parseFloat(
@@ -4798,13 +5363,13 @@ export default function PatientRegistration() {
                                                                         )}
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
-                                                                        {patientRegistrationData?.grossAmount}
+                                                                        {editTestData?.testData.reduce((sum, data) => sum + (data?.netAmt || 0), 0)}
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold"></td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold"></td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold"></td>
-                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td>
-                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                    {/* <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td> */}
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -4855,7 +5420,7 @@ export default function PatientRegistration() {
                                     <div>Old Patient Info.</div>
                                 </div>
 
-                                <div className="grid grid-cols-12 gap-2 mt-[2px] mb-1 mx-1 lg:mx-2">
+                                <div className="grid grid-cols-12 gap-2 mt-[2px] mb-1 mx-1 ">
                                     <div className="col-span-12">
                                         <div className="max-h-[8.2rem] overflow-y-auto">
                                             {/* Table */}
@@ -4884,7 +5449,7 @@ export default function PatientRegistration() {
                                                 <tbody>
 
                                                     {/* Data Rows */}
-                                                    {dummyDataForpatientRegistrationoldPatient?.map((data, rowIndex) => (
+                                                    {oldPatientId?.map((data, rowIndex) => (
                                                         <tr
                                                             key={rowIndex}
                                                             className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
@@ -4904,32 +5469,32 @@ export default function PatientRegistration() {
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.PatientId}
+                                                                {data?.patientId}
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.PatientName}
+                                                                {data?.name}
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.age}
+                                                                {data?.ageDay}
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.Gender}
+                                                                {data?.gender}
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.Mobile}
+                                                                {data?.mobileNo}
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.Email}
+                                                                {data?.emailId}
                                                             </td>
 
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.RegDate}
+                                                                {data?.bookingDate}
                                                             </td>
 
                                                         </tr>

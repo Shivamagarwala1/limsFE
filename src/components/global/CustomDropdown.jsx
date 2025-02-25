@@ -5,7 +5,7 @@ function CustomDropdown({
   name,
   label,
   value,
-  options,
+  options = [],
   onChange,
   defaultIndex = 0,
   isDisabled = false,
@@ -22,9 +22,6 @@ function CustomDropdown({
   };
 
 
-
-
-
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -38,7 +35,7 @@ function CustomDropdown({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  
+
   return (
     <div ref={dropdownRef}>
       {/* Hidden input for accessibility */}
@@ -46,8 +43,8 @@ function CustomDropdown({
         type="text"
         id={id}
         name={name}
-        value={value}
-        readOnly
+        value={value ?? ""}
+        onChange={(e) => onChange(e)}
         className="sr-only"
         aria-hidden="true"
       />

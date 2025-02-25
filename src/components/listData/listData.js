@@ -231,6 +231,8 @@ export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross A
   // 'Sample Type', 'Bar Code', 
   'Delivery Date', 'IsUrgent', 'Delete'];
 
+  
+
 export const patientRegistrationPaymentMode = ['Cash Amt.', 'Credit/DebitCard Amt.', 'Last 4 Digit Of Card', 'Bank', 'UPI Amt.', 'UPI Type'];
 
 export const paymentModes = [
