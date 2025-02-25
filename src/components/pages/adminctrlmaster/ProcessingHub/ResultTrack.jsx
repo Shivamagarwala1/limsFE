@@ -10,36 +10,54 @@ import { useSelector } from "react-redux";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
-import { useGetData } from "../../../../service/apiService";
+import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
-import { FaComments, FaPlus, FaPrint } from "react-icons/fa";
+import { FaCommentDots, FaComments, FaPlus, FaPrint } from "react-icons/fa";
 import {
   InfoPopup,
   InvestigationRemarkPopupModal,
   RejectPopupModal,
   ReRunPopup,
+  ResultTrackRemarkPopupModal,
+  SampleCollectionCommentPopupModal,
 } from "../../../../Custom Components/PopupModal";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import CustomeEditor from "../../../sharecomponent/CustomeEditor";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import CustomHandsontable from "../../../../Custom Components/CustomHandsontable";
-import { setLocal } from "usehoks";
+import { getLocal, setLocal } from "usehoks";
+import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
+import { addObjectId } from "../../../../service/RedendentData";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
   const [selectedCenter, setSelectedCenter] = useState([]);
-  const [editorContent, setEditorContent] = useState("");
+  const [selectedTest, setSelectedTest] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState([]);
   const [Organism, setOrganism] = useState([]);
   const [RemarkPopup, setRemarkPopup] = useState(false);
   const [Info, setInfo] = useState(null);
+  const [Row, setRow] = useState({});
   const [ReRun, setReRun] = useState(null);
   const [UserObj, setUserObj] = useState(null);
+  const [showStates, setShowStates] = useState({});
   const [RejectPopup, setRejectPopup] = useState(false);
   const AllCenterData = useGetData();
+  const TestData = useGetData();
+  const DepartmentData = useGetData();
+  const PostData = usePostData();
+  const lsData = getLocal("imarsar_laboratory");
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
+    );
+    TestData?.fetchData(
+      "/itemMaster?select=itemId,ItemName&$filter=(isactive eq 1)"
+    );
+
+    DepartmentData?.fetchData(
+      "/labDepartment?select=id,deptname&$filter=(isactive eq 1)"
     );
     // console.log(AllCenterData);
   }, []);
@@ -47,57 +65,56 @@ export default function ResultTrack() {
     { field: "id", headerName: "Sr. No", width: 20 },
 
     {
-      field: `BookingDate`,
+      field: `bookingDate`,
       headerName: `Booking Date`,
       flex: 1,
     },
     {
-      field: `VisitId`,
+      field: `patientId`,
       headerName: `Visit Id`,
       flex: 1,
     },
     {
-      field: `SampleRecDate`,
+      field: `sampleReceiveDate`,
       headerName: `Sample Rec. Date`,
       flex: 1,
     },
     {
-      field: `PatientName`,
+      field: `patientName`,
       headerName: `Patient Name`,
       flex: 1,
     },
     {
-      field: `AgeGender`,
+      field: `age`,
       headerName: `Age/Gender`,
       flex: 1,
     },
     {
-      field: `Barcode`,
+      field: `barcodeNo`,
       headerName: `Barcode No.`,
       flex: 1,
     },
     {
-      field: `TestName`,
+      field: `investigationName`,
       headerName: `Test Name`,
       flex: 1,
       renderCell: (params) => {
-        // console.log(params.row)
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
             <SubmitButton
               submit={false}
-              text={params?.row?.TestName}
+              text={params?.row?.investigationName}
               callBack={() => {
                 setUserObj(params?.row);
               }}
               style={{
-                width: "30px",
+                // width: "30px",
                 fontSize: "0.75rem",
                 padding: "0px 20px",
                 height: "20px",
               }}
             />
-            <SubmitButton
+            {/* <SubmitButton
               submit={false}
               text={"ESR"}
               callBack={() => {
@@ -135,18 +152,61 @@ export default function ResultTrack() {
                 padding: "0px 20px",
                 height: "20px",
               }}
-            />
+            /> */}
           </div>
         );
       },
     },
     {
-      field: `Comments`,
+      field: `comment`,
       headerName: `Comments`,
       flex: 1,
+      renderCell: (params) => {
+        const rowId = params.row.id;
+        const isShown = showStates[rowId] || false;
+
+        const hideComment = () => {
+          setShowStates((prev) => ({
+            ...prev,
+            [rowId]: !isShown,
+          }));
+        };
+        return (
+          <>
+            <SampleCollectionCommentPopupModal
+              setShowPopup={hideComment}
+              showPopup={isShown}
+              comment={params?.row?.comment}
+            />
+            <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+              {params?.row?.comment?.slice(0, 10)}
+              {params?.row?.comment.length > 0 && (
+                <>
+                  ...
+                  <div
+                    onClick={() => {
+                      setShowStates((prev) => ({
+                        ...prev,
+                        [rowId]: !isShown,
+                      }));
+                    }}
+                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                    style={{
+                      background: activeTheme?.menuColor,
+                      color: activeTheme?.iconColor,
+                    }}
+                  >
+                    <FaCommentDots />
+                  </div>
+                </>
+              )}
+            </div>
+          </>
+        );
+      },
     },
     {
-      field: `ApprovedDate`,
+      field: `approvedDate`,
       headerName: `Approved Date`,
       flex: 1,
     },
@@ -155,7 +215,6 @@ export default function ResultTrack() {
       headerName: `Remark`,
       flex: 1,
       renderCell: (params) => {
-        // console.log(params.row)
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
             <SubmitButton
@@ -163,6 +222,7 @@ export default function ResultTrack() {
               text={"+"}
               callBack={() => {
                 setLocal("testName", params?.row?.TestName);
+                setRow({ ...params?.row });
                 setRemarkPopup(true);
               }}
               style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
@@ -437,17 +497,26 @@ export default function ResultTrack() {
       headerName: "Old Reading",
       flex: 1,
     },
-    // {
-    //   field: "action",
-    //   headerName: "Action",
-    //   flex: 1,
-    //   renderCell: ({ row }) => (
-    //     <button onClick={() => alert(`Editing ${row.name}`)}>Edit</button>
-    //   ),
-    // },
   ];
 
-  const handleSubmit = () => {};
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const values = getValues();
+    const payload = {
+      ...values,
+      empId: lsData?.user?.employeeId,
+      centreIds: selectedCenter,
+      departmentIds: selectedDepartment,
+      itemIds: selectedTest,
+    };
+    setLocal("payload", payload);
+    console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
+    PostData?.postRequest("/tnx_BookingItem/GetResultEntryAllData", payload);
+    console.log(PostData?.data);
+  };
+
+  const updatedArray = addObjectId(PostData?.data);
+
   const statuses = [
     {
       Data: 1,
@@ -559,7 +628,7 @@ export default function ResultTrack() {
       renderCell: ({ row }) => (
         <>
           <div className="flex gap-2 text-center">
-            {row?.id} <input type="checkbox" /> 
+            {row?.id} <input type="checkbox" />
           </div>
         </>
       ),
@@ -578,9 +647,7 @@ export default function ResultTrack() {
         <>
           <div style={{}} className="flex gap-2 text-center">
             <InputGenerator
-              inputFields={[
-                { type: "select", name: "rerun",dataOptions:[] },
-              ]}
+              inputFields={[{ type: "select", name: "rerun", dataOptions: [] }]}
             />
           </div>
         </>
@@ -609,10 +676,10 @@ export default function ResultTrack() {
   ];
   return (
     <div>
-      {" "}
-      <InvestigationRemarkPopupModal
+        <ResultTrackRemarkPopupModal
         setShowPopup={setRemarkPopup}
         showPopup={RemarkPopup}
+        rowData={Row}
       />
       <ReRunPopup
         heading="Re-Run"
@@ -636,39 +703,48 @@ export default function ResultTrack() {
           <FormHeader title="Patient Search" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-              <MultiSelectDropdown
-                field={{
-                  label: "Centre",
-                  name: "CentreMode",
-                  keyField: "centreId",
-                  selectedValues: selectedCenter,
-                  showValueField: "companyName",
-                  dataOptions: AllCenterData?.data,
-                  callBack: (selected) => setSelectedCenter(selected),
-                }}
+              <UpdatedMultiSelectDropDown
+                id="Center"
+                name="serachCenter"
+                label="Center"
+                placeHolder="Search Center"
+                options={AllCenterData?.data}
+                isMandatory={false}
+                isDisabled={false}
+                optionKey="centreId"
+                optionValue={["companyName"]}
+                selectedValues={selectedCenter}
+                setSelectedValues={setSelectedCenter}
               />
+
               <InputGenerator
                 inputFields={[
                   {
                     label: "From Date",
                     type: "customDateField",
-                    name: "FromDate",
+                    name: "fromDate",
                   },
                   {
                     label: "To Date",
                     type: "customDateField",
-                    name: "ToDate",
+                    name: "toDate",
                   },
                   {
                     label: "Search",
                     type: "select",
-                    name: "Search1",
+                    name: "datetype",
                     defaultView: true,
                     dataOptions: [
-                      { id: 1, data: "Sample Received Date" },
-                      { id: 2, data: "Sample Collection Date" },
-                      { id: 3, data: "Booking Date" },
-                      { id: 4, data: "Delivery Date" },
+                      {
+                        id: "tbi.sampleReceiveDate",
+                        data: "Sample Received Date",
+                      },
+                      {
+                        id: "tbi.sampleCollectionDate",
+                        data: "Sample Collection Date",
+                      },
+                      { id: "tb.bookingDate", data: "Booking Date" },
+                      { id: "tbi.deliveryDate", data: "Delivery Date" },
                     ],
                   },
                 ]}
@@ -679,27 +755,30 @@ export default function ResultTrack() {
                     {
                       label: "Status",
                       type: "select",
-                      name: "Status",
+                      name: "status",
                       defaultView: true,
                       dataOptions: [
-                        { id: 1, status: "Pending" },
-                        { id: 2, status: "Tested" },
-                        { id: 3, status: "Approved" },
-                        { id: 4, status: "Urgent" },
-                        { id: 5, status: "Machine Result" },
+                        { id: "Pending", status: "Pending" },
+                        { id: "Tested", status: "Tested" },
+                        { id: "Approved", status: "Approved" },
+                        { id: "Urgent", status: "Urgent" },
+                        { id: "Machine Result", status: "Machine Result" },
                       ],
                     },
                     {
                       label: "Order By",
                       type: "select",
-                      name: "OrderBy",
+                      name: "orderby",
                       defaultView: true,
                       dataOptions: [
-                        { id: 1, OrderBy: "Reg. Date" },
-                        { id: 2, OrderBy: "Work Order" },
-                        { id: 3, OrderBy: "Barcode No." },
-                        { id: 4, OrderBy: "Dept. Received" },
-                        { id: 5, OrderBy: "Test Name" },
+                        { id: "tb.bookingDate", OrderBy: "Reg. Date" },
+                        { id: "tbi.workOrderId", OrderBy: "Work Order" },
+                        { id: "tbi.barcodeno", OrderBy: "Barcode No." },
+                        {
+                          id: "tbi.sampleReceiveDate",
+                          OrderBy: "Dept. Received",
+                        },
+                        { id: "tbi.investigationName", OrderBy: "Test Name" },
                       ],
                     },
                   ]}
@@ -710,21 +789,37 @@ export default function ResultTrack() {
                   {
                     label: "Search Barcode,Batch No.",
                     type: "text",
-                    name: "Search",
-                  },
-                  {
-                    label: "Test",
-                    type: "select",
-                    name: "Test",
-                    dataOptions: [],
-                  },
-                  {
-                    label: "Department",
-                    type: "select",
-                    name: "Department",
-                    dataOptions: [],
+                    name: "searchvalue",
                   },
                 ]}
+              />
+
+              <UpdatedMultiSelectDropDown
+                id="serachEmployeeList"
+                name="Test"
+                label="Test"
+                placeHolder="Search Test"
+                options={TestData?.data}
+                isMandatory={false}
+                isDisabled={false}
+                optionKey="itemId"
+                optionValue={["itemName"]}
+                selectedValues={selectedTest}
+                setSelectedValues={setSelectedTest}
+              />
+
+              <UpdatedMultiSelectDropDown
+                id="EmployeeList"
+                name="serachEmployeeList"
+                label="Department"
+                placeHolder="Search Department"
+                options={DepartmentData?.data}
+                isMandatory={false}
+                isDisabled={false}
+                optionKey="id"
+                optionValue={["deptName"]}
+                selectedValues={selectedDepartment}
+                setSelectedValues={setSelectedDepartment}
               />
 
               <SubmitButton text={"Search"} />
@@ -734,9 +829,9 @@ export default function ResultTrack() {
           </form>
           <div style={{ maxHeight: "200px" }}>
             <DynamicTable
-              rows={row}
+              rows={updatedArray}
               name="Patient Test Details"
-              //   loading={loading}
+              loading={PostData?.loading}
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
               activeTheme={activeTheme}

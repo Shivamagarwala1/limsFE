@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { IoMdAdd, IoMdCloseCircleOutline, IoMdMenu } from 'react-icons/io';
 import { useSelector } from 'react-redux';
 import { FaArrowDown, FaArrowUp, FaCalendarAlt, FaRegEdit, FaSpinner } from 'react-icons/fa';
-import { getAllBankNameApi, getAllCityApi, getAllDistrictApi, getAllDocumentApi, getAllParentCenterTypeApi, getAllProcessingLabApi, getAllStateApi, getAllZoneApi, getCenterAccessDataApi, getCenterTypeMasterApi, getCentreMasterApi, getRateTypeApi, getRateTypeMRPApi, getSalesExecutiveApi, getSingleClientMasterData, saveActiveAndDiActiveClientmaster, saveCentreMasterApi, saveCityApi, saveDistrictApi, saveStateApi } from '../../../../service/service';
+import { getAllBankNameApi, getAllBillingTypeApi, getAllCityApi, getAllDistrictApi, getAllDocumentApi, getAllParentCenterTypeApi, getAllProcessingLabApi, getAllStateApi, getAllZoneApi, getCenterAccessDataApi, getCenterTypeMasterApi, getCentreMasterApi, getRateTypeApi, getRateTypeMRPApi, getSalesExecutiveApi, getSingleClientMasterData, saveActiveAndDiActiveClientmaster, saveCentreMasterApi, saveCityApi, saveDistrictApi, saveStateApi } from '../../../../service/service';
 import toast from 'react-hot-toast';
 import { clientMasterHeaderList } from '../../../listData/listData';
 import { ImSwitch } from 'react-icons/im';
@@ -126,6 +126,7 @@ export default function ClientMaster() {
     })
     const [isButtonClick, setIsButtonClick] = useState(0);
     const [inputFieldForSateCityDistrict, setInputFieldForStateCityDistrict] = useState('');
+    const [allBillingTypeData, setBillingTypeData] = useState([]);
     const [allCenterTypeMasterData, setAllCenterTypeMasterData] = useState([]);
     const [allBankNameData, setAllBankNameData] = useState([]);
     const [allParentCenterData, setAllParentCenterData] = useState([]);
@@ -197,17 +198,11 @@ export default function ClientMaster() {
 
     useEffect(() => {
 
-        async function getCenterTypeData() {
-
-            await getCenterTypeMasterApi().then((resp) => {
-                setAllCenterTypeMasterData(resp);
-            }).catch((err) => {
-                toast.error(err?.message);
-            })
+        async function getBillingType() {
+            const response = await getAllBillingTypeApi();
+            setBillingTypeData(response);
         }
-
-        getCenterTypeData();
-
+        getBillingType();
 
         async function getAllBankName() {
 
@@ -244,6 +239,7 @@ export default function ClientMaster() {
             })
         }
         getAllProcessing();
+
 
         async function getAllZone() {
             await getAllZoneApi().then((resp) => {
@@ -289,6 +285,7 @@ export default function ClientMaster() {
         }
         getSalesExecutive();
 
+
         async function allDocument() {
 
             await getAllDocumentApi().then((resp) => {
@@ -301,6 +298,27 @@ export default function ClientMaster() {
 
     }, [])
 
+    //get center id
+    useEffect(() => {
+
+        async function getCenterTypeData() {
+
+            await getCenterTypeMasterApi(billingType).then((resp) => {
+
+                if (resp?.success) {
+
+                    setAllCenterTypeMasterData(resp?.data);
+                }
+
+            }).catch((err) => {
+                toast.error(err?.message);
+            })
+        }
+
+        if (billingType !== '') {
+            getCenterTypeData();
+        }
+    }, [billingType])
 
     useEffect(() => {
         async function getRateType() {
@@ -415,7 +433,6 @@ export default function ClientMaster() {
 
             const dependencyValue = formData[currentField.dependency];
 
-            console.log(dependencyValue);
 
 
             if (!dependencyValue) {
@@ -514,7 +531,6 @@ export default function ClientMaster() {
                         //     ...prevData,
                         //     city: resp?.cityName, // Correct usage of key
                         // }));
-                        console.log(resp);
 
                         if (resp?.success) {
                             toast.success(resp?.message);
@@ -941,10 +957,12 @@ export default function ClientMaster() {
                                 <option value="" disabled className="text-gray-400">
                                     Select Option
                                 </option>
-                                <option value="1">B2B</option>
-                                <option value="2">DPS-Walking</option>
-                                <option value="3">Camp</option>
-                                <option value="4">DSA Agent</option>
+                                {
+                                    allBillingTypeData?.map((data) => (
+                                        <option key={data?.id} value={data?.id}>{data?.billingTypeName}</option>
+
+                                    ))
+                                }
                             </select>
                             <label htmlFor="billingType" className="menuPeerLevel">
                                 Billing Type

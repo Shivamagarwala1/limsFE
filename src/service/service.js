@@ -133,12 +133,22 @@ export const deleteEmpPageAccessApi = async (Id) => {
 }
 
 //========client master=========
-//get centerTypeMaster
-export const getCenterTypeMasterApi = async () => {
+//get billing type
+export const getAllBillingTypeApi = async () => {
 
-    const response = await privateAxios.get('/centerTypeMaster?select=id,centerTypeName&$filter=(isActive eq 1)');
+    const response = await privateAxios.get(`/centreBillingType?select=id,billingTypeName&$filter=(isActive eq 1)`);
+
+    return response?.data;
+}
+
+//get centerTypeMaster
+export const getCenterTypeMasterApi = async (billingtype) => {
+
+    const response = await privateAxios.get(`/centreMaster/GetCentreType?billingtype=${billingtype}`);
     return response.data;
 }
+
+///api/centreBillingType
 
 //get all parent center type
 export const getAllParentCenterTypeApi = async () => {
@@ -883,6 +893,23 @@ export const getAllDiscountApprovedBy = async () => {
 export const savePatientRegistrationDataApi = async (patientRegistrationData) => {
 
     const response = await privateAxios.post(`/tnx_BookingPatient/SavePatientRegistration`, patientRegistrationData);
+
+    return response?.data;
+}
+
+
+//get edit info
+export const getSingleEditInfoApi = async (searchVal) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetPatientEditInfo?searchValue=${searchVal}`);
+
+    return response.data;
+}
+
+//save edit info data
+export const updateEditInfoApi = async (updatedEditInfo) => {
+
+    const response = await privateAxios.post(`/tnx_BookingItem/UpdatePatientinfo`, updatedEditInfo);
 
     return response?.data;
 }
