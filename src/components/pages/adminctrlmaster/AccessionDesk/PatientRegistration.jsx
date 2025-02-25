@@ -8,7 +8,7 @@ import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
 import { RiDeleteBin2Fill } from 'react-icons/ri';
 import { dummyDataForpatientRegistrationoldPatient, patientRegistrationInvestigation, patientRegistrationoldPatient, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import { CustomEmailInput } from '../../../global/CustomEmailInput'
-import { employeeWiseCentre, getAllBankNameApi, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getOldPatientApi, getSingleEditInfoApi, getSingleEditTestApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi } from '../../../../service/service';
+import { employeeWiseCentre, getAllBankNameApi, getAllCentreForPatientRegistrationData, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getOldPatientApi, getSingleEditInfoApi, getSingleEditTestApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi } from '../../../../service/service';
 import { FaSearch, FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
 import { CustomTextBox } from '../../../global/CustomTextBox';
@@ -172,7 +172,7 @@ export default function PatientRegistration() {
     const [showPopup, setShowPopup] = useState(0);
     const [identifyAddReferDrOrReferLab, setIdentifyAddReferDrOrReferLab] = useState(0);
     //const imgRef = useRef();
-
+    const [isPreprintedCode, setIsPrePrintedCode] = useState(0);
 
     // const openShowSearchBarDropDown = (val) => {
     //     setShowSearchBarDropDown(val);
@@ -570,21 +570,6 @@ export default function PatientRegistration() {
 
     useEffect(() => {
 
-        const getAllCentreData = async () => {
-            try {
-                const response = await employeeWiseCentre(user?.employeeId);
-
-                if (response?.success) {
-                    setAllCentreData(response?.data);
-                }
-
-            } catch (error) {
-                toast.error(error?.message);
-            }
-        }
-        getAllCentreData();
-
-
         const getAllTitleData = async () => {
             try {
                 const response = await getAllEmpTitleApi();
@@ -648,6 +633,43 @@ export default function PatientRegistration() {
 
 
     useEffect(() => {
+        const getAllCentreData = async () => {
+            try {
+                const response = await getAllCentreForPatientRegistrationData(user?.employeeId, patientRegistrationData?.billingType);
+
+                if (response?.success) {
+                    setAllCentreData(response?.data);
+                    console.log(response?.data);
+
+                }
+
+            } catch (error) {
+                toast.error(error?.message);
+            }
+        }
+
+        if (patientRegistrationData?.billingType !== '') {
+            getAllCentreData();
+        }
+
+    }, [patientRegistrationData?.billingType])
+
+
+    useEffect(() => {
+
+        const getData = () => {
+            const foundData = allCentreData?.find(data => data?.centreId === patientRegistrationData?.centreId?.centreId);
+            setIsPrePrintedCode(foundData?.isPrePrintedBarcode || 0);
+        };
+        if (patientRegistrationData?.centreId !== 0) {
+            getData()
+        }
+    }, [patientRegistrationData?.centreId])
+
+
+
+
+    useEffect(() => {
         const getAllRateType = async () => {
 
             try {
@@ -662,7 +684,9 @@ export default function PatientRegistration() {
             }
         }
 
-        getAllRateType();
+        if (patientRegistrationData?.centreId !== 0) {
+            getAllRateType();
+        }
     }, [patientRegistrationData?.centreId])
 
 
@@ -684,7 +708,10 @@ export default function PatientRegistration() {
 
         }
 
-        getAllInvastigationData();
+        if (patientRegistrationData?.rateId !== 0) {
+            getAllInvastigationData();
+
+        }
 
 
         const getAllinvestigationGridData = async () => {
@@ -734,7 +761,10 @@ export default function PatientRegistration() {
 
 
         }
-        getAllinvestigationGridData();
+        if (patientRegistrationData?.rateId !== 0 && patientRegistrationData?.itemId !== 0) {
+            getAllinvestigationGridData();
+
+        }
 
     }, [patientRegistrationData?.rateId, patientRegistrationData?.itemId])
 
@@ -997,10 +1027,41 @@ export default function PatientRegistration() {
     }, [patientRegistrationData, paymentModeType]);
 
 
+    //cheack bar code data which showPopup===6
+    const [checkedItems, setCheckedItems] = useState({});
+
+    // const handleCheckboxChange123 = (itemId) => {
+    //     setCheckedItems((prev) => ({
+    //         ...prev,
+    //         [itemId]: !prev[itemId], // Toggle checkbox state
+    //     }));
+    // };
+
+    // UseEffect to auto-check the checkbox if a barcode exists
+    useEffect(() => {
+        const updatedCheckedItems = {};
+        investigationGridData?.forEach((data) => {
+            const barcodeValue = gridDataBarCodeandSampleType?.barCode.find(
+                (item) => item.itemId === data?.itemId
+            )?.name;
+
+            if (barcodeValue) {
+                updatedCheckedItems[data?.itemId] = true;
+            }
+        });
+
+        setCheckedItems(updatedCheckedItems);
+    }, [gridDataBarCodeandSampleType?.barCode, investigationGridData]);
+
+
     //save patient registration data
     const onSubmitForSavePatientRegistrationData = async () => {
 
         setIsButtonClick(2);
+
+
+        console.log('save data');
+
 
         const updatedData = {
 
@@ -1192,7 +1253,7 @@ export default function PatientRegistration() {
             ]
         };
 
-        console.log(updatedData);
+        //console.log(updatedData);
 
 
 
@@ -1203,257 +1264,257 @@ export default function PatientRegistration() {
             return;
         }
 
-        try {
-            const response = await savePatientRegistrationDataApi(updatedData);
+        // try {
+        //     const response = await savePatientRegistrationDataApi(updatedData);
 
-            if (response?.success) {
-                toast.success(response?.message);
+        //     if (response?.success) {
+        //         toast.success(response?.message);
 
-                setPatientRegistrationData(
-                    {
-                        "address": "",
-                        "ageDays": 0,
-                        "ageMonth": 0,
-                        "ageTotal": 0,
-                        "ageYear": 0,
-                        "areaId": 0,
-                        "centreId": 0,
-                        "cityId": 0,
-                        "countryId": 0,
-                        "createdById": 0,
-                        "createdDateTime": "",
-                        "districtId": 0,
-                        "dob": "",
-                        "documentId": 0,
-                        "documnetnumber": 0,
-                        "emailId": "",
-                        "gender": "",
-                        "isActive": 0,
-                        "isActualDOB": 0,
-                        "mobileNo": "",
-                        "name": "",
-                        "password": 0,
-                        "patientId": 0,
-                        "pinCode": "",
-                        "remarks": "",
-                        "stateId": 0,
-                        "title_id": 0,
-                        "updateById": 0,
-                        "updateDateTime": "",
-                        "visitCount": 0,
-                        "addBooking": [
-                            {
-                                "ageDay": "",
-                                "ageMonth": "",
-                                "ageYear": "",
-                                "billNo": 0,
-                                "bookingDate": "",
-                                "centreId": 0,
-                                "clientCode": 0,
-                                "createdById": 0,
-                                "createdDateTime": "",
-                                "discount": 0,
-                                "discountApproved": 0,
-                                "discountReason": "",
-                                "discountType": 0,
-                                "discountid": 0,
-                                "dob": "",
-                                "gender": "",
-                                "grossAmount": 0,
-                                "invoiceNo": "",
-                                "isActive": 0,
-                                "isCredit": 0,
-                                "isDisCountApproved": 0,
-                                "labRemarks": "",
-                                "mobileNo": "",
-                                "mrp": 0,
-                                "name": "",
-                                "netAmount": 0,
-                                "otherLabRefer": "",
-                                "otherLabReferID": 0,
-                                "paidAmount": 0,
-                                "patientId": 0,
-                                "patientRemarks": "",
-                                "paymentMode": "",
-                                "rateId": 0,
-                                "refDoctor1": "",
-                                "refDoctor2": "",
-                                "refID1": 0,
-                                "refID2": 0,
-                                "salesExecutiveID": 0,
-                                "sessionCentreid": 0,
-                                "source": "",
-                                "tempDOCID": 0,
-                                "tempDoctroName": "",
-                                "title_id": "",
-                                "totalAge": 0,
-                                "transactionId": 0,
-                                "updateById": 0,
-                                "updateDateTime": "",
-                                "uploadDocument": "",
-                                "workOrderId": "",
-                                "addBookingStatus": [
-                                    {
-                                        "barcodeNo": "",
-                                        "centreId": 0,
-                                        "createdById": 0,
-                                        "createdDateTime": "",
-                                        "id": 0,
-                                        "isActive": 0,
-                                        "patientId": 0,
-                                        "remarks": "",
-                                        "roleId": 0,
-                                        "status": "",
-                                        "testId": 0,
-                                        "transactionId": 0,
-                                        "updateById": 0,
-                                        "updateDateTime": ""
-                                    }
-                                ],
-                                "addBookingItem": [
-                                    {
-                                        "barcodeNo": "",
-                                        "centreId": 0,
-                                        "createdById": 0,
-                                        "createdDateTime": "",
-                                        "departmentName": "",
-                                        "deptId": 0,
-                                        "discount": 0,
-                                        "id": 0,
-                                        "investigationName": "",
-                                        "isActive": 0,
-                                        "isEmailsent": 0,
-                                        "isMachineOrder": 0,
-                                        "isPackage": 0,
-                                        "isSra": 0,
-                                        "itemId": 0,
-                                        "itemType": 0,
-                                        "mrp": 0,
-                                        "netAmount": 0,
-                                        "packItemDiscount": 0,
-                                        "packItemNet": 0,
-                                        "packItemRate": 0,
-                                        "packMrp": 0,
-                                        "packageID": 0,
-                                        "packageName": "",
-                                        "rate": 0,
-                                        "reportType": 0,
-                                        "sampleTypeId": 0,
-                                        "sampleTypeName": "",
-                                        "sessionCentreid": 0,
-                                        "testcode": "",
-                                        "transactionId": 0,
-                                        "updateById": 0,
-                                        "updateDateTime": "",
-                                        "workOrderId": ""
-                                    },
-                                    {
-                                        "barcodeNo": "",
-                                        "centreId": 0,
-                                        "createdById": 0,
-                                        "createdDateTime": "",
-                                        "departmentName": "",
-                                        "deptId": 0,
-                                        "discount": 0,
-                                        "id": 0,
-                                        "investigationName": "",
-                                        "isActive": 0,
-                                        "isEmailsent": 0,
-                                        "isMachineOrder": 0,
-                                        "isPackage": 0,
-                                        "isSra": 0,
-                                        "itemId": 0,
-                                        "itemType": 0,
-                                        "mrp": 0,
-                                        "netAmount": 0,
-                                        "packItemDiscount": 0,
-                                        "packItemNet": 0,
-                                        "packItemRate": 0,
-                                        "packMrp": 0,
-                                        "packageID": 0,
-                                        "packageName": "",
-                                        "rate": 0,
-                                        "reportType": 0,
-                                        "sampleTypeId": 0,
-                                        "sampleTypeName": "",
-                                        "sessionCentreid": 0,
-                                        "testcode": "",
-                                        "transactionId": 0,
-                                        "updateById": 0,
-                                        "updateDateTime": "",
-                                        "workOrderId": ""
-                                    }
-                                ],
-                                "addpaymentdetail": [
-                                    {
-                                        "bankName": "",
-                                        "bookingCentreId": 0,
-                                        "cancelDate": "",
-                                        "cancelReason": "",
-                                        "canceledBy": "",
-                                        "cashAmt": 0,
-                                        "chequeAmt": 0,
-                                        "chequeNo": "",
-                                        "creditCardAmt": 0,
-                                        "creditCardNo": "",
-                                        "id": 0,
-                                        "isCancel": 0,
-                                        "nefTamt": 0,
-                                        "onlinewalletAmt": 0,
-                                        "paymentModeId": 0,
-                                        "receiptNo": 0,
-                                        "receivedAmt": 0,
-                                        "receivedBy": "",
-                                        "receivedID": 0,
-                                        "settlementCentreID": 0,
-                                        "transactionId": 0,
-                                        "transactionType": "",
-                                        "walletno": "",
-                                        "workOrderId": ""
-                                    },
-                                    {
-                                        "bankName": "",
-                                        "bookingCentreId": 0,
-                                        "cancelDate": "",
-                                        "cancelReason": "",
-                                        "canceledBy": "",
-                                        "cashAmt": 0,
-                                        "chequeAmt": 0,
-                                        "chequeNo": "",
-                                        "creditCardAmt": 0,
-                                        "creditCardNo": "",
-                                        "id": 0,
-                                        "isCancel": 0,
-                                        "nefTamt": 0,
-                                        "onlinewalletAmt": 0,
-                                        "paymentModeId": 0,
-                                        "receiptNo": 0,
-                                        "receivedAmt": 0,
-                                        "receivedBy": "",
-                                        "receivedID": 0,
-                                        "settlementCentreID": 0,
-                                        "transactionId": 0,
-                                        "transactionType": "",
-                                        "walletno": "",
-                                        "workOrderId": ""
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+        //         setPatientRegistrationData(
+        //             {
+        //                 "address": "",
+        //                 "ageDays": 0,
+        //                 "ageMonth": 0,
+        //                 "ageTotal": 0,
+        //                 "ageYear": 0,
+        //                 "areaId": 0,
+        //                 "centreId": 0,
+        //                 "cityId": 0,
+        //                 "countryId": 0,
+        //                 "createdById": 0,
+        //                 "createdDateTime": "",
+        //                 "districtId": 0,
+        //                 "dob": "",
+        //                 "documentId": 0,
+        //                 "documnetnumber": 0,
+        //                 "emailId": "",
+        //                 "gender": "",
+        //                 "isActive": 0,
+        //                 "isActualDOB": 0,
+        //                 "mobileNo": "",
+        //                 "name": "",
+        //                 "password": 0,
+        //                 "patientId": 0,
+        //                 "pinCode": "",
+        //                 "remarks": "",
+        //                 "stateId": 0,
+        //                 "title_id": 0,
+        //                 "updateById": 0,
+        //                 "updateDateTime": "",
+        //                 "visitCount": 0,
+        //                 "addBooking": [
+        //                     {
+        //                         "ageDay": "",
+        //                         "ageMonth": "",
+        //                         "ageYear": "",
+        //                         "billNo": 0,
+        //                         "bookingDate": "",
+        //                         "centreId": 0,
+        //                         "clientCode": 0,
+        //                         "createdById": 0,
+        //                         "createdDateTime": "",
+        //                         "discount": 0,
+        //                         "discountApproved": 0,
+        //                         "discountReason": "",
+        //                         "discountType": 0,
+        //                         "discountid": 0,
+        //                         "dob": "",
+        //                         "gender": "",
+        //                         "grossAmount": 0,
+        //                         "invoiceNo": "",
+        //                         "isActive": 0,
+        //                         "isCredit": 0,
+        //                         "isDisCountApproved": 0,
+        //                         "labRemarks": "",
+        //                         "mobileNo": "",
+        //                         "mrp": 0,
+        //                         "name": "",
+        //                         "netAmount": 0,
+        //                         "otherLabRefer": "",
+        //                         "otherLabReferID": 0,
+        //                         "paidAmount": 0,
+        //                         "patientId": 0,
+        //                         "patientRemarks": "",
+        //                         "paymentMode": "",
+        //                         "rateId": 0,
+        //                         "refDoctor1": "",
+        //                         "refDoctor2": "",
+        //                         "refID1": 0,
+        //                         "refID2": 0,
+        //                         "salesExecutiveID": 0,
+        //                         "sessionCentreid": 0,
+        //                         "source": "",
+        //                         "tempDOCID": 0,
+        //                         "tempDoctroName": "",
+        //                         "title_id": "",
+        //                         "totalAge": 0,
+        //                         "transactionId": 0,
+        //                         "updateById": 0,
+        //                         "updateDateTime": "",
+        //                         "uploadDocument": "",
+        //                         "workOrderId": "",
+        //                         "addBookingStatus": [
+        //                             {
+        //                                 "barcodeNo": "",
+        //                                 "centreId": 0,
+        //                                 "createdById": 0,
+        //                                 "createdDateTime": "",
+        //                                 "id": 0,
+        //                                 "isActive": 0,
+        //                                 "patientId": 0,
+        //                                 "remarks": "",
+        //                                 "roleId": 0,
+        //                                 "status": "",
+        //                                 "testId": 0,
+        //                                 "transactionId": 0,
+        //                                 "updateById": 0,
+        //                                 "updateDateTime": ""
+        //                             }
+        //                         ],
+        //                         "addBookingItem": [
+        //                             {
+        //                                 "barcodeNo": "",
+        //                                 "centreId": 0,
+        //                                 "createdById": 0,
+        //                                 "createdDateTime": "",
+        //                                 "departmentName": "",
+        //                                 "deptId": 0,
+        //                                 "discount": 0,
+        //                                 "id": 0,
+        //                                 "investigationName": "",
+        //                                 "isActive": 0,
+        //                                 "isEmailsent": 0,
+        //                                 "isMachineOrder": 0,
+        //                                 "isPackage": 0,
+        //                                 "isSra": 0,
+        //                                 "itemId": 0,
+        //                                 "itemType": 0,
+        //                                 "mrp": 0,
+        //                                 "netAmount": 0,
+        //                                 "packItemDiscount": 0,
+        //                                 "packItemNet": 0,
+        //                                 "packItemRate": 0,
+        //                                 "packMrp": 0,
+        //                                 "packageID": 0,
+        //                                 "packageName": "",
+        //                                 "rate": 0,
+        //                                 "reportType": 0,
+        //                                 "sampleTypeId": 0,
+        //                                 "sampleTypeName": "",
+        //                                 "sessionCentreid": 0,
+        //                                 "testcode": "",
+        //                                 "transactionId": 0,
+        //                                 "updateById": 0,
+        //                                 "updateDateTime": "",
+        //                                 "workOrderId": ""
+        //                             },
+        //                             {
+        //                                 "barcodeNo": "",
+        //                                 "centreId": 0,
+        //                                 "createdById": 0,
+        //                                 "createdDateTime": "",
+        //                                 "departmentName": "",
+        //                                 "deptId": 0,
+        //                                 "discount": 0,
+        //                                 "id": 0,
+        //                                 "investigationName": "",
+        //                                 "isActive": 0,
+        //                                 "isEmailsent": 0,
+        //                                 "isMachineOrder": 0,
+        //                                 "isPackage": 0,
+        //                                 "isSra": 0,
+        //                                 "itemId": 0,
+        //                                 "itemType": 0,
+        //                                 "mrp": 0,
+        //                                 "netAmount": 0,
+        //                                 "packItemDiscount": 0,
+        //                                 "packItemNet": 0,
+        //                                 "packItemRate": 0,
+        //                                 "packMrp": 0,
+        //                                 "packageID": 0,
+        //                                 "packageName": "",
+        //                                 "rate": 0,
+        //                                 "reportType": 0,
+        //                                 "sampleTypeId": 0,
+        //                                 "sampleTypeName": "",
+        //                                 "sessionCentreid": 0,
+        //                                 "testcode": "",
+        //                                 "transactionId": 0,
+        //                                 "updateById": 0,
+        //                                 "updateDateTime": "",
+        //                                 "workOrderId": ""
+        //                             }
+        //                         ],
+        //                         "addpaymentdetail": [
+        //                             {
+        //                                 "bankName": "",
+        //                                 "bookingCentreId": 0,
+        //                                 "cancelDate": "",
+        //                                 "cancelReason": "",
+        //                                 "canceledBy": "",
+        //                                 "cashAmt": 0,
+        //                                 "chequeAmt": 0,
+        //                                 "chequeNo": "",
+        //                                 "creditCardAmt": 0,
+        //                                 "creditCardNo": "",
+        //                                 "id": 0,
+        //                                 "isCancel": 0,
+        //                                 "nefTamt": 0,
+        //                                 "onlinewalletAmt": 0,
+        //                                 "paymentModeId": 0,
+        //                                 "receiptNo": 0,
+        //                                 "receivedAmt": 0,
+        //                                 "receivedBy": "",
+        //                                 "receivedID": 0,
+        //                                 "settlementCentreID": 0,
+        //                                 "transactionId": 0,
+        //                                 "transactionType": "",
+        //                                 "walletno": "",
+        //                                 "workOrderId": ""
+        //                             },
+        //                             {
+        //                                 "bankName": "",
+        //                                 "bookingCentreId": 0,
+        //                                 "cancelDate": "",
+        //                                 "cancelReason": "",
+        //                                 "canceledBy": "",
+        //                                 "cashAmt": 0,
+        //                                 "chequeAmt": 0,
+        //                                 "chequeNo": "",
+        //                                 "creditCardAmt": 0,
+        //                                 "creditCardNo": "",
+        //                                 "id": 0,
+        //                                 "isCancel": 0,
+        //                                 "nefTamt": 0,
+        //                                 "onlinewalletAmt": 0,
+        //                                 "paymentModeId": 0,
+        //                                 "receiptNo": 0,
+        //                                 "receivedAmt": 0,
+        //                                 "receivedBy": "",
+        //                                 "receivedID": 0,
+        //                                 "settlementCentreID": 0,
+        //                                 "transactionId": 0,
+        //                                 "transactionType": "",
+        //                                 "walletno": "",
+        //                                 "workOrderId": ""
+        //                             }
+        //                         ]
+        //                     }
+        //                 ]
+        //             }
 
-                );
+        //         );
 
-                setinvestigationGridData([]);
+        //         setinvestigationGridData([]);
 
-            } else {
-                toast.error(response?.message);
-            }
+        //     } else {
+        //         toast.error(response?.message);
+        //     }
 
-        } catch (error) {
-            toast.error(error?.message);
-            console.log(error);
-        }
+        // } catch (error) {
+        //     toast.error(error?.message);
+        //     console.log(error);
+        // }
 
         setIsButtonClick(0);
     }
@@ -2112,9 +2173,6 @@ export default function PatientRegistration() {
             toast.error(error?.message);
         }
     }
-
-    console.log(oldPatientId);
-    
 
     // const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
 
@@ -3609,692 +3667,778 @@ export default function PatientRegistration() {
 
 
                                 {/* <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div> */}
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-2  mx-1 lg:mx-2">
-
-                                    {/* Currency */}
-                                    <div className="relative flex-1">
-                                        {/* <select
-                                            id="currency"
-                                            name='currency'
-                                            // value={labTestMasterData.currency}
-                                            // onChange={handelOnChangeLabTestMasterData}
-                                            className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
-                                        >
-                                            <option disabled hidden className='text-gray-400'>
-                                                Select Option
-                                            </option>
-                                            <option value="">INR</option>
-                                            <option value="">USD</option>
-                                        </select>
-                                        <label htmlFor="currency" className="menuPeerLevel">
-                                            Currency
-                                        </label> */}
-
-                                        <CustomDropdown
-                                            name="Currency"
-                                            label="Select Currency"
-                                            value={patientRegistrationData?.gender || ''}
-                                            options={[
-                                                { label: 'Select Option', value: '', disabled: true },
-                                                { label: 'INR', value: '1' },
-                                                { label: 'USD', value: '2' },
-                                            ]}
-                                            onChange={(e) => handelOnChangePatientRegistration(e)}
-                                            defaultIndex={0}
-                                            activeTheme={activeTheme}
-                                            isMandatory={false}
-                                        />
-                                    </div>
-
-                                    {/* Payment Mode */}
-                                    {/* <div className="relative flex-1">
-                                        <div
-                                            className={`flex peer items-center border-[1.5px] 
-        border-borderColor rounded text-xxxs h-[1.6rem] text-[#495057] bg-white `}
-                                            onClick={() => showSearchBarDropDown !== 6 ? openShowSearchBarDropDown(6) : openShowSearchBarDropDown(0)}
-                                        >
-                                            <input
-                                                type="text"
-                                                id="paymentModeType"
-                                                name="paymentModeType"
-                                               
-                                                value={
-                                                    paymentModeType.length === 0
-                                                        ? ''
-                                                        : paymentModeType
-                                                            .map((data) => data?.label)
-                                                            .join(', ')
-                                                }
-                                                // onChange={handelOnChangePatientRegistration}
-                                                readOnly
-                                                placeholder="Search Payment Mode"
-                                                className={`w-full rounded-r rounded-md border-0 text-xxxs font-semibold px-2 pt-1 focus:outline-none cursor-pointer`}
-                                            />
-                                            <label htmlFor="paymentModeType" className="menuPeerLevel">
-                                                Payment Mode
-                                            </label>
-
-                                            <div>
-                                                {
-                                                    showSearchBarDropDown === 6 ? <RiArrowDropUpLine className='text-xl cursor-pointer' /> : <RiArrowDropDownLine className='text-xl cursor-pointer' />
-                                                }
-                                            </div>
-                                        </div>
-
-                                        {showSearchBarDropDown === 6 && (
-                                            <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-
-                                                {
-                                                    paymentModes?.length === 0 ?
-
-                                                        <div className='py-4 text-gray-500 text-center'>
-                                                            {import.meta.env.VITE_API_RECORD_NOT_FOUND}
-                                                        </div>
-                                                        :
-                                                        <ul className='w-full'>
-
-                                                            {paymentModes?.length > 0 ? (
-                                                                paymentModes?.map((data, index) => {
-
-                                                                    return (
-                                                                        <li
-                                                                            key={index}
-                                                                            className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2"
-                                                                            onMouseEnter={() => setIsHovered(index)}
-                                                                            onMouseLeave={() => setIsHovered(null)}
-                                                                            style={{
-                                                                                background: isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                                            }}
-                                                                        >
-                                                                            <div>
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    checked={paymentModeType?.some((item) => item?.value === data?.value)}
-                                                                                    onChange={(e) => handleCheckboxChange(e, data)}
-                                                                                />
-                                                                            </div>
-                                                                            <div>{data?.label}</div>
-                                                                        </li>
-                                                                    )
-                                                                })
-                                                            ) : (
-                                                                <li className="py-4 text-gray-500 text-center">
-                                                                    {import.meta.env.VITE_API_RECORD_NOT_FOUND}
-                                                                </li>
-                                                            )}
-                                                        </ul>
-                                                }
+                                {
+                                    parseInt(patientRegistrationData?.billingType) !== 1 && (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-2  mx-1 lg:mx-2">
 
 
 
-                                            </div>
-                                        )}
-                                    </div> */}
-
-                                    <div className="relative flex-1">
-
-                                        <CustomMultiSelectDropdown
-                                            id="paymentModeType"
-                                            name="paymentModeType"
-                                            label="Select Payment Modes"
-                                            options={paymentModes}
-                                            selectedItems={paymentModeType}
-                                            onSelectionChange={handelOnChangePaymentMode}
-                                            placeholder=" "
-                                            activeTheme={activeTheme}
-                                            uniqueId={'value'}
-                                            searchWithName={'label'}
-                                        />
-                                    </div>
 
 
-
-                                    {/* Paid Amt. */}
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="text"
-                                            id="paidAmount"
-                                            name="paidAmount"
-                                            value={patientRegistrationData?.paidAmount || ''}
-                                            placeholder=" "
-                                            className="inputPeerField peer border-borderColor focus:outline-none"
-                                            readOnly
-                                        />
-
-                                        <label htmlFor="paidAmount" className="menuPeerLevel">
-                                            Paid Amt.
-                                        </label>
-                                        {/* <CustomTextBox
-                                    type="decimalpositive"
-                                    name="paidAmount"
-                                    value={patientRegistrationData?.paidAmount || ''}
-                                    onChange={(e) => handelOnChangePatientRegistration(e)}
-                                    label="Paid Amt."
-                                    isDisabled={false}
-                                /> */}
-                                    </div>
-
-                                    {/* Balance Amt. */}
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="text"
-                                            id="balanceAmt"
-                                            name="balanceAmt"
-                                            value={patientRegistrationData?.grossAmount - patientRegistrationData?.cashAmt - patientRegistrationData?.creditCardAmt - patientRegistrationData?.onlinewalletAmt}
-
-                                            // value={
-                                            //     investigationGridData
-                                            //     ? investigationGridData.reduce((sum, data) => {
-                                            //         // Find the discount for the current item
-                                            //         const discount = gridDataBarCodeandSampleType?.discount.find(item => item?.itemId === data?.itemId)?.discount || 0;
-
-                                            //         // Subtract the discount from the netAmt and accumulate the total
-                                            //         const adjustedNetAmt = (data?.netAmt || 0) - parseFloat(discount);
-                                            //         return ((sum + adjustedNetAmt) - patientRegistrationData?.cashAmt - patientRegistrationData?.creditCardAmt - patientRegistrationData?.onlinewalletAmt);
-                                            //     }, 0)
-                                            //     : 0
-                                            // }
-
-                                            placeholder=" "
-                                            className={`inputPeerField peer border-borderColor            focus:outline-none `}
-                                            readOnly
-                                        />
-                                        <label htmlFor="balanceAmt" className="menuPeerLevel">
-                                            Balance Amt.
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {/* payment mode grid */}
-                                <div className='mx-2 mb-2'>
-                                    <table className="table-auto border-collapse w-full text-xxs text-left">
-                                        {/* Table Header */}
-                                        <thead
-                                            style={{
-                                                position: 'sticky',
-                                                top: 0,
-                                                zIndex: 1,
-                                                background: activeTheme?.menuColor,
-                                                color: activeTheme?.iconColor,
-                                            }}
-                                        >
-                                            <tr className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2'>
-                                                {patientRegistrationPaymentMode?.map((data, index) => (
-                                                    <td
-                                                        key={index}
-                                                        className="border-b font-semibold border-gray-300 text-center text-xxs"
-                                                    >
-                                                        {data}
-                                                    </td>
-                                                ))}
-                                            </tr>
-                                        </thead>
-
-                                        {/* Table Body */}
-                                        <tbody>
-
-                                            <tr className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2'>
-
-                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                                                >
-                                                    {/* <input type="number" name="cashAmt" id="cashAmt"
-                                                value={patientRegistrationData?.cashAmt || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                className={`inputPeerField  ${patientRegistrationDataError.cashAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${paymentModeType.some((item) => item.value === "1") ? "cursor-pointer" : "cursor-not-allowed"
-                                                    }`}
-                                                readOnly={!paymentModeType.some((item) => item.value === "1")}
-                                            /> */}
-                                                    <CustomTextBox
-                                                        type="decimalpositive"
-                                                        name="cashAmt"
-                                                        value={patientRegistrationData?.cashAmt || ''}
-                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        label="Paid Amt."
-                                                        isDisabled={!paymentModeType.some((item) => item.value === "1")}
-                                                        isMandatory={patientRegistrationDataError.cashAmt}
-                                                        readOnly={!paymentModeType.some((item) => item.value === "1")}
-                                                        showLabel={true}
-                                                    />
-                                                </td>
-
-
-                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                                                >
-                                                    {/* <input type="number"
-                                                name="creditCardAmt" id="creditCardAmt"
-                                                value={patientRegistrationData?.creditCardAmt || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                className={`inputPeerField
-                                                            
-                                                            ${patientRegistrationDataError.creditCardAmt ? "border-b-red-500" : "border-borderColor"}
-
-                                                            outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
-                                                    }`}
-                                                readOnly={!paymentModeType.some((item) => item.value === "2")}
-                                            /> */}
-
-                                                    <CustomTextBox
-                                                        type="decimalpositive"
-                                                        name="creditCardAmt"
-                                                        value={patientRegistrationData?.creditCardAmt || ''}
-                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        label="Credit Card Amt."
-                                                        isDisabled={!paymentModeType.some((item) => item.value === "2")}
-                                                        isMandatory={patientRegistrationDataError.creditCardAmt}
-                                                        readOnly={!paymentModeType.some((item) => item.value === "2")}
-                                                        showLabel={true}
-                                                    />
-                                                </td>
-
-                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                                                >
-                                                    {/* <input type="number" name="lastFoureDigit" id="lastFoureDigit"
-                                                value={patientRegistrationData?.lastFoureDigit || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                maxLength={4}
-                                                className={`inputPeerField
-                                                            ${patientRegistrationDataError.lastFoureDigit ? "border-b-red-500" : "border-borderColor"}
-                                                            outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
-                                                    }`}
-                                                readOnly={!paymentModeType.some((item) => item.value === "2")}
-                                            /> */}
-
-                                                    <CustomTextBox
-                                                        type="positive"
-                                                        name="lastFoureDigit"
-                                                        value={patientRegistrationData?.lastFoureDigit || ''}
-                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        label="Last 4 digits"
-                                                        isDisabled={!paymentModeType.some((item) => item.value === "2")}
-                                                        isMandatory={patientRegistrationDataError.lastFoureDigit}
-                                                        maxLength={4}
-                                                        readOnly={!paymentModeType.some((item) => item.value === "2")}
-                                                        showLabel={true}
-                                                    />
-                                                </td>
-
-
-                                                <td className='text-xxs font-semibold text-gridTextColor relative flex-1 -mt-[1.9px]'>
-                                                    {/* 
-                                            <select
-                                                id="bank_Id"
-                                                name="bank_Id"
-                                                value={patientRegistrationData.bank_Id || ""}
-                                                onChange={(event) => {
-                                                    // Find the selected bank's data
-                                                    const selectedBank = allBankNameData?.find(
-                                                        (data) => parseInt(data.id) === parseInt(event.target.value)
-                                                    );
-
-                                                    // Update the state
-                                                    handelOnChangePatientRegistration(event);
-
-                                                    setPatientRegistrationData((prevData) => ({
-                                                        ...prevData,
-                                                        bankName: selectedBank?.bankName || "",
-                                                        bank_Id: event.target.value, // Optionally store the ID as well
-                                                    }));
-                                                }}
-                                                className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2")
-                                                    ? "cursor-not-allowed"
-                                                    : "cursor-pointer"
-                                                    }`}
-                                                disabled={!paymentModeType.some((item) => item.value === "2")}
-                                            >
-                                                <option value="" disabled className="text-gray-400">
-                                                    Select Bank
-                                                </option>
-                                                {allBankNameData?.map((data) => (
-                                                    <option key={data?.id} value={data?.id}>
-                                                        {data?.bankName}
-                                                    </option>
-                                                ))}
-                                            </select>
-
-                                            */}
-
+                                                {/* Currency */}
+                                                <div className="relative flex-1">
+                                                    {/* <select
+id="currency"
+name='currency'
+// value={labTestMasterData.currency}
+// onChange={handelOnChangeLabTestMasterData}
+className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+>
+<option disabled hidden className='text-gray-400'>
+    Select Option
+</option>
+<option value="">INR</option>
+<option value="">USD</option>
+</select>
+<label htmlFor="currency" className="menuPeerLevel">
+Currency
+</label> */}
 
                                                     <CustomDropdown
-                                                        name="bank_Id"
-                                                        label="Select Bank"
-                                                        value={patientRegistrationData?.bank_Id}
+                                                        name="Currency"
+                                                        label="Select Currency"
+                                                        value={patientRegistrationData?.gender || ''}
                                                         options={[
-                                                            { label: 'Select Bank Name', value: 0, disabled: true },
-                                                            ...allBankNameData?.map(item => ({
-                                                                label: item.bankName,
+                                                            { label: 'Select Option', value: '', disabled: true },
+                                                            { label: 'INR', value: '1' },
+                                                            { label: 'USD', value: '2' },
+                                                        ]}
+                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        defaultIndex={0}
+                                                        activeTheme={activeTheme}
+                                                        isMandatory={false}
+                                                    />
+                                                </div>
+
+                                                {/* Payment Mode */}
+                                                {/* <div className="relative flex-1">
+<div
+className={`flex peer items-center border-[1.5px] 
+border-borderColor rounded text-xxxs h-[1.6rem] text-[#495057] bg-white `}
+onClick={() => showSearchBarDropDown !== 6 ? openShowSearchBarDropDown(6) : openShowSearchBarDropDown(0)}
+>
+<input
+    type="text"
+    id="paymentModeType"
+    name="paymentModeType"
+   
+    value={
+        paymentModeType.length === 0
+            ? ''
+            : paymentModeType
+                .map((data) => data?.label)
+                .join(', ')
+    }
+    // onChange={handelOnChangePatientRegistration}
+    readOnly
+    placeholder="Search Payment Mode"
+    className={`w-full rounded-r rounded-md border-0 text-xxxs font-semibold px-2 pt-1 focus:outline-none cursor-pointer`}
+/>
+<label htmlFor="paymentModeType" className="menuPeerLevel">
+    Payment Mode
+</label>
+
+<div>
+    {
+        showSearchBarDropDown === 6 ? <RiArrowDropUpLine className='text-xl cursor-pointer' /> : <RiArrowDropDownLine className='text-xl cursor-pointer' />
+    }
+</div>
+</div>
+
+{showSearchBarDropDown === 6 && (
+<div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+
+    {
+        paymentModes?.length === 0 ?
+
+            <div className='py-4 text-gray-500 text-center'>
+                {import.meta.env.VITE_API_RECORD_NOT_FOUND}
+            </div>
+            :
+            <ul className='w-full'>
+
+                {paymentModes?.length > 0 ? (
+                    paymentModes?.map((data, index) => {
+
+                        return (
+                            <li
+                                key={index}
+                                className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2"
+                                onMouseEnter={() => setIsHovered(index)}
+                                onMouseLeave={() => setIsHovered(null)}
+                                style={{
+                                    background: isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                }}
+                            >
+                                <div>
+                                    <input
+                                        type="checkbox"
+                                        checked={paymentModeType?.some((item) => item?.value === data?.value)}
+                                        onChange={(e) => handleCheckboxChange(e, data)}
+                                    />
+                                </div>
+                                <div>{data?.label}</div>
+                            </li>
+                        )
+                    })
+                ) : (
+                    <li className="py-4 text-gray-500 text-center">
+                        {import.meta.env.VITE_API_RECORD_NOT_FOUND}
+                    </li>
+                )}
+            </ul>
+    }
+
+
+
+</div>
+)}
+</div> */}
+
+                                                <div className="relative flex-1">
+
+                                                    <CustomMultiSelectDropdown
+                                                        id="paymentModeType"
+                                                        name="paymentModeType"
+                                                        label="Select Payment Modes"
+                                                        options={paymentModes}
+                                                        selectedItems={paymentModeType}
+                                                        onSelectionChange={handelOnChangePaymentMode}
+                                                        placeholder=" "
+                                                        activeTheme={activeTheme}
+                                                        uniqueId={'value'}
+                                                        searchWithName={'label'}
+                                                    />
+                                                </div>
+
+
+
+                                                {/* Paid Amt. */}
+                                                <div className="relative flex-1">
+                                                    <input
+                                                        type="text"
+                                                        id="paidAmount"
+                                                        name="paidAmount"
+                                                        value={patientRegistrationData?.paidAmount || ''}
+                                                        placeholder=" "
+                                                        className="inputPeerField peer border-borderColor focus:outline-none"
+                                                        readOnly
+                                                    />
+
+                                                    <label htmlFor="paidAmount" className="menuPeerLevel">
+                                                        Paid Amt.
+                                                    </label>
+                                                    {/* <CustomTextBox
+type="decimalpositive"
+name="paidAmount"
+value={patientRegistrationData?.paidAmount || ''}
+onChange={(e) => handelOnChangePatientRegistration(e)}
+label="Paid Amt."
+isDisabled={false}
+/> */}
+                                                </div>
+
+                                                {/* Balance Amt. */}
+                                                <div className="relative flex-1">
+                                                    <input
+                                                        type="text"
+                                                        id="balanceAmt"
+                                                        name="balanceAmt"
+                                                        value={patientRegistrationData?.grossAmount - patientRegistrationData?.cashAmt - patientRegistrationData?.creditCardAmt - patientRegistrationData?.onlinewalletAmt}
+
+                                                        // value={
+                                                        //     investigationGridData
+                                                        //     ? investigationGridData.reduce((sum, data) => {
+                                                        //         // Find the discount for the current item
+                                                        //         const discount = gridDataBarCodeandSampleType?.discount.find(item => item?.itemId === data?.itemId)?.discount || 0;
+
+                                                        //         // Subtract the discount from the netAmt and accumulate the total
+                                                        //         const adjustedNetAmt = (data?.netAmt || 0) - parseFloat(discount);
+                                                        //         return ((sum + adjustedNetAmt) - patientRegistrationData?.cashAmt - patientRegistrationData?.creditCardAmt - patientRegistrationData?.onlinewalletAmt);
+                                                        //     }, 0)
+                                                        //     : 0
+                                                        // }
+
+                                                        placeholder=" "
+                                                        className={`inputPeerField peer border-borderColor            focus:outline-none `}
+                                                        readOnly
+                                                    />
+                                                    <label htmlFor="balanceAmt" className="menuPeerLevel">
+                                                        Balance Amt.
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {/* payment mode grid */}
+                                            <div className='mx-2 mb-2'>
+                                                <table className="table-auto border-collapse w-full text-xxs text-left">
+                                                    {/* Table Header */}
+                                                    <thead
+                                                        style={{
+                                                            position: 'sticky',
+                                                            top: 0,
+                                                            zIndex: 1,
+                                                            background: activeTheme?.menuColor,
+                                                            color: activeTheme?.iconColor,
+                                                        }}
+                                                    >
+                                                        <tr className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2'>
+                                                            {patientRegistrationPaymentMode?.map((data, index) => (
+                                                                <td
+                                                                    key={index}
+                                                                    className="border-b font-semibold border-gray-300 text-center text-xxs"
+                                                                >
+                                                                    {data}
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+
+                                                    {/* Table Body */}
+                                                    <tbody>
+
+                                                        <tr className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2'>
+
+                                                            <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                                                            >
+                                                                {/* <input type="number" name="cashAmt" id="cashAmt"
+    value={patientRegistrationData?.cashAmt || ''}
+    onChange={(e) => handelOnChangePatientRegistration(e)}
+    className={`inputPeerField  ${patientRegistrationDataError.cashAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${paymentModeType.some((item) => item.value === "1") ? "cursor-pointer" : "cursor-not-allowed"
+        }`}
+    readOnly={!paymentModeType.some((item) => item.value === "1")}
+/> */}
+                                                                <CustomTextBox
+                                                                    type="decimalpositive"
+                                                                    name="cashAmt"
+                                                                    value={patientRegistrationData?.cashAmt || ''}
+                                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                                    label="Paid Amt."
+                                                                    isDisabled={!paymentModeType.some((item) => item.value === "1")}
+                                                                    isMandatory={patientRegistrationDataError.cashAmt}
+                                                                    readOnly={!paymentModeType.some((item) => item.value === "1")}
+                                                                    showLabel={true}
+                                                                />
+                                                            </td>
+
+
+                                                            <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                                                            >
+                                                                {/* <input type="number"
+    name="creditCardAmt" id="creditCardAmt"
+    value={patientRegistrationData?.creditCardAmt || ''}
+    onChange={(e) => handelOnChangePatientRegistration(e)}
+    className={`inputPeerField
+                
+                ${patientRegistrationDataError.creditCardAmt ? "border-b-red-500" : "border-borderColor"}
+
+                outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
+        }`}
+    readOnly={!paymentModeType.some((item) => item.value === "2")}
+/> */}
+
+                                                                <CustomTextBox
+                                                                    type="decimalpositive"
+                                                                    name="creditCardAmt"
+                                                                    value={patientRegistrationData?.creditCardAmt || ''}
+                                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                                    label="Credit Card Amt."
+                                                                    isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                                                                    isMandatory={patientRegistrationDataError.creditCardAmt}
+                                                                    readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                                                    showLabel={true}
+                                                                />
+                                                            </td>
+
+                                                            <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                                                            >
+                                                                {/* <input type="number" name="lastFoureDigit" id="lastFoureDigit"
+    value={patientRegistrationData?.lastFoureDigit || ''}
+    onChange={(e) => handelOnChangePatientRegistration(e)}
+    maxLength={4}
+    className={`inputPeerField
+                ${patientRegistrationDataError.lastFoureDigit ? "border-b-red-500" : "border-borderColor"}
+                outline-none ${paymentModeType.some((item) => item.value === "2") ? "cursor-pointer" : "cursor-not-allowed"
+        }`}
+    readOnly={!paymentModeType.some((item) => item.value === "2")}
+/> */}
+
+                                                                <CustomTextBox
+                                                                    type="positive"
+                                                                    name="lastFoureDigit"
+                                                                    value={patientRegistrationData?.lastFoureDigit || ''}
+                                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                                    label="Last 4 digits"
+                                                                    isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                                                                    isMandatory={patientRegistrationDataError.lastFoureDigit}
+                                                                    maxLength={4}
+                                                                    readOnly={!paymentModeType.some((item) => item.value === "2")}
+                                                                    showLabel={true}
+                                                                />
+                                                            </td>
+
+
+                                                            <td className='text-xxs font-semibold text-gridTextColor relative flex-1 -mt-[1.9px]'>
+                                                                {/* 
+<select
+    id="bank_Id"
+    name="bank_Id"
+    value={patientRegistrationData.bank_Id || ""}
+    onChange={(event) => {
+        // Find the selected bank's data
+        const selectedBank = allBankNameData?.find(
+            (data) => parseInt(data.id) === parseInt(event.target.value)
+        );
+
+        // Update the state
+        handelOnChangePatientRegistration(event);
+
+        setPatientRegistrationData((prevData) => ({
+            ...prevData,
+            bankName: selectedBank?.bankName || "",
+            bank_Id: event.target.value, // Optionally store the ID as well
+        }));
+    }}
+    className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "2")
+        ? "cursor-not-allowed"
+        : "cursor-pointer"
+        }`}
+    disabled={!paymentModeType.some((item) => item.value === "2")}
+>
+    <option value="" disabled className="text-gray-400">
+        Select Bank
+    </option>
+    {allBankNameData?.map((data) => (
+        <option key={data?.id} value={data?.id}>
+            {data?.bankName}
+        </option>
+    ))}
+</select>
+
+*/}
+
+
+                                                                <CustomDropdown
+                                                                    name="bank_Id"
+                                                                    label="Select Bank"
+                                                                    value={patientRegistrationData?.bank_Id}
+                                                                    options={[
+                                                                        { label: 'Select Bank Name', value: 0, disabled: true },
+                                                                        ...allBankNameData?.map(item => ({
+                                                                            label: item.bankName,
+                                                                            value: parseInt(item.id),
+                                                                        })),
+                                                                    ]}
+                                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                                    defaultIndex={0}
+                                                                    isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                                                                    activeTheme={activeTheme}
+                                                                    showLabel={false}
+                                                                    isMandatory={patientRegistrationDataError?.bank_Id}
+                                                                />
+                                                            </td>
+
+                                                            <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                                                            >
+                                                                {/* <input type="number"
+    name="onlinewalletAmt" id="onlinewalletAmt"
+    value={patientRegistrationData?.onlinewalletAmt || ''}
+    onChange={(e) => handelOnChangePatientRegistration(e)}
+    className={`inputPeerField  ${patientRegistrationDataError.onlinewalletAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${!paymentModeType.some((item) => item.value === "3") ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+
+    readOnly={!paymentModeType.some((item) => item.value === "3")}
+/> */}
+
+                                                                <CustomTextBox
+                                                                    type="decimalpositive"
+                                                                    name="onlinewalletAmt"
+                                                                    value={patientRegistrationData?.onlinewalletAmt || ''}
+                                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                                    label="Last 4 digits"
+                                                                    isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                                                                    isMandatory={patientRegistrationDataError.onlinewalletAmt}
+
+                                                                    readOnly={!paymentModeType.some((item) => item.value === "3")}
+                                                                    showLabel={true}
+                                                                />
+                                                            </td>
+
+
+
+                                                            <td className='text-xxs font-semibold text-gridTextColor relative flex-1'>
+                                                                {/* <select
+    id="paymentMode"
+    name='paymentMode'
+    // value={labTestMasterData.paymentMode}
+    // onChange={(event) => setPaymentMode(event.target.value)}
+    className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "3") ? "cursor-not-allowed" : "cursor-pointer"
+        }`}
+    disabled={!paymentModeType.some((item) => item.value === "3")}
+>
+    <option disabled hidden className='text-gray-400'>
+        Select Option
+    </option>
+    <option value="1">PayTm</option>
+    <option value="2">PhonePay</option>
+    <option value="3">BHIM</option>
+    <option value="4">GooglePay</option>
+</select> */}
+
+                                                                <CustomDropdown
+                                                                    name="paymentModeId"
+                                                                    label="Select Bank"
+                                                                    value={patientRegistrationData?.paymentModeId}
+                                                                    options={[
+                                                                        { label: 'Select Payment Mode', value: 0, disabled: true },
+                                                                        { label: 'Paytm', value: 1, },
+                                                                        { label: 'PhonePay', value: 2, },
+                                                                        { label: 'BHIM', value: 3, },
+                                                                        { label: 'GooglePay', value: 4, },
+                                                                    ]}
+                                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                                    defaultIndex={0}
+                                                                    isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                                                                    activeTheme={activeTheme}
+                                                                    showLabel={false}
+                                                                    isMandatory={patientRegistrationDataError?.paymentModeId}
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-2  mx-1 lg:mx-2">
+
+                                                {/* Discount Type */}
+                                                <div className="relative flex-1">
+                                                    {/* <select
+id="discountType"
+name='discountType'
+value={patientRegistrationData?.discountType}
+onChange={(event) => handelOnChangePatientRegistration(event)}
+className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+>
+<option value={0} disabled hidden className='text-gray-400'>
+Select Option
+</option>
+
+{
+allDicountTypeData?.map((data) => (
+<option key={data?.id} value={data?.id}>{data?.type}</option>
+
+))
+}
+
+</select>
+<label htmlFor="discountType" className="menuPeerLevel">
+Discount Type
+</label> */}
+
+                                                    <CustomDropdown
+                                                        name="discountType"
+                                                        label="Discount Type"
+                                                        value={patientRegistrationData?.discountType}
+                                                        options={[
+                                                            { label: 'Discount Type', value: 0, disabled: true },
+                                                            ...allDicountTypeData?.map(item => ({
+                                                                label: item.type,
                                                                 value: parseInt(item.id),
                                                             })),
                                                         ]}
                                                         onChange={(e) => handelOnChangePatientRegistration(e)}
                                                         defaultIndex={0}
-                                                        isDisabled={!paymentModeType.some((item) => item.value === "2")}
                                                         activeTheme={activeTheme}
-                                                        showLabel={false}
-                                                        isMandatory={patientRegistrationDataError?.bank_Id}
+                                                        isMandatory={patientRegistrationDataError?.discountType}
                                                     />
-                                                </td>
+                                                </div>
 
-                                                <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                                                >
-                                                    {/* <input type="number"
-                                                name="onlinewalletAmt" id="onlinewalletAmt"
-                                                value={patientRegistrationData?.onlinewalletAmt || ''}
-                                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                className={`inputPeerField  ${patientRegistrationDataError.onlinewalletAmt ? "border-b-red-500" : "border-borderColor"} outline-none ${!paymentModeType.some((item) => item.value === "3") ? 'cursor-not-allowed' : 'cursor-pointer'}`}
 
-                                                readOnly={!paymentModeType.some((item) => item.value === "3")}
-                                            /> */}
+                                                {/* Discount Ammount */}
+                                                <div className="relative flex-1">
+                                                    {/* <input
+                                                        type="number"
+                                                        id="discountAmmount"
+                                                        name="discountAmmount"
+                                                        value={patientRegistrationData?.discountAmmount}
+                                                        onChange={(event) => handelOnChangePatientRegistration(event)}
+                                                        placeholder=" "
+                                                        className={`inputPeerField peer ${patientRegistrationDataError.discountAmmount ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
+                                                        />
+
+                                                        <label htmlFor="discountAmmount" className="menuPeerLevel">
+                                                        Discount Ammount
+                                                        </label> */}
 
                                                     <CustomTextBox
                                                         type="decimalpositive"
-                                                        name="onlinewalletAmt"
-                                                        value={patientRegistrationData?.onlinewalletAmt || ''}
+                                                        name="discountAmmount"
+                                                        value={patientRegistrationData?.discountAmmount || ''}
                                                         onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                        label="Last 4 digits"
-                                                        isDisabled={!paymentModeType.some((item) => item.value === "3")}
-                                                        isMandatory={patientRegistrationDataError.onlinewalletAmt}
-
-                                                        readOnly={!paymentModeType.some((item) => item.value === "3")}
-                                                        showLabel={true}
+                                                        label="Discount Ammount"
+                                                        isMandatory={patientRegistrationDataError.discountAmmount}
                                                     />
-                                                </td>
+                                                </div>
+
+                                                {/* Discount % */}
+                                                <div className="relative flex-1">
+                                                    {/* <input
+                                                            type="number"
+                                                            id="discountPercentage"
+                                                            name="discountPercentage"
+                                                            value={patientRegistrationData?.discountPercentage}
+
+                                                            onChange={(e) => handelOnChangePatientRegistration(e)}
+
+                                                            placeholder=" "
+                                                            className={`inputPeerField  ${patientRegistrationDataError.discountPercentage ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
+                                                            />
+                                                            <label htmlFor="discountPercentage" className="menuPeerLevel">
+                                                            Discount %
+                                                            </label> */}
+
+                                                    <CustomTextBox
+                                                        type="decimalpositive"
+                                                        name="discountPercentage"
+                                                        value={patientRegistrationData?.discountPercentage || ''}
+                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        label="Discount %"
+                                                        isMandatory={patientRegistrationDataError.discountPercentage}
+                                                    />
+                                                </div>
 
 
-
-                                                <td className='text-xxs font-semibold text-gridTextColor relative flex-1'>
+                                                {/* Discount Reason */}
+                                                <div className="relative flex-1">
                                                     {/* <select
-                                                id="paymentMode"
-                                                name='paymentMode'
-                                                // value={labTestMasterData.paymentMode}
-                                                // onChange={(event) => setPaymentMode(event.target.value)}
-                                                className={`inputPeerField border-borderColor peer focus:outline-none ${!paymentModeType.some((item) => item.value === "3") ? "cursor-not-allowed" : "cursor-pointer"
-                                                    }`}
-                                                disabled={!paymentModeType.some((item) => item.value === "3")}
-                                            >
-                                                <option disabled hidden className='text-gray-400'>
-                                                    Select Option
-                                                </option>
-                                                <option value="1">PayTm</option>
-                                                <option value="2">PhonePay</option>
-                                                <option value="3">BHIM</option>
-                                                <option value="4">GooglePay</option>
-                                            </select> */}
+                                                        id="discountid"
+                                                        name="discountid"
+                                                        value={patientRegistrationData?.discountid}
+                                                        onChange={(event) => {
+                                                        const selectedOption = event.target.options[event.target.selectedIndex];
+                                                        const id = selectedOption.value;
+                                                        const reasonName = selectedOption.getAttribute("data-reasonname");
+
+                                                        // Call separate methods for id and reasonName
+                                                        handelOnChangePatientRegistration(event);
+
+                                                        setPatientRegistrationSelectData((preventData) => ({
+                                                        ...preventData,
+                                                        discountid: reasonName
+                                                        }))
+                                                        }}
+                                                        className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountid ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
+                                                        >
+                                                        <option value={0} disabled hidden className="text-gray-400">
+                                                        Select Option
+                                                        </option>
+                                                        {allDiscountReasonData?.map((data) => (
+                                                        <option key={data?.id} value={data?.id} data-reasonname={data?.discountReasonName}>
+                                                        {data?.discountReasonName}
+                                                        </option>
+                                                        ))}
+                                                        </select>
+
+                                                        <label htmlFor="discountid" className="menuPeerLevel">
+                                                        Discount Reason
+                                                        </label> */}
 
                                                     <CustomDropdown
-                                                        name="paymentModeId"
-                                                        label="Select Bank"
-                                                        value={patientRegistrationData?.paymentModeId}
+                                                        name="discountid"
+                                                        label="Discount Reason"
+                                                        value={patientRegistrationData?.discountid}
                                                         options={[
-                                                            { label: 'Select Payment Mode', value: 0, disabled: true },
-                                                            { label: 'Paytm', value: 1, },
-                                                            { label: 'PhonePay', value: 2, },
-                                                            { label: 'BHIM', value: 3, },
-                                                            { label: 'GooglePay', value: 4, },
+                                                            { label: 'Select Discount Reason', value: 0, disabled: true },
+                                                            ...allDiscountReasonData?.map(item => ({
+                                                                label: item.discountReasonName,
+                                                                value: item.id,
+                                                            })),
                                                         ]}
                                                         onChange={(e) => handelOnChangePatientRegistration(e)}
                                                         defaultIndex={0}
-                                                        isDisabled={!paymentModeType.some((item) => item.value === "3")}
                                                         activeTheme={activeTheme}
-                                                        showLabel={false}
-                                                        isMandatory={patientRegistrationDataError?.paymentModeId}
+                                                        isMandatory={patientRegistrationDataError?.discountid}
                                                     />
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                                </div>
 
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-2  mx-1 lg:mx-2">
+                                                {/* Discount Approved By */}
+                                                <div className="relative flex-1">
+                                                    {/* <select
+id="discountApproved"
+name='discountApproved'
+value={patientRegistrationData?.discountApproved}
+onChange={(event) => handelOnChangePatientRegistration(event)}
+className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountApproved ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
+>
+<option value={0} disabled hidden className='text-gray-400'>
+Select Option
+</option>
+{
+allDiscountApprovedByData?.map((data) => (
+<option key={data?.empId} value={data?.empId}>{`${data?.fName} ${data?.lName}`}</option>
 
-                                    {/* Discount Type */}
-                                    <div className="relative flex-1">
-                                        {/* <select
-                                    id="discountType"
-                                    name='discountType'
-                                    value={patientRegistrationData?.discountType}
-                                    onChange={(event) => handelOnChangePatientRegistration(event)}
-                                    className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
-                                >
-                                    <option value={0} disabled hidden className='text-gray-400'>
-                                        Select Option
-                                    </option>
+))
+}
+</select>
+<label htmlFor="discountApproved" className="menuPeerLevel">
+Discount Approved By
+</label> */}
 
-                                    {
-                                        allDicountTypeData?.map((data) => (
-                                            <option key={data?.id} value={data?.id}>{data?.type}</option>
-
-                                        ))
-                                    }
-
-                                </select>
-                                <label htmlFor="discountType" className="menuPeerLevel">
-                                    Discount Type
-                                </label> */}
-
-                                        <CustomDropdown
-                                            name="discountType"
-                                            label="Discount Type"
-                                            value={patientRegistrationData?.discountType}
-                                            options={[
-                                                { label: 'Discount Type', value: 0, disabled: true },
-                                                ...allDicountTypeData?.map(item => ({
-                                                    label: item.type,
-                                                    value: parseInt(item.id),
-                                                })),
-                                            ]}
-                                            onChange={(e) => handelOnChangePatientRegistration(e)}
-                                            defaultIndex={0}
-                                            activeTheme={activeTheme}
-                                            isMandatory={patientRegistrationDataError?.discountType}
-                                        />
-                                    </div>
-
-
-                                    {/* Discount Ammount */}
-                                    <div className="relative flex-1">
-                                        {/* <input
-                                    type="number"
-                                    id="discountAmmount"
-                                    name="discountAmmount"
-                                    value={patientRegistrationData?.discountAmmount}
-                                    onChange={(event) => handelOnChangePatientRegistration(event)}
-                                    placeholder=" "
-                                    className={`inputPeerField peer ${patientRegistrationDataError.discountAmmount ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
-                                />
-
-                                <label htmlFor="discountAmmount" className="menuPeerLevel">
-                                    Discount Ammount
-                                </label> */}
-
-                                        <CustomTextBox
-                                            type="decimalpositive"
-                                            name="discountAmmount"
-                                            value={patientRegistrationData?.discountAmmount || ''}
-                                            onChange={(e) => handelOnChangePatientRegistration(e)}
-                                            label="Discount Ammount"
-                                            isMandatory={patientRegistrationDataError.discountAmmount}
-                                        />
-                                    </div>
-
-                                    {/* Discount % */}
-                                    <div className="relative flex-1">
-                                        {/* <input
-                                    type="number"
-                                    id="discountPercentage"
-                                    name="discountPercentage"
-                                    value={patientRegistrationData?.discountPercentage}
-
-                                    onChange={(e) => handelOnChangePatientRegistration(e)}
-
-                                    placeholder=" "
-                                    className={`inputPeerField  ${patientRegistrationDataError.discountPercentage ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
-                                />
-                                <label htmlFor="discountPercentage" className="menuPeerLevel">
-                                    Discount %
-                                </label> */}
-
-                                        <CustomTextBox
-                                            type="decimalpositive"
-                                            name="discountPercentage"
-                                            value={patientRegistrationData?.discountPercentage || ''}
-                                            onChange={(e) => handelOnChangePatientRegistration(e)}
-                                            label="Discount %"
-                                            isMandatory={patientRegistrationDataError.discountPercentage}
-                                        />
-                                    </div>
-
-
-                                    {/* Discount Reason */}
-                                    <div className="relative flex-1">
-                                        {/* <select
-                                    id="discountid"
-                                    name="discountid"
-                                    value={patientRegistrationData?.discountid}
-                                    onChange={(event) => {
-                                        const selectedOption = event.target.options[event.target.selectedIndex];
-                                        const id = selectedOption.value;
-                                        const reasonName = selectedOption.getAttribute("data-reasonname");
-
-                                        // Call separate methods for id and reasonName
-                                        handelOnChangePatientRegistration(event);
-
-                                        setPatientRegistrationSelectData((preventData) => ({
-                                            ...preventData,
-                                            discountid: reasonName
-                                        }))
-                                    }}
-                                    className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountid ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
-                                >
-                                    <option value={0} disabled hidden className="text-gray-400">
-                                        Select Option
-                                    </option>
-                                    {allDiscountReasonData?.map((data) => (
-                                        <option key={data?.id} value={data?.id} data-reasonname={data?.discountReasonName}>
-                                            {data?.discountReasonName}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                <label htmlFor="discountid" className="menuPeerLevel">
-                                    Discount Reason
-                                </label> */}
-
-                                        <CustomDropdown
-                                            name="discountid"
-                                            label="Discount Reason"
-                                            value={patientRegistrationData?.discountid}
-                                            options={[
-                                                { label: 'Select Discount Reason', value: 0, disabled: true },
-                                                ...allDiscountReasonData?.map(item => ({
-                                                    label: item.discountReasonName,
-                                                    value: item.id,
-                                                })),
-                                            ]}
-                                            onChange={(e) => handelOnChangePatientRegistration(e)}
-                                            defaultIndex={0}
-                                            activeTheme={activeTheme}
-                                            isMandatory={patientRegistrationDataError?.discountid}
-                                        />
-                                    </div>
-
-
-                                    {/* Discount Approved By */}
-                                    <div className="relative flex-1">
-                                        {/* <select
-                                    id="discountApproved"
-                                    name='discountApproved'
-                                    value={patientRegistrationData?.discountApproved}
-                                    onChange={(event) => handelOnChangePatientRegistration(event)}
-                                    className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountApproved ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
-                                >
-                                    <option value={0} disabled hidden className='text-gray-400'>
-                                        Select Option
-                                    </option>
-                                    {
-                                        allDiscountApprovedByData?.map((data) => (
-                                            <option key={data?.empId} value={data?.empId}>{`${data?.fName} ${data?.lName}`}</option>
-
-                                        ))
-                                    }
-                                </select>
-                                <label htmlFor="discountApproved" className="menuPeerLevel">
-                                    Discount Approved By
-                                </label> */}
-
-                                        <CustomDropdown
-                                            name="discountApproved"
-                                            label="Discount Approved By"
-                                            value={patientRegistrationData?.discountApproved}
-                                            options={[
-                                                { label: 'Select Discount Approved By', value: 0, disabled: true },
-                                                ...allDiscountApprovedByData?.map(item => ({
-                                                    label: `${item?.fName} ${item?.lName}`,
-                                                    value: item.empId,
-                                                })),
-                                            ]}
-                                            onChange={(e) => handelOnChangePatientRegistration(e)}
-                                            defaultIndex={0}
-                                            activeTheme={activeTheme}
-                                            isMandatory={patientRegistrationDataError?.discountApproved}
-                                        />
-                                    </div>
+                                                    <CustomDropdown
+                                                        name="discountApproved"
+                                                        label="Discount Approved By"
+                                                        value={patientRegistrationData?.discountApproved}
+                                                        options={[
+                                                            { label: 'Select Discount Approved By', value: 0, disabled: true },
+                                                            ...allDiscountApprovedByData?.map(item => ({
+                                                                label: `${item?.fName} ${item?.lName}`,
+                                                                value: item.empId,
+                                                            })),
+                                                        ]}
+                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        defaultIndex={0}
+                                                        activeTheme={activeTheme}
+                                                        isMandatory={patientRegistrationDataError?.discountApproved}
+                                                    />
+                                                </div>
 
 
 
-                                    <div className='flex gap-[0.25rem]'>
-                                        <div className="relative flex-1 flex justify-start items-center">
-                                            {/* <button
-                                                type="button"
-                                                data-ripple-light="true"
-                                                className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                                style={{
-                                                    background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                                }}
+                                                <div className='flex gap-[0.25rem]'>
+                                                    <div className="relative flex-1 flex justify-start items-center">
+                                                        {/* <button
+    type="button"
+    data-ripple-light="true"
+    className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+    style={{
+        background: activeTheme?.menuColor, color: activeTheme?.iconColor
+    }}
 
-                                                onClick={onSubmitForSavePatientRegistrationData}
-                                            >
+    onClick={onSubmitForSavePatientRegistrationData}
+>
 
-                                                {
-                                                    isButtonClick === 2 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                                }
+    {
+        isButtonClick === 2 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+    }
 
-                                            </button> */}
+</button> */}
 
 
-                                            <button
-                                                type="button"
-                                                data-ripple-light="true"
-                                                className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                                style={{
-                                                    background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                                }}
+                                                        <button
+                                                            type="button"
+                                                            data-ripple-light="true"
+                                                            className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                                            style={{
+                                                                background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                                            }}
 
-                                                onClick={() => setShowPopup(6)}
-                                            >
-                                                Save
-                                            </button>
-                                        </div>
+                                                            onClick={() => {
+                                                                if (isPreprintedCode === 0) {
+                                                                    onSubmitForSavePatientRegistrationData();
+                                                                } else {
+                                                                    setShowPopup(6);
 
-                                        <div className="relative flex-1 flex justify-start items-center">
-                                            <button
-                                                type="button"
-                                                data-ripple-light="true"
-                                                className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                                style={{
-                                                    background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                                }}
-                                            >
+                                                                }
+                                                            }}
+                                                        >
+                                                            Save
+                                                        </button>
+                                                    </div>
 
-                                                {/* {
-            isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Mapping'
-        } */}
-                                                Reset
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                                    <div className="relative flex-1 flex justify-start items-center">
+                                                        <button
+                                                            type="button"
+                                                            data-ripple-light="true"
+                                                            className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                                            style={{
+                                                                background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                                            }}
+                                                        >
+
+                                                            {/* {
+isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Mapping'
+} */}
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+
+                                    )
+                                }
+
+                                {
+                                    parseInt(patientRegistrationData?.billingType) === 1 && (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2 ">
+
+                                                <div className='flex gap-[0.25rem] '>
+                                                    <div className="relative flex-1 flex justify-start items-center">
+                                                        {/* <button
+    type="button"
+    data-ripple-light="true"
+    className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+    style={{
+        background: activeTheme?.menuColor, color: activeTheme?.iconColor
+    }}
+
+    onClick={onSubmitForSavePatientRegistrationData}
+>
+
+    {
+        isButtonClick === 2 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+    }
+
+</button> */}
+
+
+                                                        <button
+                                                            type="button"
+                                                            data-ripple-light="true"
+                                                            className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                                            style={{
+                                                                background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                                            }}
+
+                                                            onClick={() => {
+                                                                if (isPreprintedCode === 0) {
+                                                                    onSubmitForSavePatientRegistrationData();
+                                                                } else {
+                                                                    setShowPopup(6);
+
+                                                                }
+                                                            }}
+                                                        >
+                                                            Save
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="relative flex-1 flex justify-start items-center">
+                                                        <button
+                                                            type="button"
+                                                            data-ripple-light="true"
+                                                            className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
+                                                            style={{
+                                                                background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                                            }}
+                                                        >
+
+                                                            {/* {
+isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Mapping'
+} */}
+                                                            Reset
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </>
+                                    )
+                                }
                             </>
                         )
                     }
@@ -5477,7 +5621,7 @@ export default function PatientRegistration() {
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                {data?.ageDay}
+                                                                {data?.ageShow}
                                                             </td>
 
                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
@@ -5675,74 +5819,77 @@ export default function PatientRegistration() {
                                                         </td>
 
                                                         <td className="border-b font-semibold border-gray-300 px-4 text-xxs" style={{ width: "3%" }}>
-                                                            Not Coll.
+                                                            Collect
                                                         </td>
                                                     </tr>
                                                 </thead>
+                                                {
+                                                    console.log(investigationGridData)
 
+                                                }
                                                 <tbody>
-                                                    {dummyDataForpatientRegistrationoldPatient?.map((data, rowIndex) => (
-                                                        <tr
-                                                            key={rowIndex}
-                                                            className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"} `}
-                                                            onMouseEnter={() => setIsHoveredTable(rowIndex)}
-                                                            onMouseLeave={() => setIsHoveredTable(null)}
-                                                            style={{
-                                                                background: isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
-                                                            }}
-                                                        >
-                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor " style={{ width: "10%" }}>
-                                                                Selected
-                                                            </td>
+                                                    {investigationGridData?.map((data, rowIndex) => {
+                                                        // Declare barcodeValue inside the map function
+                                                        const barcodeValue =
+                                                            gridDataBarCodeandSampleType?.barCode.find(
+                                                                (item) => item.itemId === data?.itemId
+                                                            )?.name || "";
 
-                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor " style={{ width: "3%" }}>
+                                                        return (
+                                                            <tr
+                                                                key={rowIndex}
+                                                                className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"}`}
+                                                                onMouseEnter={() => setIsHoveredTable(rowIndex)}
+                                                                onMouseLeave={() => setIsHoveredTable(null)}
+                                                                style={{
+                                                                    background: isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
+                                                                }}
+                                                            >
+                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "10%" }}>
+                                                                    {data?.itemName}
+                                                                </td>
 
-                                                                <div className='relative'>
-                                                                    <CustomDropdown
-                                                                        name="title_id"
-                                                                        label="Select Title"
-                                                                        showLabel={false}
-                                                                        value={patientRegistrationData?.title_id}
-                                                                        options={[
-                                                                            { label: 'Select Option', value: 0, disabled: true },
-                                                                            ...allTitleData?.map(item => ({
-                                                                                label: item.title,
-                                                                                value: item.id,
-                                                                            })),
-                                                                        ]}
-                                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                                        defaultIndex={0}
-                                                                        activeTheme={activeTheme}
-                                                                        isMandatory={!Boolean(patientRegistrationData?.title_id)}
+                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
+                                                                    <select
+                                                                        className="border rounded px-1 w-full outline-none"
+                                                                        onChange={(e) => handleSampleTypeChange(e, rowIndex, data?.itemType)}
+                                                                        defaultValue={0}
+                                                                    >
+                                                                        <option value={0} disabled hidden className="text-gray-400">
+                                                                            Select Option
+                                                                        </option>
+                                                                        {data?.sampleTypeName?.map((item, index) => (
+                                                                            <option key={index} value={item}>
+                                                                                {item}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                </td>
+
+                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
+                                                                    {/* Now barcodeValue is correctly defined */}
+                                                                    <CustomTextBox
+                                                                        type="barcode"
+                                                                        name="barCode"
+                                                                        maxLength={12}
+                                                                        value={barcodeValue}
+                                                                        onChange={(e) => handleInputChange(data?.itemId, e.target.value, "2")}
+                                                                        placeholder=" "
+                                                                        label="Barcode"
                                                                     />
-                                                                </div>
+                                                                </td>
 
-                                                                {/* <select name="" id="" className='w-full'>
-                                                                    <option value="1">1</option>
-                                                                    <option value="1">1</option>
-                                                                    <option value="1">1</option>
-                                                                    <option value="1">1</option>
-                                                                </select> */}
-                                                            </td>
-
-                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                                                <CustomTextBox
-                                                                    type="barcode"
-                                                                    name="address"
-                                                                    maxLength={12}
-                                                                    value={patientRegistrationData?.address}
-                                                                    placeholder=" "
-                                                                    onChange={(e) => handelOnChangePatientRegistration(e)}
-                                                                    label="Barcode"
-                                                                />
-                                                            </td>
-
-
-                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                                                <input type="checkbox" name="" id="" />
-                                                            </td>
-                                                        </tr>
-                                                    ))}
+                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
+                                                                    {/* <input
+                                                                        type="checkbox"
+                                                                        checked={checkedItems[data?.itemId] || !!barcodeValue} // Keeps checked if barcodeValue exists
+                                                                        onChange={() => handleCheckboxChange123(data?.itemId)} // Allows toggling
+                                                                    /> */}
+                                                                    <input type="text" name="" id="" />
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
                                                 </tbody>
                                             </table>
 
@@ -5758,7 +5905,7 @@ export default function PatientRegistration() {
                                     <div className="relative flex-1"></div>
                                     <div className="relative flex-1 flex items-center gap-1 w-full rounded-md pl-2" style={{ background: activeTheme?.menuColor }}>
                                         <input type="checkbox" name="" id="" />
-                                        <CustomeNormalButton activeTheme={activeTheme} text='Per same barcode' />
+                                        <CustomeNormalButton activeTheme={activeTheme} text='Patient wise barcode' />
                                     </div>
                                     <div className="relative flex-1">
                                         <CustomeNormalButton activeTheme={activeTheme} text='Collect & Save' />
