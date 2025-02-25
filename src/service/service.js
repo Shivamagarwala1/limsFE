@@ -914,6 +914,22 @@ export const updateEditInfoApi = async (updatedEditInfo) => {
     return response?.data;
 }
 
+//get edit info
+export const getSingleEditTestApi = async (searchVal) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetPatientEditTest?searchValue=${searchVal}`);
+
+    return response.data;
+}
+
+
+//get old patient
+export const getOldPatientApi = async (searchVal) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetOldPatient?searchValue=${searchVal}`);
+
+    return response.data;
+} 
 //===================================
 export const getAllEmojiColorCodeApi = async () => {
 
