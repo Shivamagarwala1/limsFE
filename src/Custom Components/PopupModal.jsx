@@ -611,7 +611,7 @@ export const RejectPopupModal = ({
         </div>
 
         {/* Input Field */}
-        <div className="p-4 pb-2 flex flex-row gap-1 border-none">
+        <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
           <InputGenerator
             inputFields={[
               {
@@ -664,6 +664,7 @@ export const SampleCollectionRejectPopupModal = ({
     const payload = {
       ...rowData,
       rejectionReason: values?.RejectionReason,
+      isSampleCollected: "R",
       empId: parseInt(lsData?.user?.employeeId),
     };
     PostData?.postRequest("/tnx_BookingItem/UpdateSampleStatus", [payload]);
@@ -699,8 +700,9 @@ export const SampleCollectionRejectPopupModal = ({
         </div>
 
         {/* Input Field */}
+        <TableHeader title={"Rejection Reason"} />
         <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-          <div className="p-4 pb-2 flex flex-row gap-1 border-none">
+          <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
             <InputGenerator
               inputFields={[
                 {
@@ -907,8 +909,6 @@ export const SampleCollectionRemarkPopupModal = ({
   rowData,
   handleTheUpdateStatusMenu,
 }) => {
-  const [rows, setRows] = useState([]); // Proper state name
-  const [remark, setRemark] = useState("");
   const { formRef, getValues, setValues } = useFormHandler();
   const [refreshData, setRefreshData] = useState(false); // New state to trigger re-fetch
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -922,10 +922,7 @@ export const SampleCollectionRemarkPopupModal = ({
     GetRemark?.fetchData(
       `/tnx_InvestigationRemarks/GetSampleremark?transacctionId=${rowData?.transactionId}&WorkOrderId=${rowData?.workOrderId}&itemId=${rowData?.itemId}`
     );
-    // setTimeout(()=>{
-    //   setRefreshData(!refreshData)
-    // },500)
-  }, [showPopup,refreshData]);
+  }, [showPopup, refreshData]);
 
   if (!showPopup) return null;
 
@@ -934,27 +931,27 @@ export const SampleCollectionRemarkPopupModal = ({
     const values = getValues();
     const lsData = getLocal("imarsar_laboratory");
     const payload = {
-      itemName:rowData?.investigationName,
-      isActive:1,
-      id:0,
-      itemId:rowData?.itemId,
-      workOrderId:rowData?.workOrderId,
-      transactionId:rowData?.transactionId,
+      itemName: rowData?.investigationName,
+      isActive: 1,
+      id: 0,
+      itemId: rowData?.itemId,
+      workOrderId: rowData?.workOrderId,
+      transactionId: rowData?.transactionId,
       invRemarks: values?.invRemarks,
-      isInternal:0,
+      isInternal: parseInt(values?.isInternal),
+      remark: values?.invRemarks,
       createdById: parseInt(lsData?.user?.employeeId),
     };
     console.log("Form values:", values);
-    PostData?.postRequest('/tnx_InvestigationRemarks/AddSampleremark',payload) 
+    PostData?.postRequest("/tnx_InvestigationRemarks/AddSampleremark", payload);
     if (PostData?.response?.success) {
       toast.success(PostData?.response?.message);
-      setRemark(""); // Clear the input field
       setRefreshData((prev) => !prev); // Trigger re-fetching of data
     } else {
       toast.info(PostData?.response?.message);
     }
   };
- 
+
   console.log(GetRemark);
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
@@ -962,7 +959,19 @@ export const SampleCollectionRemarkPopupModal = ({
       field: `invRemarks`,
       headerName: `Remark`,
       flex: 1,
-    }
+    },
+    {
+      field: `isInternal`,
+      headerName: `In-House`,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex", gap: "5px" }}>
+            {params?.row?.isInternal == 0 ? "In-House" : "In-Out Both"}
+          </div>
+        );
+      },
+    },
   ];
 
   return (
@@ -988,7 +997,7 @@ export const SampleCollectionRemarkPopupModal = ({
         </div>
         <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
           {/* Input Field */}
-          <div className="p-2 pb-0  flex gap-2 border-none">
+          <div className="p-2 pb-2  flex gap-2 border-none">
             <InputGenerator
               inputFields={[
                 {
@@ -1001,19 +1010,19 @@ export const SampleCollectionRemarkPopupModal = ({
                 {
                   label: "Remark",
                   type: "select",
-                  name: "Remark",
+                  name: "invRemarks",
                   keyField: "remark",
-                  callBack:(e)=>{setRemark(e.target.value)},
                   dataOptions: Remark?.data,
                 },
                 {
-                  label: "Remark",
-                  type: "text",
-                  name: "invRemarks",
-                  onChange: (value) => {
-                    setRemark(value); // Update the state
-                  },
-                  value: `${remark}`,
+                  label: "In-House",
+                  type: "select",
+                  name: "isInternal",
+                  keyField: "id",
+                  dataOptions: [
+                    { id: 0, data: "Yes" },
+                    { id: 1, data: "No" },
+                  ],
                 },
               ]}
             />
@@ -1021,10 +1030,155 @@ export const SampleCollectionRemarkPopupModal = ({
               text={"Save"}
               style={{ padding: "5px 10px", width: "100px" }}
             />
-            {/* <div className="flex items-center gap-1"><input type="checkbox" /> Show In House</div>  */}
           </div>
         </form>
-        <DynamicTable name="Test Details" rows={GetRemark?.data?.data} columns={columns} />
+        <DynamicTable
+          name="Test Details"
+          rows={GetRemark?.data?.data}
+          columns={columns}
+        />
+      </div>
+    </div>
+  );
+};
+
+export const ResultTrackRemarkPopupModal = ({
+  showPopup,
+  setShowPopup,
+  rowData,
+  handleTheUpdateStatusMenu,
+}) => {
+  const { formRef, getValues, setValues } = useFormHandler();
+  const [refreshData, setRefreshData] = useState(false); // New state to trigger re-fetch
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const GetRemark = useGetData();
+  const Remark = useGetData();
+  const PostData = usePostData();
+  useEffect(() => {
+    Remark?.fetchData(
+      "/LabRemarkMaster?select=id,remark&$filter=(isactive eq 1 and type eq 'LabRemark')"
+    );
+    GetRemark?.fetchData(
+      `/tnx_InvestigationRemarks/GetSampleremark?transacctionId=${rowData?.transactionId}&WorkOrderId=${rowData?.workOrderId}&itemId=${rowData?.itemId}1`
+    );
+  }, [showPopup, refreshData]);
+
+  if (!showPopup) return null;
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const values = await getValues();
+    const lsData = await getLocal("imarsar_laboratory");
+    const payload = {
+      itemName: rowData?.investigationName,
+      isActive: 1,
+      id: 0,
+      itemId: rowData?.itemId,
+      workOrderId: rowData?.workOrderId,
+      transactionId: rowData?.transactionId,
+      invRemarks: values?.invRemarks,
+      isInternal: parseInt(values?.isInternal),
+      remark: values?.invRemarks,
+      createdById: parseInt(lsData?.user?.employeeId),
+    };
+    console.log("Form values:", values);
+    const response = await PostData?.postRequest(
+      "/tnx_InvestigationRemarks/AddSampleremark",
+      payload
+    );
+    if (response?.success) {
+      toast.success(response?.message);
+      setRefreshData((prev) => !prev);
+    } else {
+      toast.info(response?.message);
+    }
+  };
+
+  console.log(GetRemark);
+  const columns = [
+    { field: "id", headerName: "Sr. No", width: 20 },
+    {
+      field: `invRemarks`,
+      headerName: `Remark`,
+      flex: 1,
+    },
+    {
+      field: `isInternal`,
+      headerName: `In-House`,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex", gap: "5px" }}>
+            {params?.row?.isInternal == 0 ? "In-House" : "In-Out Both"}
+          </div>
+        );
+      },
+    },
+  ];
+
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-120 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center py-1 px-2 "
+        >
+          <span className="text-sm font-semibold">Test Remark</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          {/* Input Field */}
+          <div className="p-2 pb-2  flex gap-2 border-none">
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "Test Name",
+                  type: "text",
+                  name: "testname",
+                  readOnly: true,
+                  value: `${rowData?.investigationName}`,
+                },
+                {
+                  label: "Remark",
+                  type: "select",
+                  name: "invRemarks",
+                  keyField: "remark",
+                  dataOptions: Remark?.data,
+                },
+                {
+                  label: "In-House",
+                  type: "select",
+                  name: "isInternal",
+                  keyField: "id",
+                  dataOptions: [
+                    { id: 0, data: "Yes" },
+                    { id: 1, data: "No" },
+                  ],
+                },
+              ]}
+            />
+            <SubmitButton
+              text={"Save"}
+              style={{ padding: "5px 10px", width: "100px" }}
+            />
+          </div>
+        </form>
+        <DynamicTable
+          name="Test Details"
+          rows={GetRemark?.data?.data}
+          columns={columns}
+        />
       </div>
     </div>
   );
@@ -1129,5 +1283,46 @@ export const ReRunPopup = ({
         </div>
       </div>
     )
+  );
+};
+
+export const SampleCollectionCommentPopupModal = ({
+  showPopup,
+  setShowPopup,
+  comment = "",
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+
+  if (!showPopup) return null;
+
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">Comment</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup()}
+          />
+        </div>
+
+        {/* Input Field */}
+        <TableHeader title={"Comment"} />
+        <div className="p-2 flex text-wrap ">
+          <span>{comment}</span>
+        </div>
+      </div>
+    </div>
   );
 };
