@@ -49,8 +49,9 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 name={field?.name}
                 required={field?.required}
                 onChange={field?.callBack}
+                value={field?.value}
                 className={`inputPeerField cursor-pointer ${
-                  field?.required ? "border-b-red-500" : "border-b-green-300"
+                  field?.required ? "border-b-red-500" : ""
                 } peer border-borderColor focus:outline-none`}
               >
                 {field?.defaultView ? (
@@ -89,7 +90,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                   defaultValue={todayDate}
                   placeholder={""}
                   className={`inputPeerField peer border-borderColor ${
-                    field?.required ? "border-b-red-500" : "border-b-green-300"
+                    field?.required ? "border-b-red-500" : ""
                   } focus:outline-none`}
                 />
                 <label htmlFor={field?.name} className="menuPeerLevel">
@@ -188,7 +189,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 }}
                 placeholder={field?.placeholder || ""}
                 className={`inputPeerField peer border-borderColor ${
-                  field?.required ? "border-b-red-500" : "border-b-green-300"
+                  field?.required ? "border-b-red-500" : ""
                 } focus:outline-none`}
               />
               <label htmlFor={field?.name} className="menuPeerLevel">

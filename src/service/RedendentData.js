@@ -24,6 +24,7 @@ export const addObjectId = (arr) => {
 export const SampleCollectionStatus = [
   { id: 1, data: "Sample Not Collected", value: "N" },
   { id: 2, data: "Sample Collected", value: "S" },
-  { id: 1, data: "Sample Received", value: "Y" },
-  { id: 1, data: "Sample Reject", value: "R" },
+  { id: 3, data: "Sample Received", value: "Y" },
+  { id: 4, data: "Sample Reject", value: "R" },
+  { id: 5, data: "Urgent", value: "U" },
 ];
