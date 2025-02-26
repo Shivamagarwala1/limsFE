@@ -7,6 +7,7 @@ import InputGenerator, {
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
+import UrgentGif from "../../../../assets/UrgentGif.gif";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
@@ -18,11 +19,12 @@ import {
   InvestigationRemarkPopupModal,
   RejectPopupModal,
   ReRunPopup,
+  ResultTrackRejectPopupModal,
   ResultTrackRemarkPopupModal,
   SampleCollectionCommentPopupModal,
 } from "../../../../Custom Components/PopupModal";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
-import CustomeEditor from "../../../sharecomponent/CustomeEditor";
+import RemarkGif from "../../../../assets/RemarkGif.gif";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import CustomHandsontable from "../../../../Custom Components/CustomHandsontable";
 import { getLocal, setLocal } from "usehoks";
@@ -62,7 +64,27 @@ export default function ResultTrack() {
     // console.log(AllCenterData);
   }, []);
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
+    {
+      field: "id",
+      headerName: "Sr. No",
+      width: 20,
+      renderCell: (params) => {
+        return (
+          <div
+            style={{
+              display: "flex",
+              gap: "10px",
+              alignItems: "center",
+            }}
+          >
+            <div>{params?.row?.id}</div>
+            {params?.row?.urgent == 1 && (
+              <img style={{ width: "20px" }} src={UrgentGif} alt="Urgent Gif" />
+            )}
+          </div>
+        );
+      },
+    },
 
     {
       field: `bookingDate`,
@@ -88,6 +110,13 @@ export default function ResultTrack() {
       field: `age`,
       headerName: `Age/Gender`,
       flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex" }}>
+            {params?.row?.age}/{params?.row?.gender}
+          </div>
+        );
+      },
     },
     {
       field: `barcodeNo`,
@@ -105,7 +134,8 @@ export default function ResultTrack() {
               submit={false}
               text={params?.row?.investigationName}
               callBack={() => {
-                setUserObj(params?.row);
+                setRow(params?.row);
+                currentRow(params?.row?.id);
               }}
               style={{
                 // width: "30px",
@@ -158,6 +188,61 @@ export default function ResultTrack() {
       },
     },
     {
+      field: `approvedDate`,
+      headerName: `Approved Date`,
+      flex: 1,
+    },
+    {
+      field: `Remark`,
+      headerName: `Remark`,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{
+            display: "flex",
+            gap: "5px",
+            fontSize: "15px",
+            alignItems: "center",
+          }}>
+            <SubmitButton
+              submit={false}
+              text={"+"}
+              callBack={() => {
+                setLocal("testName", params?.row?.TestName);
+                setRow({ ...params?.row });
+                setRemarkPopup(true);
+              }}
+              style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
+            />
+              {params?.row?.isremark > 0 && (
+              <img style={{ width: "20px" }} src={RemarkGif} alt="Remark Gif" />
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      field: `Info`,
+      headerName: `Info`,
+      flex: 1,
+      renderCell: (params) => {
+        // console.log(params.row)
+        return (
+          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+            <SubmitButton
+              submit={false}
+              text={"i"}
+              callBack={() => {
+                setInfo(true);
+              }}
+              style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
+            />
+          </div>
+        );
+      },
+    },
+    
+    {
       field: `comment`,
       headerName: `Comments`,
       flex: 1,
@@ -180,7 +265,7 @@ export default function ResultTrack() {
             />
             <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
               {params?.row?.comment?.slice(0, 10)}
-              {params?.row?.comment.length > 0 && (
+              {params?.row?.comment.length > 10 && (
                 <>
                   ...
                   <div
@@ -202,52 +287,6 @@ export default function ResultTrack() {
               )}
             </div>
           </>
-        );
-      },
-    },
-    {
-      field: `approvedDate`,
-      headerName: `Approved Date`,
-      flex: 1,
-    },
-    {
-      field: `Remark`,
-      headerName: `Remark`,
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <SubmitButton
-              submit={false}
-              text={"+"}
-              callBack={() => {
-                setLocal("testName", params?.row?.TestName);
-                setRow({ ...params?.row });
-                setRemarkPopup(true);
-              }}
-              style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      field: `Info`,
-      headerName: `Info`,
-      flex: 1,
-      renderCell: (params) => {
-        // console.log(params.row)
-        return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <SubmitButton
-              submit={false}
-              text={"i"}
-              callBack={() => {
-                setInfo(true);
-              }}
-              style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
-            />
-          </div>
         );
       },
     },
@@ -508,6 +547,7 @@ export default function ResultTrack() {
       centreIds: selectedCenter,
       departmentIds: selectedDepartment,
       itemIds: selectedTest,
+      reporttype:2,
     };
     setLocal("payload", payload);
     console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
@@ -516,6 +556,12 @@ export default function ResultTrack() {
   };
 
   const updatedArray = addObjectId(PostData?.data);
+
+  const currentRow =async (id)=>{
+     const row = updatedArray?.filter((item)=>item?.id == id);
+     setUserObj(row[0]);
+     return row[0];
+  }
 
   const statuses = [
     {
@@ -676,7 +722,7 @@ export default function ResultTrack() {
   ];
   return (
     <div>
-        <ResultTrackRemarkPopupModal
+      <ResultTrackRemarkPopupModal
         setShowPopup={setRemarkPopup}
         showPopup={RemarkPopup}
         rowData={Row}
@@ -695,7 +741,11 @@ export default function ResultTrack() {
         columns={InfoColumns}
         showPopup={Info}
       />
-      <RejectPopupModal setShowPopup={setRejectPopup} showPopup={RejectPopup} />
+      <ResultTrackRejectPopupModal
+        rowData={Row}
+        setShowPopup={setRejectPopup}
+        showPopup={RejectPopup}
+      />
       <>
         {/* <div style={{ position: "fixed", top: "100px", maxHeight: "200px", overflowY: "auto", width: "100%",backgroundColor:"white" }}> */}
         <div className="mb-1">
@@ -827,12 +877,12 @@ export default function ResultTrack() {
 
             <LegendButtons statuses={statuses} />
           </form>
-          <div style={{ maxHeight: "200px" }}>
+          <div className="mt-1" style={{ maxHeight: "200px",overflow:"scroll" }}>
             <DynamicTable
               rows={updatedArray}
               name="Patient Test Details"
               loading={PostData?.loading}
-              tableStyle={{ marginBottom: "-10px" }}
+              tableStyle={{ marginBottom: "-25px" }}
               columns={columns}
               activeTheme={activeTheme}
             />
@@ -850,8 +900,86 @@ export default function ResultTrack() {
               className="w-full h-[0.10rem]"
               style={{ background: activeTheme?.menuColor }}
             ></div>
+               <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+              <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
+                  {/* Specimen Field */}
+                  <InputGenerator
+                    inputFields={[
+                      { label: "Signature", type: "select", name: "Signature" },
+                    ]}
+                  />
+                  <TwoSubmitButton
+                    options={[
+                      {
+                        label: "Save",
+                        submit: false,
+                        callBack: () => console.log("Save clicked"),
+                      },
+                      {
+                        label: "Hold",
+                        submit: false,
+                        callBack: () => console.log("Hold clicked"),
+                      },
+                    ]}
+                  />
+                  <TwoSubmitButton
+                    options={[
+                      {
+                        label: "Approve",
+                        submit: false,
+                        callBack: () => console.log("Approve clicked"),
+                      },
+                      {
+                        label: "Print Report",
+                        submit: false,
+                        callBack: () => console.log("Print Report clicked"),
+                      },
+                    ]}
+                  />
+
+                  <TwoSubmitButton
+                    options={[
+                      {
+                        label: "Add Report",
+                        submit: false,
+                        callBack: () => console.log("Add Report clicked"),
+                      },
+                      {
+                        label: "Add Attachment",
+                        submit: false,
+                        callBack: () => console.log("Add Attachment clicked"),
+                      },
+                    ]}
+                  />
+                  <TwoSubmitButton
+                    options={[
+                      {
+                        label: "Main List",
+                        submit: false,
+                        callBack: () => console.log("Main List clicked"),
+                      },
+                      {
+                        label: "Previous",
+                        submit: false,
+                        callBack: () => console.log("Previous clicked"),
+                      },
+                    ]}
+                  />
+                  <TwoSubmitButton
+                    options={[
+                      {
+                        label: "Next",
+                        submit: false,
+                        callBack: () => console.log("Next clicked"),
+                      },
+                    ]}
+                  />
+                </div>
+              </form>
+            </div>
           </>
-        )}
+       )} 
       </>
     </div>
   );

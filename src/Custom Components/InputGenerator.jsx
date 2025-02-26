@@ -180,6 +180,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 type={field?.type}
                 name={field?.name}
                 style={field?.style}
+                maxLength={field?.maxLength}
                 value={field?.value} // Ensure the value is correctly assigned
                 readOnly={field?.readOnly}
                 onChange={(e) => {
@@ -492,7 +493,7 @@ export const ClickChangeButton = ({
           type={submit ? "submit" : "button"}
           data-ripple-light="true"
           onClick={(e) => {
-            setIsclicked(!isClicked)
+            setIsclicked(!isClicked);
             handleClick(e); // Call the ripple effect handler
             callBack(); // Directly pass the callback
           }}
@@ -524,6 +525,40 @@ export const ClickChangeButton = ({
           }
         `}</style>
       </div>
+    </div>
+  );
+};
+
+export const MinMaxInputGenerator = ({ inputFields }) => {
+  return (
+    <div>
+      {inputFields.map((field, index) => (
+        <div key={index} className="relative flex-1">
+          <input
+            type={field?.type}
+            name={field?.name}
+            style={field?.style}
+            value={field?.value} // Ensure the value is correctly assigned
+            readOnly={field?.readOnly}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (
+                (!field.minChars || value.length >= field.minChars) &&
+                (!field.maxChars || value.length <= field.maxChars)
+              ) {
+                field.onchange(e);
+              }
+            }}
+            placeholder={field?.placeholder || ""}
+            className={`inputPeerField peer border-borderColor ${
+              field?.required ? "border-b-red-500" : ""
+            } focus:outline-none`}
+          />
+          <label htmlFor={field?.name} className="menuPeerLevel">
+            {field?.label}
+          </label>
+        </div>
+      ))}
     </div>
   );
 };
