@@ -817,9 +817,18 @@ export const saveUploadReportLetterHeadApi = async () => {
 }
 
 //============= patient registration =================
+
+export const getAllCentreForPatientRegistrationData = async (EmployeeId, billingtype) => {
+
+    const response = await privateAxios.get(`/empMaster/BillingTypeWiseCentre?EmplyeeId=${EmployeeId}&Billingtype=${billingtype}`)
+
+    return response?.data;
+}
+
+
 export const getAllRateTypeForPatientRegistrationData = async (centreId) => {
 
-    const response = await privateAxios.get(`/centreMaster/GetRatetypeCentreWise?CentreId=${centreId}`);
+    const response = await privateAxios.get(`/centreMaster/GetRatetypeCentreWise?CentreId=${centreId?.centreId}`);
 
     return response?.data;
 }
@@ -852,7 +861,7 @@ export const getAllReferLabApi = async () => {
 //get all invastigation
 export const getAllInvestiGationApi = async (rateTypeId) => {
 
-    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetailRate?ratetype=${rateTypeId}`);
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetailRate?ratetype=${rateTypeId?.id}`);
 
     return response?.data;
 }
@@ -860,7 +869,7 @@ export const getAllInvestiGationApi = async (rateTypeId) => {
 //get all Investigation grid data
 export const getAllInvestigationGridApi = async (rateId, itemId) => {
 
-    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetail?ratetype=${rateId}&itemId=${itemId}`);
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetail?ratetype=${rateId?.id}&itemId=${itemId?.itemId}`);
 
     return response?.data;
 }
@@ -914,6 +923,22 @@ export const updateEditInfoApi = async (updatedEditInfo) => {
     return response?.data;
 }
 
+//get edit info
+export const getSingleEditTestApi = async (searchVal) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetPatientEditTest?searchValue=${searchVal}`);
+
+    return response.data;
+}
+
+
+//get old patient
+export const getOldPatientApi = async (searchVal) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetOldPatient?searchValue=${searchVal}`);
+
+    return response.data;
+}
 //===================================
 export const getAllEmojiColorCodeApi = async () => {
 
