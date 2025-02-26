@@ -939,7 +939,57 @@ export const getOldPatientApi = async (searchVal) => {
 
     return response.data;
 }
-//===================================
+//=====================patient record===============
+export const getSearchBtnColorCodeInPatientRecordApi = async () => {
+
+    const response = await privateAxios.get(`/LegendColorMaster?select=id,colourCode,contantName&$filter=(id eq 13 or id eq 14 or id eq 15 or id eq 16 and isActive eq 1)`);
+
+    return response?.data;
+}
+
+
+//search grid data
+export const getGridDataBasedOnPatientRecordData = async (patientRecordData) => {
+    const response = await privateAxios.post(`/tnx_Booking/GetPatientData`, patientRecordData);
+    return response?.data;
+
+}
+
+export const handelDownloadCashReceiptApi = async (workId) => {
+    const response = await privateAxios.get(
+        `/tnx_BookingPatient/GetPatientReceipt?workorderid=${workId}`,
+        { responseType: "blob" } // Ensure response is a file
+    );
+    return response;
+};
+
+
+export const handelDownloadMRPreceiptApi = async (workId) => {
+    const response = await privateAxios.get(
+        `/tnx_BookingPatient/GetPatientMRPBill?workorderid=${workId}`,
+        { responseType: "blob" } // Ensure response is a file
+    );
+    return response;
+};
+
+
+export const handelDownloadInfoOrDocumentApi = async (workId) => {
+    const response = await privateAxios.get(
+        `/tnx_BookingPatient/GetPatientMRPBill?workorderid=${workId}`,
+        { responseType: "blob" } // Ensure response is a file
+    );
+    return response;
+};
+
+//=====================result tracking========================
+export const getAllResultTrackinDataApi = async (recordTrackinData) => {
+
+    const response = await privateAxios.post('/tnx_BookingItem/GetResultEntryAllData', recordTrackinData);
+
+    return response?.data;
+}
+
+//======================feed back=============
 export const getAllEmojiColorCodeApi = async () => {
 
     const response = await privateAxios.get(`/LegendColorMaster?select=id,colourCode,contantName&$filter=(id eq 26 or id eq 27 or id eq 28 or id eq 29 or id eq 30 or id eq 31)`);

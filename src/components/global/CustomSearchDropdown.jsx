@@ -128,7 +128,8 @@ function CustomSearchInputFields({
     filterText = "No records found",
     activeTheme = { subMenuColor: "#e0f2fe" }, // Customize hover color
     searchWithName,
-    uniqueKey
+    uniqueKey,
+    isMandatory = false
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(null);
@@ -136,12 +137,12 @@ function CustomSearchInputFields({
     const dropdownRef = useRef(null);
 
     //console.log(options);
-    
+
 
     // Update displayValue when parent value changes
     useEffect(() => {
         if (value && typeof value === "object") {
-            
+
             setDisplayValue(value[searchWithName] || "");
         } else {
             setDisplayValue("");
@@ -185,7 +186,7 @@ function CustomSearchInputFields({
                 onChange={(e) => setDisplayValue(e.target.value)}
                 onClick={() => handleDropdownToggle(true)}
                 placeholder={placeholder}
-                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                className={`inputPeerField peer ${isMandatory ? 'border-b-red-500' : 'border-borderColor'} focus:outline-none`}
             />
             <label htmlFor={id} className="menuPeerLevel">
                 {label}

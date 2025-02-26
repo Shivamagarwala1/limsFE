@@ -30,6 +30,12 @@ import CustomHandsontable from "../../../../Custom Components/CustomHandsontable
 import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
+import { toast } from "react-toastify";
+import { getAllResultTrackinDataApi } from "../../../../service/service";
+import GridDataDetails from "../../../global/GridDataDetails";
+import CustomDynamicTable from "../../../global/CustomDynamicTable";
+import { ResultTrackingHeader } from "../../../listData/listData";
+import { FaCircleInfo } from "react-icons/fa6";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -50,6 +56,10 @@ export default function ResultTrack() {
   const DepartmentData = useGetData();
   const PostData = usePostData();
   const lsData = getLocal("imarsar_laboratory");
+  const [isHoveredTable, setIsHoveredTable] = useState(null);
+
+  const [allResultTrackingData, setAllResultTrackingData] = useState([]);
+
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
@@ -63,6 +73,7 @@ export default function ResultTrack() {
     );
     // console.log(AllCenterData);
   }, []);
+
   const columns = [
     {
       field: "id",
@@ -128,6 +139,7 @@ export default function ResultTrack() {
       headerName: `Test Name`,
       flex: 1,
       renderCell: (params) => {
+
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
             <SubmitButton
@@ -214,7 +226,7 @@ export default function ResultTrack() {
               }}
               style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
             />
-              {params?.row?.isremark > 0 && (
+            {params?.row?.isremark > 0 && (
               <img style={{ width: "20px" }} src={RemarkGif} alt="Remark Gif" />
             )}
           </div>
@@ -241,7 +253,7 @@ export default function ResultTrack() {
         );
       },
     },
-    
+
     {
       field: `comment`,
       headerName: `Comments`,
@@ -291,6 +303,8 @@ export default function ResultTrack() {
       },
     },
   ];
+
+
   const row = [
     {
       id: 1,
@@ -329,6 +343,7 @@ export default function ResultTrack() {
     }));
     //setEditorContent(content);
   };
+
 
   // -------------------------------------------------------------
   const [tableData, setTableData] = useState([
@@ -538,7 +553,7 @@ export default function ResultTrack() {
     },
   ];
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
     const payload = {
@@ -547,38 +562,62 @@ export default function ResultTrack() {
       centreIds: selectedCenter,
       departmentIds: selectedDepartment,
       itemIds: selectedTest,
-      reporttype:2,
+      reporttype: 2,
     };
     setLocal("payload", payload);
-    console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
+
+    console.log(payload);
+
+
+    //console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
     PostData?.postRequest("/tnx_BookingItem/GetResultEntryAllData", payload);
     console.log(PostData?.data);
+
+    try {
+
+      const response = await getAllResultTrackinDataApi(payload);
+
+      console.log(response);
+
+      if (response?.success) {
+        setAllResultTrackingData(response?.data);
+      } else {
+        toast.error(error?.message);
+      }
+
+    } catch (error) {
+      toast.error(error?.message);
+    }
   };
+
+
 
   const updatedArray = addObjectId(PostData?.data);
 
-  const currentRow =async (id)=>{
-     const row = updatedArray?.filter((item)=>item?.id == id);
-     setUserObj(row[0]);
-     return row[0];
+  const currentRow = async (id) => {
+    const row = updatedArray?.filter((item) => item?.id == id);
+
+
+    setUserObj(row[0]);
+    return row[0];
   }
 
   const statuses = [
     {
       Data: 1,
-      CallBack: () => {},
+      CallBack: () => { },
     },
-    { Data: 3, CallBack: () => {} },
-    { Data: 11, CallBack: () => {} },
+    { Data: 3, CallBack: () => { } },
+    { Data: 11, CallBack: () => { } },
     // { Data: "Tested", CallBack: () => {} },
-    { Data: 5, CallBack: () => {} },
-    { Data: 4, CallBack: () => {} },
-    { Data: 7, CallBack: () => {} },
-    { Data: 9, CallBack: () => {} },
-    { Data: 12, CallBack: () => {} },
-    { Data: 8, CallBack: () => {} },
-    { Data: 6, CallBack: () => {} },
-    { Data: 10, CallBack: () => {} },
+    { Data: 5, CallBack: () => { } },
+    { Data: 4, CallBack: () => { } },
+    { Data: 7, CallBack: () => { } },
+    { Data: 9, CallBack: () => { } },
+    { Data: 12, CallBack: () => { } },
+    { Data: 8, CallBack: () => { } },
+    { Data: 6, CallBack: () => { } },
+    { Data: 10, CallBack: () => { } },
   ];
 
   const InfoColumns = [
@@ -877,7 +916,10 @@ export default function ResultTrack() {
 
             <LegendButtons statuses={statuses} />
           </form>
-          <div className="mt-1" style={{ maxHeight: "200px",overflow:"scroll" }}>
+
+
+          <div className="mt-1" style={{ maxHeight: "200px", overflow: "scroll" }}>
+           
             <DynamicTable
               rows={updatedArray}
               name="Patient Test Details"
@@ -888,7 +930,9 @@ export default function ResultTrack() {
             />
           </div>
         </div>
-        {UserObj && (
+
+        <div>
+          {/* {UserObj && (
           <>
             <CustomHandsontable
               columns={columns1}
@@ -900,10 +944,11 @@ export default function ResultTrack() {
               className="w-full h-[0.10rem]"
               style={{ background: activeTheme?.menuColor }}
             ></div>
-               <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+
+            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
               <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
-                  {/* Specimen Field */}
+                  {/* Specimen Field *
                   <InputGenerator
                     inputFields={[
                       { label: "Signature", type: "select", name: "Signature" },
@@ -979,7 +1024,147 @@ export default function ResultTrack() {
               </form>
             </div>
           </>
-       )} 
+        )} */}
+        </div>
+
+        <div>
+          <GridDataDetails
+            gridDataDetails={'Patient Record Details'}
+          />
+
+          <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme}>
+            <tbody>
+              {allResultTrackingData?.map((data, index) => (
+                <tr
+                  className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                    ? ''
+                    : index % 2 === 0
+                      ? 'bg-gray-100'
+                      : 'bg-white'
+                    }`}
+                  key={index}
+                  onMouseEnter={() => setIsHoveredTable(index)}
+                  onMouseLeave={() => setIsHoveredTable(null)}
+                  style={{
+                    background:
+                      isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                    // Hides scrollbar for IE/Edge
+                  }}
+                >
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                    {index + 1}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.bookingDate}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.workOrderId}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.sampleReceiveDate}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.patientName}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.age}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.barcodeNo}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.investigationName}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.approvedDate}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.isremark}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    <FaCircleInfo />
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.comment}
+                  </td>
+
+
+
+                  {/* <td className="border-b px-4 h-5 text-xs font-semibold text-gridTextColor" >
+                    <div className="flex justify-start gap-5 items-startjustify-start text-xs">
+                      <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                      >
+                        <FaCircleInfo />
+                      </div>
+                      {
+                        data?.documnet === 1 && (
+                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                            onClick={() => handelDownloadInfoOrDocument(data?.workOrderId)}
+                          >
+                            <FaDownload />
+                          </div>
+                        )
+                      }
+
+                    </div>
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-sm font-semibold">
+                    <div className="flex justify-center items-center">
+                      <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
+                        <FaRupeeSign />
+                      </div>
+                    </div>
+
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-sm font-semibold">
+                    <div className="flex justify-center items-center">
+
+                      <div
+                        className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                        onClick={() => handelDownloadCashReceipt(data?.workOrderId)}
+                      >
+                        <FaFilePdf />
+                      </div>
+                    </div>
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-sm font-semibold">
+                    <div className="flex justify-center items-center">
+
+                      <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                        onClick={() => handelDownloadMRPreceipt(data?.workOrderId)}
+                      >
+                        <FaFilePdf />
+
+                      </div>
+                    </div>
+                  </td> */}
+
+                </tr>
+              ))}
+            </tbody>
+          </CustomDynamicTable >
+        </div >
+
+
       </>
     </div>
   );
