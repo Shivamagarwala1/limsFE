@@ -41,9 +41,12 @@ export const CustomTextBox = ({
             case "days":
                 return /^(0?[1-9]|[12][0-9]|3[01])$/.test(value);
             case "months":
-                return /^(0?[1-9]|1[0-2])$/.test(value);
+                // return /^(0?[1-9]|1[0-2])$/.test(value); //zero not allowed
+                return /^(0|0?[1-9]|1[0-2])$/.test(value);
+
             case "years":
-                return /^(0?[1-9]|[1-9][0-9]|1[0-4][0-9]|150)$/.test(value);
+                // return /^(0?[1-9]|[1-9][0-9]|1[0-4][0-9]|150)$/.test(value); zero not allowed
+                return /^(0|0?[1-9]|[1-9][0-9]|1[0-4][0-9]|150)$/.test(value);
             case "propercase":
                 if (allowSpecialChars) {
                     const regex = new RegExp(`^[A-Za-z\\s${allowedSpecialChars}]*$`);
@@ -143,7 +146,7 @@ export const CustomTextBox = ({
                 newValue = newValue.replace(/[^0-9]/g, "");
                 if (
                     newValue !== "" &&
-                    (parseInt(newValue) < 1 || parseInt(newValue) > 12)
+                    (parseInt(newValue) < 0 || parseInt(newValue) > 12) // 
                 ) {
                     newValue = newValue.slice(0, newValue.length - 1);
                 }
@@ -153,7 +156,7 @@ export const CustomTextBox = ({
                 newValue = newValue.replace(/[^0-9]/g, "");
                 if (
                     newValue !== "" &&
-                    (parseInt(newValue) < 1 || parseInt(newValue) > 150)
+                    (parseInt(newValue) < 0 || parseInt(newValue) > 150)
                 ) {
                     newValue = newValue.slice(0, newValue.length - 1);
                 }
@@ -239,10 +242,10 @@ export const CustomTextBox = ({
                     errorMessage = "Days must be between 0 and 30";
                     break;
                 case "months":
-                    errorMessage = "Months must be between 1 and 11";
+                    errorMessage = "Months must be between 0 and 11";
                     break;
                 case "years":
-                    errorMessage = "Years must be between 1 and 150";
+                    errorMessage = "Years must be between 0 and 150";
                     break;
                 case "propercase":
                     errorMessage = "Only letters" +

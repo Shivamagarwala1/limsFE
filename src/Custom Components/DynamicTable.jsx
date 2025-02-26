@@ -26,6 +26,7 @@ const DynamicTable = ({
     }
   }, []);
 
+
   useEffect(() => {
     if (data?.length) {
       // Filter only the items that match status names from the passed statuses array
@@ -93,13 +94,12 @@ const DynamicTable = ({
                 {rows?.map((row, index) => (
                   <tr
                     key={row?.id}
-                    className={`cursor-pointer ${
-                      isHoveredTable === row?.id
-                        ? ""
-                        : index % 2 === 0
+                    className={`cursor-pointer ${isHoveredTable === row?.id
+                      ? ""
+                      : index % 2 === 0
                         ? "bg-gray-100"
                         : "bg-white"
-                    }`}
+                      }`}
                     onMouseEnter={() => setIsHoveredTable(row?.id)}
                     onMouseLeave={() => setIsHoveredTable(null)}
                     style={{
