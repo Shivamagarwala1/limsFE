@@ -22,7 +22,7 @@ import {
   SampleCollectionStatus,
 } from "../../../../service/RedendentData";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 import { FaCommentDots, FaRegCopy } from "react-icons/fa";
 
 export default function SampleCollection() {

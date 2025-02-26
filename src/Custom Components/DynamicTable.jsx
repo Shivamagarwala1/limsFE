@@ -64,7 +64,7 @@ const DynamicTable = ({
           }}
           className="overflow-x-auto w-full"
         >
-          <table className="table-auto border-collapse w-full text-xxs text-left mb-2 min-w-max">
+          <table className="table-auto border-collapse w-full text-xxs text-left  min-w-max">
             <thead
               style={{
                 background: activeTheme?.menuColor,
