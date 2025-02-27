@@ -17,6 +17,7 @@ import { MdDelete } from "react-icons/md";
 import { NewPopupTable } from "./NewPopupTable";
 import { useGetData, usePostData } from "../service/apiService";
 import { toast } from "react-toastify";
+import FileUpload from "./FileUpload";
 
 const PopupModal = ({
   showPopup,
@@ -164,6 +165,10 @@ export const HourPopupModal = ({
   const [remark, setRemark] = useState("");
   const [time, setTime] = useState(true);
   const [timeUnit, setTimeUnit] = useState("Hour"); // Default value for dropdown
+  const [hold, setHold] = useState(rowData?.hold === 1 ? "0" : "1"); // State for hold
+  const [title, setTitle] = useState(
+    hold === "1" ? "Hold Reason" : "Un-Hold Reason"
+  ); // State for title
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
   if (!showPopup) return null;
@@ -714,6 +719,291 @@ export const ResultTrackRejectPopupModal = ({
                   dataOptions: AllCenterData?.data,
                 },
               ]}
+            />
+            <SubmitButton
+              submit={true}
+              text={"Save"}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export const HistoHoldUnholdPopupModal = ({
+  showPopup,
+  setShowPopup,
+  retreveTestData,
+  rowData,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const { formRef, getValues } = useFormHandler();
+  const PostData = usePostData();
+  const hold = rowData?.hold === 1 ? "0" : "1";
+  useEffect(() => {}, [PostData?.loading]);
+
+  if (!showPopup) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const values = await getValues();
+    const lsData = await getLocal("imarsar_laboratory");
+
+    await PostData?.postRequest(
+      `/tnx_Observations/ReportHoldUnHold?TestId=${rowData?.testId}&isHold=${hold}&holdBy=${lsData?.user?.employeeId}&holdReason=${values?.HoldReason}`
+    );
+    console.log(values?.HoldReason);
+    if (PostData?.response && PostData.response.success) {
+      toast.success(PostData.response.message);
+      retreveTestData(rowData?.testId);
+      hide();
+    } else {
+      toast.info(PostData?.response?.message || "An error occurred.");
+    }
+  };
+  const hide = () => {
+    setShowPopup(false);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">
+            {rowData?.bool ? "Hold" : "Un-Hold"}
+          </span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+
+        {/* Input Field */}
+        <TableHeader title={rowData?.bool ? "Hold Reason" : "Un-Hold Reason"} />
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          <div className="p-2 flex flex-row gap-1 border-none">
+            <InputGenerator
+              inputFields={[
+                {
+                  label: `${rowData?.bool ? "Hold Reason" : "Un-Hold Reason"}`,
+                  type: "text",
+                  name: "HoldReason",
+                  required: true,
+                },
+              ]}
+            />
+            <SubmitButton
+              submit={true}
+              text={"Save"}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export const HistoApprovedPopupModal = ({
+  showPopup,
+  setShowPopup,
+  retreveTestData,
+  rowData,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const { formRef, getValues } = useFormHandler();
+  const PostData = usePostData();
+  const hold = rowData?.hold === 1 ? "0" : "1";
+  useEffect(() => {}, [PostData?.loading]);
+
+  if (!showPopup) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const values = await getValues();
+    const lsData = await getLocal("imarsar_laboratory");
+
+    await PostData?.postRequest(
+      `/tnx_Observations/ReportHoldUnHold?TestId=${rowData?.testId}&isHold=${hold}&holdBy=${lsData?.user?.employeeId}&holdReason=${values?.HoldReason}`
+    );
+    console.log(values?.HoldReason);
+    if (PostData?.response && PostData.response.success) {
+      toast.success(PostData.response.message);
+      retreveTestData(rowData?.testId);
+      hide();
+    } else {
+      toast.info(PostData?.response?.message || "An error occurred.");
+    }
+  };
+  const hide = () => {
+    setShowPopup(false);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">
+            {rowData?.bool ? "Hold" : "Un-Hold"}
+          </span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+
+        {/* Input Field */}
+        <TableHeader title={rowData?.bool ? "Hold Reason" : "Un-Hold Reason"} />
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          <div className="p-2 flex flex-row gap-1 border-none">
+            <InputGenerator
+              inputFields={[
+                {
+                  label: `${rowData?.bool ? "Hold Reason" : "Un-Hold Reason"}`,
+                  type: "text",
+                  name: "HoldReason",
+                  required: true,
+                },
+              ]}
+            />
+            <SubmitButton
+              submit={true}
+              text={"Save"}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export const HistoFileUploadPopupModal = ({
+  showPopup,
+  setShowPopup,
+  retreveTestData,
+  rowData,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const [FileData, setFileData] = useState({ fileName: "" });
+  const { formRef, getValues } = useFormHandler();
+  const PostData = usePostData();
+  const AddReportPostData = usePostData();
+  
+  if (!showPopup) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!FileData || !FileData.fileData) {
+      toast.error("No file selected!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("Document", FileData.fileData);
+
+    try {
+      const response = await PostData.postRequest(`/empMaster/UploadDocument`, formData);
+
+      if (response?.success) {
+        toast.success(response.message);
+        const filePath = response?.data?.filePath;
+        if (filePath) {
+          hide(filePath);
+        } else {
+          toast.error("File path missing in response.");
+        }
+      } else {
+        toast.error(response?.message || "An error occurred.");
+      }
+    } catch (error) {
+      toast.error("Upload failed!");
+      console.error("Upload Error:", error);
+    }
+  };
+
+  const hide = async (filePath) => {
+    setShowPopup(false);
+console.log(rowData)
+    setTimeout(() => {
+      const payloadData = {
+        testId: rowData?.testId,
+        attachment: filePath,
+      };
+
+      AddReportPostData.postRequest(`/tnx_InvestigationAttchment/AddReport`, payloadData);
+    }, 100);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">
+            {rowData?.bool ? "Hold" : "Un-Hold"}
+          </span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+
+        {/* Input Field */}
+        <TableHeader title={rowData?.bool ? "Hold Reason" : "Un-Hold Reason"} />
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          <div className="p-2 flex flex-row gap-1 border-none">
+            <FileUpload
+              FileData={FileData}
+              setFileData={setFileData}
+              accept=".pdf"
+              inputFields={{
+                label: "Upload PDF",
+                Size: "10",
+              }}
             />
             <SubmitButton
               submit={true}
@@ -1319,7 +1609,7 @@ export const HistoResultTrackRemarkPopupModal = ({
     console.log("Form values:", values);
     const response = await PostData?.postRequest(
       "/tnx_InvestigationRemarks/AddSampleremark",
-      payload
+      [payload]
     );
     if (response?.success) {
       toast.success(response?.message);

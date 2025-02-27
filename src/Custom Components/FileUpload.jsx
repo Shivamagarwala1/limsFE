@@ -22,9 +22,7 @@ export default function FileUpload({ FileData, setFileData,accept = "*/*", input
       {/* File Upload Button */}
       <div
         name="fileName"
-        className={`inputPeerField peer h-5 ${
-          inputFields?.required ? "border-b-red-500" : "border-b-green-300"
-        } cursor-pointer`}
+        className={`inputPeerField peer h-5 cursor-pointer`}
         onClick={() => imgRef.current.click()} // Trigger file input when clicked
       >
         {FileData.fileName === "" ? (
