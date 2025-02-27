@@ -183,6 +183,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 maxLength={field?.maxLength}
                 value={field?.value} // Ensure the value is correctly assigned
                 readOnly={field?.readOnly}
+                required={field?.required}
                 onChange={(e) => {
                   if (!field?.readOnly && field?.onChange) {
                     field.onChange(e.target.value);

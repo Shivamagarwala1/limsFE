@@ -14,6 +14,9 @@ import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import CustomeEditor from "../../../sharecomponent/CustomeEditor";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import {
+  HistoApprovedPopupModal,
+  HistoFileUploadPopupModal,
+  HistoHoldUnholdPopupModal,
   HistoResultTrackRemarkPopupModal,
   SampleCollectionCommentPopupModal,
 } from "../../../../Custom Components/PopupModal";
@@ -22,6 +25,7 @@ import { getLocal, setLocal } from "usehoks";
 import { addObjectId } from "../../../../service/RedendentData";
 import RemarkGif from "../../../../assets/RemarkGif.gif";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 export default function HistoResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -31,12 +35,26 @@ export default function HistoResultTrack() {
   const [selectedTest, setSelectedTest] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
   const [RemarkPopup, setRemarkPopup] = useState(false);
+  const [HoldUnHold, setHoldUnHold] = useState(false);
+  const [FileUploadPopupModal, setFileUploadPopupModal] = useState(false);
+  const [HoldUnHoldDetails, setHoldUnHoldDetails] = useState({});
   const [Row, setRow] = useState({});
-  const [Specimen, setSpecimen] = useState("");
+  const [DrId, setDrId] = useState({
+    id: 4,
+    doctorId: 3,
+    doctorName: "Anil Das",
+    signature: "",
+    approve: 1,
+    notApprove: 1,
+    hold: 1,
+    unHold: 1,
+  });
   const [editorContent, setEditorContent] = useState("");
   const [editorContent1, setEditorContent1] = useState("");
   const [editorContent2, setEditorContent2] = useState("");
   const [UserObj, setUserObj] = useState(null);
+  const [ApprovedDocId, setApprovedDocId] = useState("");
+  const [HistoObservation, setHistoObservation] = useState(null);
   const [CurrentId, setCurrentId] = useState(0);
   const [showStates, setShowStates] = useState({});
   const AllCenterData = useGetData();
@@ -44,6 +62,7 @@ export default function HistoResultTrack() {
   const DepartmentData = useGetData();
   const PostData = usePostData();
   const SavePostData = usePostData();
+  const ApprovedPostData = usePostData();
   const retreveTest = useGetData();
   const Signature = useGetData();
   const lsData = getLocal("imarsar_laboratory");
@@ -61,7 +80,7 @@ export default function HistoResultTrack() {
       "/labDepartment?select=id,deptname&$filter=(isactive eq 1)"
     );
     // console.log(AllCenterData);
-  }, []);
+  }, [HoldUnHold]);
 
   let PayloadData = getLocal("HistoPayload");
   const updatedArray = addObjectId(PostData?.data);
@@ -237,26 +256,6 @@ export default function HistoResultTrack() {
             />
             <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
               {params?.row?.comment?.slice(0, 10)}
-              {/* {params?.row?.comment.length > 10 && (
-                <>
-                  ...
-                  <div
-                    onClick={() => {
-                      setShowStates((prev) => ({
-                        ...prev,
-                        [rowId]: !isShown,
-                      }));
-                    }}
-                    className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                    style={{
-                      background: activeTheme?.menuColor,
-                      color: activeTheme?.iconColor,
-                    }}
-                  >
-                    <FaCommentDots />
-                  </div>
-                </>
-              )} */}
             </div>
           </>
         );
@@ -278,7 +277,7 @@ export default function HistoResultTrack() {
     // Update editor content
     setEditorContent2(content);
   };
-
+  console.log(DrId);
   const handleSubmit = (event) => {
     event.preventDefault();
     const values = getValues();
@@ -403,7 +402,12 @@ export default function HistoResultTrack() {
       ...UserObj,
       gross: editorContent,
       microscopy: editorContent1,
+      histoObservationId: HistoObservation
+        ? HistoObservation?.histoObservationId
+        : 0,
       finalImpression: editorContent2,
+      appcovaldoctorId: DrId?.doctorId,
+      comment: values?.comment,
       createdBy: lsData?.user?.employeeId,
     };
     const res = await SavePostData?.postRequest(
@@ -412,33 +416,40 @@ export default function HistoResultTrack() {
     );
     if (res?.success) {
       toast.success(res?.message);
+      setHistoObservation(null);
+      console.log(payload);
     } else {
       toast.error(res?.message);
     }
-    console.log(editorContent1, " ", editorContent, " ", editorContent2);
-    console.log(values);
   };
+  //0 h to approved 1 h to not approved & null ya 0 h to Hold 1 h to Unhold
 
-  console.log(Signature?.data);
   const retreveTestData = async (id) => {
     const res = await retreveTest?.fetchData(
-      `/tnx_Observations_Histo?$filter=(testId eq ${id})`
+      `/tnx_Booking/GetHistoresult?testid=${id}`
     );
-    console.log(res);
-    if (res?.data.length > 0) {
+    console.log(res?.data?.data);
+    if (res?.data?.data.length > 0) {
+      setHistoObservation(res?.data?.data[0]);
+      const filterDr = await Signature?.data?.data.filter(
+        (item) => item?.doctorId == res?.data?.data[0]?.appcovaldoctorId
+      );
+      console.log(res?.data?.data[0]?.comment);
+      setDrId(filterDr[0]);
       SaveForm?.setValues([
         {
-          specimen: res?.data[0]?.specimen,
-          biospyNumber: res?.data[0]?.biospyNumber,
-          clinicalHistory: res?.data[0]?.clinicalHistory,
-          typesFixativeUsed: res?.data[0]?.typesFixativeUsed,
-          blockKeys: res?.data[0]?.blockKeys,
-          stainsPerformed: res?.data[0]?.stainsPerformed,
+          specimen: res?.data?.data[0]?.specimen,
+          biospyNumber: res?.data?.data[0]?.biospyNumber,
+          clinicalHistory: res?.data?.data[0]?.clinicalHistory,
+          typesFixativeUsed: res?.data?.data[0]?.typesFixativeUsed,
+          blockKeys: res?.data?.data[0]?.blockKeys,
+          stainsPerformed: res?.data?.data[0]?.stainsPerformed,
+          comment: res?.data?.data[0]?.comment,
         },
       ]);
-      setEditorContent(res?.data[0]?.gross);
-      setEditorContent1(res?.data[0]?.microscopy);
-      setEditorContent2(res?.data[0]?.finalImpression);
+      setEditorContent(res?.data?.data[0]?.gross);
+      setEditorContent1(res?.data?.data[0]?.microscopy);
+      setEditorContent2(res?.data?.data[0]?.finalImpression);
     } else {
       // SaveForm?.setValues([
       //   {
@@ -456,6 +467,79 @@ export default function HistoResultTrack() {
     }
   };
 
+  const ApproveCase = async () => {
+    const payload = {
+      ...HistoObservation,
+      ...UserObj,
+      isApproved: 1,
+      createdBy: lsData?.user?.employeeId,
+      appcovaldoctorId: ApprovedDocId,
+    };
+    const res = await SavePostData?.postRequest(
+      "/tnx_BookingItem/SaveHistoResult",
+      payload
+    );
+    if (res?.success) {
+      toast.success(res?.message);
+      console.log(payload);
+      retreveTestData(HistoObservation?.testId);
+    } else {
+      toast.error(res?.message);
+    }
+  };
+
+  const downloadReportPDF = async (ReportId) => {
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    try {
+      // Retrieve the token from localStorage
+      const token = lsData?.token;
+
+      if (!token) {
+        console.error("Token not found. Please log in.");
+        return;
+      }
+
+      // Perform the GET request to download the PDF
+      const response = await axios.get(
+        `${BASE_URL}/tnx_Observations_Histo/GetHistoReport?testId=${ReportId}`,
+        {
+          responseType: "blob", // To handle binary response
+          headers: {
+            Accept: "*/*",
+            Authorization: `Bearer ${token}`, // Add the token to Authorization header
+          },
+        }
+      );
+
+      // Check if the content type is PDF
+      const contentType = response.headers["content-type"];
+      if (contentType === "application/pdf") {
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+
+        window.open(pdfUrl, "_blank");
+        console.log("PDF downloaded successfully.");
+      } else {
+        console.error(
+          `Unexpected content type: ${contentType}. Unable to download PDF.`
+        );
+      }
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+
+      if (error.response?.status === 401) {
+        console.error("Unauthorized. Token might be invalid or expired.");
+      } else if (error.response) {
+        console.error(
+          "Unexpected response from server:",
+          error.response.data || error.response.statusText
+        );
+      } else {
+        console.error("Unexpected error:", error.message);
+      }
+    }
+  };
+
   return (
     <div>
       <>
@@ -463,6 +547,19 @@ export default function HistoResultTrack() {
           setShowPopup={setRemarkPopup}
           showPopup={RemarkPopup}
           rowData={Row}
+        />
+        <HistoHoldUnholdPopupModal
+          rowData={HoldUnHoldDetails}
+          setShowPopup={setHoldUnHold}
+          showPopup={HoldUnHold}
+          retreveTestData={retreveTestData}
+        />
+
+        <HistoFileUploadPopupModal
+          rowData={HistoObservation}
+          setShowPopup={setFileUploadPopupModal}
+          showPopup={FileUploadPopupModal}
+          retreveTestData={retreveTestData}
         />
         {/* Header Section */}
         <div>
@@ -709,25 +806,35 @@ export default function HistoResultTrack() {
                       {
                         label: "Comments",
                         type: "text",
-                        // name: "Comments",
+                        name: "comment",
                       },
                     ]}
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-4  mx-1 lg:mx-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-1  mt-2 mb-4  mx-1 lg:mx-2">
                   {/* Specimen Field */}
-                  <InputGenerator
-                    inputFields={[
-                      {
-                        label: "Select Dr. Signature",
-                        type: "select",
-                        name: "DoctorSign",
-                        showValueField: "doctorName",
-                        keyField:"signature",
-                        dataOptions: Signature?.data?.data,
-                      },
-                    ]}
-                  />
+                  <div className="flex gap-[0.25rem]">
+                    <InputGenerator
+                      inputFields={[
+                        {
+                          label: "Select Dr. Signature",
+                          type: "select",
+                          name: "appcovaldoctorId",
+                          showValueField: "doctorName",
+                          keyField: "doctorId",
+                          // defaultView: true,
+                          callBack: (e) => {
+                            const filterDr = Signature?.data?.data.filter(
+                              (item) => item?.doctorId == e.target.value
+                            );
+                            setApprovedDocId(filterDr[0]?.doctorId);
+                            setDrId(filterDr[0]);
+                          },
+                          dataOptions: Signature?.data?.data,
+                        },
+                      ]}
+                    />
+                  </div>
                   <TwoSubmitButton
                     options={[
                       {
@@ -736,33 +843,83 @@ export default function HistoResultTrack() {
                         callBack: () => console.log("Save clicked"),
                       },
                       {
-                        label: "Hold",
+                        label:
+                          HistoObservation?.isApproved === 1
+                            ? "Not Approved"
+                            : "Approved",
                         submit: false,
-                        callBack: () => console.log("Hold clicked"),
+                        callBack: () => {
+                          console.log(
+                            HistoObservation?.isApproved === 1
+                              ? "Not Approved clicked"
+                              : "Approved clicked"
+                          );
+                          retreveTestData(HistoObservation?.testId);
+                          if (HistoObservation?.isApproved === 1) {
+                            ApprovedPostData?.postRequest(
+                              `/tnx_Observations/ReportNotApprove?TestId=${HistoObservation?.testId}&userid=${lsData?.user?.employeeId}`
+                            );
+                            console.log(ApprovedPostData.response);
+                            toast.success(ApprovedPostData.response.message);
+                          } else {
+                            ApproveCase();
+                          }
+                        },
                       },
                     ]}
                   />
                   <TwoSubmitButton
                     options={[
                       {
-                        label: "Approve",
+                        label:
+                          HistoObservation?.hold === 1 ? "Un Hold" : "Hold",
                         submit: false,
-                        callBack: () => console.log("Approve clicked"),
+                        callBack: () => {
+                          console.log(
+                            HistoObservation,
+                            HistoObservation?.hold === 1
+                              ? "UnHold clicked"
+                              : "Hold clicked"
+                          );
+
+                          setHoldUnHoldDetails({
+                            hold: HistoObservation?.hold,
+                            testId: HistoObservation?.testId,
+                            bool: HistoObservation?.hold === 1 ? false : true,
+                          });
+                          setHoldUnHold(true);
+                        },
                       },
                       {
                         label: "Print Report",
                         submit: false,
-                        callBack: () => console.log("Print Report clicked"),
+                        callBack: () => {
+                          downloadReportPDF(HistoObservation?.testId);
+                        },
                       },
                     ]}
                   />
+                  {/* <TwoSubmitButton
+                    options={[
+                      {
+                        label: "Approve",
+                        submit: false,
+                        callBack: () => console.log("Not Approve clicked"),
+                      },
+                      {
+                        label: "Hold",
+                        submit: false,
+                        callBack: () => console.log("Print Report clicked"),
+                      },
+                    ]}
+                  /> */}
 
                   <TwoSubmitButton
                     options={[
                       {
                         label: "Add Report",
                         submit: false,
-                        callBack: () => console.log("Add Report clicked"),
+                        callBack: () => {setFileUploadPopupModal(true);},
                       },
                       {
                         label: "Add Attachment",
@@ -804,10 +961,6 @@ export default function HistoResultTrack() {
                   />
                 </div>
               </form>
-
-              {/* <form autoComplete="off" ref={formRef} onSubmit={handleSave}>
-              
-              </form> */}
             </div>
           </div>
         )}
