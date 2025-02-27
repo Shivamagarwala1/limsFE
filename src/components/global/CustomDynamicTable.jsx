@@ -1,40 +1,31 @@
-import React from 'react'
+import React from "react";
 
-export default function CustomDynamicTable({ headers, bodyData, activeTheme }) {
-
-
-
+const CustomDynamicTable = ({ columns, activeTheme, children }) => {
   return (
-    <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
-      <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
-        <tr>
-          {headers.map((header, index) => (
-            <th
-              key={index}
-              className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
-            >
-              {header}
-            </th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {bodyData.map((row, rowIndex) => (
-          <tr
-            key={rowIndex}
-            className={rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"}
-          >
-            {row.map((cell, cellIndex) => (
-              <td
-                key={cellIndex}
-                className="border border-gray-300 px-4 py-2"
-              >
-                {cell}
-              </td>
+    <div style={{
+      overflowY: "auto", // Ensures vertical scrolling
+      scrollbarWidth: "none", // Hides scrollbar for Firefox
+      msOverflowStyle: "none", // Hides scrollbar for IE/Edge
+    }}>
+      <table className="table-auto border-collapse w-full text-xxs text-left">
+        {/* Header */}
+        <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
+          <tr>
+            {columns.map((col, index) => (
+              <th key={index} className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap">
+                <div className="flex gap-1">
+                  <div>{col}</div>
+                </div>
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-}
+        </thead>
+
+        {/* Table Body will be injected as children */}
+        {children}
+      </table>
+    </div>
+  );
+};
+
+export default CustomDynamicTable;

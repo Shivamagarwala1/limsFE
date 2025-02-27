@@ -231,7 +231,7 @@ export const patientRegistrationInvestigation = ['Item', 'View', 'MRP', 'Gross A
   // 'Sample Type', 'Bar Code', 
   'Delivery Date', 'IsUrgent', 'Delete'];
 
-  
+
 
 export const patientRegistrationPaymentMode = ['Cash Amt.', 'Credit/DebitCard Amt.', 'Last 4 Digit Of Card', 'Bank', 'UPI Amt.', 'UPI Type'];
 
@@ -340,4 +340,15 @@ export const dummyDataForpatientRegistrationoldPatient = [
 
 
 export const doctorShareMasterHeaderApi = ['SR. NO.', 'Departement', 'Percentage(%)', 'Amount'];
+
+export const patientRecordHeader = [
+  "Sr. No", "Booking Date", "Visit Id", "Patient Name", "Age/Gender", "Mobile", "Ref. Doctor", "Centre", "Rate Type", "Reg. By", "Gross Amount", "Dis. Amount", "Net Amount", "Paid Amount", "Due Amount", "Info/Documents", "Settlement",
+  "Cash Receipt", "MRP Receipt"
+];
+
+
+export const ResultTrackingHeader = [
+  "Sr. No", "Booking Date",  "Visit Id", "Sample Rec. Date", "Patient Name", "Age/Gender", "Barcode No.", "Test Name", "Approved Date", "Remark","Info", "Comments"
+];
+
 

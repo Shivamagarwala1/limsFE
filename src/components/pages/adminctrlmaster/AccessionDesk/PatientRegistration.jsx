@@ -155,6 +155,8 @@ export default function PatientRegistration() {
     const [patientRegistrationForEditInfoDataError, setPatientRegistrationForEditInfoDataError] = useState([]);
     const [patientRegistrationForEditTestDataError, setPatientRegistrationForEditTestDataError] = useState([]);
 
+    const [selectCurrencyValue, setSelectCurrencyValue] = useState('');
+
     const [selectedInvastigationList, setSelectedInvastigationList] = useState([]);
     const [allCentreData, setAllCentreData] = useState([]);
     const [allRateType, setAllRateType] = useState([]);
@@ -188,6 +190,11 @@ export default function PatientRegistration() {
             ...preventData,
             [event.target.name]: event.target.value
         }))
+    }
+
+
+    const handelOnChangeSelectCurrencyValue = (e) => {
+        setSelectCurrencyValue(e.target.value);
     }
 
 
@@ -639,8 +646,6 @@ export default function PatientRegistration() {
 
                 if (response?.success) {
                     setAllCentreData(response?.data);
-                    console.log(response?.data);
-
                 }
 
             } catch (error) {
@@ -970,9 +975,10 @@ export default function PatientRegistration() {
         if (!patientRegistrationData.ageMonth) errors.ageMonth = true;
         if (!patientRegistrationData.ageYear) errors.ageYear = true;
         if (!patientRegistrationData.dob) errors.dob = true;
+        if (!patientRegistrationData.refID1) errors.refID1 = true
 
         if (!patientRegistrationData.gender) errors.gender = true;
-        if (!patientRegistrationData.investigationName) errors.investigationName = true;
+        //if (!patientRegistrationData.investigationName) errors.investigationName = true;
 
 
         // Validate based on paymentModeType
@@ -1005,14 +1011,18 @@ export default function PatientRegistration() {
 
         //sampleTypeName filed required
 
-        if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
-        if (!patientRegistrationData.discountPercentage) errors.discountPercentage = true;
-        if (!patientRegistrationData.discountid) errors.discountid = true;
-        if (!patientRegistrationData.discountApproved) errors.discountApproved = true;
+        if (patientRegistrationData?.billingType !== 1) {
+            if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
+            if (!patientRegistrationData.discountPercentage) errors.discountPercentage = true;
+            if (!patientRegistrationData.discountid) errors.discountid = true;
+            if (!patientRegistrationData.discountApproved) errors.discountApproved = true;
+
+        }
+
 
         // Update state with errors
         setPatientRegistrationDataError(errors);
-        // console.log(errors);
+        console.log(errors);
 
         // Return true if no errors exist
         return Object.keys(errors).length === 0;
@@ -1029,29 +1039,52 @@ export default function PatientRegistration() {
 
     //cheack bar code data which showPopup===6
     const [checkedItems, setCheckedItems] = useState({});
+    const [barcodeValues, setBarcodeValues] = useState({});
 
-    // const handleCheckboxChange123 = (itemId) => {
-    //     setCheckedItems((prev) => ({
-    //         ...prev,
-    //         [itemId]: !prev[itemId], // Toggle checkbox state
-    //     }));
-    // };
+    // Function to handle checkbox toggle
+    const handleCheckboxChange123 = (itemId) => {
+        setCheckedItems((prev) => ({
+            ...prev,
+            [itemId]: !prev[itemId], // Toggle checkbox state manually
+        }));
+    };
 
-    // UseEffect to auto-check the checkbox if a barcode exists
+    // Function to handle barcode input change
+    const handleInputChangeForPopUpGridData = (itemId, value) => {
+        setBarcodeValues((prev) => ({
+            ...prev,
+            [itemId]: value, // Update barcode value dynamically
+        }));
+
+        // Automatically check if there's a barcode entered
+        setCheckedItems((prev) => ({
+            ...prev,
+            [itemId]: value.length > 0, // Check if barcode is not empty
+        }));
+    };
+
+    // Auto-check the checkbox if a barcode exists initially
     useEffect(() => {
         const updatedCheckedItems = {};
+        const updatedBarcodeValues = {};
+
         investigationGridData?.forEach((data) => {
             const barcodeValue = gridDataBarCodeandSampleType?.barCode.find(
                 (item) => item.itemId === data?.itemId
             )?.name;
 
             if (barcodeValue) {
-                updatedCheckedItems[data?.itemId] = true;
+                updatedCheckedItems[data?.itemId] = true; // Auto-check if barcode exists
+                updatedBarcodeValues[data?.itemId] = barcodeValue; // Store initial barcode value
             }
         });
 
         setCheckedItems(updatedCheckedItems);
+        setBarcodeValues(updatedBarcodeValues);
     }, [gridDataBarCodeandSampleType?.barCode, investigationGridData]);
+
+
+    console.log(investigationGridData);
 
 
     //save patient registration data
@@ -1086,7 +1119,7 @@ export default function PatientRegistration() {
             address: patientRegistrationData?.address,
             pinCode: patientRegistrationData?.pinCode,
             cityId: 0,
-            centreId: parseInt(patientRegistrationData?.centreId),
+            centreId: parseInt(patientRegistrationData?.centreId?.centreId),
             areaId: 0,
             stateId: 0,
             districtId: 0,
@@ -1112,7 +1145,7 @@ export default function PatientRegistration() {
                         month: 'short',
                         year: 'numeric'
                     }).replace(/ /g, '-'),
-                    clientCode: patientRegistrationData?.centreId,
+                    clientCode: patientRegistrationData?.centreId?.centreId,
                     patientId: 0,
                     title_id: patientRegistrationData?.title_id,
                     name: patientRegistrationData?.name,
@@ -1129,10 +1162,10 @@ export default function PatientRegistration() {
                     netAmount: investigationGridData?.reduce((sum, item) => sum + (item.netAmt || 0), 0),
                     paidAmount: patientRegistrationData?.paidAmount,
                     sessionCentreid: parseInt(user?.defaultCenter),
-                    centreId: parseInt(patientRegistrationData?.centreId),
-                    rateId: parseInt(patientRegistrationData?.rateId),
+                    centreId: parseInt(patientRegistrationData?.centreId?.centreId),
+                    rateId: parseInt(patientRegistrationData?.rateId?.id),
                     isCredit: patientRegistrationData?.paymentMode === "Cash" ? 0 : 1,
-                    paymentMode: patientRegistrationData?.paymentMode,
+                    paymentMode: allCentreData?.find((data) => data?.centreId === patientRegistrationData?.centreId?.centreId)?.paymentMode,
                     source: '',
                     discountType: parseInt(patientRegistrationData?.discountType),
                     discountid: parseInt(patientRegistrationData?.discountid),
@@ -1141,13 +1174,13 @@ export default function PatientRegistration() {
                     isDisCountApproved: 0,
                     patientRemarks: '',
                     labRemarks: '',
-                    otherLabRefer: patientRegistrationData?.refLab,
-                    otherLabReferID: patientRegistrationData?.refLabID,
-                    refDoctor1: allReferData.filter((data) => data?.doctorId === patientRegistrationData?.refID1)[0]?.doctorName, //need to filter the data baed on refId1
-                    refID1: patientRegistrationData?.refID1,
+                    otherLabRefer: patientRegistrationData?.refLab?.doctorName,
+                    otherLabReferID: patientRegistrationData?.refLabID?.doctorId,
+                    refDoctor1: allReferData.filter((data) => data?.doctorId === patientRegistrationData?.refID1?.doctorId)[0]?.doctorName, //need to filter the data baed on refId1
+                    refID1: patientRegistrationData?.refID1?.doctorId,
 
-                    refDoctor2: allReferData.filter((data) => data?.doctorId === patientRegistrationData?.refID2)[0]?.doctorName, //need to filter the data baed on refId2
-                    refID2: patientRegistrationData?.refID2,
+                    refDoctor2: allReferData.filter((data) => data?.doctorId === patientRegistrationData?.refID2?.doctorId)[0]?.doctorName, //need to filter the data baed on refId2
+                    refID2: patientRegistrationData?.refID2?.doctorId,
                     tempDOCID: 0,
                     tempDoctroName: '',
                     uploadDocument: patientRegistrationData?.uploadDocument,
@@ -1166,7 +1199,7 @@ export default function PatientRegistration() {
                             patientId: 0,
                             barcodeNo: '',
                             status: 'Patient Registration',
-                            centreId: parseInt(patientRegistrationData?.centreId),
+                            centreId: parseInt(patientRegistrationData?.centreId?.centreId),
                             roleId: parseInt(user?.defaultRole),
                             remarks: '',
                             testId: 0,
@@ -1189,7 +1222,7 @@ export default function PatientRegistration() {
                         deptId: data?.deptId,
                         barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
                         departmentName: data?.departmentname || '',
-                        investigationName: selectedInvastigationList?.find(barcode => barcode.itemId === data.itemType)?.itemName || '',
+                        investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemType)?.itemName || '',
                         isPackage: data?.itemType === 3 ? 1 : 0,
                         packageName: data?.itemType === 3 ? selectedInvastigationList?.find(barcode => barcode.itemId === data.itemType)?.itemName : '',
                         itemType: data?.itemType,
@@ -1205,13 +1238,13 @@ export default function PatientRegistration() {
                         packItemNet: data?.itemType === 3 ? data?.netAmt : 0,
                         reportType: 0,
 
-                        centreId: parseInt(patientRegistrationData?.centreId), //
+                        centreId: parseInt(patientRegistrationData?.centreId?.centreId), //
                         sessionCentreid: parseInt(user?.defaultCenter),
                         isSra: 0,
                         isMachineOrder: 0,
                         isEmailsent: 0,
                         sampleTypeId: gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemId === data.itemType) ? id : 0,
-                        sampleTypeName: gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemType === data.itemType)?.name,
+                        sampleTypeName: gridDataBarCodeandSampleType?.sampleType?.length !== 0 ? gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemType === data.itemType)?.name : data?.sampleTypeName[0],
 
                     })),
                     addpaymentdetail: paymentModeType?.map((data) => ({
@@ -1243,7 +1276,7 @@ export default function PatientRegistration() {
                         cancelDate: '',
                         canceledBy: '',
                         cancelReason: '',
-                        bookingCentreId: parseInt(patientRegistrationData?.centreId),
+                        bookingCentreId: parseInt(patientRegistrationData?.centreId?.centreId),
                         settlementCentreID: 0,
                         receivedBy: user?.name,
                         receivedID: parseInt(user?.employeeId)
@@ -1253,7 +1286,7 @@ export default function PatientRegistration() {
             ]
         };
 
-        //console.log(updatedData);
+        console.log(updatedData);
 
 
 
@@ -1264,257 +1297,257 @@ export default function PatientRegistration() {
             return;
         }
 
-        // try {
-        //     const response = await savePatientRegistrationDataApi(updatedData);
+        try {
+            const response = await savePatientRegistrationDataApi(updatedData);
 
-        //     if (response?.success) {
-        //         toast.success(response?.message);
+            if (response?.success) {
+                toast.success(response?.message);
 
-        //         setPatientRegistrationData(
-        //             {
-        //                 "address": "",
-        //                 "ageDays": 0,
-        //                 "ageMonth": 0,
-        //                 "ageTotal": 0,
-        //                 "ageYear": 0,
-        //                 "areaId": 0,
-        //                 "centreId": 0,
-        //                 "cityId": 0,
-        //                 "countryId": 0,
-        //                 "createdById": 0,
-        //                 "createdDateTime": "",
-        //                 "districtId": 0,
-        //                 "dob": "",
-        //                 "documentId": 0,
-        //                 "documnetnumber": 0,
-        //                 "emailId": "",
-        //                 "gender": "",
-        //                 "isActive": 0,
-        //                 "isActualDOB": 0,
-        //                 "mobileNo": "",
-        //                 "name": "",
-        //                 "password": 0,
-        //                 "patientId": 0,
-        //                 "pinCode": "",
-        //                 "remarks": "",
-        //                 "stateId": 0,
-        //                 "title_id": 0,
-        //                 "updateById": 0,
-        //                 "updateDateTime": "",
-        //                 "visitCount": 0,
-        //                 "addBooking": [
-        //                     {
-        //                         "ageDay": "",
-        //                         "ageMonth": "",
-        //                         "ageYear": "",
-        //                         "billNo": 0,
-        //                         "bookingDate": "",
-        //                         "centreId": 0,
-        //                         "clientCode": 0,
-        //                         "createdById": 0,
-        //                         "createdDateTime": "",
-        //                         "discount": 0,
-        //                         "discountApproved": 0,
-        //                         "discountReason": "",
-        //                         "discountType": 0,
-        //                         "discountid": 0,
-        //                         "dob": "",
-        //                         "gender": "",
-        //                         "grossAmount": 0,
-        //                         "invoiceNo": "",
-        //                         "isActive": 0,
-        //                         "isCredit": 0,
-        //                         "isDisCountApproved": 0,
-        //                         "labRemarks": "",
-        //                         "mobileNo": "",
-        //                         "mrp": 0,
-        //                         "name": "",
-        //                         "netAmount": 0,
-        //                         "otherLabRefer": "",
-        //                         "otherLabReferID": 0,
-        //                         "paidAmount": 0,
-        //                         "patientId": 0,
-        //                         "patientRemarks": "",
-        //                         "paymentMode": "",
-        //                         "rateId": 0,
-        //                         "refDoctor1": "",
-        //                         "refDoctor2": "",
-        //                         "refID1": 0,
-        //                         "refID2": 0,
-        //                         "salesExecutiveID": 0,
-        //                         "sessionCentreid": 0,
-        //                         "source": "",
-        //                         "tempDOCID": 0,
-        //                         "tempDoctroName": "",
-        //                         "title_id": "",
-        //                         "totalAge": 0,
-        //                         "transactionId": 0,
-        //                         "updateById": 0,
-        //                         "updateDateTime": "",
-        //                         "uploadDocument": "",
-        //                         "workOrderId": "",
-        //                         "addBookingStatus": [
-        //                             {
-        //                                 "barcodeNo": "",
-        //                                 "centreId": 0,
-        //                                 "createdById": 0,
-        //                                 "createdDateTime": "",
-        //                                 "id": 0,
-        //                                 "isActive": 0,
-        //                                 "patientId": 0,
-        //                                 "remarks": "",
-        //                                 "roleId": 0,
-        //                                 "status": "",
-        //                                 "testId": 0,
-        //                                 "transactionId": 0,
-        //                                 "updateById": 0,
-        //                                 "updateDateTime": ""
-        //                             }
-        //                         ],
-        //                         "addBookingItem": [
-        //                             {
-        //                                 "barcodeNo": "",
-        //                                 "centreId": 0,
-        //                                 "createdById": 0,
-        //                                 "createdDateTime": "",
-        //                                 "departmentName": "",
-        //                                 "deptId": 0,
-        //                                 "discount": 0,
-        //                                 "id": 0,
-        //                                 "investigationName": "",
-        //                                 "isActive": 0,
-        //                                 "isEmailsent": 0,
-        //                                 "isMachineOrder": 0,
-        //                                 "isPackage": 0,
-        //                                 "isSra": 0,
-        //                                 "itemId": 0,
-        //                                 "itemType": 0,
-        //                                 "mrp": 0,
-        //                                 "netAmount": 0,
-        //                                 "packItemDiscount": 0,
-        //                                 "packItemNet": 0,
-        //                                 "packItemRate": 0,
-        //                                 "packMrp": 0,
-        //                                 "packageID": 0,
-        //                                 "packageName": "",
-        //                                 "rate": 0,
-        //                                 "reportType": 0,
-        //                                 "sampleTypeId": 0,
-        //                                 "sampleTypeName": "",
-        //                                 "sessionCentreid": 0,
-        //                                 "testcode": "",
-        //                                 "transactionId": 0,
-        //                                 "updateById": 0,
-        //                                 "updateDateTime": "",
-        //                                 "workOrderId": ""
-        //                             },
-        //                             {
-        //                                 "barcodeNo": "",
-        //                                 "centreId": 0,
-        //                                 "createdById": 0,
-        //                                 "createdDateTime": "",
-        //                                 "departmentName": "",
-        //                                 "deptId": 0,
-        //                                 "discount": 0,
-        //                                 "id": 0,
-        //                                 "investigationName": "",
-        //                                 "isActive": 0,
-        //                                 "isEmailsent": 0,
-        //                                 "isMachineOrder": 0,
-        //                                 "isPackage": 0,
-        //                                 "isSra": 0,
-        //                                 "itemId": 0,
-        //                                 "itemType": 0,
-        //                                 "mrp": 0,
-        //                                 "netAmount": 0,
-        //                                 "packItemDiscount": 0,
-        //                                 "packItemNet": 0,
-        //                                 "packItemRate": 0,
-        //                                 "packMrp": 0,
-        //                                 "packageID": 0,
-        //                                 "packageName": "",
-        //                                 "rate": 0,
-        //                                 "reportType": 0,
-        //                                 "sampleTypeId": 0,
-        //                                 "sampleTypeName": "",
-        //                                 "sessionCentreid": 0,
-        //                                 "testcode": "",
-        //                                 "transactionId": 0,
-        //                                 "updateById": 0,
-        //                                 "updateDateTime": "",
-        //                                 "workOrderId": ""
-        //                             }
-        //                         ],
-        //                         "addpaymentdetail": [
-        //                             {
-        //                                 "bankName": "",
-        //                                 "bookingCentreId": 0,
-        //                                 "cancelDate": "",
-        //                                 "cancelReason": "",
-        //                                 "canceledBy": "",
-        //                                 "cashAmt": 0,
-        //                                 "chequeAmt": 0,
-        //                                 "chequeNo": "",
-        //                                 "creditCardAmt": 0,
-        //                                 "creditCardNo": "",
-        //                                 "id": 0,
-        //                                 "isCancel": 0,
-        //                                 "nefTamt": 0,
-        //                                 "onlinewalletAmt": 0,
-        //                                 "paymentModeId": 0,
-        //                                 "receiptNo": 0,
-        //                                 "receivedAmt": 0,
-        //                                 "receivedBy": "",
-        //                                 "receivedID": 0,
-        //                                 "settlementCentreID": 0,
-        //                                 "transactionId": 0,
-        //                                 "transactionType": "",
-        //                                 "walletno": "",
-        //                                 "workOrderId": ""
-        //                             },
-        //                             {
-        //                                 "bankName": "",
-        //                                 "bookingCentreId": 0,
-        //                                 "cancelDate": "",
-        //                                 "cancelReason": "",
-        //                                 "canceledBy": "",
-        //                                 "cashAmt": 0,
-        //                                 "chequeAmt": 0,
-        //                                 "chequeNo": "",
-        //                                 "creditCardAmt": 0,
-        //                                 "creditCardNo": "",
-        //                                 "id": 0,
-        //                                 "isCancel": 0,
-        //                                 "nefTamt": 0,
-        //                                 "onlinewalletAmt": 0,
-        //                                 "paymentModeId": 0,
-        //                                 "receiptNo": 0,
-        //                                 "receivedAmt": 0,
-        //                                 "receivedBy": "",
-        //                                 "receivedID": 0,
-        //                                 "settlementCentreID": 0,
-        //                                 "transactionId": 0,
-        //                                 "transactionType": "",
-        //                                 "walletno": "",
-        //                                 "workOrderId": ""
-        //                             }
-        //                         ]
-        //                     }
-        //                 ]
-        //             }
+                // setPatientRegistrationData(
+                //     {
+                //         "address": "",
+                //         "ageDays": 0,
+                //         "ageMonth": 0,
+                //         "ageTotal": 0,
+                //         "ageYear": 0,
+                //         "areaId": 0,
+                //         "centreId": 0,
+                //         "cityId": 0,
+                //         "countryId": 0,
+                //         "createdById": 0,
+                //         "createdDateTime": "",
+                //         "districtId": 0,
+                //         "dob": "",
+                //         "documentId": 0,
+                //         "documnetnumber": 0,
+                //         "emailId": "",
+                //         "gender": "",
+                //         "isActive": 0,
+                //         "isActualDOB": 0,
+                //         "mobileNo": "",
+                //         "name": "",
+                //         "password": 0,
+                //         "patientId": 0,
+                //         "pinCode": "",
+                //         "remarks": "",
+                //         "stateId": 0,
+                //         "title_id": 0,
+                //         "updateById": 0,
+                //         "updateDateTime": "",
+                //         "visitCount": 0,
+                //         "addBooking": [
+                //             {
+                //                 "ageDay": "",
+                //                 "ageMonth": "",
+                //                 "ageYear": "",
+                //                 "billNo": 0,
+                //                 "bookingDate": "",
+                //                 "centreId": 0,
+                //                 "clientCode": 0,
+                //                 "createdById": 0,
+                //                 "createdDateTime": "",
+                //                 "discount": 0,
+                //                 "discountApproved": 0,
+                //                 "discountReason": "",
+                //                 "discountType": 0,
+                //                 "discountid": 0,
+                //                 "dob": "",
+                //                 "gender": "",
+                //                 "grossAmount": 0,
+                //                 "invoiceNo": "",
+                //                 "isActive": 0,
+                //                 "isCredit": 0,
+                //                 "isDisCountApproved": 0,
+                //                 "labRemarks": "",
+                //                 "mobileNo": "",
+                //                 "mrp": 0,
+                //                 "name": "",
+                //                 "netAmount": 0,
+                //                 "otherLabRefer": "",
+                //                 "otherLabReferID": 0,
+                //                 "paidAmount": 0,
+                //                 "patientId": 0,
+                //                 "patientRemarks": "",
+                //                 "paymentMode": "",
+                //                 "rateId": 0,
+                //                 "refDoctor1": "",
+                //                 "refDoctor2": "",
+                //                 "refID1": 0,
+                //                 "refID2": 0,
+                //                 "salesExecutiveID": 0,
+                //                 "sessionCentreid": 0,
+                //                 "source": "",
+                //                 "tempDOCID": 0,
+                //                 "tempDoctroName": "",
+                //                 "title_id": "",
+                //                 "totalAge": 0,
+                //                 "transactionId": 0,
+                //                 "updateById": 0,
+                //                 "updateDateTime": "",
+                //                 "uploadDocument": "",
+                //                 "workOrderId": "",
+                //                 "addBookingStatus": [
+                //                     {
+                //                         "barcodeNo": "",
+                //                         "centreId": 0,
+                //                         "createdById": 0,
+                //                         "createdDateTime": "",
+                //                         "id": 0,
+                //                         "isActive": 0,
+                //                         "patientId": 0,
+                //                         "remarks": "",
+                //                         "roleId": 0,
+                //                         "status": "",
+                //                         "testId": 0,
+                //                         "transactionId": 0,
+                //                         "updateById": 0,
+                //                         "updateDateTime": ""
+                //                     }
+                //                 ],
+                //                 "addBookingItem": [
+                //                     {
+                //                         "barcodeNo": "",
+                //                         "centreId": 0,
+                //                         "createdById": 0,
+                //                         "createdDateTime": "",
+                //                         "departmentName": "",
+                //                         "deptId": 0,
+                //                         "discount": 0,
+                //                         "id": 0,
+                //                         "investigationName": "",
+                //                         "isActive": 0,
+                //                         "isEmailsent": 0,
+                //                         "isMachineOrder": 0,
+                //                         "isPackage": 0,
+                //                         "isSra": 0,
+                //                         "itemId": 0,
+                //                         "itemType": 0,
+                //                         "mrp": 0,
+                //                         "netAmount": 0,
+                //                         "packItemDiscount": 0,
+                //                         "packItemNet": 0,
+                //                         "packItemRate": 0,
+                //                         "packMrp": 0,
+                //                         "packageID": 0,
+                //                         "packageName": "",
+                //                         "rate": 0,
+                //                         "reportType": 0,
+                //                         "sampleTypeId": 0,
+                //                         "sampleTypeName": "",
+                //                         "sessionCentreid": 0,
+                //                         "testcode": "",
+                //                         "transactionId": 0,
+                //                         "updateById": 0,
+                //                         "updateDateTime": "",
+                //                         "workOrderId": ""
+                //                     },
+                //                     {
+                //                         "barcodeNo": "",
+                //                         "centreId": 0,
+                //                         "createdById": 0,
+                //                         "createdDateTime": "",
+                //                         "departmentName": "",
+                //                         "deptId": 0,
+                //                         "discount": 0,
+                //                         "id": 0,
+                //                         "investigationName": "",
+                //                         "isActive": 0,
+                //                         "isEmailsent": 0,
+                //                         "isMachineOrder": 0,
+                //                         "isPackage": 0,
+                //                         "isSra": 0,
+                //                         "itemId": 0,
+                //                         "itemType": 0,
+                //                         "mrp": 0,
+                //                         "netAmount": 0,
+                //                         "packItemDiscount": 0,
+                //                         "packItemNet": 0,
+                //                         "packItemRate": 0,
+                //                         "packMrp": 0,
+                //                         "packageID": 0,
+                //                         "packageName": "",
+                //                         "rate": 0,
+                //                         "reportType": 0,
+                //                         "sampleTypeId": 0,
+                //                         "sampleTypeName": "",
+                //                         "sessionCentreid": 0,
+                //                         "testcode": "",
+                //                         "transactionId": 0,
+                //                         "updateById": 0,
+                //                         "updateDateTime": "",
+                //                         "workOrderId": ""
+                //                     }
+                //                 ],
+                //                 "addpaymentdetail": [
+                //                     {
+                //                         "bankName": "",
+                //                         "bookingCentreId": 0,
+                //                         "cancelDate": "",
+                //                         "cancelReason": "",
+                //                         "canceledBy": "",
+                //                         "cashAmt": 0,
+                //                         "chequeAmt": 0,
+                //                         "chequeNo": "",
+                //                         "creditCardAmt": 0,
+                //                         "creditCardNo": "",
+                //                         "id": 0,
+                //                         "isCancel": 0,
+                //                         "nefTamt": 0,
+                //                         "onlinewalletAmt": 0,
+                //                         "paymentModeId": 0,
+                //                         "receiptNo": 0,
+                //                         "receivedAmt": 0,
+                //                         "receivedBy": "",
+                //                         "receivedID": 0,
+                //                         "settlementCentreID": 0,
+                //                         "transactionId": 0,
+                //                         "transactionType": "",
+                //                         "walletno": "",
+                //                         "workOrderId": ""
+                //                     },
+                //                     {
+                //                         "bankName": "",
+                //                         "bookingCentreId": 0,
+                //                         "cancelDate": "",
+                //                         "cancelReason": "",
+                //                         "canceledBy": "",
+                //                         "cashAmt": 0,
+                //                         "chequeAmt": 0,
+                //                         "chequeNo": "",
+                //                         "creditCardAmt": 0,
+                //                         "creditCardNo": "",
+                //                         "id": 0,
+                //                         "isCancel": 0,
+                //                         "nefTamt": 0,
+                //                         "onlinewalletAmt": 0,
+                //                         "paymentModeId": 0,
+                //                         "receiptNo": 0,
+                //                         "receivedAmt": 0,
+                //                         "receivedBy": "",
+                //                         "receivedID": 0,
+                //                         "settlementCentreID": 0,
+                //                         "transactionId": 0,
+                //                         "transactionType": "",
+                //                         "walletno": "",
+                //                         "workOrderId": ""
+                //                     }
+                //                 ]
+                //             }
+                //         ]
+                //     }
 
-        //         );
+                // );
 
-        //         setinvestigationGridData([]);
+                setinvestigationGridData([]);
 
-        //     } else {
-        //         toast.error(response?.message);
-        //     }
+            } else {
+                toast.error(response?.message);
+            }
 
-        // } catch (error) {
-        //     toast.error(error?.message);
-        //     console.log(error);
-        // }
+        } catch (error) {
+            toast.error(error?.message);
+            console.log(error);
+        }
 
         setIsButtonClick(0);
     }
@@ -2108,7 +2141,6 @@ export default function PatientRegistration() {
     const onSubmitForSaveEditTestData = async () => {
         setIsButtonClick(4);
 
-        console.log(editTestData);
 
 
         // Generate the transformed list based on testData
@@ -2161,7 +2193,6 @@ export default function PatientRegistration() {
 
             if (response?.success) {
 
-                console.log(response);
                 setOLdPatientId([response?.data])
                 setShowPopup(4)
 
@@ -2939,6 +2970,7 @@ export default function PatientRegistration() {
                                     searchWithName='doctorName'
                                     uniqueKey='doctorId'
                                     activeTheme={activeTheme}
+                                    isMandatory={patientRegistrationDataError?.refID1}
                                 />
                             </div>
 
@@ -3698,13 +3730,13 @@ Currency
                                                     <CustomDropdown
                                                         name="Currency"
                                                         label="Select Currency"
-                                                        value={patientRegistrationData?.gender || ''}
+                                                        value={selectCurrencyValue || ''}
                                                         options={[
                                                             { label: 'Select Option', value: '', disabled: true },
                                                             { label: 'INR', value: '1' },
                                                             { label: 'USD', value: '2' },
                                                         ]}
-                                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                                        onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
                                                         defaultIndex={0}
                                                         activeTheme={activeTheme}
                                                         isMandatory={false}
@@ -5305,7 +5337,21 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                         </div> */}
 
 
-
+                                        <div className="relative flex-1">
+                                            <CustomSearchInputFields
+                                                id="itemId"
+                                                name="itemId"
+                                                label="Test Search By Name Or Code"
+                                                value={patientRegistrationData?.itemId}
+                                                options={allInvastigationData}
+                                                onChange={handelOnChangePatientRegistration}
+                                                filterText="No records found"
+                                                placeholder=" "
+                                                searchWithName='itemName'
+                                                uniqueKey='itemId'
+                                                activeTheme={activeTheme}
+                                            />
+                                        </div>
 
 
                                         <div className='flex gap-[0.25rem]'>
@@ -5823,10 +5869,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                         </td>
                                                     </tr>
                                                 </thead>
-                                                {
-                                                    console.log(investigationGridData)
 
-                                                }
                                                 <tbody>
                                                     {investigationGridData?.map((data, rowIndex) => {
                                                         // Declare barcodeValue inside the map function
@@ -5867,26 +5910,25 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                 </td>
 
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                                                    {/* Now barcodeValue is correctly defined */}
                                                                     <CustomTextBox
                                                                         type="barcode"
                                                                         name="barCode"
                                                                         maxLength={12}
-                                                                        value={barcodeValue}
-                                                                        onChange={(e) => handleInputChange(data?.itemId, e.target.value, "2")}
+                                                                        value={barcodeValue[data?.itemId] || ""}
+                                                                        onChange={(e) => handleInputChangeForPopUpGridData(data?.itemId, e.target.value)}
                                                                         placeholder=" "
                                                                         label="Barcode"
                                                                     />
                                                                 </td>
 
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                                                    {/* <input
+                                                                    <input
                                                                         type="checkbox"
-                                                                        checked={checkedItems[data?.itemId] || !!barcodeValue} // Keeps checked if barcodeValue exists
-                                                                        onChange={() => handleCheckboxChange123(data?.itemId)} // Allows toggling
-                                                                    /> */}
-                                                                    <input type="text" name="" id="" />
+                                                                        checked={checkedItems[data?.itemId] || false} // Use updated state
+                                                                        onChange={() => handleCheckboxChange123(data?.itemId)} // Allow manual toggle
+                                                                    />
                                                                 </td>
+
                                                             </tr>
                                                         );
                                                     })}
@@ -5908,7 +5950,15 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                         <CustomeNormalButton activeTheme={activeTheme} text='Patient wise barcode' />
                                     </div>
                                     <div className="relative flex-1">
-                                        <CustomeNormalButton activeTheme={activeTheme} text='Collect & Save' />
+                                        {/* <CustomeNormalButton activeTheme={activeTheme} text='' /> */}
+                                        <CustomFormButton
+                                            activeTheme={activeTheme}
+                                            text="Collect & Save"
+                                            icon={FaSpinner}
+                                            isButtonClick={isButtonClick}
+                                            loadingButtonNumber={5} // Unique number for the first button
+                                            onClick={() => onSubmitForSavePatientRegistrationData()} // Pass button number to handler
+                                        />
                                     </div>
 
                                     <div className="relative flex-1">
