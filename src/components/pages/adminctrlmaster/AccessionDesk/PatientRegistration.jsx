@@ -145,6 +145,8 @@ export default function PatientRegistration() {
     const [editTestData, setEditTestData] = useState(null);
     const [oldPatientId, setOLdPatientId] = useState(null);
 
+    const [allEditTestDataForInvasticationName, setallEditTestDataForInvasticationName] = useState([]);
+
     const [gridDataBarCodeandSampleType, setGridDataBarCodeandSampleType] = useState({
         barCode: [],
         sampleType: [],
@@ -524,6 +526,8 @@ export default function PatientRegistration() {
     // };
 
     const handelOnChangePatientRegistration = (event) => {
+        console.log(event);
+
         setPatientRegistrationData((preventData) => ({
             ...preventData,
             [event?.target?.name]: event?.target?.value
@@ -539,35 +543,33 @@ export default function PatientRegistration() {
     }
 
 
-    // const handleCheckboxChange = (e, data) => {
-    //     const isChecked = e.target.checked;
+    const handleCheckboxChange = (index, isChecked) => {
+        setinvestigationGridData((prevData) =>
+            prevData.map((item, idx) =>
+                idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
+            )
+        );
+    };
 
-    //     setPaymentModeType((prevData) => {
-    //         // Create a copy of the previous state
-    //         const updatedAccess = [...prevData];
 
-    //         if (isChecked) {
-    //             // Check if the item already exists to avoid duplicates
-    //             const exists = updatedAccess.some(
-    //                 (item) => item.value === data?.value
-    //             );
-    //             if (!exists) {
-    //                 updatedAccess.push(data);
-    //             }
-    //         } else {
-    //             // Remove the item from the array when unchecked
-    //             const index = updatedAccess.findIndex(
-    //                 (item) => item?.value === data?.value
-    //             );
-    //             if (index !== -1) {
-    //                 updatedAccess.splice(index, 1);
-    //             }
-    //         }
+    //editTestData?.testData
+    const handleCheckboxChangeEditTestCheckBo = (index, isChecked) => {
+        console.log(editTestData);
 
-    //         // Return the updated state
-    //         return updatedAccess;
-    //     });
-    // };
+        setEditTestData((prevData) => {
+            // Ensure prevData.testData exists and is an array
+            const updatedTestData = Array.isArray(prevData?.testData)
+                ? prevData.testData.map((item, idx) =>
+                    idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
+                )
+                : [];
+
+            return {
+                ...prevData, // Keep other properties intact
+                testData: updatedTestData,
+            };
+        });
+    };
 
     const handelOnChangePaymentMode = (updatedSelectedItems) => {
         setPaymentModeType(updatedSelectedItems);
@@ -700,7 +702,7 @@ export default function PatientRegistration() {
         const getAllInvastigationData = async () => {
 
             try {
-                const response = await getAllInvestiGationApi(patientRegistrationData?.rateId || 0);
+                const response = await getAllInvestiGationApi(patientRegistrationData?.rateId?.id || 0);
 
                 if (response?.success) {
                     setAllInvastigationData(response?.data);
@@ -723,8 +725,8 @@ export default function PatientRegistration() {
 
             try {
                 const response = await getAllInvestigationGridApi(
-                    patientRegistrationData?.rateId || 0,
-                    patientRegistrationData?.itemId || 0
+                    patientRegistrationData?.rateId?.id || 0,
+                    patientRegistrationData?.itemId?.itemId || 0
                 );
 
 
@@ -738,8 +740,11 @@ export default function PatientRegistration() {
                                 // Push only sampleTypeName values into the array
                                 acc.sampleTypeName.push(current.sampleTypeName);
                             }
+
                             return acc;
                         }, null);
+                       // console.log(result);
+
 
 
                         // Use a functional update for setState to check for duplicates
@@ -748,9 +753,16 @@ export default function PatientRegistration() {
 
                             isDuplicate = prevData.some((item) => item.itemId === result.itemId);
                             if (isDuplicate) {
+
                                 return prevData; // No changes if duplicate
                             }
-                            return [...prevData, result];
+                            const updateedData = {
+                                ...result,
+                                discount: 1
+                            }
+                            console.log(updateedData);
+                            
+                            return [...prevData, updateedData];
                         });
 
                         // Show toast if duplicate is detected
@@ -790,9 +802,27 @@ export default function PatientRegistration() {
     // Function to delete data by itemId
     const deleteinvestigationGridDataByItemId = (indexToDelete) => {
 
+        console.log(indexToDelete);
+
+
         const updatedData = [...investigationGridData]; // Create a copy of the array to avoid mutating the original
         updatedData.splice(indexToDelete, 1); // Remove the item at the specified index
         setinvestigationGridData(updatedData)
+
+    };
+
+    //
+    const deleteinvestigationGridDataByForEditTestDataUsingItemId = (indexToDelete) => {
+
+        console.log(indexToDelete);
+
+
+        const updatedData = [...editTestData?.testData]; // Create a copy of the array to avoid mutating the original
+        updatedData.splice(indexToDelete, 1); // Remove the item at the specified index
+        setEditTestData((preventData) => ({
+            ...preventData,
+            testData: updatedData
+        }))
 
     };
 
@@ -1022,7 +1052,7 @@ export default function PatientRegistration() {
 
         // Update state with errors
         setPatientRegistrationDataError(errors);
-        console.log(errors);
+        // console.log(errors);
 
         // Return true if no errors exist
         return Object.keys(errors).length === 0;
@@ -1084,7 +1114,7 @@ export default function PatientRegistration() {
     }, [gridDataBarCodeandSampleType?.barCode, investigationGridData]);
 
 
-    console.log(investigationGridData);
+    // console.log(investigationGridData);
 
 
     //save patient registration data
@@ -1869,6 +1899,26 @@ export default function PatientRegistration() {
 
             if (response?.success) {
 
+                console.log(response?.data);
+
+                try {
+
+                    const response2 = await getAllInvestiGationApi(response?.data[0]?.rateId || 0);
+                    console.log(response2);
+
+                    if (response2?.success) {
+                        setallEditTestDataForInvasticationName(response2?.data);
+                    } else {
+                        toast.error(response2?.message);
+                    }
+                } catch (error) {
+                    toast.error(error?.message);
+                }
+
+
+
+                console.log(response?.data);
+
 
                 const matchedDoctor1 = allReferData?.find((data) => data?.doctorId === response?.data[0]?.refID1);
 
@@ -1888,6 +1938,8 @@ export default function PatientRegistration() {
                     otherLabReferID: matchedLab
                         ? { otherLabReferID: matchedLab?.doctorId, otherLabRefer: matchedLab?.doctorName }
                         : null,
+                    rateId: response?.data[0]?.rateId,
+                    itemId: response?.data[0]?.itemId,
                     testData: response?.data.slice(0, 3).map(({ investigationName, mrp,
                         netAmount, rate, deliveryDate, isUrgent, itemId, discount, id, itemType }) => ({
                             itemName: investigationName,
@@ -1913,6 +1965,90 @@ export default function PatientRegistration() {
             toast.error(error?.message);
         }
     }
+
+    //console.log(editTestData);
+
+
+    const [isHandelClick, setIsHandelClick] = useState(false);
+
+    const handelOnChangePatientRegistrationSelect = (selectedItem) => {
+        //console.log(selectedItem?.target?.value?.itemId);
+
+        setEditTestData((prevState) => ({
+            ...prevState,
+            itemId: selectedItem?.target?.value?.itemId, // Ensure itemId is correctly updated
+        }));
+        setIsHandelClick(true);
+    };
+
+    //after selete Test Search By Name Or Code data need to bind in table
+    useEffect(() => {
+
+        const getData = async () => {
+
+            const response = await getAllInvestigationGridApi(
+                editTestData?.rateId || 0,
+                editTestData?.itemId || 0
+            );
+            // console.log("==================");
+
+            console.log(response);
+
+            console.log(response?.data[0]?.itemName);
+
+
+            setEditTestData((prevState) => {
+                const existingTestData = prevState?.testData || [];
+
+                const newTestData = response?.data?.map(({
+                    itemName, mrp, netAmt, rate, deliveryDate,
+                    isUrgent, itemId, discount, id, itemType, grosss
+                }) => ({
+                    itemName: itemName,
+                    mrp,
+                    netAmt: netAmt,
+                    grosss: rate,
+                    isUrgent: isUrgent || 0,
+                    deliveryDate,
+                    itemId: itemId || 0,
+                    discount,
+                    id: id || 0,
+                    itemType,
+                    grosss
+                }));
+
+                let duplicateFound = false; // Flag to track if any duplicates exist
+
+                const uniqueNewData = newTestData.filter(newItem => {
+                    const isDuplicate = existingTestData.some(existingItem => existingItem.itemId === newItem.itemId);
+                    if (isDuplicate) {
+                        duplicateFound = true; // Set flag if at least one duplicate is found
+                    }
+                    return !isDuplicate;
+                });
+
+                // Show toast only once if any duplicates exist
+                if (duplicateFound) {
+                    toast.error("Some tests already exist and were not added!");
+                }
+
+                return {
+                    ...prevState,
+                    testData: [...existingTestData, ...uniqueNewData], // Append only unique new data
+                };
+            });
+
+            setIsHandelClick(false)
+        }
+
+        if (isHandelClick && editTestData?.itemId !== 0 && editTestData?.itemId !== 0) {
+            getData()
+        }
+
+
+
+
+    }, [editTestData?.itemId, editTestData?.itemId])
 
 
     // console.log(editTestData?.testData);
@@ -2140,8 +2276,6 @@ export default function PatientRegistration() {
 
     const onSubmitForSaveEditTestData = async () => {
         setIsButtonClick(4);
-
-
 
         // Generate the transformed list based on testData
         const transformedList = editTestData?.testData.map((test) => ({
@@ -3498,6 +3632,10 @@ export default function PatientRegistration() {
                                                     </tr>
                                                 </thead>
 
+                                                {
+                                                    console.log(investigationGridData)
+
+                                                }
 
                                                 <tbody>
 
@@ -3630,7 +3768,10 @@ export default function PatientRegistration() {
                                                                     <input
                                                                         type="checkbox"
                                                                         id={`checkbox-${rowIndex}`}
+                                                                        checked={data?.isUrgent === '1'} // Checkbox checked if isUrgent is 1
+                                                                        onChange={(e) => handleCheckboxChange(rowIndex, e.target.checked)}
                                                                     />
+
                                                                 </td>
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                     <RiDeleteBin2Fill
@@ -5342,9 +5483,9 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 id="itemId"
                                                 name="itemId"
                                                 label="Test Search By Name Or Code"
-                                                value={patientRegistrationData?.itemId}
-                                                options={allInvastigationData}
-                                                onChange={handelOnChangePatientRegistration}
+                                                value={editTestData?.itemId}
+                                                options={allEditTestDataForInvasticationName}
+                                                onChange={handelOnChangePatientRegistrationSelect}
                                                 filterText="No records found"
                                                 placeholder=" "
                                                 searchWithName='itemName'
@@ -5380,7 +5521,10 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                         /> */}
 
                                     </div>
-
+{
+    console.log(editTestData?.testData)
+    
+}
 
                                     {/* grid data */}
                                     {
@@ -5447,10 +5591,11 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                         <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor w-24">
                                                                             <input
                                                                                 type="text"
-                                                                                className="border-[1.5px] rounded outline-none px-1 w-full"
+                                                                                className="border-[1.5px] rounded outline-none px-1 w-full bg-gray-100 cursor-not-allowed"
 
                                                                                 value={editTestData?.testData?.find((item) => item.itemId === data?.itemId)?.discount ?? 0}
 
+                                                                                readOnly
 
                                                                                 onChange={(e) =>
                                                                                     handleInputChangeEditTestDsicount(data?.itemId, e.target.value, "1")
@@ -5510,11 +5655,16 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                             {data?.deliveryDate}
                                                                         </td>
                                                                         <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor text-center pt-1">
-                                                                            <input type="checkbox" id={`checkbox-${rowIndex}`} />
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                id={`checkbox-${rowIndex}`}
+                                                                                checked={data?.isUrgent === 1} // Checkbox checked if isUrgent is 1
+                                                                                onChange={(e) => handleCheckboxChangeEditTestCheckBo(rowIndex, e.target.checked)}
+                                                                            />
                                                                         </td>
                                                                         <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                             <RiDeleteBin2Fill
-                                                                                onClick={() => deleteinvestigationGridDataByItemId(rowIndex)}
+                                                                                onClick={() => deleteinvestigationGridDataByForEditTestDataUsingItemId(rowIndex)}
                                                                                 className="cursor-pointer text-red-500 text-base"
                                                                             />
                                                                         </td>
@@ -5532,9 +5682,11 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">Total Amt.</td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
-                                                                        {editTestData?.testData.reduce((sum, data) => sum + (data?.mrp || 0), 0)}
+                                                                        {(editTestData?.testData || []).reduce((sum, data) => sum + (data?.mrp || 0), 0)}
                                                                     </td>
+
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
+
                                                                         {editTestData?.testData.reduce(
                                                                             (sum, data) => sum + (data?.grosss || 0),
                                                                             0
