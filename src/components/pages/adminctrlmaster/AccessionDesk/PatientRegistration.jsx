@@ -8,7 +8,7 @@ import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
 import { RiDeleteBin2Fill } from 'react-icons/ri';
 import { dummyDataForpatientRegistrationoldPatient, patientRegistrationInvestigation, patientRegistrationoldPatient, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import { CustomEmailInput } from '../../../global/CustomEmailInput'
-import { employeeWiseCentre, getAllBankNameApi, getAllCentreForPatientRegistrationData, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getOldPatientApi, getSingleEditInfoApi, getSingleEditTestApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi } from '../../../../service/service';
+import { getAllBankNameApi, getAllCentreForPatientRegistrationData, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getOldPatientApi, getSingleEditInfoApi, getSingleEditTestApi, getSingleOldPatientDataInOldPatientPopupApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi } from '../../../../service/service';
 import { FaSearch, FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
 import { CustomTextBox } from '../../../global/CustomTextBox';
@@ -79,6 +79,8 @@ export default function PatientRegistration() {
         onlinewalletAmt: 0,
 
         grossAmount: 0,
+
+        balnceAmt: '',
 
         bank_Id: 0,
         discountAmmount: 0,
@@ -332,10 +334,28 @@ export default function PatientRegistration() {
             parseFloat(patientRegistrationData.creditCardAmt || 0) +
             parseFloat(patientRegistrationData.onlinewalletAmt || 0);
 
+        //calculate the total net amt
+        // const totaNetAmt = investigationGridData
+        //     ? investigationGridData.reduce((sum, data) => sum + (parseInt(data?.netAmt) || 0), 0)
+        //     : 0;
+
+        // console.log(totaNetAmt);
+        // 
+
+        if (totalPaid > patientRegistrationData?.grossAmount) {
+            toast.error('Paid amount cannot exceed the total amount.');
+            setPatientRegistrationData((preventData) => ({
+                ...preventData,
+                balnceAmt: 0,
+                paidAmount: 0
+            }))
+            return;
+        }
         // Update paidAmount in state, ensuring it's a double (two decimal places)
         setPatientRegistrationData((prevData) => ({
             ...prevData,
             paidAmount: parseFloat(totalPaid.toFixed(2)), // Ensures double value with 2 decimals
+            balnceAmt: patientRegistrationData?.grossAmount - patientRegistrationData?.cashAmt - patientRegistrationData?.creditCardAmt - patientRegistrationData?.onlinewalletAmt
         }));
     }, [
         patientRegistrationData.cashAmt,
@@ -526,7 +546,7 @@ export default function PatientRegistration() {
     // };
 
     const handelOnChangePatientRegistration = (event) => {
-        console.log(event);
+
 
         setPatientRegistrationData((preventData) => ({
             ...preventData,
@@ -554,7 +574,7 @@ export default function PatientRegistration() {
 
     //editTestData?.testData
     const handleCheckboxChangeEditTestCheckBo = (index, isChecked) => {
-        console.log(editTestData);
+
 
         setEditTestData((prevData) => {
             // Ensure prevData.testData exists and is an array
@@ -644,7 +664,7 @@ export default function PatientRegistration() {
     useEffect(() => {
         const getAllCentreData = async () => {
             try {
-                const response = await getAllCentreForPatientRegistrationData(user?.employeeId, patientRegistrationData?.billingType);
+                const response = await getAllCentreForPatientRegistrationData(user?.employeeId || 0, patientRegistrationData?.billingType || 0);
 
                 if (response?.success) {
                     setAllCentreData(response?.data);
@@ -680,7 +700,7 @@ export default function PatientRegistration() {
         const getAllRateType = async () => {
 
             try {
-                const response = await getAllRateTypeForPatientRegistrationData(patientRegistrationData?.centreId);
+                const response = await getAllRateTypeForPatientRegistrationData(patientRegistrationData?.centreId || 0);
 
                 if (response?.success) {
                     setAllRateType(response?.data);
@@ -743,7 +763,7 @@ export default function PatientRegistration() {
 
                             return acc;
                         }, null);
-                       // console.log(result);
+                        // console.log(result);
 
 
 
@@ -758,10 +778,9 @@ export default function PatientRegistration() {
                             }
                             const updateedData = {
                                 ...result,
-                                discount: 1
+                                discount: 0
                             }
-                            console.log(updateedData);
-                            
+
                             return [...prevData, updateedData];
                         });
 
@@ -769,6 +788,37 @@ export default function PatientRegistration() {
                         if (isDuplicate) {
                             toast.error("Duplicate item selected. Please select a different item.");
                         }
+
+                        //===============need to check for discount ===================
+                        // setinvestigationGridData((prevData) => {
+                        //     const isDuplicate = prevData.some((item) => item.itemId === result.itemId);
+
+                        //     if (isDuplicate) {
+                        //         return prevData; // No changes if duplicate
+                        //     }
+
+                        //     // Add new result to investigationGridData
+                        //     const updatedData = [...prevData, result];
+
+                        //     // Also update gridDataBarCodeandSampleType
+                        //     setGridDataBarCodeandSampleType((prevState) => {
+                        //         const isDiscountDuplicate = prevState.discount.some((item) => item.itemId === result.itemId);
+
+                        //         if (!isDiscountDuplicate) {
+                        //             return {
+                        //                 ...prevState,
+                        //                 discount: [...prevState.discount, { itemId: result.itemId, discount: result.discount }]
+                        //             };
+                        //         }
+
+                        //         return prevState;
+                        //     });
+
+                        //     return updatedData;
+                        // });
+
+
+
                     }
                 }
 
@@ -802,7 +852,6 @@ export default function PatientRegistration() {
     // Function to delete data by itemId
     const deleteinvestigationGridDataByItemId = (indexToDelete) => {
 
-        console.log(indexToDelete);
 
 
         const updatedData = [...investigationGridData]; // Create a copy of the array to avoid mutating the original
@@ -814,7 +863,6 @@ export default function PatientRegistration() {
     //
     const deleteinvestigationGridDataByForEditTestDataUsingItemId = (indexToDelete) => {
 
-        console.log(indexToDelete);
 
 
         const updatedData = [...editTestData?.testData]; // Create a copy of the array to avoid mutating the original
@@ -844,17 +892,10 @@ export default function PatientRegistration() {
                 isActive: 1,
                 createdById: parseInt(user?.employeeId),
                 createdDateTime: new Date()
-                    .toLocaleString('en-GB', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        hour12: false, // Use 24-hour format
-                    })
-                    .replace(/ /g, '-')
-                    .replace(',', ''),
+                    .toISOString()
+                    .replace('T', ' ')
+                    .split('.')[0], // Outputs: "2025-02-28 15:57:11"
+
                 type: identifyAddReferDrOrReferLab === 1 ? 1 : 2
             }
 
@@ -908,16 +949,21 @@ export default function PatientRegistration() {
 
         } catch (error) {
             toast.error(error?.message);
+            console.log(error);
+
         }
         setIsButtonClick(2);
     }
 
     useEffect(() => {
+
         const getAllReferData = async () => {
 
             try {
                 const response = await getAllReferDrApi();
+
                 setAllReferData(response);
+
             } catch (error) {
                 toast.error(error?.message);
             }
@@ -937,33 +983,81 @@ export default function PatientRegistration() {
         getAllLabReferData();
     }, [isButtonClick])
 
+    const [changePartiCularDiscount, setChangeParticularDiscount] = useState(0);
 
+    //!================need to ceck ===========================
+    const [isDiscountSingle, setIsDiscountSingle] = useState(0);
+
+
+    // const hasUpdated = useRef(false); // ✅ Track if update has already happened
+
+    // useEffect(() => {
+    //     if (!patientRegistrationData?.discountPercentage) return; // ✅ Ensure there's a valid discount percentage
+
+    //     console.log('useEffect triggered');
+
+    //     setGridDataBarCodeandSampleType((prevState) => {
+    //         const updatedDiscount = investigationGridData.map((item) => ({
+    //             itemId: item.grosss, // Assuming `grosss` is the unique identifier
+    //             discount: patientRegistrationData.discountAmmount
+    //         }));
+
+    //         return { ...prevState, discount: updatedDiscount };
+    //     });
+
+    //     if (!hasUpdated.current) {
+    //         hasUpdated.current = true; // ✅ Ensures it runs at least once
+    //     }
+
+    // }, [patientRegistrationData?.discountPercentage]); // ✅ Dependency to run when `discountPercentage` changes
+
+
+    // Function to handle mouse out event
+    // const handleMouseOut = () => {
+    //     console.log('fjjfjfj');
+
+    //     hasUpdated.current = true; // Reset flag when user mouses out of the div
+    // };
+
+    //!==============================================
     //handel on chenge grid data
     const handleInputChange = (rowId, value, inputFields) => {
+        setChangeParticularDiscount(1);
 
-        if (inputFields === '1') {
-            setGridDataBarCodeandSampleType((prevState) => {
-                // Filter out the existing entry for this rowId in the `discount` array
-                const updatedDiscount = prevState.discount.filter((item) => item.itemId !== rowId);
+        setGridDataBarCodeandSampleType((prevState) => {
+            if (inputFields === '1') {
+                // Preserve existing discount values while updating only the changed row
+                const updatedDiscount = prevState.discount.map((item) =>
+                    item.itemId === rowId ? { ...item, discount: value } : item
+                );
 
-                // Add the updated entry with the new value
+
+
+                // Check if the row exists in discount; if not, add it
+                const isRowPresent = prevState.discount.some(item => item.itemId === rowId);
+                if (!isRowPresent) {
+                    updatedDiscount.push({ itemId: rowId, discount: value });
+                }
+
                 return {
                     ...prevState,
-                    discount: [...updatedDiscount, { itemId: rowId, discount: value }],
+                    discount: updatedDiscount.length ? updatedDiscount : prevState.discount,
+                    // Ensures that if updatedDiscount is empty, it keeps previous state
                 };
-            });
-        } else {
-            setGridDataBarCodeandSampleType((prevState) => {
-                // Filter out the existing entry for this rowId in the `barCode` array
-                const updatedBarCode = prevState.barCode.filter((item) => item.itemId !== rowId);
+            } else {
+                // Preserve barCode values while updating only the changed row
+                const updatedBarCode = prevState.barCode.map(item =>
+                    item.itemId === rowId ? { ...item, name: value } : item
+                );
 
-                // Add the updated entry with the new value
-                return {
-                    ...prevState,
-                    barCode: [...updatedBarCode, { itemId: rowId, name: value }],
-                };
-            });
-        }
+                const isBarCodePresent = prevState.barCode.some(item => item.itemId === rowId);
+                if (!isBarCodePresent) {
+                    updatedBarCode.push({ itemId: rowId, name: value });
+                }
+
+                return { ...prevState, barCode: updatedBarCode };
+            }
+        });
     };
 
 
@@ -1044,6 +1138,10 @@ export default function PatientRegistration() {
         if (patientRegistrationData?.billingType !== 1) {
             if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
             if (!patientRegistrationData.discountPercentage) errors.discountPercentage = true;
+        }
+
+        if (patientRegistrationData?.discountType !== 0 || patientRegistrationData?.discountPercentage !== 0) {
+
             if (!patientRegistrationData.discountid) errors.discountid = true;
             if (!patientRegistrationData.discountApproved) errors.discountApproved = true;
 
@@ -1052,11 +1150,12 @@ export default function PatientRegistration() {
 
         // Update state with errors
         setPatientRegistrationDataError(errors);
-        // console.log(errors);
+        //console.log(errors);
 
         // Return true if no errors exist
         return Object.keys(errors).length === 0;
     };
+
 
 
     useEffect(() => {
@@ -1069,7 +1168,7 @@ export default function PatientRegistration() {
 
     //cheack bar code data which showPopup===6
     const [checkedItems, setCheckedItems] = useState({});
-    const [barcodeValues, setBarcodeValues] = useState({});
+    //const [barcodeValues, setBarcodeValues] = useState({});
 
     // Function to handle checkbox toggle
     const handleCheckboxChange123 = (itemId) => {
@@ -1080,11 +1179,22 @@ export default function PatientRegistration() {
     };
 
     // Function to handle barcode input change
-    const handleInputChangeForPopUpGridData = (itemId, value) => {
-        setBarcodeValues((prev) => ({
-            ...prev,
-            [itemId]: value, // Update barcode value dynamically
-        }));
+    const handleInputChangeForPopUpGridData = (rowId, value) => {
+        setGridDataBarCodeandSampleType((prevState) => {
+
+            // Preserve barCode values while updating only the changed row
+            const updatedBarCode = prevState.barCode.map(item =>
+                item.itemId === rowId ? { ...item, name: value } : item
+            );
+
+            const isBarCodePresent = prevState.barCode.some(item => item.itemId === rowId);
+            if (!isBarCodePresent) {
+                updatedBarCode.push({ itemId: rowId, name: value });
+            }
+
+            return { ...prevState, barCode: updatedBarCode };
+
+        });
 
         // Automatically check if there's a barcode entered
         setCheckedItems((prev) => ({
@@ -1092,6 +1202,9 @@ export default function PatientRegistration() {
             [itemId]: value.length > 0, // Check if barcode is not empty
         }));
     };
+
+
+    //console.log(gridDataBarCodeandSampleType?.barCode);
 
     // Auto-check the checkbox if a barcode exists initially
     useEffect(() => {
@@ -1110,11 +1223,10 @@ export default function PatientRegistration() {
         });
 
         setCheckedItems(updatedCheckedItems);
-        setBarcodeValues(updatedBarcodeValues);
+        //setBarcodeValues(updatedBarcodeValues);
     }, [gridDataBarCodeandSampleType?.barCode, investigationGridData]);
 
 
-    // console.log(investigationGridData);
 
 
     //save patient registration data
@@ -1333,241 +1445,242 @@ export default function PatientRegistration() {
             if (response?.success) {
                 toast.success(response?.message);
 
-                // setPatientRegistrationData(
-                //     {
-                //         "address": "",
-                //         "ageDays": 0,
-                //         "ageMonth": 0,
-                //         "ageTotal": 0,
-                //         "ageYear": 0,
-                //         "areaId": 0,
-                //         "centreId": 0,
-                //         "cityId": 0,
-                //         "countryId": 0,
-                //         "createdById": 0,
-                //         "createdDateTime": "",
-                //         "districtId": 0,
-                //         "dob": "",
-                //         "documentId": 0,
-                //         "documnetnumber": 0,
-                //         "emailId": "",
-                //         "gender": "",
-                //         "isActive": 0,
-                //         "isActualDOB": 0,
-                //         "mobileNo": "",
-                //         "name": "",
-                //         "password": 0,
-                //         "patientId": 0,
-                //         "pinCode": "",
-                //         "remarks": "",
-                //         "stateId": 0,
-                //         "title_id": 0,
-                //         "updateById": 0,
-                //         "updateDateTime": "",
-                //         "visitCount": 0,
-                //         "addBooking": [
-                //             {
-                //                 "ageDay": "",
-                //                 "ageMonth": "",
-                //                 "ageYear": "",
-                //                 "billNo": 0,
-                //                 "bookingDate": "",
-                //                 "centreId": 0,
-                //                 "clientCode": 0,
-                //                 "createdById": 0,
-                //                 "createdDateTime": "",
-                //                 "discount": 0,
-                //                 "discountApproved": 0,
-                //                 "discountReason": "",
-                //                 "discountType": 0,
-                //                 "discountid": 0,
-                //                 "dob": "",
-                //                 "gender": "",
-                //                 "grossAmount": 0,
-                //                 "invoiceNo": "",
-                //                 "isActive": 0,
-                //                 "isCredit": 0,
-                //                 "isDisCountApproved": 0,
-                //                 "labRemarks": "",
-                //                 "mobileNo": "",
-                //                 "mrp": 0,
-                //                 "name": "",
-                //                 "netAmount": 0,
-                //                 "otherLabRefer": "",
-                //                 "otherLabReferID": 0,
-                //                 "paidAmount": 0,
-                //                 "patientId": 0,
-                //                 "patientRemarks": "",
-                //                 "paymentMode": "",
-                //                 "rateId": 0,
-                //                 "refDoctor1": "",
-                //                 "refDoctor2": "",
-                //                 "refID1": 0,
-                //                 "refID2": 0,
-                //                 "salesExecutiveID": 0,
-                //                 "sessionCentreid": 0,
-                //                 "source": "",
-                //                 "tempDOCID": 0,
-                //                 "tempDoctroName": "",
-                //                 "title_id": "",
-                //                 "totalAge": 0,
-                //                 "transactionId": 0,
-                //                 "updateById": 0,
-                //                 "updateDateTime": "",
-                //                 "uploadDocument": "",
-                //                 "workOrderId": "",
-                //                 "addBookingStatus": [
-                //                     {
-                //                         "barcodeNo": "",
-                //                         "centreId": 0,
-                //                         "createdById": 0,
-                //                         "createdDateTime": "",
-                //                         "id": 0,
-                //                         "isActive": 0,
-                //                         "patientId": 0,
-                //                         "remarks": "",
-                //                         "roleId": 0,
-                //                         "status": "",
-                //                         "testId": 0,
-                //                         "transactionId": 0,
-                //                         "updateById": 0,
-                //                         "updateDateTime": ""
-                //                     }
-                //                 ],
-                //                 "addBookingItem": [
-                //                     {
-                //                         "barcodeNo": "",
-                //                         "centreId": 0,
-                //                         "createdById": 0,
-                //                         "createdDateTime": "",
-                //                         "departmentName": "",
-                //                         "deptId": 0,
-                //                         "discount": 0,
-                //                         "id": 0,
-                //                         "investigationName": "",
-                //                         "isActive": 0,
-                //                         "isEmailsent": 0,
-                //                         "isMachineOrder": 0,
-                //                         "isPackage": 0,
-                //                         "isSra": 0,
-                //                         "itemId": 0,
-                //                         "itemType": 0,
-                //                         "mrp": 0,
-                //                         "netAmount": 0,
-                //                         "packItemDiscount": 0,
-                //                         "packItemNet": 0,
-                //                         "packItemRate": 0,
-                //                         "packMrp": 0,
-                //                         "packageID": 0,
-                //                         "packageName": "",
-                //                         "rate": 0,
-                //                         "reportType": 0,
-                //                         "sampleTypeId": 0,
-                //                         "sampleTypeName": "",
-                //                         "sessionCentreid": 0,
-                //                         "testcode": "",
-                //                         "transactionId": 0,
-                //                         "updateById": 0,
-                //                         "updateDateTime": "",
-                //                         "workOrderId": ""
-                //                     },
-                //                     {
-                //                         "barcodeNo": "",
-                //                         "centreId": 0,
-                //                         "createdById": 0,
-                //                         "createdDateTime": "",
-                //                         "departmentName": "",
-                //                         "deptId": 0,
-                //                         "discount": 0,
-                //                         "id": 0,
-                //                         "investigationName": "",
-                //                         "isActive": 0,
-                //                         "isEmailsent": 0,
-                //                         "isMachineOrder": 0,
-                //                         "isPackage": 0,
-                //                         "isSra": 0,
-                //                         "itemId": 0,
-                //                         "itemType": 0,
-                //                         "mrp": 0,
-                //                         "netAmount": 0,
-                //                         "packItemDiscount": 0,
-                //                         "packItemNet": 0,
-                //                         "packItemRate": 0,
-                //                         "packMrp": 0,
-                //                         "packageID": 0,
-                //                         "packageName": "",
-                //                         "rate": 0,
-                //                         "reportType": 0,
-                //                         "sampleTypeId": 0,
-                //                         "sampleTypeName": "",
-                //                         "sessionCentreid": 0,
-                //                         "testcode": "",
-                //                         "transactionId": 0,
-                //                         "updateById": 0,
-                //                         "updateDateTime": "",
-                //                         "workOrderId": ""
-                //                     }
-                //                 ],
-                //                 "addpaymentdetail": [
-                //                     {
-                //                         "bankName": "",
-                //                         "bookingCentreId": 0,
-                //                         "cancelDate": "",
-                //                         "cancelReason": "",
-                //                         "canceledBy": "",
-                //                         "cashAmt": 0,
-                //                         "chequeAmt": 0,
-                //                         "chequeNo": "",
-                //                         "creditCardAmt": 0,
-                //                         "creditCardNo": "",
-                //                         "id": 0,
-                //                         "isCancel": 0,
-                //                         "nefTamt": 0,
-                //                         "onlinewalletAmt": 0,
-                //                         "paymentModeId": 0,
-                //                         "receiptNo": 0,
-                //                         "receivedAmt": 0,
-                //                         "receivedBy": "",
-                //                         "receivedID": 0,
-                //                         "settlementCentreID": 0,
-                //                         "transactionId": 0,
-                //                         "transactionType": "",
-                //                         "walletno": "",
-                //                         "workOrderId": ""
-                //                     },
-                //                     {
-                //                         "bankName": "",
-                //                         "bookingCentreId": 0,
-                //                         "cancelDate": "",
-                //                         "cancelReason": "",
-                //                         "canceledBy": "",
-                //                         "cashAmt": 0,
-                //                         "chequeAmt": 0,
-                //                         "chequeNo": "",
-                //                         "creditCardAmt": 0,
-                //                         "creditCardNo": "",
-                //                         "id": 0,
-                //                         "isCancel": 0,
-                //                         "nefTamt": 0,
-                //                         "onlinewalletAmt": 0,
-                //                         "paymentModeId": 0,
-                //                         "receiptNo": 0,
-                //                         "receivedAmt": 0,
-                //                         "receivedBy": "",
-                //                         "receivedID": 0,
-                //                         "settlementCentreID": 0,
-                //                         "transactionId": 0,
-                //                         "transactionType": "",
-                //                         "walletno": "",
-                //                         "workOrderId": ""
-                //                     }
-                //                 ]
-                //             }
-                //         ]
-                //     }
+                setPatientRegistrationData(
+                    {
+                        "address": "",
+                        "ageDays": 0,
+                        "ageMonth": 0,
+                        "ageTotal": 0,
+                        "ageYear": 0,
+                        "areaId": 0,
+                        "centreId": 0,
+                        "cityId": 0,
+                        "countryId": 0,
+                        "createdById": 0,
+                        "createdDateTime": "",
+                        "districtId": 0,
+                        "dob": "",
+                        "documentId": 0,
+                        "documnetnumber": 0,
+                        "emailId": "",
+                        "gender": "",
+                        "isActive": 0,
+                        "isActualDOB": 0,
+                        "mobileNo": "",
+                        "name": "",
+                        "password": 0,
+                        "patientId": 0,
+                        "pinCode": "",
+                        "remarks": "",
+                        "stateId": 0,
+                        "title_id": 0,
+                        "updateById": 0,
+                        "updateDateTime": "",
+                        "visitCount": 0,
+                        "addBooking": [
+                            {
+                                "ageDay": "",
+                                "ageMonth": "",
+                                "ageYear": "",
+                                "billNo": 0,
+                                "bookingDate": "",
+                                "centreId": 0,
+                                "clientCode": 0,
+                                "createdById": 0,
+                                "createdDateTime": "",
+                                "discount": 0,
+                                "discountApproved": 0,
+                                "discountReason": "",
+                                "discountType": 0,
+                                "discountid": 0,
+                                "dob": "",
+                                "gender": "",
+                                "grossAmount": 0,
+                                "invoiceNo": "",
+                                "isActive": 0,
+                                "isCredit": 0,
+                                "isDisCountApproved": 0,
+                                "labRemarks": "",
+                                "mobileNo": "",
+                                "mrp": 0,
+                                "name": "",
+                                "netAmount": 0,
+                                "otherLabRefer": "",
+                                "otherLabReferID": 0,
+                                "paidAmount": 0,
+                                "patientId": 0,
+                                "patientRemarks": "",
+                                "paymentMode": "",
+                                "rateId": 0,
+                                "refDoctor1": "",
+                                "refDoctor2": "",
+                                "refID1": 0,
+                                "refID2": 0,
+                                "salesExecutiveID": 0,
+                                "sessionCentreid": 0,
+                                "source": "",
+                                "tempDOCID": 0,
+                                "tempDoctroName": "",
+                                "title_id": "",
+                                "totalAge": 0,
+                                "transactionId": 0,
+                                "updateById": 0,
+                                "updateDateTime": "",
+                                "uploadDocument": "",
+                                "workOrderId": "",
+                                "addBookingStatus": [
+                                    {
+                                        "barcodeNo": "",
+                                        "centreId": 0,
+                                        "createdById": 0,
+                                        "createdDateTime": "",
+                                        "id": 0,
+                                        "isActive": 0,
+                                        "patientId": 0,
+                                        "remarks": "",
+                                        "roleId": 0,
+                                        "status": "",
+                                        "testId": 0,
+                                        "transactionId": 0,
+                                        "updateById": 0,
+                                        "updateDateTime": ""
+                                    }
+                                ],
+                                "addBookingItem": [
+                                    {
+                                        "barcodeNo": "",
+                                        "centreId": 0,
+                                        "createdById": 0,
+                                        "createdDateTime": "",
+                                        "departmentName": "",
+                                        "deptId": 0,
+                                        "discount": 0,
+                                        "id": 0,
+                                        "investigationName": "",
+                                        "isActive": 0,
+                                        "isEmailsent": 0,
+                                        "isMachineOrder": 0,
+                                        "isPackage": 0,
+                                        "isSra": 0,
+                                        "itemId": 0,
+                                        "itemType": 0,
+                                        "mrp": 0,
+                                        "netAmount": 0,
+                                        "packItemDiscount": 0,
+                                        "packItemNet": 0,
+                                        "packItemRate": 0,
+                                        "packMrp": 0,
+                                        "packageID": 0,
+                                        "packageName": "",
+                                        "rate": 0,
+                                        "reportType": 0,
+                                        "sampleTypeId": 0,
+                                        "sampleTypeName": "",
+                                        "sessionCentreid": 0,
+                                        "testcode": "",
+                                        "transactionId": 0,
+                                        "updateById": 0,
+                                        "updateDateTime": "",
+                                        "workOrderId": ""
+                                    },
+                                    {
+                                        "barcodeNo": "",
+                                        "centreId": 0,
+                                        "createdById": 0,
+                                        "createdDateTime": "",
+                                        "departmentName": "",
+                                        "deptId": 0,
+                                        "discount": 0,
+                                        "id": 0,
+                                        "investigationName": "",
+                                        "isActive": 0,
+                                        "isEmailsent": 0,
+                                        "isMachineOrder": 0,
+                                        "isPackage": 0,
+                                        "isSra": 0,
+                                        "itemId": 0,
+                                        "itemType": 0,
+                                        "mrp": 0,
+                                        "netAmount": 0,
+                                        "packItemDiscount": 0,
+                                        "packItemNet": 0,
+                                        "packItemRate": 0,
+                                        "packMrp": 0,
+                                        "packageID": 0,
+                                        "packageName": "",
+                                        "rate": 0,
+                                        "reportType": 0,
+                                        "sampleTypeId": 0,
+                                        "sampleTypeName": "",
+                                        "sessionCentreid": 0,
+                                        "testcode": "",
+                                        "transactionId": 0,
+                                        "updateById": 0,
+                                        "updateDateTime": "",
+                                        "workOrderId": ""
+                                    }
+                                ],
+                                "addpaymentdetail": [
+                                    {
+                                        "bankName": "",
+                                        "bookingCentreId": 0,
+                                        "cancelDate": "",
+                                        "cancelReason": "",
+                                        "canceledBy": "",
+                                        "cashAmt": 0,
+                                        "chequeAmt": 0,
+                                        "chequeNo": "",
+                                        "creditCardAmt": 0,
+                                        "creditCardNo": "",
+                                        "id": 0,
+                                        "isCancel": 0,
+                                        "nefTamt": 0,
+                                        "onlinewalletAmt": 0,
+                                        "paymentModeId": 0,
+                                        "receiptNo": 0,
+                                        "receivedAmt": 0,
+                                        "receivedBy": "",
+                                        "receivedID": 0,
+                                        "settlementCentreID": 0,
+                                        "transactionId": 0,
+                                        "transactionType": "",
+                                        "walletno": "",
+                                        "workOrderId": ""
+                                    },
+                                    {
+                                        "bankName": "",
+                                        "bookingCentreId": 0,
+                                        "cancelDate": "",
+                                        "cancelReason": "",
+                                        "canceledBy": "",
+                                        "cashAmt": 0,
+                                        "chequeAmt": 0,
+                                        "chequeNo": "",
+                                        "creditCardAmt": 0,
+                                        "creditCardNo": "",
+                                        "id": 0,
+                                        "isCancel": 0,
+                                        "nefTamt": 0,
+                                        "onlinewalletAmt": 0,
+                                        "paymentModeId": 0,
+                                        "receiptNo": 0,
+                                        "receivedAmt": 0,
+                                        "receivedBy": "",
+                                        "receivedID": 0,
+                                        "settlementCentreID": 0,
+                                        "transactionId": 0,
+                                        "transactionType": "",
+                                        "walletno": "",
+                                        "workOrderId": ""
+                                    }
+                                ]
+                            }
+                        ]
+                    }
 
-                // );
+                );
 
+                setShowPopup(0);
                 setinvestigationGridData([]);
 
             } else {
@@ -1901,12 +2014,13 @@ export default function PatientRegistration() {
 
                 console.log(response?.data);
 
+
                 try {
 
                     const response2 = await getAllInvestiGationApi(response?.data[0]?.rateId || 0);
-                    console.log(response2);
 
                     if (response2?.success) {
+
                         setallEditTestDataForInvasticationName(response2?.data);
                     } else {
                         toast.error(response2?.message);
@@ -1917,7 +2031,6 @@ export default function PatientRegistration() {
 
 
 
-                console.log(response?.data);
 
 
                 const matchedDoctor1 = allReferData?.find((data) => data?.doctorId === response?.data[0]?.refID1);
@@ -1940,6 +2053,7 @@ export default function PatientRegistration() {
                         : null,
                     rateId: response?.data[0]?.rateId,
                     itemId: response?.data[0]?.itemId,
+                    centreId: response?.data[0]?.centreId,
                     testData: response?.data.slice(0, 3).map(({ investigationName, mrp,
                         netAmount, rate, deliveryDate, isUrgent, itemId, discount, id, itemType }) => ({
                             itemName: investigationName,
@@ -1981,6 +2095,16 @@ export default function PatientRegistration() {
         setIsHandelClick(true);
     };
 
+    //change the gender value based on the title
+    useEffect(() => {
+        const genderMap = { 1: 'M', 6: 'M', 2: 'F', 5: 'F' };
+        setPatientRegistrationData(prev => ({
+            ...prev,
+            gender: genderMap[patientRegistrationData?.title_id] || ''
+        }));
+    }, [patientRegistrationData?.title_id]);
+
+
     //after selete Test Search By Name Or Code data need to bind in table
     useEffect(() => {
 
@@ -1990,11 +2114,6 @@ export default function PatientRegistration() {
                 editTestData?.rateId || 0,
                 editTestData?.itemId || 0
             );
-            // console.log("==================");
-
-            console.log(response);
-
-            console.log(response?.data[0]?.itemName);
 
 
             setEditTestData((prevState) => {
@@ -2051,7 +2170,6 @@ export default function PatientRegistration() {
     }, [editTestData?.itemId, editTestData?.itemId])
 
 
-    // console.log(editTestData?.testData);
     const handelOnChangeEditTest = (e) => {
         setEditTestData((preventData) => ({
             ...preventData,
@@ -2278,39 +2396,79 @@ export default function PatientRegistration() {
         setIsButtonClick(4);
 
         // Generate the transformed list based on testData
-        const transformedList = editTestData?.testData.map((test) => ({
-            address: editTestData?.address,
-            ageDay: editTestData?.ageDay,
-            ageMonth: editTestData?.ageMonth,
-            ageYear: editTestData?.ageYear,
-            deliveryDate: test.deliveryDate || editTestData.deliveryDate, // Keep delivery date
-            discount: test?.discount,
-            dob: editTestData?.dob,
-            emailId: editTestData?.emailId,
-            gender: editTestData?.gender,
-            investigationName: test.itemName,
-            isUrgent: test?.isUrgent,
-            itemId: test?.itemId,
-            itemType: test?.itemType,
-            mobileNo: editTestData?.mobileNo,
-            mrp: test?.mrp,
-            name: editTestData?.name,
-            netAmount: test.netAmt, // Override net amount
-            otherLabRefer: editTestData?.otherLabRefer,
-            otherLabReferID: editTestData?.otherLabReferID?.otherLabReferID,
-            patientId: editTestData?.patientId,
-            pinCode: editTestData?.pinCode,
-            rate: test?.grosss,
-            discount: test?.discount,
-            isUrgent: test.isUrgent, // Override urgency
-            id: test.id, // Override with testData id
-            title_id: editTestData?.title_id,
-            transactionId: editTestData?.transactionId,
-            uploadDocument: editTestData?.uploadDocument,
-            workOrderId: editTestData?.workOrderId
-            // Override investigation name
+        const transformedList = editTestData?.testData.map((data) => ({
 
-            // }));
+            // address: editTestData?.address,
+            // ageDay: editTestData?.ageDay,
+            // ageMonth: editTestData?.ageMonth,
+            // ageYear: editTestData?.ageYear,
+            // deliveryDate: test.deliveryDate || editTestData.deliveryDate, // Keep delivery date
+            // discount: test?.discount,
+            // dob: editTestData?.dob,
+            // emailId: editTestData?.emailId,
+            // gender: editTestData?.gender,
+            // investigationName: test.itemName,
+            // isUrgent: test?.isUrgent,
+            // itemId: test?.itemId,
+            // itemType: test?.itemType,
+            // mobileNo: editTestData?.mobileNo,
+            // mrp: test?.mrp,
+            // name: editTestData?.name,
+            // netAmount: test.netAmt, // Override net amount
+            // otherLabRefer: editTestData?.otherLabRefer,
+            // otherLabReferID: editTestData?.otherLabReferID?.otherLabReferID,
+            // patientId: editTestData?.patientId,
+            // pinCode: editTestData?.pinCode,
+            // rate: test?.grosss,
+            // discount: test?.discount,
+            // isUrgent: test.isUrgent, // Override urgency
+            // id: test.id, // Override with testData id
+            // title_id: editTestData?.title_id,
+            // transactionId: editTestData?.transactionId,
+            // uploadDocument: editTestData?.uploadDocument,
+            // workOrderId: editTestData?.workOrderId
+            // // Override investigation name
+
+            // // }));
+
+            isActive: 1,
+            // createdById: parseInt(user?.employeeId),
+            // createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            updateById: parseInt(user?.employeeId),
+            updateDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            id: 0,
+            workOrderId: '',
+            transactionId: 0,
+            testcode: data?.testcode, //need to check
+            itemId: parseInt(data?.itemId),
+            packageID: data?.itemType === 3 ? parseInt(data?.itemType) : 0,
+            deptId: data?.deptId,
+            barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
+            departmentName: data?.departmentname || '',
+            investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemType)?.itemName || '',
+            isPackage: data?.itemType === 3 ? 1 : 0,
+            packageName: data?.itemType === 3 ? selectedInvastigationList?.find(barcode => barcode.itemId === data.itemType)?.itemName : '',
+            itemType: data?.itemType,
+
+            mrp: data?.mrp,
+            rate: data?.grosss,
+            discount: data?.discount,
+            netAmount: data?.netAmt,
+
+            packMrp: data?.itemType === 3 ? data?.mrp : 0,
+            packItemRate: data?.grosss === 3 ? data?.grosss : 0,
+            packItemDiscount: data?.itemType === 3 ? data?.discount : 0,
+            packItemNet: data?.itemType === 3 ? data?.netAmt : 0,
+            reportType: 0,
+
+            centreId: parseInt(editTestData?.centreId), //
+            sessionCentreid: parseInt(user?.defaultCenter),
+            isSra: 0,
+            isMachineOrder: 0,
+            isEmailsent: 0,
+            sampleTypeId: gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemId === data.itemType) ? id : 0,
+            sampleTypeName: gridDataBarCodeandSampleType?.sampleType?.length !== 0 ? gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemType === data.itemType)?.name : '',
+
         }))
 
         console.log(transformedList);
@@ -2337,6 +2495,24 @@ export default function PatientRegistration() {
         } catch (error) {
             toast.error(error?.message);
         }
+    }
+
+
+    const onClickHandelOldPatientInfo = async (val) => {
+
+        try {
+
+            const response = await getSingleOldPatientDataInOldPatientPopupApi(val);
+
+            console.log(response);
+
+
+        } catch (error) {
+            toast.error(error?.message);
+            console.log(error);
+            
+        }
+
     }
 
     // const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
@@ -3097,6 +3273,7 @@ export default function PatientRegistration() {
                                     name="refID1"
                                     label="Refer Dr."
                                     value={patientRegistrationData?.refID1}
+
                                     options={allReferData}
                                     onChange={handelOnChangePatientRegistration}
                                     filterText="No records found"
@@ -3598,7 +3775,6 @@ export default function PatientRegistration() {
                         style={{ background: activeTheme?.menuColor }}
                     ></div>
 
-
                     {
                         investigationGridData?.length !== 0 && (
                             <>
@@ -3632,80 +3808,114 @@ export default function PatientRegistration() {
                                                     </tr>
                                                 </thead>
 
-                                                {
-                                                    console.log(investigationGridData)
 
-                                                }
 
                                                 <tbody>
 
                                                     {/* Data Rows */}
                                                     {investigationGridData?.map(
-                                                        (data, rowIndex) => (
-                                                            <tr
-                                                                key={rowIndex}
-                                                                className={`cursor-pointer ${rowIndex % 2 === 0
-                                                                    ? "bg-gray-100"
-                                                                    : "bg-white"
-                                                                    } `}
-                                                                onMouseEnter={() =>
-                                                                    setIsHoveredTable(rowIndex)
-                                                                }
-                                                                onMouseLeave={() =>
-                                                                    setIsHoveredTable(null)
-                                                                }
+                                                        (data, rowIndex) => {
+                                                            // Find the discount for the current row
+                                                            const existingDiscount = gridDataBarCodeandSampleType?.discount.find(
+                                                                (item) => item.itemId === data?.itemId
+                                                            )?.discount;
 
-                                                                style={{
-                                                                    background:
-                                                                        isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
-                                                                }}
-                                                            >
-                                                                {/* Table Cells */}
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.itemName}
-                                                                </td>
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    <FontAwesomeIcon icon="fas fa-info-circle" onClick={() => setShowPopup(5)} />
-                                                                </td>
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.mrp}
-                                                                </td>
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.grosss}
-                                                                </td>
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor w-24">
-                                                                    <input
-                                                                        type="text"
-                                                                        className="border-[1.5px] rounded outline-none px-1 w-full"
-                                                                        value={
-                                                                            gridDataBarCodeandSampleType?.discount.find(
-                                                                                (item) =>
-                                                                                    item.itemId ===
-                                                                                    data?.itemId
-                                                                            )?.discount || ""
-                                                                        }
-                                                                        onChange={(e) =>
-                                                                            handleInputChange(
-                                                                                data?.itemId,
-                                                                                e.target.value,
-                                                                                "1"
+
+                                                            return (
+                                                                <tr
+                                                                    key={rowIndex}
+                                                                    className={`cursor-pointer ${rowIndex % 2 === 0
+                                                                        ? "bg-gray-100"
+                                                                        : "bg-white"
+                                                                        } `}
+                                                                    onMouseEnter={() =>
+                                                                        setIsHoveredTable(rowIndex)
+                                                                    }
+                                                                    onMouseLeave={() =>
+                                                                        setIsHoveredTable(null)
+                                                                    }
+
+                                                                    style={{
+                                                                        background:
+                                                                            isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
+                                                                    }}
+                                                                >
+                                                                    {/* Table Cells */}
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        {data?.itemName}
+                                                                    </td>
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        <FontAwesomeIcon icon="fas fa-info-circle" onClick={() => setShowPopup(5)} />
+                                                                    </td>
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        {data?.mrp}
+                                                                    </td>
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        {data?.grosss}
+                                                                    </td>
+
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor w-24">
+                                                                        {/* <input
+                                                                            type="text"
+                                                                            className="border-[1.5px] rounded outline-none px-1 w-full"
+                                                                            // value={
+                                                                            // patientRegistrationData?.discountAmmount !== 0 ?
+                                                                            //     patientRegistrationData?.discountAmmount :
+                                                                            //     gridDataBarCodeandSampleType?.discount.find(
+                                                                            //         (item) =>
+                                                                            //             item.itemId ===
+                                                                            //             data?.itemId
+                                                                            //     )?.discount || ""
+                                                                            //}
+
+                                                                            value={
+                                                                                existingDiscount !== undefined
+                                                                                    ? existingDiscount // Use updated discount if exists
+                                                                                    : changePartiCularDiscount === 0
+                                                                                        ? patientRegistrationData?.discountPercentage === 0
+                                                                                            ? patientRegistrationData?.discountPercentage
+                                                                                            : data?.grosss - (data?.grosss * (patientRegistrationData?.discountPercentage || 0) / 100)
+                                                                                        : data.discount || "" // Keep previous value
+                                                                            }
+
+
+                                                                            onChange={(e) =>
+                                                                                handleInputChange(
+                                                                                    data?.itemId,
+                                                                                    e.target.value,
+                                                                                    "1"
+                                                                                )
+                                                                            }
+                                                                        /> */}
+                                                                        <input
+                                                                            type="text"
+                                                                            className="border-[1.5px] rounded outline-none px-1 w-full"
+                                                                            value={
+                                                                                existingDiscount !== undefined
+                                                                                    ? existingDiscount // Keep previous discount if exists
+                                                                                    : (changePartiCularDiscount === 0
+                                                                                        ? patientRegistrationData?.discountPercentage === 0
+                                                                                            ? 0 // If no discount, set to 0
+                                                                                            : data?.grosss - (data?.grosss * (patientRegistrationData?.discountPercentage || 0) / 100)
+                                                                                        : 0) // Default to 0 if no value is present
+                                                                            }
+                                                                            onChange={(e) => handleInputChange(data?.itemId, e.target.value, "1")}
+                                                                        />
+                                                                    </td>
+
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        {(
+                                                                            (data?.netAmt || 0) -
+                                                                            parseFloat(
+                                                                                gridDataBarCodeandSampleType?.discount.find(
+                                                                                    (item) =>
+                                                                                        item.itemId ===
+                                                                                        data?.itemId
+                                                                                )?.discount || 0
                                                                             )
-                                                                        }
-                                                                    />
-                                                                </td>
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {(
-                                                                        (data?.netAmt || 0) -
-                                                                        parseFloat(
-                                                                            gridDataBarCodeandSampleType?.discount.find(
-                                                                                (item) =>
-                                                                                    item.itemId ===
-                                                                                    data?.itemId
-                                                                            )?.discount || 0
-                                                                        )
-                                                                    ).toFixed(2)}
-                                                                </td>
-                                                                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        ).toFixed(2)}
+                                                                    </td>
+                                                                    {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                     <select
                                                                         className="border rounded px-1 w-full outline-none"
                                                                         onChange={(e) =>
@@ -3739,7 +3949,7 @@ export default function PatientRegistration() {
                                                                 </td> */}
 
 
-                                                                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                    {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                     <input
                                                                         type="text"
                                                                         className="border-[1.5px] rounded outline-none px-1 w-[6.2rem]"
@@ -3761,30 +3971,31 @@ export default function PatientRegistration() {
                                                                 </td> */}
 
 
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.deliveryDate}
-                                                                </td>
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor text-center pt-1">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        id={`checkbox-${rowIndex}`}
-                                                                        checked={data?.isUrgent === '1'} // Checkbox checked if isUrgent is 1
-                                                                        onChange={(e) => handleCheckboxChange(rowIndex, e.target.checked)}
-                                                                    />
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        {data?.deliveryDate}
+                                                                    </td>
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor text-center pt-1">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            id={`checkbox-${rowIndex}`}
+                                                                            checked={data?.isUrgent === '1'} // Checkbox checked if isUrgent is 1
+                                                                            onChange={(e) => handleCheckboxChange(rowIndex, e.target.checked)}
+                                                                        />
 
-                                                                </td>
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    <RiDeleteBin2Fill
-                                                                        onClick={() =>
-                                                                            deleteinvestigationGridDataByItemId(
-                                                                                rowIndex
-                                                                            )
-                                                                        }
-                                                                        className="cursor-pointer text-red-500 text-base"
-                                                                    />
-                                                                </td>
-                                                            </tr>
-                                                        )
+                                                                    </td>
+                                                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                                        <RiDeleteBin2Fill
+                                                                            onClick={() =>
+                                                                                deleteinvestigationGridDataByItemId(
+                                                                                    rowIndex
+                                                                                )
+                                                                            }
+                                                                            className="cursor-pointer text-red-500 text-base"
+                                                                        />
+                                                                    </td>
+                                                                </tr>
+                                                            )
+                                                        }
                                                     )}
 
                                                 </tbody>
@@ -4018,7 +4229,7 @@ isDisabled={false}
                                                         type="text"
                                                         id="balanceAmt"
                                                         name="balanceAmt"
-                                                        value={patientRegistrationData?.grossAmount - patientRegistrationData?.cashAmt - patientRegistrationData?.creditCardAmt - patientRegistrationData?.onlinewalletAmt}
+                                                        value={patientRegistrationData?.balnceAmt}
 
                                                         // value={
                                                         //     investigationGridData
@@ -4356,7 +4567,10 @@ Discount Type
                                                 </div>
 
                                                 {/* Discount % */}
-                                                <div className="relative flex-1">
+                                                <div className="relative flex-1"
+                                                // onMouseOut={handleMouseOut}
+
+                                                >
                                                     {/* <input
                                                             type="number"
                                                             id="discountPercentage"
@@ -5521,10 +5735,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                         /> */}
 
                                     </div>
-{
-    console.log(editTestData?.testData)
-    
-}
+
 
                                     {/* grid data */}
                                     {
@@ -5806,7 +6017,9 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                     isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
                                                             }}
                                                         >
-                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                                                                onClick={() => onClickHandelOldPatientInfo(data?.patientId)}
+                                                            >
                                                                 Selected
                                                             </td>
 
@@ -6066,10 +6279,11 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                         type="barcode"
                                                                         name="barCode"
                                                                         maxLength={12}
-                                                                        value={barcodeValue[data?.itemId] || ""}
+                                                                        value={barcodeValue || ""}
                                                                         onChange={(e) => handleInputChangeForPopUpGridData(data?.itemId, e.target.value)}
                                                                         placeholder=" "
                                                                         label="Barcode"
+                                                                        showLabel='false'
                                                                     />
                                                                 </td>
 
