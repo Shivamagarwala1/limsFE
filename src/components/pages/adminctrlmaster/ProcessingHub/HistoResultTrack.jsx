@@ -14,6 +14,7 @@ import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import CustomeEditor from "../../../sharecomponent/CustomeEditor";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import {
+  HistoAddAttachmentPopupModal,
   HistoApprovedPopupModal,
   HistoFileUploadPopupModal,
   HistoHoldUnholdPopupModal,
@@ -26,6 +27,7 @@ import { addObjectId } from "../../../../service/RedendentData";
 import RemarkGif from "../../../../assets/RemarkGif.gif";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { use } from "react";
 
 export default function HistoResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -37,6 +39,7 @@ export default function HistoResultTrack() {
   const [RemarkPopup, setRemarkPopup] = useState(false);
   const [HoldUnHold, setHoldUnHold] = useState(false);
   const [FileUploadPopupModal, setFileUploadPopupModal] = useState(false);
+  const [AddAttachmentPopupModal, setAddAttachmentPopupModal] = useState(false);
   const [HoldUnHoldDetails, setHoldUnHoldDetails] = useState({});
   const [Row, setRow] = useState({});
   const [DrId, setDrId] = useState({
@@ -85,11 +88,24 @@ export default function HistoResultTrack() {
   let PayloadData = getLocal("HistoPayload");
   const updatedArray = addObjectId(PostData?.data);
   const currentRow = async (id) => {
-    const row = updatedArray?.filter((item) => item?.id == id);
-    setUserObj(row[0]);
-    return row[0];
+    const row = updatedArray?.find((item) => item?.id === id); // Use find() instead of filter()
+
+    if (!row) {
+      console.warn(`Row with id ${id} not found.`);
+      setUserObj(null);
+      setCurrentId(0);
+      return null;
+    }
+
+    setUserObj(row);
+    console.log(row?.testid);
+
+    await retreveTestData(row?.testid);
+
+    return row;
   };
 
+  console.log(UserObj);
   const columns = [
     {
       field: "id",
@@ -406,7 +422,7 @@ export default function HistoResultTrack() {
         ? HistoObservation?.histoObservationId
         : 0,
       finalImpression: editorContent2,
-      appcovaldoctorId: DrId?.doctorId,
+      approvaldoctorId: DrId?.doctorId,
       comment: values?.comment,
       createdBy: lsData?.user?.employeeId,
     };
@@ -425,47 +441,66 @@ export default function HistoResultTrack() {
   //0 h to approved 1 h to not approved & null ya 0 h to Hold 1 h to Unhold
 
   const retreveTestData = async (id) => {
-    const res = await retreveTest?.fetchData(
-      `/tnx_Booking/GetHistoresult?testid=${id}`
-    );
-    console.log(res?.data?.data);
-    if (res?.data?.data.length > 0) {
-      setHistoObservation(res?.data?.data[0]);
-      const filterDr = await Signature?.data?.data.filter(
-        (item) => item?.doctorId == res?.data?.data[0]?.appcovaldoctorId
+    try {
+      const res = await retreveTest?.fetchData(
+        `/tnx_Booking/GetHistoresult?testid=${id}`
       );
-      console.log(res?.data?.data[0]?.comment);
-      setDrId(filterDr[0]);
-      SaveForm?.setValues([
-        {
-          specimen: res?.data?.data[0]?.specimen,
-          biospyNumber: res?.data?.data[0]?.biospyNumber,
-          clinicalHistory: res?.data?.data[0]?.clinicalHistory,
-          typesFixativeUsed: res?.data?.data[0]?.typesFixativeUsed,
-          blockKeys: res?.data?.data[0]?.blockKeys,
-          stainsPerformed: res?.data?.data[0]?.stainsPerformed,
-          comment: res?.data?.data[0]?.comment,
-        },
-      ]);
-      setEditorContent(res?.data?.data[0]?.gross);
-      setEditorContent1(res?.data?.data[0]?.microscopy);
-      setEditorContent2(res?.data?.data[0]?.finalImpression);
-    } else {
-      // SaveForm?.setValues([
-      //   {
-      //     specimen: "",
-      //     biospyNumber: "",
-      //     clinicalHistory: "",
-      //     typesFixativeUsed: "",
-      //     blockKeys: "",
-      //     stainsPerformed: "",
-      //   },
-      // ]);
-      setEditorContent("");
-      setEditorContent1("");
-      setEditorContent2("");
+      console.log("Retrieving test data for ID:", id);
+  
+      if (res?.data?.data?.length > 0) {
+        const testData = res.data.data[0];
+        setHistoObservation(testData);
+  
+        const filterDr = Signature?.data?.data.find(
+          (item) => item?.doctorId === testData?.appcovaldoctorId
+        );
+  
+        if (filterDr) {
+          setDrId(filterDr);
+        } else {
+          console.warn("Doctor not found for ID:", testData?.appcovaldoctorId);
+        }
+  
+        SaveForm?.setValues([
+          {
+            specimen: testData.specimen || "",
+            biospyNumber: testData.biospyNumber || "",
+            clinicalHistory: testData.clinicalHistory || "",
+            typesFixativeUsed: testData.typesFixativeUsed || "",
+            blockKeys: testData.blockKeys || "",
+            stainsPerformed: testData.stainsPerformed || "",
+            comment: testData.comment || "",
+            appcovaldoctorId: testData.approvalDoctor || "",
+          },
+        ]);
+  
+        setEditorContent(testData.gross || "");
+        setEditorContent1(testData.microscopy || "");
+        setEditorContent2(testData.finalImpression || "");
+      } else {
+        console.warn("No data found for test ID:", id);
+        
+        SaveForm?.setValues([
+          {
+            specimen: "",
+            biospyNumber: "",
+            clinicalHistory: "",
+            typesFixativeUsed: "",
+            blockKeys: "",
+            stainsPerformed: "",
+            comment: "",
+          },
+        ]);
+  
+        setEditorContent("");
+        setEditorContent1("");
+        setEditorContent2("");
+      }
+    } catch (error) {
+      console.error("Error retrieving test data:", error);
     }
   };
+  
 
   const ApproveCase = async () => {
     const payload = {
@@ -473,7 +508,11 @@ export default function HistoResultTrack() {
       ...UserObj,
       isApproved: 1,
       createdBy: lsData?.user?.employeeId,
-      appcovaldoctorId: ApprovedDocId,
+      approvaldoctorId: ApprovedDocId,
+      approved: 1,
+      approvedByID: lsData?.user?.employeeId,
+      isApproved: 1,
+      hold:0,
     };
     const res = await SavePostData?.postRequest(
       "/tnx_BookingItem/SaveHistoResult",
@@ -561,6 +600,10 @@ export default function HistoResultTrack() {
           showPopup={FileUploadPopupModal}
           retreveTestData={retreveTestData}
         />
+        <HistoAddAttachmentPopupModal rowData={HistoObservation}
+          setShowPopup={setAddAttachmentPopupModal}
+          showPopup={AddAttachmentPopupModal}
+          retreveTestData={retreveTestData} />
         {/* Header Section */}
         <div>
           <FormHeader title="Histo Result Track" />
@@ -899,32 +942,22 @@ export default function HistoResultTrack() {
                       },
                     ]}
                   />
-                  {/* <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Approve",
-                        submit: false,
-                        callBack: () => console.log("Not Approve clicked"),
-                      },
-                      {
-                        label: "Hold",
-                        submit: false,
-                        callBack: () => console.log("Print Report clicked"),
-                      },
-                    ]}
-                  /> */}
 
                   <TwoSubmitButton
                     options={[
                       {
                         label: "Add Report",
                         submit: false,
-                        callBack: () => {setFileUploadPopupModal(true);},
+                        callBack: () => {
+                          setFileUploadPopupModal(true);
+                        },
                       },
                       {
                         label: "Add Attachment",
                         submit: false,
-                        callBack: () => console.log("Add Attachment clicked"),
+                        callBack: () => {
+                          setAddAttachmentPopupModal(true);
+                        },
                       },
                     ]}
                   />
@@ -941,8 +974,9 @@ export default function HistoResultTrack() {
                         label: "Previous",
                         submit: false,
                         callBack: () => {
-                          // setCurrentId(CurrentId - 1);
-                          // currentRow(CurrentId - 1);
+                          // retreveTestData(HistoObservation?.testId);
+                          setCurrentId(CurrentId - 1);
+                          currentRow(CurrentId - 1);
                         },
                       },
                     ]}
@@ -953,8 +987,9 @@ export default function HistoResultTrack() {
                         label: "Next",
                         submit: false,
                         callBack: () => {
-                          // setCurrentId(CurrentId + 1);
-                          // currentRow(CurrentId + 1);
+                          // retreveTestData(HistoObservation?.testId);
+                          setCurrentId(CurrentId + 1);
+                          currentRow(CurrentId + 1);
                         },
                       },
                     ]}

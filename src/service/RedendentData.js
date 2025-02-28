@@ -28,3 +28,23 @@ export const SampleCollectionStatus = [
   { id: 4, data: "Sample Reject", value: "R" },
   { id: 5, data: "Urgent", value: "U" },
 ];
+
+export const splitArrayInTwo = (arr) => {
+  const FirstHalf = [];
+  const SecondHalf = [];
+  
+  arr.forEach((item, index) => {
+    if (index % 2 === 0) {
+      FirstHalf.push(item);
+    } else {
+      SecondHalf.push(item);
+    }
+  });
+
+  return { FirstHalf, SecondHalf };
+};
+
+// const { FirstHalf, SecondHalf } = splitArrayInTwo(splitArrayInTwo);
+
+
+

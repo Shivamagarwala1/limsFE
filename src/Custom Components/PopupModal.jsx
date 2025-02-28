@@ -747,7 +747,7 @@ export const HistoHoldUnholdPopupModal = ({
   const PostData = usePostData();
   const hold = rowData?.hold === 1 ? "0" : "1";
   useEffect(() => {}, [PostData?.loading]);
-
+  console.log(rowData)
   if (!showPopup) return null;
 
   const handleSubmit = async (e) => {
@@ -758,13 +758,14 @@ export const HistoHoldUnholdPopupModal = ({
     await PostData?.postRequest(
       `/tnx_Observations/ReportHoldUnHold?TestId=${rowData?.testId}&isHold=${hold}&holdBy=${lsData?.user?.employeeId}&holdReason=${values?.HoldReason}`
     );
-    console.log(values?.HoldReason);
+    console.log(values?.HoldReason,`/tnx_Observations/ReportHoldUnHold?TestId=${rowData?.testId}&isHold=${hold}&holdBy=${lsData?.user?.employeeId}&holdReason=${values?.HoldReason}`);
     if (PostData?.response && PostData.response.success) {
       toast.success(PostData.response.message);
       retreveTestData(rowData?.testId);
       hide();
     } else {
-      toast.info(PostData?.response?.message || "An error occurred.");
+      hide();
+      console(PostData?.response?.message || "An error occurred.");
     }
   };
   const hide = () => {
@@ -923,7 +924,7 @@ export const HistoFileUploadPopupModal = ({
   const { formRef, getValues } = useFormHandler();
   const PostData = usePostData();
   const AddReportPostData = usePostData();
-  
+
   if (!showPopup) return null;
 
   const handleSubmit = async (e) => {
@@ -937,7 +938,10 @@ export const HistoFileUploadPopupModal = ({
     formData.append("Document", FileData.fileData);
 
     try {
-      const response = await PostData.postRequest(`/empMaster/UploadDocument`, formData);
+      const response = await PostData.postRequest(
+        `/empMaster/UploadDocument`,
+        formData
+      );
 
       if (response?.success) {
         toast.success(response.message);
@@ -958,14 +962,17 @@ export const HistoFileUploadPopupModal = ({
 
   const hide = async (filePath) => {
     setShowPopup(false);
-console.log(rowData)
+    console.log(rowData);
     setTimeout(() => {
       const payloadData = {
         testId: rowData?.testId,
         attachment: filePath,
       };
 
-      AddReportPostData.postRequest(`/tnx_InvestigationAttchment/AddReport`, payloadData);
+      AddReportPostData.postRequest(
+        `/tnx_InvestigationAttchment/AddReport`,
+        payloadData
+      );
     }, 100);
   };
   return (
@@ -983,7 +990,7 @@ console.log(rowData)
           className="flex rounded-md justify-between items-center px-2 py-1 "
         >
           <span className="text-sm font-semibold">
-            {rowData?.bool ? "Hold" : "Un-Hold"}
+            Add Report
           </span>
           <IoMdCloseCircleOutline
             className="text-xl cursor-pointer"
@@ -993,7 +1000,7 @@ console.log(rowData)
         </div>
 
         {/* Input Field */}
-        <TableHeader title={rowData?.bool ? "Hold Reason" : "Un-Hold Reason"} />
+        <TableHeader title={"Add Report"} />
         <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
           <div className="p-2 flex flex-row gap-1 border-none">
             <FileUpload
@@ -1002,6 +1009,121 @@ console.log(rowData)
               accept=".pdf"
               inputFields={{
                 label: "Upload PDF",
+                Size: "10",
+              }}
+            />
+            <SubmitButton
+              submit={true}
+              text={"Save"}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export const HistoAddAttachmentPopupModal = ({
+  showPopup,
+  setShowPopup,
+  retreveTestData,
+  rowData,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const [FileData, setFileData] = useState({ fileName: "" });
+  const { formRef, getValues } = useFormHandler();
+  const PostData = usePostData();
+  const AddReportPostData = usePostData();
+
+  if (!showPopup) return null;
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!FileData || !FileData.fileData) {
+      toast.error("No file selected!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("Document", FileData.fileData);
+
+    try {
+      const response = await PostData.postRequest(
+        `/empMaster/UploadDocument`,
+        formData
+      );
+
+      if (response?.success) {
+        toast.success(response.message);
+        const filePath = response?.data?.filePath;
+        if (filePath) {
+          hide(filePath);
+        } else {
+          toast.error("File path missing in response.");
+        }
+      } else {
+        toast.error(response?.message || "An error occurred.");
+      }
+    } catch (error) {
+      toast.error("Upload failed!");
+      console.error("Upload Error:", error);
+    }
+  };
+
+  const hide = async (filePath) => {
+    setShowPopup(false);
+    console.log(rowData);
+    setTimeout(() => {
+      const payloadData = {
+        testId: rowData?.testId,
+        attachment: filePath,
+      };
+
+      AddReportPostData.postRequest(
+        `/tnx_InvestigationAttchment/AddAttchment`,
+        payloadData
+      );
+    }, 100);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">
+            Add Attachment
+          </span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+
+        {/* Input Field */}
+        <TableHeader title={'Add Attachment'} />
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          <div className="p-2 flex flex-row gap-1 border-none">
+            <FileUpload
+              FileData={FileData}
+              setFileData={setFileData}
+              accept=".pdf"
+              inputFields={{
+                label: "Upload",
                 Size: "10",
               }}
             />
