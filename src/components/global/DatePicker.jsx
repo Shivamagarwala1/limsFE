@@ -16,6 +16,7 @@ export const DatePicker = ({
     showTime = false,
     minDate,
     currentDate,
+    readOnly = false,
     tillDate,
     maxDate,
     highlightedDates,
@@ -42,7 +43,7 @@ export const DatePicker = ({
                 value: formattedDate,
             },
         };
-        
+
         onChange(event); // Pass the event to the parent
         setShowCalendar(false); // Close the calendar
     };
@@ -84,24 +85,29 @@ export const DatePicker = ({
             </div>
 
             {/* Calendar Icon */}
-            <div>
-                <div
-                    className={`h-[1.6rem] flex justify-center items-center rounded font-semibold w-6 
+            {
+                !readOnly && (
+                    <div>
+                        <div
+                            className={`h-[1.6rem] flex justify-center items-center rounded font-semibold w-6 
         ${isDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}
-                    onClick={
-                        !isDisabled ? () => setShowCalendar(!showCalendar) : undefined
-                    } // Prevent click when disabled
-                    style={{
-                        background: activeTheme?.menuColor,
-                        color: activeTheme?.iconColor,
-                    }}
-                >
-                    {showTime === true ? <TbCalendarTime className="w-5 h-5 font-semibold" /> : <TbCalendar className="w-5 h-5 font-semibold" />}
+                            onClick={
+                                !isDisabled ? () => setShowCalendar(!showCalendar) : undefined
+                            } // Prevent click when disabled
+                            style={{
+                                background: activeTheme?.menuColor,
+                                color: activeTheme?.iconColor,
+                            }}
+                        >
 
+                            {showTime === true ? <TbCalendarTime className="w-5 h-5 font-semibold" /> : <TbCalendar className="w-5 h-5 font-semibold" />
+                            }
 
-                    {/* TbCalendar TbCalendarTime */}
-                </div>
-            </div>
+                            {/* TbCalendar TbCalendarTime */}
+                        </div>
+                    </div>
+                )
+            }
 
 
 

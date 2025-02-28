@@ -125,6 +125,7 @@ function CustomSearchInputFields({
     options,
     onChange,
     placeholder,
+    readOnly = false,
     filterText = "No records found",
     activeTheme = { subMenuColor: "#e0f2fe" }, // Customize hover color
     searchWithName,
@@ -187,6 +188,7 @@ function CustomSearchInputFields({
                 onClick={() => handleDropdownToggle(true)}
                 placeholder={placeholder}
                 className={`inputPeerField peer ${isMandatory ? 'border-b-red-500' : 'border-borderColor'} focus:outline-none`}
+                readOnly={readOnly}
             />
             <label htmlFor={id} className="menuPeerLevel">
                 {label}
