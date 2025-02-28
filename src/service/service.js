@@ -940,6 +940,14 @@ export const getOldPatientApi = async (searchVal) => {
 
     return response.data;
 }
+
+//get single patient in old patient popup
+export const getSingleOldPatientDataInOldPatientPopupApi = async (val) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetOldPatient/${val}`);
+
+    return response.data;
+}
 //=====================patient record===============
 export const getSearchBtnColorCodeInPatientRecordApi = async () => {
 
