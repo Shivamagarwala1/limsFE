@@ -64,7 +64,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 {(field?.dataOptions || []).map((option, idx) => {
                   const valueKey = field?.keyField || Object.keys(option)[0]; // First available key as value
                   const labelKey =
-                    field?.showValueField || Object.keys(option)[1]; // Second available key or fallback
+                    field?.showValueField || Object.keys(option)[1] || Object.keys(option)[0]; // Second available key or fallback
 
                   return (
                     <option
