@@ -25,6 +25,7 @@ import PopupFooter from '../../../global/PopupFooter';
 import CustomeNormalButton from '../../../global/CustomeNormalButton';
 
 
+
 export default function PatientRegistration() {
 
     const user = useSelector((state) => state.userSliceName?.user || null);
@@ -145,7 +146,7 @@ export default function PatientRegistration() {
 
     const [editInfoData, seteditInfoData] = useState(null);
     const [editTestData, setEditTestData] = useState(null);
-    const [oldPatientId, setOLdPatientId] = useState(null);
+    const [oldPatientId, setOLdPatientId] = useState([]);
 
     const [allEditTestDataForInvasticationName, setallEditTestDataForInvasticationName] = useState([]);
 
@@ -443,7 +444,7 @@ export default function PatientRegistration() {
                 ) - (patientRegistrationData?.discountAmmount || 0)
             }));
         }
-    }, [patientRegistrationData?.discountAmmount, investigationGridData]);
+    }, [patientRegistrationData?.discountAmmount]);
 
     // useEffect for Discount Percentage to Amount
     useEffect(() => {
@@ -778,7 +779,7 @@ export default function PatientRegistration() {
                             }
                             const updateedData = {
                                 ...result,
-                                discount: 0
+                                discount: (result?.netAmt - patientRegistrationData?.discountPercentage) / 100 || 0
                             }
 
                             return [...prevData, updateedData];
@@ -1020,30 +1021,35 @@ export default function PatientRegistration() {
     // };
 
     //!==============================================
+    // Copy `investigationGridData?.discount` initially
+    useEffect(() => {
+        if (investigationGridData?.discount?.length) {
+            setGridDataBarCodeandSampleType({ discount: [...investigationGridData.discount] });
+        }
+
+    }, [investigationGridData?.discount]);
+
     //handel on chenge grid data
     const handleInputChange = (rowId, value, inputFields) => {
         setChangeParticularDiscount(1);
 
         setGridDataBarCodeandSampleType((prevState) => {
             if (inputFields === '1') {
-                // Preserve existing discount values while updating only the changed row
+                // Ensure value is a valid number
+                const discountValue = isNaN(value) || value === "" ? 0 : Number(value);
+
+                // Update existing item or add new one
                 const updatedDiscount = prevState.discount.map((item) =>
-                    item.itemId === rowId ? { ...item, discount: value } : item
+                    item.itemId === rowId ? { ...item, discount: discountValue } : item
                 );
 
-
-
-                // Check if the row exists in discount; if not, add it
+                // If item does not exist, add it
                 const isRowPresent = prevState.discount.some(item => item.itemId === rowId);
                 if (!isRowPresent) {
-                    updatedDiscount.push({ itemId: rowId, discount: value });
+                    updatedDiscount.push({ itemId: rowId, discount: discountValue });
                 }
 
-                return {
-                    ...prevState,
-                    discount: updatedDiscount.length ? updatedDiscount : prevState.discount,
-                    // Ensures that if updatedDiscount is empty, it keeps previous state
-                };
+                return { discount: updatedDiscount };
             } else {
                 // Preserve barCode values while updating only the changed row
                 const updatedBarCode = prevState.barCode.map(item =>
@@ -1058,7 +1064,32 @@ export default function PatientRegistration() {
                 return { ...prevState, barCode: updatedBarCode };
             }
         });
+
+
+        console.log(investigationGridData);
+
+
+        if (inputFields === '1') {
+            setinvestigationGridData((prevData) =>
+                prevData.map((item) =>
+                    item.itemId === rowId
+                        ? { ...item, discount: value }
+                        : item
+                )
+            );
+        }
     };
+
+    useEffect(() => {
+        setinvestigationGridData((prevData) =>
+            prevData.map((item) => ({
+                ...item,
+                discount: (item?.grosss * patientRegistrationData?.discountPercentage) / 100, // Ensuring a default value
+            }))
+        );
+
+    }, [patientRegistrationData?.discountAmmount]);
+
 
 
     const handleSampleTypeChange = (event, index, itemType) => {
@@ -1135,15 +1166,18 @@ export default function PatientRegistration() {
 
         //sampleTypeName filed required
 
-        if (patientRegistrationData?.billingType !== 1) {
-            if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
-            if (!patientRegistrationData.discountPercentage) errors.discountPercentage = true;
-        }
+        // if (patientRegistrationData?.billingType !== 1) {
+        //     if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
+        //     if (!patientRegistrationData.discountPercentage) errors.discountPercentage = true;
+        // }
 
-        if (patientRegistrationData?.discountType !== 0 || patientRegistrationData?.discountPercentage !== 0) {
+        if (patientRegistrationData?.discountPercentage !== 0) {
 
             if (!patientRegistrationData.discountid) errors.discountid = true;
             if (!patientRegistrationData.discountApproved) errors.discountApproved = true;
+
+            if (!patientRegistrationData.discountAmmount) errors.discountAmmount = true;
+            if (!patientRegistrationData.discountType) errors.discountType = true;
 
         }
 
@@ -1205,26 +1239,26 @@ export default function PatientRegistration() {
 
 
     //console.log(gridDataBarCodeandSampleType?.barCode);
-
+    //!========================commeted=====================
     // Auto-check the checkbox if a barcode exists initially
-    useEffect(() => {
-        const updatedCheckedItems = {};
-        const updatedBarcodeValues = {};
+    // useEffect(() => {
+    //     const updatedCheckedItems = {};
+    //     const updatedBarcodeValues = {};
 
-        investigationGridData?.forEach((data) => {
-            const barcodeValue = gridDataBarCodeandSampleType?.barCode.find(
-                (item) => item.itemId === data?.itemId
-            )?.name;
+    //     investigationGridData?.forEach((data) => {
+    //         const barcodeValue = gridDataBarCodeandSampleType?.barCode.find(
+    //             (item) => item.itemId === data?.itemId
+    //         )?.name;
 
-            if (barcodeValue) {
-                updatedCheckedItems[data?.itemId] = true; // Auto-check if barcode exists
-                updatedBarcodeValues[data?.itemId] = barcodeValue; // Store initial barcode value
-            }
-        });
+    //         if (barcodeValue) {
+    //             updatedCheckedItems[data?.itemId] = true; // Auto-check if barcode exists
+    //             updatedBarcodeValues[data?.itemId] = barcodeValue; // Store initial barcode value
+    //         }
+    //     });
 
-        setCheckedItems(updatedCheckedItems);
-        //setBarcodeValues(updatedBarcodeValues);
-    }, [gridDataBarCodeandSampleType?.barCode, investigationGridData]);
+    //     setCheckedItems(updatedCheckedItems);
+    //     //setBarcodeValues(updatedBarcodeValues);
+    // }, [gridDataBarCodeandSampleType?.barCode, investigationGridData]);
 
 
 
@@ -1233,9 +1267,6 @@ export default function PatientRegistration() {
     const onSubmitForSavePatientRegistrationData = async () => {
 
         setIsButtonClick(2);
-
-
-        console.log('save data');
 
 
         const updatedData = {
@@ -1300,7 +1331,8 @@ export default function PatientRegistration() {
                     mobileNo: patientRegistrationData?.mobileNo,
                     mrp: investigationGridData?.reduce((sum, item) => sum + (item.mrp || 0), 0),
                     grossAmount: investigationGridData?.reduce((sum, item) => sum + (item.grosss || 0), 0),
-                    discount: investigationGridData?.reduce((sum, item) => sum + (item.discount || 0), 0),
+                    // discount: investigationGridData?.reduce((sum, item) => sum + (item.discount || 0), 0),
+                    discount: patientRegistrationData?.discountAmmount,
                     netAmount: investigationGridData?.reduce((sum, item) => sum + (item.netAmt || 0), 0),
                     paidAmount: patientRegistrationData?.paidAmount,
                     sessionCentreid: parseInt(user?.defaultCenter),
@@ -1364,19 +1396,22 @@ export default function PatientRegistration() {
                         deptId: data?.deptId,
                         barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
                         departmentName: data?.departmentname || '',
-                        investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemType)?.itemName || '',
+                        investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemId)?.itemName || '',
                         isPackage: data?.itemType === 3 ? 1 : 0,
-                        packageName: data?.itemType === 3 ? selectedInvastigationList?.find(barcode => barcode.itemId === data.itemType)?.itemName : '',
+                        packageName: data?.itemType === 3 ? investigationGridData?.find(barcode => barcode.itemId === data.itemId)?.itemName : '',
                         itemType: data?.itemType,
 
                         mrp: data?.mrp,
                         rate: data?.grosss,
                         discount: data?.discount,
-                        netAmount: data?.netAmt,
+                        //discount: patientRegistrationData?.discountAmmount,
+
+                        netAmount: data?.netAmt - data?.discount,
 
                         packMrp: data?.itemType === 3 ? data?.mrp : 0,
                         packItemRate: data?.grosss === 3 ? data?.grosss : 0,
-                        packItemDiscount: data?.itemType === 3 ? data?.discount : 0,
+                        packItemDiscount: data?.itemType === 3 ? data?.netAmt - data?.discount : 0,
+                        // packItemDiscount: data?.itemType === 3 ? patientRegistrationData?.discountAmmount : 0,
                         packItemNet: data?.itemType === 3 ? data?.netAmt : 0,
                         reportType: 0,
 
@@ -2055,7 +2090,7 @@ export default function PatientRegistration() {
                     itemId: response?.data[0]?.itemId,
                     centreId: response?.data[0]?.centreId,
                     testData: response?.data.slice(0, 3).map(({ investigationName, mrp,
-                        netAmount, rate, deliveryDate, isUrgent, itemId, discount, id, itemType }) => ({
+                        netAmount, rate, deliveryDate, isUrgent, itemId, discount, id, itemType, isSampleCollected, deptId }) => ({
                             itemName: investigationName,
                             mrp,
                             netAmt: netAmount,
@@ -2065,7 +2100,9 @@ export default function PatientRegistration() {
                             itemId,
                             discount,
                             id,
-                            itemType
+                            itemType,
+                            isSampleCollected,
+                            deptId
                         }))
                 })
 
@@ -2436,7 +2473,7 @@ export default function PatientRegistration() {
             // createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
             updateById: parseInt(user?.employeeId),
             updateDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
-            id: 0,
+            id: data?.id || 0,
             workOrderId: '',
             transactionId: 0,
             testcode: data?.testcode, //need to check
@@ -2445,9 +2482,9 @@ export default function PatientRegistration() {
             deptId: data?.deptId,
             barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
             departmentName: data?.departmentname || '',
-            investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemType)?.itemName || '',
+            investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemId)?.itemName || '',
             isPackage: data?.itemType === 3 ? 1 : 0,
-            packageName: data?.itemType === 3 ? selectedInvastigationList?.find(barcode => barcode.itemId === data.itemType)?.itemName : '',
+            packageName: data?.itemType === 3 ? selectedInvastigationList?.find(barcode => barcode.itemId === data.itemId)?.itemName : '',
             itemType: data?.itemType,
 
             mrp: data?.mrp,
@@ -2500,20 +2537,36 @@ export default function PatientRegistration() {
 
     const onClickHandelOldPatientInfo = async (val) => {
 
-        try {
+        // try {
 
-            const response = await getSingleOldPatientDataInOldPatientPopupApi(val);
+        //     const response = await getSingleOldPatientDataInOldPatientPopupApi(val);
 
-            console.log(response);
+        //     console.log(response);
 
 
-        } catch (error) {
-            toast.error(error?.message);
-            console.log(error);
-            
-        }
+        // } catch (error) {
+        //     toast.error(error?.message);
+        //     console.log(error);
 
+        // }
+
+        const response = oldPatientId.filter((data) => data?.patientId === val)
+
+        console.log(response);
+        setPatientRegistrationData((preventData) => ({
+            ...preventData,
+            ageDays: response[0]?.ageDay,
+            ageMonth: response[0]?.ageMonth,
+            ageYear: response[0]?.ageYear,
+            emailId: response[0]?.emailId,
+            gender: response[0]?.gender,
+            mobileNo: response[0]?.mobileNo,
+            name: response[0]?.name,
+            title_id: response[0]?.title_id
+        }))
+        setShowPopup(0);
     }
+
 
     // const filterCentreData = allCentreData.filter((data) => (data?.centreName?.toLowerCase() || '').includes(String(patientRegistrationSelectData?.centreId || '').toLowerCase()));
 
@@ -3887,7 +3940,7 @@ export default function PatientRegistration() {
                                                                                 )
                                                                             }
                                                                         /> */}
-                                                                        <input
+                                                                        {/* <input
                                                                             type="text"
                                                                             className="border-[1.5px] rounded outline-none px-1 w-full"
                                                                             value={
@@ -3900,11 +3953,25 @@ export default function PatientRegistration() {
                                                                                         : 0) // Default to 0 if no value is present
                                                                             }
                                                                             onChange={(e) => handleInputChange(data?.itemId, e.target.value, "1")}
+                                                                        /> */}
+                                                                        {/* ======night code====== */}
+                                                                        <input
+                                                                            type="text"
+                                                                            className="border-[1.5px] rounded outline-none px-1 w-full cursor-not-allowed bg-gray-200"
+                                                                            // value={
+                                                                            //     (data?.grosss * patientRegistrationData?.discountPercentage) / 100
+                                                                            // }
+
+                                                                            value={gridDataBarCodeandSampleType?.discount.find(d => d.itemId === data?.itemId)?.discount || (data?.grosss * patientRegistrationData?.discountPercentage) / 100}
+
+                                                                            onChange={(e) => handleInputChange(data?.itemId, e.target.value, "1")}
+
+                                                                            readOnly
                                                                         />
                                                                     </td>
 
                                                                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                        {(
+                                                                        {/* {(
                                                                             (data?.netAmt || 0) -
                                                                             parseFloat(
                                                                                 gridDataBarCodeandSampleType?.discount.find(
@@ -3913,7 +3980,14 @@ export default function PatientRegistration() {
                                                                                         data?.itemId
                                                                                 )?.discount || 0
                                                                             )
-                                                                        ).toFixed(2)}
+                                                                        ).toFixed(2)} */}
+
+                                                                        {/* //====night code==== */}
+                                                                        {
+                                                                            patientRegistrationData?.discountPercentage ?
+                                                                                data?.netAmt - ((data?.grosss * patientRegistrationData?.discountPercentage) / 100)
+                                                                                : data?.netAmt
+                                                                        }
                                                                     </td>
                                                                     {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                                     <select
@@ -4022,7 +4096,7 @@ export default function PatientRegistration() {
                                                             {investigationGridData.reduce((sum, data) => sum + (data?.grosss || 0), 0)}
                                                         </td>
                                                         <td className="px-4 h-5 text-xxs font-semibold">
-                                                            {investigationGridData.reduce(
+                                                            {/* {investigationGridData.reduce(
                                                                 (sum, data) =>
                                                                     sum +
                                                                     parseFloat(
@@ -4031,7 +4105,8 @@ export default function PatientRegistration() {
                                                                         )?.discount || 0
                                                                     ),
                                                                 0
-                                                            )}
+                                                            )} */}
+                                                            {patientRegistrationData?.discountAmmount}
                                                         </td>
                                                         <td className="px-4 h-5 text-xxs font-semibold">
                                                             {patientRegistrationData?.grossAmount}
@@ -5382,6 +5457,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     }}
                                                     maxLength={10}
                                                     label="Mobile No."
+                                                    readonly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
                                                 />
                                             </div>
@@ -5401,6 +5477,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     onChange={(e) => handelOnChangeEditTest(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
+                                                    readonly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.title_id}
                                                 />
 
@@ -5415,6 +5492,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 value={editTestData?.name || ''}
                                                 onChange={(e) => handelOnChangeEditTest(e)}
                                                 label="Name"
+                                                readOnly={true}
                                                 isMandatory={patientRegistrationForEditTestDataError?.name}
                                             />
                                         </div>
@@ -5433,6 +5511,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     isDisabled={false}
                                                     maxLength={3}
                                                     allowSpecialChars={false}
+                                                    readOnly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.ageYear}
 
                                                 />
@@ -5448,6 +5527,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     isDisabled={false}
                                                     maxLength={2}
                                                     allowSpecialChars={false}
+                                                    readOnly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.ageMonth}
 
                                                 />
@@ -5462,7 +5542,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     label="Days"
                                                     isDisabled={false}
                                                     maxLength={2}
-
+                                                    readOnly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.ageDay}
 
                                                 />
@@ -5487,7 +5567,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     isMandatory={!Boolean(patientRegistrationData?.dob)}
                                                     currentDate={new Date()} // Current date: today
                                                     maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
-
+                                                    readOnly={true}
                                                     showTime={false}
                                                     showBigerCalandar={true}
 
@@ -5510,6 +5590,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     onChange={(e) => handelOnChangeEditTest(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
+                                                    readOnly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.gender}
                                                 />
 
@@ -5523,6 +5604,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 value={editTestData?.emailId}
                                                 onChange={(e) => handelOnChangeEditTest(e)}
                                                 label="Email"
+                                                readOnly={true}
                                                 isMandatory={patientRegistrationForEditTestDataError?.emailId}
                                             />
                                         </div>
@@ -5540,6 +5622,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     filterText="No records found"
                                                     placeholder=" "
                                                     searchWithName='doctorName'
+                                                    readOnly={true}
                                                     uniqueKey='doctorId'
                                                     activeTheme={activeTheme}
                                                     isMandatory={patientRegistrationForEditTestDataError?.refID1}
@@ -5572,6 +5655,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 placeholder=" "
                                                 searchWithName='doctorName'
                                                 uniqueKey='doctorId'
+                                                readOnly={true}
                                                 activeTheme={activeTheme}
                                                 isMandatory={patientRegistrationForEditTestDataError?.refID2}
                                             />
@@ -5609,6 +5693,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 placeholder=' '
                                                 onChange={(e) => handelOnChangeEditTest(e)}
                                                 label='Address'
+                                                readOnly={true}
                                                 isMandatory={patientRegistrationForEditTestDataError?.address}
                                             />
                                         </div>
@@ -5624,6 +5709,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 }}
                                                 maxLength={6}
                                                 label="Pin Code"
+                                                readOnly={true}
                                                 isMandatory={patientRegistrationForEditTestDataError?.pinCode}
                                             />
                                         </div>
@@ -5646,6 +5732,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     placeholder=" "
                                                     searchWithName="otherLabRefer"
                                                     uniqueKey="otherLabReferID"
+                                                    readOnly={true}
                                                     activeTheme={activeTheme}
                                                     isMandatory={patientRegistrationForEditTestDataError?.otherLabReferID}
                                                 />
@@ -5670,6 +5757,8 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 value={editTestData?.uploadDocument}
                                                 handelImageChange={handelImageChangeForEditTest}
                                                 activeTheme={activeTheme}
+                                                readOnly={true}
+
                                             />
                                         </div>
 
@@ -5702,6 +5791,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                 onChange={handelOnChangePatientRegistrationSelect}
                                                 filterText="No records found"
                                                 placeholder=" "
+                                                readOnly={true}
                                                 searchWithName='itemName'
                                                 uniqueKey='itemId'
                                                 activeTheme={activeTheme}
@@ -5716,6 +5806,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     text="Update"
                                                     icon={FaSpinner}
                                                     isButtonClick={isButtonClick}
+
                                                     loadingButtonNumber={4} // Unique number for the first button
                                                     onClick={() => onSubmitForSaveEditTestData()} // Pass button number to handler
                                                 />
@@ -5874,10 +5965,15 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                             />
                                                                         </td>
                                                                         <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                            <RiDeleteBin2Fill
-                                                                                onClick={() => deleteinvestigationGridDataByForEditTestDataUsingItemId(rowIndex)}
-                                                                                className="cursor-pointer text-red-500 text-base"
-                                                                            />
+
+                                                                            {(data?.isSampleCollected === "N" || data?.isSampleCollected === "R") && (
+                                                                                <RiDeleteBin2Fill
+                                                                                    onClick={() => deleteinvestigationGridDataByForEditTestDataUsingItemId(rowIndex)}
+                                                                                    className="cursor-pointer text-red-500 text-base"
+                                                                                />
+                                                                            )}
+
+
                                                                         </td>
                                                                     </tr>
                                                                 ))}
@@ -5904,16 +6000,12 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                         )}
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
-                                                                        {editTestData?.testData.reduce(
-                                                                            (sum, data) =>
-                                                                                sum +
-                                                                                parseFloat(
-                                                                                    gridDataBarCodeandSampleType?.discount.find(
-                                                                                        (item) => item.itemId === data?.itemId
-                                                                                    )?.discount || 0
-                                                                                ),
+                                                                        {editTestData?.testData?.reduce(
+                                                                            (sum, item) => sum + (item?.discount || 0),
                                                                             0
                                                                         )}
+
+
                                                                     </td>
                                                                     <td className="px-4 h-5 text-xxs font-semibold">
                                                                         {editTestData?.testData.reduce((sum, data) => sum + (data?.netAmt || 0), 0)}

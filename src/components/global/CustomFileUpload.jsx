@@ -99,6 +99,7 @@ export default function CustomFileUpload({
     value,
     label = 'Upload Document',
     handelImageChange,
+    readOnly = false,
     activeTheme
 }) {
 
@@ -115,6 +116,7 @@ export default function CustomFileUpload({
                 name="uploadDocument"
                 className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
                 onClick={handelClickImage}
+                readOnly={readOnly}
             >
                 {
                     value === '' ? (

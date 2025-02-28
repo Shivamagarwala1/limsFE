@@ -5,6 +5,7 @@ export const CustomEmailInput = ({
     name = "email",
     value = "",
     onChange,
+    readOnly = false,
     label = "Email Address",
     isDisabled = false,
 }) => {
@@ -55,6 +56,7 @@ export const CustomEmailInput = ({
                 onBlur={handleValidation} // Validate on blur/mouseleave
                 placeholder=" "
                 disabled={isDisabled}
+                readOnly={readOnly}
                 aria-invalid={!isValid}
                 aria-describedby={!isValid ? `${name}-error` : undefined}
                 className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
