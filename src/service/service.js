@@ -861,7 +861,8 @@ export const getAllReferLabApi = async () => {
 //get all invastigation
 export const getAllInvestiGationApi = async (rateTypeId) => {
 
-    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetailRate?ratetype=${rateTypeId?.id}`);
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetailRate?ratetype=${rateTypeId}`);
 
     return response?.data;
 }
@@ -869,7 +870,7 @@ export const getAllInvestiGationApi = async (rateTypeId) => {
 //get all Investigation grid data
 export const getAllInvestigationGridApi = async (rateId, itemId) => {
 
-    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetail?ratetype=${rateId?.id}&itemId=${itemId?.itemId}`);
+    const response = await privateAxios.get(`/tnx_BookingItem/GetitemDetail?ratetype=${rateId}&itemId=${itemId}`);
 
     return response?.data;
 }
@@ -936,6 +937,14 @@ export const getSingleEditTestApi = async (searchVal) => {
 export const getOldPatientApi = async (searchVal) => {
 
     const response = await privateAxios.get(`/tnx_BookingItem/GetOldPatient?searchValue=${searchVal}`);
+
+    return response.data;
+}
+
+//get single patient in old patient popup
+export const getSingleOldPatientDataInOldPatientPopupApi = async (val) => {
+
+    const response = await privateAxios.get(`/tnx_BookingItem/GetOldPatient/${val}`);
 
     return response.data;
 }

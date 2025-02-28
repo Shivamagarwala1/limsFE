@@ -16,30 +16,30 @@ const[patientRegistrationData,setPatientRegistrationData]=useState({
 
 
 <div className="relative flex-1">
-
  <CustomMultiSelectDropdown
     id="departmentName123"
     name="departmentName123"
     label="Department Access"
     options={[
-                                                    { id: 1, deptName: "HR", departmentId: "HR001" },
-                                                    { id: 2, deptName: "Engineering", departmentId: "ENG001" },
-                                                    { id: 4, deptName: "Sales", departmentId: "SAL001" },
-                                                    { id: 5, deptName: "Sales", departmentId: "SAL001" },
-                                                    { id: 6, deptName: "Sales", departmentId: "SAL001" },
-                                                    { id: 7, deptName: "Sales", departmentId: "SAL001" },
-                                                    { id: 8, deptName: "Sales", departmentId: "SAL001" },
-                                                    { id: 9, deptName: "Sales", departmentId: "SAL001" },
-                                                    { id: 10, deptName: "Sales", departmentId: "SAL001" },
-                                                    { id: 11, deptName: "Sales", departmentId: "SAL001" },
-                                                ]}
-                                                selectedItems={patientRegistrationData?.departmentName123}
-                                                onSelectionChange={handelOnChangePatientRegistrationForMultiSelect}
-                                                placeholder=" "
-                                                activeTheme={activeTheme}
-                                                searchWithName={'deptName'}
-                                            />
-                                        </div>                                           
+              { id: 1, deptName: "HR", departmentId: "HR001" },
+              { id: 2, deptName: "Engineering", departmentId: "ENG001" },
+              { id: 4, deptName: "Sales", departmentId: "SAL001" },
+              { id: 5, deptName: "Sales", departmentId: "SAL001" },
+              { id: 6, deptName: "Sales", departmentId: "SAL001" },
+              { id: 7, deptName: "Sales", departmentId: "SAL001" },
+              { id: 8, deptName: "Sales", departmentId: "SAL001" },
+              { id: 9, deptName: "Sales", departmentId: "SAL001" },
+              { id: 10, deptName: "Sales", departmentId: "SAL001" },
+              { id: 11, deptName: "Sales", departmentId: "SAL001" },
+    ]}
+    selectedItems={patientRegistrationData?.departmentName123}
+    onSelectionChange={handelOnChangePatientRegistrationForMultiSelect}
+    placeholder=" "
+    activeTheme={activeTheme}
+    searchWithName={'deptName'}
+  />
+
+</div>                                           
 
 
 
