@@ -279,7 +279,7 @@ export const allRoutes = [
     },
     {
         path: "/LIMS/PatientRegistration",
-        component: React.lazy(() => import("../pages/adminctrlmaster/AccessionDesk/PatientRegistration")),
+        component: React.lazy(() => import("../pages/adminctrlmaster/AccessionDesk/PatientRegistration.jsx")),
         exact: true,
     },
     {

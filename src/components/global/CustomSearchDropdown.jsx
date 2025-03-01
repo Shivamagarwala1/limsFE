@@ -137,19 +137,23 @@ function CustomSearchInputFields({
     const [displayValue, setDisplayValue] = useState(""); // Value shown in the input
     const dropdownRef = useRef(null);
 
-    //console.log(options);
+    //console.log(value);
 
 
     // Update displayValue when parent value changes
     useEffect(() => {
         if (value && typeof value === "object") {
-
+            // If value is an object, extract and set display value
             setDisplayValue(value[searchWithName] || "");
+        } else if (value === 1) {
+            // If value is 1, set it to the first option's searchWithName or a default
+            setDisplayValue(options[0]?.[searchWithName] || "Default Value");
         } else {
             setDisplayValue("");
         }
-    }, [value, searchWithName]);
+    }, [value, searchWithName, options]);
 
+    
     const handleDropdownToggle = (openState) => {
         setIsOpen(openState);
     };
