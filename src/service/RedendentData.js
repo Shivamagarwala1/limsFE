@@ -34,7 +34,7 @@ export const SampleCollectionStatus = [
 export const splitArrayInTwo = (arr) => {
   const FirstHalf = [];
   const SecondHalf = [];
-  
+
   arr.forEach((item, index) => {
     if (index % 2 === 0) {
       FirstHalf.push(item);
@@ -61,16 +61,13 @@ export const ViewOrDownloandPDF = async (api) => {
     }
 
     // Perform the GET request to download the PDF
-    const response = await axios.get(
-      `${BASE_URL}${api}`,
-      {
-        responseType: "blob", // To handle binary response
-        headers: {
-          Accept: "*/*",
-          Authorization: `Bearer ${token}`, // Add the token to Authorization header
-        },
-      }
-    );
+    const response = await axios.get(`${BASE_URL}${api}`, {
+      responseType: "blob", // To handle binary response
+      headers: {
+        Accept: "*/*",
+        Authorization: `Bearer ${token}`, // Add the token to Authorization header
+      },
+    });
 
     // Check if the content type is PDF
     const contentType = response.headers["content-type"];
@@ -101,3 +98,14 @@ export const ViewOrDownloandPDF = async (api) => {
   }
 };
 
+export function mergeArrays(arrayOne, arrayTwo) {
+  return arrayTwo.map((item) => {
+    // Find a matching object in arrayOne based on id === antibiticId
+    const match = arrayOne.find((obj) => obj.antibiticId === item.id);
+    return {
+      ...item,
+      // mic: match ? match.mic : "", // Assign mic value if matched, otherwise empty string
+      interpretation: match ? match.interpretation : "",
+    };
+  });
+}

@@ -3,6 +3,7 @@ import DynamicTable, {
   TableHeader,
 } from "../../../../Custom Components/DynamicTable";
 import InputGenerator, {
+  StatusSubmitButton,
   SubmitButton,
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
@@ -15,7 +16,9 @@ import CustomeEditor from "../../../sharecomponent/CustomeEditor";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import {
   addObjectId,
+  mergeArrays,
   splitArrayInTwo,
+  ViewOrDownloandPDF,
 } from "../../../../service/RedendentData";
 import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
@@ -61,6 +64,7 @@ export default function MicroResultTrack() {
   const [Row, setRow] = useState({});
   const [isHoveredTable1, setIsHoveredTable1] = useState(null);
   const [UserObj, setUserObj] = useState(null);
+  const [ThirdArr, setThirdArr] = useState({ FirstHalf: [], SecondHalf: [] });
   const AllCenterData = useGetData();
   const TestData = useGetData();
   const DepartmentData = useGetData();
@@ -93,9 +97,11 @@ export default function MicroResultTrack() {
   }, []);
 
   // const splitedArray = getAntibioticData?.data?.data || [];
-  const { FirstHalf, SecondHalf } = splitArrayInTwo(
-    getAntibioticData?.data?.data || []
-  );
+  useEffect(() => {
+    if (Row?.testid) {
+      retreveTestData(Row?.testid);
+    }
+  }, [HoldUnHold]);
 
   let PayloadData = getLocal("HistoPayload");
   const updatedArray = addObjectId(PostData?.data);
@@ -167,9 +173,9 @@ export default function MicroResultTrack() {
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <SubmitButton
+            <StatusSubmitButton
               submit={false}
-              text={params?.row?.investigationName}
+              text={params?.row}
               callBack={() => {
                 setRow(params?.row);
                 retreveTestData(params?.row?.testid);
@@ -295,6 +301,7 @@ export default function MicroResultTrack() {
     }
 
     setUserObj(row);
+    setRow(row);
     console.log(row?.testid);
 
     await retreveTestData(row?.testid);
@@ -323,7 +330,7 @@ export default function MicroResultTrack() {
   const retreveTestData = async (id) => {
     try {
       const res = await retreveTest?.fetchData(
-        `/tnx_Booking/GetHistoresult?testid=${id}`
+        `/tnx_Booking/GetMicroresult?testid=${id}`
       );
       console.log("Retrieving test data for ID:", id);
 
@@ -332,7 +339,7 @@ export default function MicroResultTrack() {
         setHistoObservation(testData);
 
         const filterDr = Signature?.data?.data.find(
-          (item) => item?.doctorId === testData?.appcovaldoctorId
+          (item) => item?.doctorId === testData?.approvalDoctor
         );
 
         if (filterDr) {
@@ -340,24 +347,36 @@ export default function MicroResultTrack() {
         } else {
           console.warn("Doctor not found for ID:", testData?.appcovaldoctorId);
         }
+        await getAntibioticData?.fetchData(
+          `/organismAntibioticTagMaster/OrganismAntibioticeTagging?OrganismId=${testData.organismId}`
+        );
 
+        // const ThirdArr = await mergeArrays(
+        //   retreveTest?.data?.data,
+        //   getAntibioticData?.data?.data
+        // );
+        // console.log(retreveTest?.data?.data, getAntibioticData?.data?.data);
+        // const mData = await splitArrayInTwo(ThirdArr);
+        // setThirdArr({
+        //   FirstHalf: mData?.FirstHalf,
+        //   SecondHalf: mData?.SecondHalf,
+        // });
         SaveForm?.setValues([
           {
-            specimen: testData.specimen || "",
-            biospyNumber: testData.biospyNumber || "",
-            clinicalHistory: testData.clinicalHistory || "",
-            typesFixativeUsed: testData.typesFixativeUsed || "",
-            blockKeys: testData.blockKeys || "",
+            reportStatus: testData.intrim,
+            colonyCount: testData.colonyCount || "",
+            comments: testData.comments || "",
+            Organism: testData.organismId || "",
+            Template: testData.result || "",
             stainsPerformed: testData.stainsPerformed || "",
             comment: testData.comment || "",
             appcovaldoctorId: testData.approvalDoctor || "",
           },
         ]);
 
-        setEditorContent(testData.gross || "");
+        setEditorContent(testData?.result);
       } else {
         console.warn("No data found for test ID:", id);
-
         SaveForm?.setValues([
           {
             specimen: "",
@@ -370,13 +389,14 @@ export default function MicroResultTrack() {
           },
         ]);
 
-        setEditorContent("");
+        // setEditorContent("");
       }
     } catch (error) {
       console.error("Error retrieving test data:", error);
     }
   };
-
+  console.log(retreveTest?.data.data, getAntibioticData?.data?.data?.length);
+  // console.log(editorContent)
   const statuses = [
     {
       Data: 1,
@@ -507,7 +527,29 @@ export default function MicroResultTrack() {
       console.log(error);
     }
   };
-  console.log(OrganismPostObj," ",selectedAntibiotic);
+  const organismCallBack = async (e) => {
+    const data = OrganismData?.data?.find((item) => item?.id == e.target.value);
+    
+    // Check if the organism already exists to prevent infinite loop
+    if (!Organism.some(org => org.organismId === data?.id)) {
+        setOrganismPostObj({
+            organismId: data?.id,
+            organismName: data?.organismAntibiotic,
+        });
+        setOrganism((prev) => [
+            ...prev,
+            {
+                organismId: data.id,
+                organismName: data.organismAntibiotic,
+            },
+        ]);
+    }
+
+    await getAntibioticData?.fetchData(
+        `/organismAntibioticTagMaster/OrganismAntibioticeTagging?OrganismId=${e.target.value}`
+    );
+  };
+  console.log(Organism);
   return (
     <div>
       <>
@@ -524,13 +566,13 @@ export default function MicroResultTrack() {
         />
 
         <HistoFileUploadPopupModal
-          rowData={HistoObservation}
+          rowData={{ ...HistoObservation, testId: Row?.testid }}
           setShowPopup={setFileUploadPopupModal}
           showPopup={FileUploadPopupModal}
           retreveTestData={retreveTestData}
         />
         <HistoAddAttachmentPopupModal
-          rowData={HistoObservation}
+          rowData={{ ...HistoObservation, testId: Row?.testid }}
           setShowPopup={setAddAttachmentPopupModal}
           showPopup={AddAttachmentPopupModal}
           retreveTestData={retreveTestData}
@@ -755,7 +797,7 @@ export default function MicroResultTrack() {
                 onContentChange={handleContentChange}
               />
               <FormHeader title="Organism" />
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-1 mt-2 mb-2 mx-1 lg:mx-2">
                 <InputGenerator
                   inputFields={[
                     {
@@ -763,136 +805,36 @@ export default function MicroResultTrack() {
                       type: "select",
                       name: "Organism",
                       callBack: (e) => {
-                        // setOrganism((prev) => [...prev, e.target.value]);
                         const data = OrganismData?.data?.find(
                           (item) => item?.id == e.target.value
                         );
-                        setOrganismPostObj({
-                          organismId: data?.id,
-                          organismName: data?.organismAntibiotic,
-                        });
-                        getAntibioticData?.fetchData(
-                          `/organismAntibioticTagMaster/OrganismAntibioticeTagging?OrganismId=${e.target.value}`
-                        );
+                        organismCallBack(e);
                       },
                       dataOptions: OrganismData?.data,
                     },
                   ]}
                 />
-                {Organism.reduce((acc, _, index, array) => {
-                  if (index % 2 === 0) {
-                    acc.push(array.slice(index, index + 2)); // Group every two items
-                  }
-                  return acc;
-                }, []).map((pair, idx) => (
-                  <TwoSubmitButton
-                    key={idx}
-                    options={pair.map((item) => ({
-                      label: `Delete ${item}`,
-                      submit: false,
-                      callBack: () => console.log(`${item} clicked`),
-                    }))}
-                  />
-                ))}
-              </div>
-              <div className="flex flex-col md:flex-row justify-start items-baseline w-full gap-2">
-                <Suspense fallback={<div>Loading Table...</div>}>
-                  <AntibioticTable
-                    data={FirstHalf}
-                    selectedAntibiotic={selectedAntibiotic}
-                    setSelectedAntibiotic={setSelectedAntibiotic}
-                  />
-                </Suspense>
-                <Suspense fallback={<div>Loading Table...</div>}>
-                {/* <AntibioticTable
-                    data={SecondHalf}
-                    setSelectedAntibiotic={setSelectedAntibiotic}
-                  /> */}
-                  <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
-                    <thead
-                      style={{
-                        background: activeTheme?.menuColor,
-                        color: activeTheme?.iconColor,
+                {Organism?.map((item, idx) => {
+                  return (
+                    <SubmitButton
+                      key={idx}
+                      submit={false}
+                      callBack={() => {
+                        // add logic to delete organism
+                        setOrganism((prev) =>
+                          prev.filter((org) => org.organismId !== item.organismId)
+                        );
                       }}
-                    >
-                      <tr>
-                        {[
-                          {
-                            field: "antibiotic",
-                            headerName: "Antibiotic",
-                            flex: 1,
-                          },
-                          {
-                            field: "Interpretation",
-                            headerName: "Interpretation",
-                            width: 170,
-                          },
-                          { field: "Mic", headerName: "Mic", width: 150 },
-                        ].map((col, index) => (
-                          <th
-                            key={index}
-                            className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
-                            style={{
-                              width: col.width ? `${col.width}px` : "",
-                              flex: col.flex || "",
-                            }}
-                          >
-                            {col.headerName}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {SecondHalf?.map((row, index) => (
-                        <tr
-                          key={index}
-                          className={`cursor-pointer ${
-                            isHoveredTable1 === row.id
-                              ? ""
-                              : index % 2 === 0
-                              ? "bg-gray-100"
-                              : "bg-white"
-                          }`}
-                          onMouseEnter={() => setIsHoveredTable1(row.id)}
-                          onMouseLeave={() => setIsHoveredTable1(null)}
-                          style={{
-                            background:
-                              isHoveredTable1 === row.id
-                                ? activeTheme?.subMenuColor
-                                : undefined,
-                          }}
-                        >
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                            {row.antibiotic}
-                          </td>
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                            <InputGenerator
-                              inputFields={[
-                                {
-                                  label: "",
-                                  type: "select",
-                                  dataOptions: [
-                                    { data: "Resistant" },
-                                    { data: "Intermediate" },
-                                    { data: "Sensitive +" },
-                                    { data: "Moderately Sensitive ++" },
-                                  ],
-                                },
-                              ]}
-                            />
-                          </td>
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                            <InputGenerator
-                              inputFields={[{ label: "", type: "text" }]}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </Suspense>
+                      text={`Delete ${item?.organismName}`}
+                    />
+                  );
+                })}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
+              <AntibioticTables
+                Organism={Organism}
+                ThirdArr={getAntibioticData?.data?.data}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-2 mx-1 lg:mx-2">
                 {/* Specimen Field */}
                 <InputGenerator
                   inputFields={[
@@ -973,7 +915,9 @@ export default function MicroResultTrack() {
                       label: "Print Report",
                       submit: false,
                       callBack: () => {
-                        downloadReportPDF(HistoObservation?.testId);
+                        ViewOrDownloandPDF(
+                          `/tnx_Observations_Histo/GetMicroReport?testId=${Row?.testid}`
+                        );
                       },
                     },
                   ]}
@@ -1041,3 +985,75 @@ export default function MicroResultTrack() {
     </div>
   );
 }
+
+// const AntibioticMainTables = ({ Organism, ThirdArr }) => {
+//   // const [selectedAntibiotic, setSelectedAntibiotic] = useState([]);
+//   // Ensure the Organism array has an even length
+//   // const adjustedOrganism = [...Organism];
+//   // const isOdd = adjustedOrganism.length % 2 !== 0;
+
+//   // if (isOdd) {
+//   //   adjustedOrganism.push(null); // Push a null placeholder
+//   // }
+
+//   // const groupedOrganisms = adjustedOrganism.reduce((acc, _, index, array) => {
+//   //   if (index % 2 === 0) {
+//   //     acc.push(array.slice(index, index + 2)); // Group every two items
+//   //   }
+//   //   return acc;
+//   // }, []);
+
+//   return (
+//     <div className="flex flex-col gap-2">
+//       {Organism?.map((item) => (
+//         <AntibioticTables
+//           item={item}
+//           key={item?.id}
+//         />
+//       ))}
+//     </div>
+//   );
+// };
+
+const AntibioticTables = ({ Organism, ThirdArr }) => {
+  // Ensure the Organism array has an even length
+  const adjustedOrganism = [...Organism];
+  const isOdd = adjustedOrganism.length % 2 !== 0;
+
+  if (isOdd) {
+    adjustedOrganism.push(null); // Push a null placeholder
+  }
+
+  const groupedOrganisms = adjustedOrganism.reduce((acc, _, index, array) => {
+    if (index % 2 === 0) {
+      acc.push(array.slice(index, index + 2)); // Group every two items
+    }
+    return acc;
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {groupedOrganisms.map((pair, idx) => (
+        <div
+          key={idx}
+          className="flex flex-col md:flex-row justify-start items-baseline w-full gap-2"
+        >
+          {pair.map((item, itemIdx) =>
+            item ? (
+              <Suspense key={itemIdx} fallback={<div>Loading Table...</div>}>
+                <AntibioticTable
+                  data={ThirdArr}
+                  // selectedAntibiotic={selectedAntibiotic}
+                  // setSelectedAntibiotic={setSelectedAntibiotic}
+                  item={item}
+                />
+              </Suspense>
+            ) : (
+              <div key={itemIdx} className="flex flex-col w-full" />
+            )
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};

@@ -27,17 +27,18 @@ import { addObjectId } from "../../../../service/RedendentData";
 import RemarkGif from "../../../../assets/RemarkGif.gif";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { use } from "react";
 
 export default function HistoResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
   const SaveForm = useFormHandler();
   const [selectedCenter, setSelectedCenter] = useState([]);
+  const [ApproveBtn, setApproveBtn] = useState();
   const [selectedTest, setSelectedTest] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
   const [RemarkPopup, setRemarkPopup] = useState(false);
   const [HoldUnHold, setHoldUnHold] = useState(false);
+  const [Flag, setFlag] = useState(false);
   const [FileUploadPopupModal, setFileUploadPopupModal] = useState(false);
   const [AddAttachmentPopupModal, setAddAttachmentPopupModal] = useState(false);
   const [HoldUnHoldDetails, setHoldUnHoldDetails] = useState({});
@@ -83,7 +84,7 @@ export default function HistoResultTrack() {
       "/labDepartment?select=id,deptname&$filter=(isactive eq 1)"
     );
     // console.log(AllCenterData);
-  }, [HoldUnHold]);
+  }, [HoldUnHold, Flag]);
 
   let PayloadData = getLocal("HistoPayload");
   const updatedArray = addObjectId(PostData?.data);
@@ -98,6 +99,7 @@ export default function HistoResultTrack() {
     }
 
     setUserObj(row);
+    setRow(row);
     console.log(row?.testid);
 
     await retreveTestData(row?.testid);
@@ -430,6 +432,7 @@ export default function HistoResultTrack() {
       "/tnx_BookingItem/SaveHistoResult",
       payload
     );
+    setFlag(!Flag);
     if (res?.success) {
       toast.success(res?.message);
       setHistoObservation(null);
@@ -446,21 +449,21 @@ export default function HistoResultTrack() {
         `/tnx_Booking/GetHistoresult?testid=${id}`
       );
       console.log("Retrieving test data for ID:", id);
-  
+
       if (res?.data?.data?.length > 0) {
         const testData = res.data.data[0];
         setHistoObservation(testData);
-  
+        setApproveBtn(testData?.isApproved == "0" ? false : true);
         const filterDr = Signature?.data?.data.find(
           (item) => item?.doctorId === testData?.appcovaldoctorId
         );
-  
+
         if (filterDr) {
           setDrId(filterDr);
         } else {
           console.warn("Doctor not found for ID:", testData?.appcovaldoctorId);
         }
-  
+        setApprovedDocId(testData.approvalDoctor);
         SaveForm?.setValues([
           {
             specimen: testData.specimen || "",
@@ -473,13 +476,13 @@ export default function HistoResultTrack() {
             appcovaldoctorId: testData.approvalDoctor || "",
           },
         ]);
-  
+
         setEditorContent(testData.gross || "");
         setEditorContent1(testData.microscopy || "");
         setEditorContent2(testData.finalImpression || "");
       } else {
         console.warn("No data found for test ID:", id);
-        
+
         SaveForm?.setValues([
           {
             specimen: "",
@@ -491,7 +494,7 @@ export default function HistoResultTrack() {
             comment: "",
           },
         ]);
-  
+
         setEditorContent("");
         setEditorContent1("");
         setEditorContent2("");
@@ -500,9 +503,12 @@ export default function HistoResultTrack() {
       console.error("Error retrieving test data:", error);
     }
   };
-  
 
   const ApproveCase = async () => {
+    if (!ApprovedDocId) {
+      toast.error("Please select Doctor Signature");
+      return;
+    }
     const payload = {
       ...HistoObservation,
       ...UserObj,
@@ -512,7 +518,7 @@ export default function HistoResultTrack() {
       approved: 1,
       approvedByID: lsData?.user?.employeeId,
       isApproved: 1,
-      hold:0,
+      hold: 0,
     };
     const res = await SavePostData?.postRequest(
       "/tnx_BookingItem/SaveHistoResult",
@@ -521,6 +527,7 @@ export default function HistoResultTrack() {
     if (res?.success) {
       toast.success(res?.message);
       console.log(payload);
+      setFlag(!Flag);
       retreveTestData(HistoObservation?.testId);
     } else {
       toast.error(res?.message);
@@ -579,18 +586,43 @@ export default function HistoResultTrack() {
     }
   };
 
+  const ApproveCallback = async () => {
+    console.log(
+      HistoObservation?.isApproved === 1
+        ? "Not Approved clicked"
+        : "Approved clicked"
+    );
+    if (ApproveBtn) {
+      const data = await ApprovedPostData?.postRequest(
+        `/tnx_Observations/ReportNotApprove?TestId=${Row?.testid}&userid=${lsData?.user?.employeeId}`
+      );
+      if (data?.success) {
+        toast.success(ApprovedPostData.response.message);
+        setFlag(!Flag);
+      }
+      console.log(ApprovedPostData.response);
+    } else {
+     await ApproveCase();
+    }
+    await retreveTestData(Row?.testid);
+  };
+
   return (
     <div>
       <>
         <HistoResultTrackRemarkPopupModal
           setShowPopup={setRemarkPopup}
           showPopup={RemarkPopup}
+          setFlag={setFlag}
+          Flag={Flag}
           rowData={Row}
         />
         <HistoHoldUnholdPopupModal
           rowData={HoldUnHoldDetails}
           setShowPopup={setHoldUnHold}
           showPopup={HoldUnHold}
+          setFlag={setFlag}
+          Flag={Flag}
           retreveTestData={retreveTestData}
         />
 
@@ -599,11 +631,17 @@ export default function HistoResultTrack() {
           setShowPopup={setFileUploadPopupModal}
           showPopup={FileUploadPopupModal}
           retreveTestData={retreveTestData}
+          setFlag={setFlag}
+          Flag={Flag}
         />
-        <HistoAddAttachmentPopupModal rowData={HistoObservation}
+        <HistoAddAttachmentPopupModal
+          rowData={HistoObservation}
+          setFlag={setFlag}
+          Flag={Flag}
           setShowPopup={setAddAttachmentPopupModal}
           showPopup={AddAttachmentPopupModal}
-          retreveTestData={retreveTestData} />
+          retreveTestData={retreveTestData}
+        />
         {/* Header Section */}
         <div>
           <FormHeader title="Histo Result Track" />
@@ -887,26 +925,12 @@ export default function HistoResultTrack() {
                       },
                       {
                         label:
-                          HistoObservation?.isApproved === 1
+                        ApproveBtn
                             ? "Not Approved"
                             : "Approved",
                         submit: false,
                         callBack: () => {
-                          console.log(
-                            HistoObservation?.isApproved === 1
-                              ? "Not Approved clicked"
-                              : "Approved clicked"
-                          );
-                          retreveTestData(HistoObservation?.testId);
-                          if (HistoObservation?.isApproved === 1) {
-                            ApprovedPostData?.postRequest(
-                              `/tnx_Observations/ReportNotApprove?TestId=${HistoObservation?.testId}&userid=${lsData?.user?.employeeId}`
-                            );
-                            console.log(ApprovedPostData.response);
-                            toast.success(ApprovedPostData.response.message);
-                          } else {
-                            ApproveCase();
-                          }
+                          ApproveCallback();
                         },
                       },
                     ]}
