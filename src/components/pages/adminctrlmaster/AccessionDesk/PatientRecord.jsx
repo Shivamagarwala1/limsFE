@@ -301,7 +301,6 @@ export default function PatientRecord() {
       const response = await getGridDataBasedOnPatientRecordData(updateData);
       if (response?.success) {
         setAllPatientRecordData(response?.data)
-        console.log(response?.data);
         
       } else {
         toast.error(response?.message);
