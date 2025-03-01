@@ -285,6 +285,7 @@ export const CustomTextBox = ({
                 placeholder=" "
                 maxLength={maxLength}
                 disabled={isDisabled}
+                readOnly={readOnly}
                 aria-invalid={!isValid}
                 aria-describedby={!isValid ? `${name}-error` : undefined}
                 className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
@@ -297,7 +298,6 @@ export const CustomTextBox = ({
                             : "border-borderColor"
                     } focus:outline-none`}
 
-                readOnly={readOnly}
             />
             {
                 !showLabel && (

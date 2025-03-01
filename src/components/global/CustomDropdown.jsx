@@ -7,6 +7,7 @@ function CustomDropdown({
   value,
   options = [],
   onChange,
+  readOnly = false,
   defaultIndex = 0,
   isDisabled = false,
   showLabel = true,
@@ -63,39 +64,43 @@ function CustomDropdown({
 
       {/* Dropdown menu */}
       {
-        !isDisabled && (
-          isOpen && (
-            <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-              {options.map((option, index) => {
 
-                return (
-                  <div
-                    key={index}
-                    className={`my-1 py-1 px-2 cursor-pointer ${isDisabled ? 'cursor-not-allowed ' : option.disabled ? "text-gray-400 cursor-not-allowed" : ""
-                      }`}
-                    onMouseEnter={() => setIsHovered(index)}
-                    onMouseLeave={() => setIsHovered(null)}
-                    style={{
-                      background:
-                        isHovered === index ? activeTheme?.subMenuColor : "transparent",
-                    }}
-                    onClick={() => {
-                      if (!isDisabled) {
-                        if (!option.disabled) {
-                          onChange({ target: { name, value: option.value } });
-                          setIsOpen(false);
+        !readOnly && (
+
+          !isDisabled && (
+            isOpen && (
+              <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                {options.map((option, index) => {
+
+                  return (
+                    <div
+                      key={index}
+                      className={`my-1 py-1 px-2 cursor-pointer ${isDisabled ? 'cursor-not-allowed ' : option.disabled ? "text-gray-400 cursor-not-allowed" : ""
+                        }`}
+                      onMouseEnter={() => setIsHovered(index)}
+                      onMouseLeave={() => setIsHovered(null)}
+                      style={{
+                        background:
+                          isHovered === index ? activeTheme?.subMenuColor : "transparent",
+                      }}
+                      onClick={() => {
+                        if (!isDisabled) {
+                          if (!option.disabled) {
+                            onChange({ target: { name, value: option.value } });
+                            setIsOpen(false);
+                          }
                         }
-                      }
 
-                    }}
-                  >
-                    {option.label}
-                  </div>
-                )
-              }
-              )}
-            </div>
-          ))
+                      }}
+                    >
+                      {option.label}
+                    </div>
+                  )
+                }
+                )}
+              </div>
+            ))
+        )
       }
 
       {/* Dropdown label */}

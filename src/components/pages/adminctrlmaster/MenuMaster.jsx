@@ -322,23 +322,42 @@ export default function MenuMaster() {
         {/* Input Section */}
         <form autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
-            {/* Parent Menu Dropdown */}
-            <CustomDropdown
-              id="parent-menu"
-              name="parent-menu"
-              value={isParentMenu}
-              onChange={handleParentMenuChange}
-              label="Parent Menu"
-              options={[
-                // { value: "Select", label: "Select", disabled: true },
-                { value: "Yes", label: "Yes" },
-                { value: "No", label: "No" },
-              ]}
-              activeTheme={activeTheme}
-              defaultIndex={0}
-            />
 
-            <div className="relative flex-1">
+            <div className="flex gap-[0.25rem]">
+
+              {/* Parent Menu Dropdown */}
+              <CustomDropdown
+                id="parent-menu"
+                name="parent-menu"
+                value={isParentMenu}
+                onChange={handleParentMenuChange}
+                label="Parent Menu"
+                options={[
+                  // { value: "Select", label: "Select", disabled: true },
+                  { value: "Yes", label: "Yes" },
+                  { value: "No", label: "No" },
+                ]}
+                activeTheme={activeTheme}
+                defaultIndex={0}
+              />
+
+              <CustomDropdown
+                id="isHide"
+                name="isHide"
+                value={formData.isHide}
+                onChange={handleDropdownChange("isHide")}
+                label="Allow Ph App"
+                options={[
+                  { value: true, label: "Yes" },
+                  { value: false, label: "No" },
+                ]}
+                activeTheme={activeTheme}
+                defaultIndex={0}
+              />
+            </div>
+
+
+            <div className="relative flex-1 -mt-[1.9px]">
               <input
                 type="text"
                 id="menuName"
@@ -354,7 +373,7 @@ export default function MenuMaster() {
               </label>
             </div>
 
-            <div className="relative flex-1">
+            <div className="relative flex-1 -mt-[1.9px]">
               <input
                 type="number"
                 id="displaySequence"
@@ -370,31 +389,34 @@ export default function MenuMaster() {
               </label>
             </div>
 
-            <SearchBarDropdown
-              id="parentId"
-              name="parentId"
-              value={selectedMenuName || formData.parentId || ""}
-              onChange={(e) => {
-                setFormData((prevData) => ({
-                  ...prevData,
-                  parentId: e.target.value,
-                }));
-                setShowSearchBarDropDown(true);
-                setSelectedMenuName("");
-              }}
-              label="Search Type Here"
-              options={filteredDataForMenu}
-              activeTheme={activeTheme}
-              isValid={isValid}
-              isParentMenu={isParentMenu}
-              showSearchBarDropDown={showSearchBarDropDown}
-              setShowSearchBarDropDown={setShowSearchBarDropDown}
-              handleOptionClickForCentre={handleOptionClickForCentre}
-              setIsHovered={setIsHovered}
-              isHovered={isHovered}
-            />
+            <div className="">
+              <SearchBarDropdown
+                id="parentId"
+                name="parentId"
+                value={selectedMenuName || formData.parentId || ""}
+                onChange={(e) => {
+                  setFormData((prevData) => ({
+                    ...prevData,
+                    parentId: e.target.value,
+                  }));
+                  setShowSearchBarDropDown(true);
+                  setSelectedMenuName("");
+                }}
+                label="Search Type Here"
+                options={filteredDataForMenu}
+                activeTheme={activeTheme}
+                isValid={isValid}
+                isParentMenu={isParentMenu}
+                showSearchBarDropDown={showSearchBarDropDown}
+                setShowSearchBarDropDown={setShowSearchBarDropDown}
+                handleOptionClickForCentre={handleOptionClickForCentre}
+                setIsHovered={setIsHovered}
+                isHovered={isHovered}
+              />
+            </div>
 
-            <div className="relative flex-1">
+
+            <div className="relative flex-1 -mt-[1.9px]">
               <input
                 type="text"
                 id="navigationUrl"
@@ -411,23 +433,25 @@ export default function MenuMaster() {
               </label>
             </div>
 
-            {/* Active Dropdown */}
-            <CustomDropdown
-              id="isActive"
-              name="isActive"
-              value={formData.isActive}
-              onChange={handleDropdownChange("isActive")}
-              label="Active"
-              options={[
-                { value: 1, label: "Yes" },
-                { value: 0, label: "No" },
-              ]}
-              activeTheme={activeTheme}
-              defaultIndex={0}
-            />
+            <div className="flex gap-[0.25rem]">
 
-            {/* Hide Dropdown */}
-            <CustomDropdown
+              {/* Active Dropdown */}
+              <CustomDropdown
+                id="isActive"
+                name="isActive"
+                value={formData.isActive}
+                onChange={handleDropdownChange("isActive")}
+                label="Active"
+                options={[
+                  { value: 1, label: "Yes" },
+                  { value: 0, label: "No" },
+                ]}
+                activeTheme={activeTheme}
+                defaultIndex={0}
+              />
+
+              {/* Hide Dropdown */}
+              {/* <CustomDropdown
               id="isHide"
               name="isHide"
               value={formData.isHide}
@@ -439,40 +463,42 @@ export default function MenuMaster() {
               ]}
               activeTheme={activeTheme}
               defaultIndex={0}
-            />
+            /> */}
 
-            <div className="relative flex-1 flex justify-start items-center">
-              {isEditData ? (
-                <button
-                  type="button"
-                  data-ripple-light="true"
-                  className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-20 rounded-md flex justify-center items-center ${isParentMenu === "Select" ? "cursor-not-allowed" : "cursor-pointer"
-                    }`}
-                  style={{
-                    background: isParentMenu === "Select" ? activeTheme?.headerColor : activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
-                  }}
-                  disabled={isParentMenu === "Select"}
-                  onClick={updateMasterData}
-                >
-                  {isButtonClick ? <FaSpinner className="text-xl animate-spin" /> : "Update"}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  data-ripple-light="true"
-                  className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-20 rounded-md flex justify-center items-center ${isParentMenu === "Select" ? "cursor-not-allowed" : "cursor-pointer"
-                    }`}
-                  style={{
-                    background: isParentMenu === "" ? activeTheme?.headerColor : activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
-                  }}
-                  disabled={isParentMenu === "Select"}
-                  onClick={saveMasterData}
-                >
-                  {isButtonClick ? <FaSpinner className="text-xl animate-spin" /> : "Save"}
-                </button>
-              )}
+              <div className="relative flex-1 flex justify-start items-center -mt-2">
+                {isEditData ? (
+                  <button
+                    type="button"
+                    data-ripple-light="true"
+                    className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-20 rounded-md flex justify-center items-center ${isParentMenu === "Select" ? "cursor-not-allowed" : "cursor-pointer"
+                      }`}
+                    style={{
+                      background: isParentMenu === "Select" ? activeTheme?.headerColor : activeTheme?.menuColor,
+                      color: activeTheme?.iconColor,
+                    }}
+                    disabled={isParentMenu === "Select"}
+                    onClick={updateMasterData}
+                  >
+                    {isButtonClick ? <FaSpinner className="text-xl animate-spin" /> : "Update"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    data-ripple-light="true"
+                    className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-20 rounded-md flex justify-center items-center ${isParentMenu === "Select" ? "cursor-not-allowed" : "cursor-pointer"
+                      }`}
+                    style={{
+                      background: isParentMenu === "" ? activeTheme?.headerColor : activeTheme?.menuColor,
+                      color: activeTheme?.iconColor,
+                    }}
+                    disabled={isParentMenu === "Select"}
+                    onClick={saveMasterData}
+                  >
+                    {isButtonClick ? <FaSpinner className="text-xl animate-spin" /> : "Save"}
+                  </button>
+                )}
+              </div>
+
             </div>
           </div>
         </form>
@@ -496,133 +522,144 @@ export default function MenuMaster() {
         </div>
 
         <div className="mb-2">
-          <table className="table-auto border-collapse w-full text-xxs text-left">
-            <thead
-              style={{
-                background: activeTheme?.menuColor,
-                color: activeTheme?.iconColor,
-              }}
-            >
-              <tr>
-                {menuDataHeaderList.map((data, index) => (
-                  <td
-                    key={index}
-                    className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
-                    style={{
-                      width: index === 0 ? "0%" : index === 1 ? "20%" : "15%",
-                    }}
-                  >
-                    <div className="flex gap-1">
-                      <div>{data}</div>
-                      {data !== "Action" && (
-                        <div className="flex items-center gap-1">
-                          <div>
-                            <FaArrowUp className="text-xxs cursor-pointer" />
-                          </div>
-                          <div>
-                            <FaArrowDown className="text-xxs cursor-pointer" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {allMenuDataWithChildData?.map((data) => (
-                <tr
-                  className={`cursor-pointer ${isHoveredTable === data?.id
-                    ? ""
-                    : data?.id % 2 === 0
-                      ? "bg-gray-100"
-                      : "bg-white"
-                    }`}
-                  key={data?.id}
-                  onMouseEnter={() => setIsHoveredTable(data?.id)}
-                  onMouseLeave={() => setIsHoveredTable(null)}
-                  style={{
-                    background: isHoveredTable === data?.id ? activeTheme?.subMenuColor : undefined,
-                  }}
-                >
-                  <td
-                    className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                    style={{ width: "0%" }}
-                  >
-                    {data?.id}
-                  </td>
-                  <td
-                    className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                    style={{ width: "20%" }}
-                  >
-                    {data?.menuName}
-                  </td>
-                  <td
-                    className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                    style={{ width: "30%" }}
-                  >
-                    {data?.navigationUrl}
-                  </td>
-                  <td
-                    className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                    style={{ width: "10%" }}
-                  >
-                    {data?.displaySequence}
-                  </td>
-                  <td
-                    className={`border-b px-4 h-5 text-xxs font-semibold ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
-                      }`}
-                    style={{ width: "10%" }}
-                  >
-                    {data?.isActive === 1 ? "Yes" : "No"}
-                  </td>
-                  <td
-                    className={`border-b px-4 h-5 text-xxs font-semibold ${data?.parentId === 0 ? "text-green-500" : "text-red-500"
-                      }`}
-                    style={{ width: "10%" }}
-                  >
-                    {data?.parentId === 0 ? "Yes" : "No"}
-                  </td>
-                  <td className="border-b px-4 h-5 flex items-center text-xxs font-semibold gap-2">
-                    <button
-                      type="button"
-                      data-ripple-light="true"
-                      className="relative overflow-hidden w-4 h-4 flex justify-center items-center"
+          <div className="w-full">
+            <table className="table-auto border-collapse w-full text-xxs text-left">
+              <thead
+                // className="sticky top-0 z-10"
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              >
+                <tr>
+                  {menuDataHeaderList.map((data, index) => (
+                    <td
+                      key={index}
+                      className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
+                      style={{
+                        width: index === 0 ? "0%" : index === 1 ? "20%" : "15%",
+                      }}
                     >
-                      <FaRegEdit
-                        className="w-full h-full text-blue-500"
-                        onClick={() => {
-                          getSingleMenuDataForUpDate(data);
-                          setIsParentMenu(data?.parentId === 0 ? "Yes" : "No");
-                          setIsEditData(true);
-                          setIsValid({
-                            menuName: false,
-                            displaySequence: false,
-                            parentId: data?.parentId === 0 ? true : false,
-                            navigationUrl: data?.parentId === 0 ? true : false,
-                          });
-                        }}
-                      />
-                    </button>
-                    <button
-                      type="button"
-                      data-ripple-light="true"
-                      className={`relative overflow-hidden w-4 h-4 flex justify-center items-center ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
-                        }`}
-                    >
-                      <ImSwitch
-                        className="w-full h-full"
-                        onClick={() => {
-                          setClickedRowId(data);
-                          setShowActivePopup(true);
-                        }}
-                      />
-                    </button>
-                  </td>
+                      <div className="flex gap-1">
+                        <div>{data}</div>
+                        {data !== "Action" && (
+                          <div className="flex items-center gap-1">
+                            <div>
+                              <FaArrowUp className="text-xxs cursor-pointer" />
+                            </div>
+                            <div>
+                              <FaArrowDown className="text-xxs cursor-pointer" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+            </table>
+
+            {/* Scrollable tbody */}
+            <div className="max-h-96 overflow-y-auto w-full">
+              <table className="table-auto border-collapse w-full text-xxs text-left">
+                <tbody>
+                  {allMenuDataWithChildData?.map((data) => (
+                    <tr
+                      className={`cursor-pointer ${isHoveredTable === data?.id
+                        ? ""
+                        : data?.id % 2 === 0
+                          ? "bg-gray-100"
+                          : "bg-white"
+                        }`}
+                      key={data?.id}
+                      onMouseEnter={() => setIsHoveredTable(data?.id)}
+                      onMouseLeave={() => setIsHoveredTable(null)}
+                      style={{
+                        background:
+                          isHoveredTable === data?.id ? activeTheme?.subMenuColor : undefined,
+                      }}
+                    >
+                      <td
+                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                        style={{ width: "0%" }}
+                      >
+                        {data?.id}
+                      </td>
+                      <td
+                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                        style={{ width: "20%" }}
+                      >
+                        {data?.menuName}
+                      </td>
+                      <td
+                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                        style={{ width: "30%" }}
+                      >
+                        {data?.navigationUrl}
+                      </td>
+                      <td
+                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                        style={{ width: "10%" }}
+                      >
+                        {data?.displaySequence}
+                      </td>
+                      <td
+                        className={`border-b px-4 h-5 text-xxs font-semibold ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
+                          }`}
+                        style={{ width: "10%" }}
+                      >
+                        {data?.isActive === 1 ? "Yes" : "No"}
+                      </td>
+                      <td
+                        className={`border-b px-4 h-5 text-xxs font-semibold ${data?.parentId === 0 ? "text-green-500" : "text-red-500"
+                          }`}
+                        style={{ width: "10%" }}
+                      >
+                        {data?.parentId === 0 ? "Yes" : "No"}
+                      </td>
+                      <td className="border-b px-4 h-5 flex items-center text-xxs font-semibold gap-2">
+                        <button
+                          type="button"
+                          data-ripple-light="true"
+                          className="relative overflow-hidden w-4 h-4 flex justify-center items-center"
+                        >
+                          <FaRegEdit
+                            className="w-full h-full text-blue-500"
+                            onClick={() => {
+                              getSingleMenuDataForUpDate(data);
+                              setIsParentMenu(data?.parentId === 0 ? "Yes" : "No");
+                              setIsEditData(true);
+                              setIsValid({
+                                menuName: false,
+                                displaySequence: false,
+                                parentId: data?.parentId === 0 ? true : false,
+                                navigationUrl: data?.parentId === 0 ? true : false,
+                              });
+                            }}
+                          />
+                        </button>
+                        <button
+                          type="button"
+                          data-ripple-light="true"
+                          className={`relative overflow-hidden w-4 h-4 flex justify-center items-center ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
+                            }`}
+                        >
+                          <ImSwitch
+                            className="w-full h-full"
+                            onClick={() => {
+                              setClickedRowId(data);
+                              setShowActivePopup(true);
+                            }}
+                          />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -801,7 +838,7 @@ const SearchBarDropdown = ({
   return (
     <div className="relative flex-1" ref={dropdownRef}>
       <div
-        className={`flex peer items-center border-[1.5px] rounded text-xxxs h-[1.6rem] text-[#495057] my-1 bg-white ${isValid.parentId ? "border-borderColor" : "border-b-red-500"
+        className={`flex peer items-center  -mt-[0.5px] border-[1.5px] rounded text-xxxs h-[1.6rem] text-[#495057] my-1 bg-white ${isValid.parentId ? "border-borderColor" : "border-b-red-500"
           }`}
       >
         <input
