@@ -1,18 +1,51 @@
-import React from "react";
+import React, { useRef } from "react";
 
 const CustomDynamicTable = ({ columns, activeTheme, children }) => {
+
+ const tableRef = useRef(null);
+
+  const handleMouseDown = (event) => {
+    const table = tableRef.current;
+    if (!table) return;
+
+    let startX = event.pageX;
+    let scrollLeft = table.scrollLeft;
+
+    const handleMouseMove = (e) => {
+      table.scrollLeft = scrollLeft - (e.pageX - startX);
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
   return (
-    <div style={{
-      overflowY: "auto", // Ensures vertical scrolling
-      scrollbarWidth: "none", // Hides scrollbar for Firefox
-      msOverflowStyle: "none", // Hides scrollbar for IE/Edge
-    }}>
+    <div
+      ref={tableRef}
+      onMouseDown={handleMouseDown} // Enables click and drag scrolling
+      style={{
+        overflowY: "auto",
+        overflowX: "auto",
+        scrollbarWidth: "none",
+        msOverflowStyle: "none",
+        whiteSpace: "nowrap",
+        cursor: "grab", // Shows a grab cursor
+      }}
+    >
       <table className="table-auto border-collapse w-full text-xxs text-left">
         {/* Header */}
         <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
           <tr>
             {columns.map((col, index) => (
-              <th key={index} className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap">
+              <th
+                key={index}
+                className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+              >
                 <div className="flex gap-1">
                   <div>{col}</div>
                 </div>
