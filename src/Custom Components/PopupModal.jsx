@@ -742,6 +742,8 @@ export const HistoHoldUnholdPopupModal = ({
   setShowPopup,
   retreveTestData,
   rowData,
+  setFlag = () => {},
+  Flag,
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues } = useFormHandler();
@@ -766,6 +768,7 @@ export const HistoHoldUnholdPopupModal = ({
     if (PostData?.response && PostData.response.success) {
       toast.success(PostData.response.message);
       retreveTestData(rowData?.testId);
+      setFlag(!Flag);
       hide();
     } else {
       hide();
@@ -1136,6 +1139,8 @@ export const HistoFileUploadPopupModal = ({
   setShowPopup,
   retreveTestData,
   rowData,
+  setFlag = () => {},
+  Flag,
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [FileData, setFileData] = useState({ fileName: "" });
@@ -1177,6 +1182,7 @@ export const HistoFileUploadPopupModal = ({
       );
       if (response?.success) {
         toast.success(response.message);
+        setFlag(!Flag);
         const filePath = response?.data?.filePath;
         if (filePath) {
           await hide(filePath);
@@ -1208,7 +1214,7 @@ export const HistoFileUploadPopupModal = ({
         payloadData
       );
       toggleShow(); // Trigger re-fetch after adding report
-    }, 100);
+    }, 10);
   };
 
   const HandleDelete = async (params) => {
@@ -1225,7 +1231,7 @@ export const HistoFileUploadPopupModal = ({
         payloadData
       );
       toggleShow(); // Trigger re-fetch after deleting
-    }, 100);
+    }, 10);
   };
 
   return (
@@ -1287,7 +1293,8 @@ export const HistoFileUploadPopupModal = ({
                   headerName: `Path`,
                   width: 100,
                   renderCell: (params) => (
-                    <div title="Copy Path"
+                    <div
+                      title="Copy Path"
                       onClick={() => {
                         copyToClipboard(params?.row?.attachment);
                         toast.success("Path Copied");
@@ -1343,25 +1350,27 @@ export const HistoAddAttachmentPopupModal = ({
   setShowPopup,
   retreveTestData,
   rowData,
+  setFlag = () => {},
+  Flag,
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [FileData, setFileData] = useState({ fileName: "" });
   const { formRef, getValues } = useFormHandler();
-  const [show, setShow] = useState(false);
+  const [apiTrigger, setApiTrigger] = useState(false); // New state to track API calls
   const PostData = usePostData();
   const GetData = useGetData();
   const AddReportPostData = usePostData();
   const { copyToClipboard } = Clipboard();
   const lsData = getLocal("imarsar_laboratory");
 
-  // Ensure hooks are called unconditionally
+  // Fetch Data Whenever 'showPopup' or 'apiTrigger' changes
   useEffect(() => {
     if (showPopup) {
       GetData.fetchData(
         `/tnx_InvestigationAttchment?$filter=(testid eq ${rowData?.testId} and isactive eq 1)`
       );
     }
-  }, [showPopup, rowData?.testId, show]); // Add dependencies to useEffect
+  }, [showPopup, rowData?.testId, apiTrigger]); // Re-run when apiTrigger changes
 
   if (!showPopup) return null;
 
@@ -1382,10 +1391,11 @@ export const HistoAddAttachmentPopupModal = ({
       );
 
       if (response?.success) {
+        setFlag(!Flag);
         toast.success(response.message);
         const filePath = response?.data?.filePath;
         if (filePath) {
-          hide(filePath);
+          await hide(filePath);
         } else {
           toast.error("File path missing in response.");
         }
@@ -1399,9 +1409,8 @@ export const HistoAddAttachmentPopupModal = ({
   };
 
   const hide = async (filePath) => {
-    // setShowPopup(false);
     console.log(rowData);
-    setTimeout(() => {
+    setTimeout(async () => {
       const payloadData = {
         testId: parseInt(rowData?.testId),
         attachment: filePath,
@@ -1411,17 +1420,16 @@ export const HistoAddAttachmentPopupModal = ({
         createdDateTime: new Date().toISOString(),
       };
 
-      AddReportPostData.postRequest(
+      await AddReportPostData.postRequest(
         `/tnx_InvestigationAttchment/AddAttchment`,
         payloadData
       );
-      setShow(!show);
-    }, 100);
+      setApiTrigger((prev) => !prev); // Trigger API refresh
+    }, 10);
   };
 
   const HandleDelete = async (params) => {
-    // setShowPopup(false);
-    setTimeout(() => {
+    setTimeout(async () => {
       const payloadData = {
         ...params,
         isActive: 0,
@@ -1429,69 +1437,61 @@ export const HistoAddAttachmentPopupModal = ({
         updateDateTime: new Date().toISOString(),
       };
 
-      AddReportPostData.postRequest(
+      await AddReportPostData.postRequest(
         `/tnx_InvestigationAttchment/AddAttchment`,
         payloadData
       );
-      setShow(!show);
-    }, 100);
+      setApiTrigger((prev) => !prev); // Trigger API refresh
+    }, 10);
   };
+
   const columns = [
     {
       field: `attachment`,
       headerName: `Path`,
-      // flex: 1,
       width: 100,
-      renderCell: (params) => {
-        return (
-          <div
-            onClick={() => {
-              copyToClipboard(params?.row?.attachment);
-              toast.success("Path Copied");
-            }}
-            style={{ justifyContent: "flex-start" }}
-            className="flex justify-start items-start"
-          >
-            {params?.row?.attachment?.slice(0, 40)}
-          </div>
-        );
-      },
+      renderCell: (params) => (
+        <div
+          onClick={() => {
+            copyToClipboard(params?.row?.attachment);
+            toast.success("Path Copied");
+          }}
+          className="flex justify-start items-start"
+        >
+          {params?.row?.attachment?.slice(0, 40)}
+        </div>
+      ),
     },
     {
       field: `id`,
       headerName: `Actions`,
       flex: 1,
-      renderCell: (params) => {
-        return (
-          <div
-            style={{ justifyContent: "flex-start" }}
-            className="flex justify-center items-center"
-          >
-            <TwoSubmitButton
-              options={[
-                {
-                  callBack: () => {
-                    ViewOrDownloandPDF(
-                      `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
-                    );
-                  },
-                  submit: false,
-                  label: "View",
-                  style: { width: "50px" },
+      renderCell: (params) => (
+        <div className="flex justify-center items-center">
+          <TwoSubmitButton
+            options={[
+              {
+                callBack: () => {
+                  ViewOrDownloandPDF(
+                    `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+                  );
                 },
-                {
-                  callBack: () => {
-                    HandleDelete(params?.row);
-                  },
-                  submit: false,
-                  label: "Delete",
-                  style: { width: "50px" },
+                submit: false,
+                label: "View",
+                style: { width: "50px" },
+              },
+              {
+                callBack: () => {
+                  HandleDelete(params?.row);
                 },
-              ]}
-            />
-          </div>
-        );
-      },
+                submit: false,
+                label: "Delete",
+                style: { width: "50px" },
+              },
+            ]}
+          />
+        </div>
+      ),
     },
   ];
 
@@ -1543,7 +1543,7 @@ export const HistoAddAttachmentPopupModal = ({
         </form>
         <DynamicTable
           rows={GetData?.data}
-          name="Attchment Information"
+          name="Attachment Information"
           loading={GetData?.loading}
           tableStyle={{ marginBottom: "-25px" }}
           columns={columns}
@@ -1552,6 +1552,225 @@ export const HistoAddAttachmentPopupModal = ({
     </div>
   );
 };
+
+// export const HistoAddAttachmentPopupModal = ({
+//   showPopup,
+//   setShowPopup,
+//   retreveTestData,
+//   rowData,
+// }) => {
+//   const activeTheme = useSelector((state) => state.theme.activeTheme);
+//   const [FileData, setFileData] = useState({ fileName: "" });
+//   const { formRef, getValues } = useFormHandler();
+//   const [show, setShow] = useState(false);
+//   const PostData = usePostData();
+//   const GetData = useGetData();
+//   const AddReportPostData = usePostData();
+//   const { copyToClipboard } = Clipboard();
+//   const lsData = getLocal("imarsar_laboratory");
+
+//   // Function to toggle 'show'
+//   const toggleShow = () => {
+//     setShow((prev) => !prev);
+//   };
+//   // Ensure hooks are called unconditionally
+//   useEffect(() => {
+//     if (showPopup) {
+//       GetData.fetchData(
+//         `/tnx_InvestigationAttchment?$filter=(testid eq ${rowData?.testId} and isactive eq 1)`
+//       );
+//     }
+//   }, [showPopup, rowData?.testId, show]); // Add dependencies to useEffect
+
+//   if (!showPopup) return null;
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!FileData || !FileData.fileData) {
+//       toast.error("No file selected!");
+//       return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append("Document", FileData.fileData);
+
+//     try {
+//       const response = await PostData.postRequest(
+//         `/empMaster/UploadDocument`,
+//         formData
+//       );
+
+//       if (response?.success) {
+//         toast.success(response.message);
+//         const filePath = response?.data?.filePath;
+//         if (filePath) {
+//          await hide(filePath);
+//         } else {
+//           toast.error("File path missing in response.");
+//         }
+//       } else {
+//         toast.error(response?.message || "An error occurred.");
+//       }
+//     } catch (error) {
+//       toast.error("Upload failed!");
+//       console.error("Upload Error:", error);
+//     }
+//   };
+
+//   const hide = async (filePath) => {
+//     // setShowPopup(false);
+//     console.log(rowData);
+//     setTimeout(() => {
+//       const payloadData = {
+//         testId: parseInt(rowData?.testId),
+//         attachment: filePath,
+//         isActive: 1,
+//         id: 0,
+//         createdById: parseInt(lsData?.user?.employeeId),
+//         createdDateTime: new Date().toISOString(),
+//       };
+
+//       AddReportPostData.postRequest(
+//         `/tnx_InvestigationAttchment/AddAttchment`,
+//         payloadData
+//       );
+//       toggleShow();
+//     }, 10);
+//   };
+
+//   const HandleDelete = async (params) => {
+//     // setShowPopup(false);
+//     setTimeout(() => {
+//       const payloadData = {
+//         ...params,
+//         isActive: 0,
+//         updateById: parseInt(lsData?.user?.employeeId),
+//         updateDateTime: new Date().toISOString(),
+//       };
+
+//       AddReportPostData.postRequest(
+//         `/tnx_InvestigationAttchment/AddAttchment`,
+//         payloadData
+//       );
+//       toggleShow();
+//     }, 10);
+//   };
+//   const columns = [
+//     {
+//       field: `attachment`,
+//       headerName: `Path`,
+//       // flex: 1,
+//       width: 100,
+//       renderCell: (params) => {
+//         return (
+//           <div
+//             onClick={() => {
+//               copyToClipboard(params?.row?.attachment);
+//               toast.success("Path Copied");
+//             }}
+//             style={{ justifyContent: "flex-start" }}
+//             className="flex justify-start items-start"
+//           >
+//             {params?.row?.attachment?.slice(0, 40)}
+//           </div>
+//         );
+//       },
+//     },
+//     {
+//       field: `id`,
+//       headerName: `Actions`,
+//       flex: 1,
+//       renderCell: (params) => {
+//         return (
+//           <div
+//             style={{ justifyContent: "flex-start" }}
+//             className="flex justify-center items-center"
+//           >
+//             <TwoSubmitButton
+//               options={[
+//                 {
+//                   callBack: () => {
+//                     ViewOrDownloandPDF(
+//                       `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+//                     );
+//                   },
+//                   submit: false,
+//                   label: "View",
+//                   style: { width: "50px" },
+//                 },
+//                 {
+//                   callBack: () => {
+//                     HandleDelete(params?.row);
+//                   },
+//                   submit: false,
+//                   label: "Delete",
+//                   style: { width: "50px" },
+//                 },
+//               ]}
+//             />
+//           </div>
+//         );
+//       },
+//     },
+//   ];
+
+//   return (
+//     <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+//       <div className="w-96 bg-white rounded-md ">
+//         {/* Header */}
+//         <div
+//           style={{
+//             background: activeTheme?.menuColor,
+//             color: activeTheme?.iconColor,
+//             borderRadius: "5px",
+//             borderBottomLeftRadius: "0px",
+//             borderBottomRightRadius: "0px",
+//           }}
+//           className="flex rounded-md justify-between items-center px-2 py-1 "
+//         >
+//           <span className="text-sm font-semibold">Add Attachment</span>
+//           <IoMdCloseCircleOutline
+//             className="text-xl cursor-pointer"
+//             style={{ color: activeTheme?.iconColor }}
+//             onClick={() => setShowPopup(false)}
+//           />
+//         </div>
+
+//         {/* Input Field */}
+//         <TableHeader title={"Add Attachment"} />
+//         <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+//           <div className="p-2 flex flex-row gap-1 border-none">
+//             <FileUpload
+//               FileData={FileData}
+//               setFileData={setFileData}
+//               accept=".pdf"
+//               inputFields={{
+//                 label: "Upload",
+//                 Size: "10",
+//               }}
+//             />
+//             <SubmitButton
+//               submit={true}
+//               text={"Save"}
+//               style={{
+//                 width: "80px",
+//                 fontSize: "0.75rem",
+//                 backgroundColor: "red !important",
+//               }}
+//             />
+//           </div>
+//         </form>
+//         <DynamicTable
+//           rows={GetData?.data}
+//           name="Attchment Information"
+//           loading={GetData?.loading}
+//           tableStyle={{ marginBottom: "-25px" }}
+//           columns={columns}
+//         />
+//       </div>
+//     </div>
+//   );
+// };
 
 export const SampleCollectionRejectPopupModal = ({
   showPopup,
@@ -2103,6 +2322,8 @@ export const HistoResultTrackRemarkPopupModal = ({
   showPopup,
   setShowPopup,
   rowData,
+  setFlag = () => {},
+  Flag,
   handleTheUpdateStatusMenu,
 }) => {
   const { formRef, getValues, setValues } = useFormHandler();
@@ -2146,6 +2367,7 @@ export const HistoResultTrackRemarkPopupModal = ({
     if (response?.success) {
       toast.success(response?.message);
       setRefreshData((prev) => !prev);
+      setFlag(!Flag);
     } else {
       toast.info(response?.message);
     }

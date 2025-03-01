@@ -107,7 +107,7 @@ const DynamicTable = ({
                       background:
                         isHoveredTable === row?.id
                           ? activeTheme?.subMenuColor
-                          : row?.[rowcolor],
+                          : "",
                     }}
                   >
                     {columns?.map((col, idx) => (
