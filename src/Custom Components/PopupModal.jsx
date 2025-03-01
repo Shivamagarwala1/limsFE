@@ -11,13 +11,14 @@ import InputGenerator, {
 } from "./InputGenerator";
 import DynamicTable, { TableHeader } from "./DynamicTable";
 import { PopupTable } from "./PopupTable";
-import { getLocal } from "usehoks";
+import { Clipboard, getLocal } from "usehoks";
 import { useFormHandler } from "./useFormHandler";
 import { MdDelete } from "react-icons/md";
 import { NewPopupTable } from "./NewPopupTable";
 import { useGetData, usePostData } from "../service/apiService";
 import { toast } from "react-toastify";
 import FileUpload from "./FileUpload";
+import { ViewOrDownloandPDF } from "../service/RedendentData";
 
 const PopupModal = ({
   showPopup,
@@ -747,7 +748,7 @@ export const HistoHoldUnholdPopupModal = ({
   const PostData = usePostData();
   const hold = rowData?.hold === 1 ? "0" : "1";
   useEffect(() => {}, [PostData?.loading]);
-  console.log(rowData)
+  console.log(rowData);
   if (!showPopup) return null;
 
   const handleSubmit = async (e) => {
@@ -758,7 +759,10 @@ export const HistoHoldUnholdPopupModal = ({
     await PostData?.postRequest(
       `/tnx_Observations/ReportHoldUnHold?TestId=${rowData?.testId}&isHold=${hold}&holdBy=${lsData?.user?.employeeId}&holdReason=${values?.HoldReason}`
     );
-    console.log(values?.HoldReason,`/tnx_Observations/ReportHoldUnHold?TestId=${rowData?.testId}&isHold=${hold}&holdBy=${lsData?.user?.employeeId}&holdReason=${values?.HoldReason}`);
+    console.log(
+      values?.HoldReason,
+      `/tnx_Observations/ReportHoldUnHold?TestId=${rowData?.testId}&isHold=${hold}&holdBy=${lsData?.user?.employeeId}&holdReason=${values?.HoldReason}`
+    );
     if (PostData?.response && PostData.response.success) {
       toast.success(PostData.response.message);
       retreveTestData(rowData?.testId);
@@ -913,6 +917,220 @@ export const HistoApprovedPopupModal = ({
   );
 };
 
+// export const HistoFileUploadPopupModal = ({
+//   showPopup,
+//   setShowPopup,
+//   retreveTestData,
+//   rowData,
+// }) => {
+//   const activeTheme = useSelector((state) => state.theme.activeTheme);
+//   const [FileData, setFileData] = useState({ fileName: "" });
+//   const { formRef, getValues } = useFormHandler();
+//   const PostData = usePostData();
+//   const AddReportPostData = usePostData();
+//   const [show, setShow] = useState(false);
+//   const GetData = useGetData();
+//   const { copyToClipboard } = Clipboard();
+//   const lsData = getLocal("imarsar_laboratory");
+
+//   // Ensure hooks are called unconditionally
+//   useEffect(() => {
+//     if (showPopup) {
+//       GetData.fetchData(
+//         `/tnx_InvestigationAddReport?$filter=(testid eq ${rowData?.testId} and isactive eq 1)`
+//       );
+//     }
+//   }, [showPopup, rowData?.testId, show]); // Add dependencies to useEffect
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     if (!FileData || !FileData.fileData) {
+//       toast.error("No file selected!");
+//       return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append("Document", FileData.fileData);
+
+//     try {
+//       const response = await PostData.postRequest(
+//         `/empMaster/UploadDocument`,
+//         formData
+//       );
+//       if (response?.success) {
+//         toast.success(response.message);
+//         const filePath = response?.data?.filePath;
+//         if (filePath) {
+//           hide(filePath);
+//         } else {
+//           toast.error("File path missing in response.");
+//         }
+//         setShow(!show);
+//       } else {
+//         toast.error(response?.message || "An error occurred.");
+//       }
+//     } catch (error) {
+//       toast.error("Upload failed!");
+//       console.error("Upload Error:", error);
+//     }
+//   };
+
+//   const hide = async (filePath) => {
+//     setTimeout(() => {
+//       const payloadData = {
+//         testId: parseInt(rowData?.testId),
+//         attachment: filePath,
+//         isActive: 1,
+//         id: 0,
+//         createdById: parseInt(lsData?.user?.employeeId),
+//         createdDateTime: new Date().toISOString(),
+//       };
+
+//       AddReportPostData.postRequest(
+//         `/tnx_InvestigationAttchment/AddReport`,
+//         payloadData
+//       );
+//       setShow(!show);
+//     }, 100);
+//   };
+//   const columns = [
+//     {
+//       field: `attachment`,
+//       headerName: `Path`,
+//       // flex: 1,
+//       width: 100,
+//       renderCell: (params) => {
+//         return (
+//           <div
+//             onClick={() => {
+//               copyToClipboard(params?.row?.attachment);
+//               toast.success("Path Copied");
+//             }}
+//             style={{ justifyContent: "flex-start" }}
+//             className="flex justify-start items-start"
+//           >
+//             {params?.row?.attachment?.slice(0, 40)}
+//           </div>
+//         );
+//       },
+//     },
+//     {
+//       field: `id`,
+//       headerName: `Actions`,
+//       flex: 1,
+//       renderCell: (params) => {
+//         return (
+//           <div
+//             style={{ justifyContent: "flex-start" }}
+//             className="flex justify-center items-center"
+//           >
+//             <TwoSubmitButton
+//               options={[
+//                 {
+//                   callBack: () => {
+//                     ViewOrDownloandPDF(
+//                       `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+//                     );
+//                   },
+//                   submit: false,
+//                   label: "View",
+//                   style: { width: "50px" },
+//                 },
+//                 {
+//                   callBack: () => {
+//                     HandleDelete(params?.row);
+//                   },
+//                   submit: false,
+//                   label: "Delete",
+//                   style: { width: "50px" },
+//                 },
+//               ]}
+//             />
+//           </div>
+//         );
+//       },
+//     },
+//   ];
+
+//   const HandleDelete = async (params) => {
+//     // setShowPopup(false);
+//     setTimeout(() => {
+//       const payloadData = {
+//         ...params,
+//         isActive: 0,
+//         updateById: parseInt(lsData?.user?.employeeId),
+//         updateDateTime: new Date().toISOString(),
+//       };
+
+//       AddReportPostData.postRequest(
+//         `/tnx_InvestigationAttchment/AddReport`,
+//         payloadData
+//       );
+//       setShow(!show);
+//     }, 100);
+//   };
+//   return (
+//     <>
+//       {showPopup && (
+//         <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+//           <div className="w-96 bg-white rounded-md ">
+//             {/* Header */}
+//             <div
+//               style={{
+//                 background: activeTheme?.menuColor,
+//                 color: activeTheme?.iconColor,
+//                 borderRadius: "5px",
+//                 borderBottomLeftRadius: "0px",
+//                 borderBottomRightRadius: "0px",
+//               }}
+//               className="flex rounded-md justify-between items-center px-2 py-1 "
+//             >
+//               <span className="text-sm font-semibold">Add Report</span>
+//               <IoMdCloseCircleOutline
+//                 className="text-xl cursor-pointer"
+//                 style={{ color: activeTheme?.iconColor }}
+//                 onClick={() => setShowPopup(false)}
+//               />
+//             </div>
+
+//             {/* Input Field */}
+//             <TableHeader title={"Add Report"} />
+//             <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+//               <div className="p-2 flex flex-row gap-1 border-none">
+//                 <FileUpload
+//                   FileData={FileData}
+//                   setFileData={setFileData}
+//                   accept=".pdf"
+//                   inputFields={{
+//                     label: "Upload PDF",
+//                     Size: "10",
+//                   }}
+//                 />
+//                 <SubmitButton
+//                   submit={true}
+//                   text={"Save"}
+//                   style={{
+//                     width: "80px",
+//                     fontSize: "0.75rem",
+//                     backgroundColor: "red !important",
+//                   }}
+//                 />
+//               </div>
+//             </form>
+//             <DynamicTable
+//               rows={GetData?.data}
+//               name="Attchment Information"
+//               loading={GetData?.loading}
+//               tableStyle={{ marginBottom: "-25px" }}
+//               columns={columns}
+//             />
+//           </div>
+//         </div>
+//       )}
+//     </>
+//   );
+// };
+
 export const HistoFileUploadPopupModal = ({
   showPopup,
   setShowPopup,
@@ -924,8 +1142,23 @@ export const HistoFileUploadPopupModal = ({
   const { formRef, getValues } = useFormHandler();
   const PostData = usePostData();
   const AddReportPostData = usePostData();
+  const [show, setShow] = useState(false);
+  const GetData = useGetData();
+  const { copyToClipboard } = Clipboard();
+  const lsData = getLocal("imarsar_laboratory");
 
-  if (!showPopup) return null;
+  // Function to toggle 'show'
+  const toggleShow = () => {
+    setShow((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (showPopup) {
+      GetData.fetchData(
+        `/tnx_InvestigationAddReport?$filter=(testid eq ${rowData?.testId} and isactive eq 1)`
+      );
+    }
+  }, [showPopup, rowData?.testId, show]); // Dependency on 'show' to trigger re-fetch
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -942,12 +1175,11 @@ export const HistoFileUploadPopupModal = ({
         `/empMaster/UploadDocument`,
         formData
       );
-
       if (response?.success) {
         toast.success(response.message);
         const filePath = response?.data?.filePath;
         if (filePath) {
-          hide(filePath);
+          await hide(filePath);
         } else {
           toast.error("File path missing in response.");
         }
@@ -961,70 +1193,148 @@ export const HistoFileUploadPopupModal = ({
   };
 
   const hide = async (filePath) => {
-    setShowPopup(false);
-    console.log(rowData);
-    setTimeout(() => {
+    setTimeout(async () => {
       const payloadData = {
-        testId: rowData?.testId,
+        testId: parseInt(rowData?.testId),
         attachment: filePath,
+        isActive: 1,
+        id: 0,
+        createdById: parseInt(lsData?.user?.employeeId),
+        createdDateTime: new Date().toISOString(),
       };
 
-      AddReportPostData.postRequest(
+      await AddReportPostData.postRequest(
         `/tnx_InvestigationAttchment/AddReport`,
         payloadData
       );
+      toggleShow(); // Trigger re-fetch after adding report
     }, 100);
   };
-  return (
-    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
-      <div className="w-96 bg-white rounded-md ">
-        {/* Header */}
-        <div
-          style={{
-            background: activeTheme?.menuColor,
-            color: activeTheme?.iconColor,
-            borderRadius: "5px",
-            borderBottomLeftRadius: "0px",
-            borderBottomRightRadius: "0px",
-          }}
-          className="flex rounded-md justify-between items-center px-2 py-1 "
-        >
-          <span className="text-sm font-semibold">
-            Add Report
-          </span>
-          <IoMdCloseCircleOutline
-            className="text-xl cursor-pointer"
-            style={{ color: activeTheme?.iconColor }}
-            onClick={() => setShowPopup(false)}
-          />
-        </div>
 
-        {/* Input Field */}
-        <TableHeader title={"Add Report"} />
-        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-          <div className="p-2 flex flex-row gap-1 border-none">
-            <FileUpload
-              FileData={FileData}
-              setFileData={setFileData}
-              accept=".pdf"
-              inputFields={{
-                label: "Upload PDF",
-                Size: "10",
-              }}
-            />
-            <SubmitButton
-              submit={true}
-              text={"Save"}
+  const HandleDelete = async (params) => {
+    setTimeout(async () => {
+      const payloadData = {
+        ...params,
+        isActive: 0,
+        updateById: parseInt(lsData?.user?.employeeId),
+        updateDateTime: new Date().toISOString(),
+      };
+
+      await AddReportPostData.postRequest(
+        `/tnx_InvestigationAttchment/AddReport`,
+        payloadData
+      );
+      toggleShow(); // Trigger re-fetch after deleting
+    }, 100);
+  };
+
+  return (
+    <>
+      {showPopup && (
+        <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+          <div className="w-96 bg-white rounded-md ">
+            {/* Header */}
+            <div
               style={{
-                width: "80px",
-                fontSize: "0.75rem",
-                backgroundColor: "red !important",
+                background: activeTheme?.menuColor,
+                color: activeTheme?.iconColor,
+                borderRadius: "5px",
+                borderBottomLeftRadius: "0px",
+                borderBottomRightRadius: "0px",
               }}
+              className="flex rounded-md justify-between items-center px-2 py-1 "
+            >
+              <span className="text-sm font-semibold">Add Report</span>
+              <IoMdCloseCircleOutline
+                className="text-xl cursor-pointer"
+                style={{ color: activeTheme?.iconColor }}
+                onClick={() => setShowPopup(false)}
+              />
+            </div>
+
+            {/* Input Field */}
+            <TableHeader title={"Add Report"} />
+            <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+              <div className="p-2 flex flex-row gap-1 border-none">
+                <FileUpload
+                  FileData={FileData}
+                  setFileData={setFileData}
+                  accept=".pdf"
+                  inputFields={{
+                    label: "Upload PDF",
+                    Size: "10",
+                  }}
+                />
+                <SubmitButton
+                  submit={true}
+                  text={"Save"}
+                  style={{
+                    width: "80px",
+                    fontSize: "0.75rem",
+                    backgroundColor: "red !important",
+                  }}
+                />
+              </div>
+            </form>
+            <DynamicTable
+              rows={GetData?.data}
+              name="Attchment Information"
+              loading={GetData?.loading}
+              tableStyle={{ marginBottom: "-25px" }}
+              columns={[
+                {
+                  field: `attachment`,
+                  headerName: `Path`,
+                  width: 100,
+                  renderCell: (params) => (
+                    <div title="Copy Path"
+                      onClick={() => {
+                        copyToClipboard(params?.row?.attachment);
+                        toast.success("Path Copied");
+                      }}
+                      className="flex justify-start items-start"
+                    >
+                      {params?.row?.attachment?.slice(0, 40)}
+                    </div>
+                  ),
+                },
+                {
+                  field: `id`,
+                  headerName: `Actions`,
+                  flex: 1,
+                  renderCell: (params) => (
+                    <div className="flex justify-center items-center">
+                      <TwoSubmitButton
+                        options={[
+                          {
+                            callBack: () => {
+                              ViewOrDownloandPDF(
+                                `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+                              );
+                            },
+                            submit: false,
+                            label: "View",
+                            style: { width: "50px" },
+                          },
+                          {
+                            callBack: () => {
+                              HandleDelete(params?.row);
+                            },
+                            submit: false,
+                            label: "Delete",
+                            style: { width: "50px" },
+                          },
+                        ]}
+                      />
+                    </div>
+                  ),
+                },
+              ]}
             />
           </div>
-        </form>
-      </div>
-    </div>
+        </div>
+      )}
+    </>
   );
 };
 
@@ -1037,8 +1347,21 @@ export const HistoAddAttachmentPopupModal = ({
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [FileData, setFileData] = useState({ fileName: "" });
   const { formRef, getValues } = useFormHandler();
+  const [show, setShow] = useState(false);
   const PostData = usePostData();
+  const GetData = useGetData();
   const AddReportPostData = usePostData();
+  const { copyToClipboard } = Clipboard();
+  const lsData = getLocal("imarsar_laboratory");
+
+  // Ensure hooks are called unconditionally
+  useEffect(() => {
+    if (showPopup) {
+      GetData.fetchData(
+        `/tnx_InvestigationAttchment?$filter=(testid eq ${rowData?.testId} and isactive eq 1)`
+      );
+    }
+  }, [showPopup, rowData?.testId, show]); // Add dependencies to useEffect
 
   if (!showPopup) return null;
 
@@ -1076,20 +1399,102 @@ export const HistoAddAttachmentPopupModal = ({
   };
 
   const hide = async (filePath) => {
-    setShowPopup(false);
+    // setShowPopup(false);
     console.log(rowData);
     setTimeout(() => {
       const payloadData = {
-        testId: rowData?.testId,
+        testId: parseInt(rowData?.testId),
         attachment: filePath,
+        isActive: 1,
+        id: 0,
+        createdById: parseInt(lsData?.user?.employeeId),
+        createdDateTime: new Date().toISOString(),
       };
 
       AddReportPostData.postRequest(
         `/tnx_InvestigationAttchment/AddAttchment`,
         payloadData
       );
+      setShow(!show);
     }, 100);
   };
+
+  const HandleDelete = async (params) => {
+    // setShowPopup(false);
+    setTimeout(() => {
+      const payloadData = {
+        ...params,
+        isActive: 0,
+        updateById: parseInt(lsData?.user?.employeeId),
+        updateDateTime: new Date().toISOString(),
+      };
+
+      AddReportPostData.postRequest(
+        `/tnx_InvestigationAttchment/AddAttchment`,
+        payloadData
+      );
+      setShow(!show);
+    }, 100);
+  };
+  const columns = [
+    {
+      field: `attachment`,
+      headerName: `Path`,
+      // flex: 1,
+      width: 100,
+      renderCell: (params) => {
+        return (
+          <div
+            onClick={() => {
+              copyToClipboard(params?.row?.attachment);
+              toast.success("Path Copied");
+            }}
+            style={{ justifyContent: "flex-start" }}
+            className="flex justify-start items-start"
+          >
+            {params?.row?.attachment?.slice(0, 40)}
+          </div>
+        );
+      },
+    },
+    {
+      field: `id`,
+      headerName: `Actions`,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div
+            style={{ justifyContent: "flex-start" }}
+            className="flex justify-center items-center"
+          >
+            <TwoSubmitButton
+              options={[
+                {
+                  callBack: () => {
+                    ViewOrDownloandPDF(
+                      `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+                    );
+                  },
+                  submit: false,
+                  label: "View",
+                  style: { width: "50px" },
+                },
+                {
+                  callBack: () => {
+                    HandleDelete(params?.row);
+                  },
+                  submit: false,
+                  label: "Delete",
+                  style: { width: "50px" },
+                },
+              ]}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
       <div className="w-96 bg-white rounded-md ">
@@ -1104,9 +1509,7 @@ export const HistoAddAttachmentPopupModal = ({
           }}
           className="flex rounded-md justify-between items-center px-2 py-1 "
         >
-          <span className="text-sm font-semibold">
-            Add Attachment
-          </span>
+          <span className="text-sm font-semibold">Add Attachment</span>
           <IoMdCloseCircleOutline
             className="text-xl cursor-pointer"
             style={{ color: activeTheme?.iconColor }}
@@ -1115,7 +1518,7 @@ export const HistoAddAttachmentPopupModal = ({
         </div>
 
         {/* Input Field */}
-        <TableHeader title={'Add Attachment'} />
+        <TableHeader title={"Add Attachment"} />
         <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
           <div className="p-2 flex flex-row gap-1 border-none">
             <FileUpload
@@ -1138,6 +1541,13 @@ export const HistoAddAttachmentPopupModal = ({
             />
           </div>
         </form>
+        <DynamicTable
+          rows={GetData?.data}
+          name="Attchment Information"
+          loading={GetData?.loading}
+          tableStyle={{ marginBottom: "-25px" }}
+          columns={columns}
+        />
       </div>
     </div>
   );
