@@ -924,7 +924,7 @@ export const updateEditInfoApi = async (updatedEditInfo) => {
     return response?.data;
 }
 
-//get edit info
+//get edit test
 export const getSingleEditTestApi = async (searchVal) => {
 
     const response = await privateAxios.get(`/tnx_BookingItem/GetPatientEditTest?searchValue=${searchVal}`);
@@ -932,6 +932,13 @@ export const getSingleEditTestApi = async (searchVal) => {
     return response.data;
 }
 
+//update edit test
+export const updateEditTestApi = async (listofEditTest) => {
+
+    const response = await privateAxios.post(`/tnx_BookingItem/UpdatePatientTest`, listofEditTest);
+
+    return response.data;
+}
 
 //get old patient
 export const getOldPatientApi = async (searchVal) => {

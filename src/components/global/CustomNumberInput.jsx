@@ -6,7 +6,7 @@ export const CustomNumberInput = ({
     value = "",
     onChange,
     label = "Change your Label Name",
-    readonly = false,
+    readOnly = false,
     isDisabled = false,
     maxLength = 10, // Default maxLength to 10
 }) => {
@@ -56,7 +56,7 @@ export const CustomNumberInput = ({
                 placeholder=" "
                 maxLength={maxLength} // Prevent users from typing more characters
                 disabled={isDisabled}
-                readOnly={readonly}
+                readOnly={readOnly}
                 className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed"
                     : "bg-white"
