@@ -160,7 +160,7 @@ export default function PatientRegistration() {
     const [patientRegistrationForEditInfoDataError, setPatientRegistrationForEditInfoDataError] = useState([]);
     const [patientRegistrationForEditTestDataError, setPatientRegistrationForEditTestDataError] = useState([]);
 
-    const [selectCurrencyValue, setSelectCurrencyValue] = useState('');
+    const [selectCurrencyValue, setSelectCurrencyValue] = useState('1');
 
     const [selectedInvastigationList, setSelectedInvastigationList] = useState([]);
     const [allCentreData, setAllCentreData] = useState([]);
@@ -548,7 +548,6 @@ export default function PatientRegistration() {
 
     const handelOnChangePatientRegistration = (event) => {
 
-
         setPatientRegistrationData((preventData) => ({
             ...preventData,
             [event?.target?.name]: event?.target?.value
@@ -556,20 +555,15 @@ export default function PatientRegistration() {
     }
 
 
-    const handelOnChangePatientRegistrationForSelect = (event) => {
-        setPatientRegistrationSelectData((preventData) => ({
-            ...preventData,
-            [event.target.name]: event.target.value
-        }))
-    }
-
 
     const handleCheckboxChange = (index, isChecked) => {
+
         setinvestigationGridData((prevData) =>
             prevData.map((item, idx) =>
                 idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
             )
         );
+
     };
 
 
@@ -772,15 +766,19 @@ export default function PatientRegistration() {
                         }, null);
 
 
+                        //find out the test name is exit or not
+                        let isDuplicateData = investigationGridData?.some((item) => item?.itemId === result?.itemId);
+
+
+                        if (isDuplicateData) {
+                            toast.info("Item already selected. Choose another.")
+                            return;
+                        }
+
                         // Use a functional update for setState to check for duplicates
-                        let isDuplicate = false;
+
                         setinvestigationGridData((prevData) => {
 
-                            isDuplicate = prevData.some((item) => item.itemId === result.itemId);
-                            if (isDuplicate) {
-
-                                return prevData; // No changes if duplicate
-                            }
                             const updateedData = {
                                 ...result,
                                 discount: (result?.netAmt - patientRegistrationData?.discountPercentage) / 100 || 0
@@ -789,10 +787,6 @@ export default function PatientRegistration() {
                             return [...prevData, updateedData];
                         });
 
-                        // Show toast if duplicate is detected
-                        if (isDuplicate) {
-                            toast.error("Duplicate item selected. Please select a different item.");
-                        }
 
                         //===============need to check for discount ===================
                         // setinvestigationGridData((prevData) => {
@@ -979,7 +973,7 @@ export default function PatientRegistration() {
 
                 setPatientRegistrationData((preventData) => ({
                     ...preventData,
-                    refID1: response[0]?.doctorId
+                    refID1: response[0]
                 }))
                 setAllReferData(response);
 
@@ -1004,7 +998,7 @@ export default function PatientRegistration() {
 
     const [changePartiCularDiscount, setChangeParticularDiscount] = useState(0);
 
-    
+
     // Copy `investigationGridData?.discount` initially
     useEffect(() => {
         if (investigationGridData?.discount?.length) {
@@ -1197,8 +1191,54 @@ export default function PatientRegistration() {
     };
 
     // Function to handle barcode input change
+    // const handleInputChangeForPopUpGridData = (rowId, value) => {
+
+    //     setGridDataBarCodeandSampleType((prevState) => {
+
+    //         console.log(prevState);
+
+
+    //         // Preserve barCode values while updating only the changed row
+    //         const updatedBarCode = prevState.barCode.map(item =>
+    //             item.itemId === rowId ? { ...item, name: value } : item
+    //         );
+
+    //         const isBarCodePresent = prevState.barCode.some(item => item.itemId === rowId);
+    //         if (!isBarCodePresent) {
+    //             updatedBarCode.push({ itemId: rowId, name: value });
+    //         }
+
+    //         console.log(updatedBarCode);
+
+
+    //         return { ...prevState, barCode: updatedBarCode };
+
+    //     });
+
+    //     console.log(gridDataBarCodeandSampleType);
+
+    //     // Automatically check if there's a barcode entered
+    //     setCheckedItems((prev) => ({
+    //         ...prev,
+    //         [itemId]: value.length > 0, // Check if barcode is not empty
+    //     }));
+    // };
+
+
     const handleInputChangeForPopUpGridData = (rowId, value) => {
+        // Update the barCode state in the gridDataBarCodeandSampleType state
+        // setGridDataBarCodeandSampleType((prevState) => ({
+        //     ...prevState,
+        //     barCode: [
+        //         ...prevState.barCode, // Spread the existing barCode array
+        //         { itemId, name: newBarcodeValue } // Add the new object with itemId and barcode value (name)
+        //     ]
+        // }));
+
         setGridDataBarCodeandSampleType((prevState) => {
+
+            console.log(prevState);
+
 
             // Preserve barCode values while updating only the changed row
             const updatedBarCode = prevState.barCode.map(item =>
@@ -1210,16 +1250,24 @@ export default function PatientRegistration() {
                 updatedBarCode.push({ itemId: rowId, name: value });
             }
 
+            console.log(updatedBarCode);
+
+
             return { ...prevState, barCode: updatedBarCode };
 
         });
 
-        // Automatically check if there's a barcode entered
-        setCheckedItems((prev) => ({
-            ...prev,
-            [itemId]: value.length > 0, // Check if barcode is not empty
+
+        console.log(gridDataBarCodeandSampleType);
+
+        // Automatically check the checkbox when barcode is entered
+        setCheckedItems((prevCheckedItems) => ({
+            ...prevCheckedItems,
+            [itemId]: value.trim() !== "",  // If barcode is not empty, check the checkbox
         }));
     };
+
+
 
 
     //console.log(gridDataBarCodeandSampleType?.barCode);
@@ -1457,6 +1505,8 @@ export default function PatientRegistration() {
             setIsButtonClick(0);
             return;
         }
+
+
 
         try {
             const response = await savePatientRegistrationDataApi(updatedData);
@@ -4143,7 +4193,7 @@ export default function PatientRegistration() {
                                                                         <input
                                                                             type="checkbox"
                                                                             id={`checkbox-${rowIndex}`}
-                                                                            checked={data?.isUrgent === '1'} // Checkbox checked if isUrgent is 1
+                                                                            checked={data?.isUrgent === 1} // Checkbox checked if isUrgent is 1
                                                                             onChange={(e) => handleCheckboxChange(rowIndex, e.target.checked)}
                                                                         />
 
@@ -4250,7 +4300,6 @@ Currency
                                                         label="Select Currency"
                                                         value={selectCurrencyValue || ''}
                                                         options={[
-                                                            { label: 'Select Option', value: '', disabled: true },
                                                             { label: 'INR', value: '1' },
                                                             { label: 'USD', value: '2' },
                                                         ]}
@@ -4927,7 +4976,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                 {
                                     parseInt(patientRegistrationData?.billingType) === 1 && (
                                         <>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2 ">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-3  mx-1 lg:mx-2 ">
 
                                                 <div className='flex gap-[0.25rem] '>
                                                     <div className="relative flex-1 flex justify-start items-center">
@@ -6446,7 +6495,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                     <select
                                                                         className="border rounded px-1 w-full outline-none"
                                                                         onChange={(e) => handleSampleTypeChange(e, rowIndex, data?.itemType)}
-                                                                        defaultValue={0}
+                                                                        defaultValue={data?.sampleTypeName?.[0] || 0} // Set to the first value in the array
                                                                     >
                                                                         <option value={0} disabled hidden className="text-gray-400">
                                                                             Select Option
@@ -6457,6 +6506,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                             </option>
                                                                         ))}
                                                                     </select>
+
                                                                 </td>
 
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
@@ -6479,6 +6529,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                         onChange={() => handleCheckboxChange123(data?.itemId)} // Allow manual toggle
                                                                     />
                                                                 </td>
+
 
                                                             </tr>
                                                         );
