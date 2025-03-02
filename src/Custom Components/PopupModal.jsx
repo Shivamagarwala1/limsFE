@@ -1794,7 +1794,7 @@ export const SampleCollectionRejectPopupModal = ({
     e.preventDefault();
     const values = getValues();
     const lsData = getLocal("imarsar_laboratory");
-
+    console.log(values);
     const payload = {
       ...rowData,
       rejectionReason: values?.RejectionReason,
@@ -1805,6 +1805,7 @@ export const SampleCollectionRejectPopupModal = ({
     console.log(values);
     if (PostData?.response?.success) {
       toast.success(PostData?.response?.message);
+      // alert(values?.RejectionReason)
       setReason(null);
     } else {
       toast.info(PostData?.response?.message);
@@ -1842,7 +1843,7 @@ export const SampleCollectionRejectPopupModal = ({
                 {
                   label: "RejectionReason",
                   type: "select",
-                  name: "Rejection Reason",
+                  name: "RejectionReason",
                   keyField: "rejectionReason",
                   required: true,
                   dataOptions: AllCenterData?.data,
@@ -2066,7 +2067,7 @@ export const SampleCollectionRemarkPopupModal = ({
     const lsData = getLocal("imarsar_laboratory");
     const payload = {
       itemName: rowData?.investigationName,
-      isActive: 1,
+      isActive: 0,
       id: 0,
       itemId: rowData?.itemId,
       workOrderId: rowData?.workOrderId,
@@ -2075,9 +2076,10 @@ export const SampleCollectionRemarkPopupModal = ({
       isInternal: parseInt(values?.isInternal),
       remark: values?.invRemarks,
       createdById: parseInt(lsData?.user?.employeeId),
+      createdDateTime: new Date().toISOString(),
     };
     console.log("Form values:", values);
-    PostData?.postRequest("/tnx_InvestigationRemarks/AddSampleremark", payload);
+    PostData?.postRequest("/tnx_InvestigationRemarks/AddSampleremark", [payload]);
     if (PostData?.response?.success) {
       toast.success(PostData?.response?.message);
       setRefreshData((prev) => !prev); // Trigger re-fetching of data

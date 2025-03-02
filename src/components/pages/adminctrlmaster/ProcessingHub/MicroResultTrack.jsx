@@ -30,8 +30,11 @@ import {
   SampleCollectionCommentPopupModal,
 } from "../../../../Custom Components/PopupModal";
 import AntibioticTable from "../../../../Custom Components/AntibioticTable";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 export default function MicroResultTrack() {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
   const SaveForm = useFormHandler();
@@ -58,6 +61,7 @@ export default function MicroResultTrack() {
   const [CurrentId, setCurrentId] = useState(0);
   const [RemarkPopup, setRemarkPopup] = useState(false);
   const [HoldUnHold, setHoldUnHold] = useState(false);
+  const [Flag, setFlag] = useState(false);
   const [FileUploadPopupModal, setFileUploadPopupModal] = useState(false);
   const [AddAttachmentPopupModal, setAddAttachmentPopupModal] = useState(false);
   const [HoldUnHoldDetails, setHoldUnHoldDetails] = useState({});
@@ -94,7 +98,7 @@ export default function MicroResultTrack() {
       "/labDepartment?select=id,deptname&$filter=(isactive eq 1)"
     );
     // console.log(AllCenterData);
-  }, []);
+  }, [Flag]);
 
   // const splitedArray = getAntibioticData?.data?.data || [];
   useEffect(() => {
@@ -332,10 +336,10 @@ export default function MicroResultTrack() {
       const res = await retreveTest?.fetchData(
         `/tnx_Booking/GetMicroresult?testid=${id}`
       );
-      console.log("Retrieving test data for ID:", id);
+      console.log(res);
 
-      if (res?.data?.data?.length > 0) {
-        const testData = res.data.data[0];
+      if (res?.data?.data) {
+        const testData = res.data.data;
         setHistoObservation(testData);
 
         const filterDr = Signature?.data?.data.find(
@@ -347,20 +351,9 @@ export default function MicroResultTrack() {
         } else {
           console.warn("Doctor not found for ID:", testData?.appcovaldoctorId);
         }
-        await getAntibioticData?.fetchData(
-          `/organismAntibioticTagMaster/OrganismAntibioticeTagging?OrganismId=${testData.organismId}`
-        );
-
-        // const ThirdArr = await mergeArrays(
-        //   retreveTest?.data?.data,
-        //   getAntibioticData?.data?.data
+        // await getAntibioticData?.fetchData(
+        //   `/organismAntibioticTagMaster/OrganismAntibioticeTagging?OrganismId=${testData.organismId}`
         // );
-        // console.log(retreveTest?.data?.data, getAntibioticData?.data?.data);
-        // const mData = await splitArrayInTwo(ThirdArr);
-        // setThirdArr({
-        //   FirstHalf: mData?.FirstHalf,
-        //   SecondHalf: mData?.SecondHalf,
-        // });
         SaveForm?.setValues([
           {
             reportStatus: testData.intrim,
@@ -368,13 +361,11 @@ export default function MicroResultTrack() {
             comments: testData.comments || "",
             Organism: testData.organismId || "",
             Template: testData.result || "",
-            stainsPerformed: testData.stainsPerformed || "",
-            comment: testData.comment || "",
-            appcovaldoctorId: testData.approvalDoctor || "",
           },
         ]);
 
         setEditorContent(testData?.result);
+        setOrganism(testData?.organismMapped);
       } else {
         console.warn("No data found for test ID:", id);
         SaveForm?.setValues([
@@ -497,22 +488,31 @@ export default function MicroResultTrack() {
 
   const handleSave = async (event) => {
     event.preventDefault();
+    console.log(UserObj, " mm ", OrganismPostObj);
     const values = SaveForm?.getValues();
     const payload = {
       ...values,
-      ...UserObj,
-      ...OrganismPostObj,
-      selectedAntibiotic: selectedAntibiotic,
+      id: 0,
+      testId: Row?.testid,
+      observationName: UserObj?.investigationName,
+      transactionId: UserObj?.transactionId,
+      approvedBy: 0,
+      approvedName: lsData?.user?.name,
+      isApproved: 0,
+      appcovaldoctorId: 0,
+      selectedorganism: Organism,
       result: editorContent,
-      createdBy: lsData?.user?.employeeId,
+      createdBy: lsData?.user?.name,
+      createdById: parseInt(lsData?.user?.employeeId),
     };
     const res = await SavePostData?.postRequest(
       "/tnx_BookingItem/SaveMicroResult",
       payload
     );
-    console.log(payload);
+    console.log(res);
     if (res?.success) {
       toast.success(res?.message);
+      // alert(res?.message);
       setHistoObservation(null);
     } else {
       toast.error(res?.message);
@@ -529,26 +529,99 @@ export default function MicroResultTrack() {
   };
   const organismCallBack = async (e) => {
     const data = OrganismData?.data?.find((item) => item?.id == e.target.value);
-    
+
     // Check if the organism already exists to prevent infinite loop
-    if (!Organism.some(org => org.organismId === data?.id)) {
-        setOrganismPostObj({
-            organismId: data?.id,
-            organismName: data?.organismAntibiotic,
-        });
-        setOrganism((prev) => [
-            ...prev,
-            {
-                organismId: data.id,
-                organismName: data.organismAntibiotic,
-            },
-        ]);
+    if (!Organism.some((org) => org.organismId === data?.id)) {
+      setOrganismPostObj({
+        organismId: data?.id,
+        organismName: data?.organismAntibiotic,
+      });
+      setOrganism((prev) => [
+        ...prev,
+        {
+          organismId: data.id,
+          organismName: data.organismAntibiotic,
+        },
+      ]);
     }
 
     await getAntibioticData?.fetchData(
-        `/organismAntibioticTagMaster/OrganismAntibioticeTagging?OrganismId=${e.target.value}`
+      `/organismAntibioticTagMaster/OrganismAntibioticeTagging?OrganismId=${e.target.value}`
     );
   };
+  const ApproveCase = async () => {
+    
+    if (!ApprovedDocId) {
+      toast.error("Please select Doctor Signature");
+      return;
+    }
+  
+    try {
+      const payload = {
+        isApproved: 1,
+        testId: Row?.testid,
+        observationName: UserObj?.investigationName,
+        transactionId: UserObj?.transactionId,
+        appcovaldoctorId: ApprovedDocId,
+        approvedName: lsData?.user?.name,
+        approvedBy: lsData?.user?.employeeId,
+        result: editorContent,
+        selectedorganism: Organism,
+        createdBy: lsData?.user?.name,
+        hold: 0,
+      };
+  
+      const { data } = await axios.post(
+        `${BASE_URL}/tnx_BookingItem/SaveMicroResult`,
+        payload
+      );
+  
+      if (data?.success) {
+        toast.success(data.message);
+        console.log("Payload Sent:", payload);
+        setFlag((prev) => !prev);
+        retreveTestData(HistoObservation?.testId);
+      } else {
+        toast.error(data?.message || "Approval failed");
+      }
+    } catch (error) {
+      console.error("Approval Error:", error);
+      toast.error("Something went wrong, please try again.");
+    }
+  };
+  // const ApproveCase = async () => {
+  //   if (!ApprovedDocId) {
+  //     toast.error("Please select Doctor Signature");
+  //     return;
+  //   }
+  //   const payload = {
+  //     isApproved: 1,
+  //     testId: Row?.testid,
+  //     observationName: UserObj?.investigationName,
+  //     transactionId: UserObj?.transactionId,
+  //     appcovaldoctorId: ApprovedDocId,
+  //     approvedName: lsData?.user?.name,
+  //     approved: 1,
+  //     result: editorContent,
+  //     selectedorganism:Organism,
+  //     approvedBy: lsData?.user?.employeeId,
+  //     isApproved: 1,
+  //     createdBy: lsData?.user?.name,
+  //     hold: 0,
+  //   };
+  //   const res = await SavePostData?.postRequest(
+  //     "/tnx_BookingItem/SaveMicroResult",
+  //     payload
+  //   );
+  //   if (res?.success) {
+  //     toast.success(res?.message);
+  //     console.log(payload);
+  //     setFlag(!Flag);
+  //     retreveTestData(HistoObservation?.testId);
+  //   } else {
+  //     toast.error(res?.message);
+  //   }
+  // };
   console.log(Organism);
   return (
     <div>
@@ -822,7 +895,9 @@ export default function MicroResultTrack() {
                       callBack={() => {
                         // add logic to delete organism
                         setOrganism((prev) =>
-                          prev.filter((org) => org.organismId !== item.organismId)
+                          prev.filter(
+                            (org) => org.organismId !== item.organismId
+                          )
                         );
                       }}
                       text={`Delete ${item?.organismName}`}
@@ -832,6 +907,7 @@ export default function MicroResultTrack() {
               </div>
               <AntibioticTables
                 Organism={Organism}
+                setOrganism={setOrganism}
                 ThirdArr={getAntibioticData?.data?.data}
               />
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-2 mx-1 lg:mx-2">
@@ -871,6 +947,28 @@ export default function MicroResultTrack() {
                           : "Approved",
                       submit: false,
                       callBack: () => {
+                        const ReportNotApprove = async () => {
+                          try {
+                            const { data } = await axios.post(`${BASE_URL}/tnx_Observations/ReportNotApprove`, null, {
+                              params: {
+                                TestId: HistoObservation?.testId,
+                                userid: lsData?.user?.employeeId,
+                              },
+                            });
+                        
+                            console.log("API Response:", data);
+                        
+                            if (data?.success) {
+                              toast.success(data.message);
+                              setFlag((prev) => !prev);
+                            } else {
+                              toast.error(data?.message || "Action failed");
+                            }
+                          } catch (error) {
+                            console.error("Report Not Approve Error:", error);
+                            toast.error("Something went wrong, please try again.");
+                          }
+                        };
                         console.log(
                           HistoObservation?.isApproved === 1
                             ? "Not Approved clicked"
@@ -878,14 +976,16 @@ export default function MicroResultTrack() {
                         );
                         retreveTestData(HistoObservation?.testId);
                         if (HistoObservation?.isApproved === 1) {
-                          ApprovedPostData?.postRequest(
-                            `/tnx_Observations/ReportNotApprove?TestId=${HistoObservation?.testId}&userid=${lsData?.user?.employeeId}`
-                          );
-                          console.log(ApprovedPostData.response);
-                          toast.success(ApprovedPostData.response.message);
+                          // ApprovedPostData?.postRequest(
+                          //   `/tnx_Observations/ReportNotApprove?TestId=${HistoObservation?.testId}&userid=${lsData?.user?.employeeId}`
+                          // );
+                          // console.log(ApprovedPostData.response);
+                          // toast.success(ApprovedPostData.response.message);
+                          ReportNotApprove();
                         } else {
                           ApproveCase();
                         }
+                        
                       },
                     },
                   ]}
@@ -986,36 +1086,7 @@ export default function MicroResultTrack() {
   );
 }
 
-// const AntibioticMainTables = ({ Organism, ThirdArr }) => {
-//   // const [selectedAntibiotic, setSelectedAntibiotic] = useState([]);
-//   // Ensure the Organism array has an even length
-//   // const adjustedOrganism = [...Organism];
-//   // const isOdd = adjustedOrganism.length % 2 !== 0;
-
-//   // if (isOdd) {
-//   //   adjustedOrganism.push(null); // Push a null placeholder
-//   // }
-
-//   // const groupedOrganisms = adjustedOrganism.reduce((acc, _, index, array) => {
-//   //   if (index % 2 === 0) {
-//   //     acc.push(array.slice(index, index + 2)); // Group every two items
-//   //   }
-//   //   return acc;
-//   // }, []);
-
-//   return (
-//     <div className="flex flex-col gap-2">
-//       {Organism?.map((item) => (
-//         <AntibioticTables
-//           item={item}
-//           key={item?.id}
-//         />
-//       ))}
-//     </div>
-//   );
-// };
-
-const AntibioticTables = ({ Organism, ThirdArr }) => {
+const AntibioticTables = ({ Organism, setOrganism, ThirdArr }) => {
   // Ensure the Organism array has an even length
   const adjustedOrganism = [...Organism];
   const isOdd = adjustedOrganism.length % 2 !== 0;
@@ -1042,7 +1113,8 @@ const AntibioticTables = ({ Organism, ThirdArr }) => {
             item ? (
               <Suspense key={itemIdx} fallback={<div>Loading Table...</div>}>
                 <AntibioticTable
-                  data={ThirdArr}
+                  Organism={Organism}
+                  setOrganism={setOrganism}
                   // selectedAntibiotic={selectedAntibiotic}
                   // setSelectedAntibiotic={setSelectedAntibiotic}
                   item={item}

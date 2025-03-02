@@ -90,6 +90,16 @@ export default function SampleCollection() {
       field: `patientName`,
       headerName: `Patient Name`,
       flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span style={{ fontSize: "10px" }}>{params?.row?.patientName}</span>
+            <span style={{ fontSize: "7px", fontWeight: "700" }}>
+              {params?.row?.createdDateTime}
+            </span>
+          </div>
+        );
+      },
     },
     {
       field: `age`,
@@ -147,7 +157,7 @@ export default function SampleCollection() {
             <InputGenerator
               inputFields={[
                 {
-                  defaultView:true,
+                  defaultView: true,
                   type: "select",
                   value: sampleTypeId,
                   callBack: (e) => {
@@ -222,9 +232,16 @@ export default function SampleCollection() {
               }
             />
             {params?.row?.isSampleCollected === "S" ||
-            params?.row?.isSampleCollected === "Y"
-              ? "Collected"
-              : "Not Collected"}
+            params?.row?.isSampleCollected === "Y" ? (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "10px" }}>Collected</span>
+                <span style={{ fontSize: "7px", fontWeight: "700" }}>
+                  {params?.row?.samplecollectiondate}
+                </span>
+              </div>
+            ) : (
+              "Not Collected"
+            )}
           </div>
         );
       },
@@ -268,9 +285,16 @@ export default function SampleCollection() {
                 );
               }}
             />
-            {params?.row?.isSampleCollected === "Y"
-              ? "Received"
-              : "Not Received"}
+            {params?.row?.isSampleCollected === "Y" ? (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontSize: "10px" }}>Received</span>
+                <span style={{ fontSize: "7px", fontWeight: "700" }}>
+                  {params?.row?.sampleRecievedDate}
+                </span>
+              </div>
+            ) : (
+              "Not Received"
+            )}
           </div>
         );
       },
@@ -281,7 +305,7 @@ export default function SampleCollection() {
       flex: 1,
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "20px" }}>
+          <div title={params?.row?.rejectionReason} style={{ display: "flex", gap: "20px" }}>
             <SubmitButton
               submit={false}
               text={"R"}
@@ -335,12 +359,12 @@ export default function SampleCollection() {
         const rowId = params.row.id;
         const isShown = showStates[rowId] || false;
 
-        const hideComment = ()=>{
+        const hideComment = () => {
           setShowStates((prev) => ({
             ...prev,
             [rowId]: !isShown,
           }));
-        }
+        };
         return (
           <>
             <SampleCollectionCommentPopupModal
