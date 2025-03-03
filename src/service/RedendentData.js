@@ -109,3 +109,47 @@ export function mergeArrays(arrayOne, arrayTwo) {
     };
   });
 }
+
+
+export const ViewImage = async (api) => {
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const lsData = getLocal("imarsar_laboratory");
+
+  try {
+    // Retrieve the token from localStorage
+    const token = lsData?.token;
+
+    if (!token) {
+      console.error("Token not found. Please log in.");
+      return null;
+    }
+
+    // Perform the GET request to fetch the image
+    const response = await axios.get(`${BASE_URL}${api}`, {
+      responseType: "blob", // To handle binary response
+      headers: {
+        Accept: "*/*",
+        Authorization: `Bearer ${token}`, // Add the token to Authorization header
+      },
+    });
+
+    // Convert the response into a Blob URL
+    const imageBlob = new Blob([response.data], { type: response.headers["content-type"] });
+    const imageUrl = URL.createObjectURL(imageBlob);
+
+    console.log(imageBlob);
+    return imageUrl; // Return image URL to be used in <img> tag
+  } catch (error) {
+    console.error("Error fetching image:", error);
+
+    if (error.response?.status === 401) {
+      console.error("Unauthorized. Token might be invalid or expired.");
+    } else if (error.response) {
+      console.error("Unexpected response from server:", error.response.data || error.response.statusText);
+    } else {
+      console.error("Unexpected error:", error.message);
+    }
+
+    return null; // Return null in case of an error
+  }
+};

@@ -47,6 +47,7 @@ export default function MicroResultTrack() {
   const [OrganismPostObj, setOrganismPostObj] = useState({});
   const [Organism, setOrganism] = useState([]);
   const [ApprovedDocId, setApprovedDocId] = useState("");
+  const [Intrim, setIntrim] = useState(0);
   const [DrId, setDrId] = useState({
     id: 4,
     doctorId: 3,
@@ -105,7 +106,7 @@ export default function MicroResultTrack() {
     if (Row?.testid) {
       retreveTestData(Row?.testid);
     }
-  }, [HoldUnHold]);
+  }, [HoldUnHold,Intrim]);
 
   let PayloadData = getLocal("HistoPayload");
   const updatedArray = addObjectId(PostData?.data);
@@ -334,8 +335,8 @@ export default function MicroResultTrack() {
   const retreveTestData = async (id) => {
     try {
       const res = await retreveTest?.fetchData(
-        `/tnx_Booking/GetMicroresult?testid=${id}`
-      );
+        `/tnx_Booking/GetMicroresult?testid=${id}&reportStatus=${Intrim}`
+      ); // /tnx_Booking/GetMicroresult?testid=23&reportStatus=0
       console.log(res);
 
       if (res?.data?.data) {
@@ -550,12 +551,11 @@ export default function MicroResultTrack() {
     );
   };
   const ApproveCase = async () => {
-    
     if (!ApprovedDocId) {
       toast.error("Please select Doctor Signature");
       return;
     }
-  
+
     try {
       const payload = {
         isApproved: 1,
@@ -570,12 +570,12 @@ export default function MicroResultTrack() {
         createdBy: lsData?.user?.name,
         hold: 0,
       };
-  
+
       const { data } = await axios.post(
         `${BASE_URL}/tnx_BookingItem/SaveMicroResult`,
         payload
       );
-  
+
       if (data?.success) {
         toast.success(data.message);
         console.log("Payload Sent:", payload);
@@ -817,6 +817,10 @@ export default function MicroResultTrack() {
                         label: "Intrim",
                         type: "select",
                         name: "reportStatus",
+                        defaultView: true,
+                        callBack: (e) => {
+                          setIntrim(e.target.value);
+                        },
                         dataOptions: [
                           { id: 0, data: "Intrim" },
                           { id: 1, data: "Final" },
@@ -949,15 +953,19 @@ export default function MicroResultTrack() {
                       callBack: () => {
                         const ReportNotApprove = async () => {
                           try {
-                            const { data } = await axios.post(`${BASE_URL}/tnx_Observations/ReportNotApprove`, null, {
-                              params: {
-                                TestId: HistoObservation?.testId,
-                                userid: lsData?.user?.employeeId,
-                              },
-                            });
-                        
+                            const { data } = await axios.post(
+                              `${BASE_URL}/tnx_Observations/ReportNotApprove`,
+                              null,
+                              {
+                                params: {
+                                  TestId: HistoObservation?.testId,
+                                  userid: lsData?.user?.employeeId,
+                                },
+                              }
+                            );
+
                             console.log("API Response:", data);
-                        
+
                             if (data?.success) {
                               toast.success(data.message);
                               setFlag((prev) => !prev);
@@ -966,7 +974,9 @@ export default function MicroResultTrack() {
                             }
                           } catch (error) {
                             console.error("Report Not Approve Error:", error);
-                            toast.error("Something went wrong, please try again.");
+                            toast.error(
+                              "Something went wrong, please try again."
+                            );
                           }
                         };
                         console.log(
@@ -985,7 +995,6 @@ export default function MicroResultTrack() {
                         } else {
                           ApproveCase();
                         }
-                        
                       },
                     },
                   ]}

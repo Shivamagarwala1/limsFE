@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-export default function FileUpload({ FileData, setFileData,accept = "*/*", inputFields }) {
+export default function FileUpload({ FileData, text="Uploaded Successfully", setFileData,accept = "*/*", inputFields }) {
   const imgRef = useRef(null);
 
   // Function to handle file selection
@@ -29,7 +29,7 @@ export default function FileUpload({ FileData, setFileData,accept = "*/*", input
           <div className="pt-2 z-40 font-semibold text-center">Upload</div>
         ) : (
           <div className="pt-2 z-40 text-center text-green-600">
-            Uploaded Successfully
+            {text}
           </div>
         )}
       </div>
