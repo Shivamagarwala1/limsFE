@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { FaRegEdit, FaSpinner } from "react-icons/fa";
+import { FaRegEdit } from "react-icons/fa";
 import toast from "react-hot-toast";
 import { ImSwitch } from "react-icons/im";
 import DynamicTable from "../../../../Custom Components/DynamicTable";
@@ -228,7 +228,7 @@ export default function UniversalMaster() {
     const lsData = getLocal("imarsar_laboratory");
     const payload =
       isButtonClick === 0
-        ? { ...values, createdById: lsData?.user?.employeeId }
+        ? { ...values, createdById: lsData?.user?.employeeId, isActive: 1 }
         : {
             ...values,
             updateById: lsData?.user?.employeeId,

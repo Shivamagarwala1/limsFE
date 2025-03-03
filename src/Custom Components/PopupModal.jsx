@@ -2079,7 +2079,9 @@ export const SampleCollectionRemarkPopupModal = ({
       createdDateTime: new Date().toISOString(),
     };
     console.log("Form values:", values);
-    PostData?.postRequest("/tnx_InvestigationRemarks/AddSampleremark", [payload]);
+    PostData?.postRequest("/tnx_InvestigationRemarks/AddSampleremark", [
+      payload,
+    ]);
     if (PostData?.response?.success) {
       toast.success(PostData?.response?.message);
       setRefreshData((prev) => !prev); // Trigger re-fetching of data
@@ -2605,5 +2607,40 @@ export const SampleCollectionCommentPopupModal = ({
         </div>
       </div>
     </div>
+  );
+};
+
+export const ImagePopup = ({ imageView, setImageView, Img }) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  console.log(Img);
+  return (
+    <>
+      {imageView && (
+        <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
+          <div className="border-[1px] w-60 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
+            <div className="flex flex-col items-center gap-5 my-2">
+              <div>
+                <img src={Img} alt="path not found" />
+              </div>
+
+              <div>
+                <TwoSubmitButton
+                  options={[
+                    {
+                      label: "Close",
+                      submit: false,
+                      style:{width:"60px"},
+                      callBack: () => {
+                        setImageView(false);
+                      },
+                    },
+                  ]}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
