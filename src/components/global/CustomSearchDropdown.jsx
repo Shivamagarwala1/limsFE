@@ -153,7 +153,7 @@ function CustomSearchInputFields({
         }
     }, [value, searchWithName, options]);
 
-    
+
     const handleDropdownToggle = (openState) => {
         setIsOpen(openState);
     };
@@ -191,7 +191,9 @@ function CustomSearchInputFields({
                 onChange={(e) => setDisplayValue(e.target.value)}
                 onClick={() => handleDropdownToggle(true)}
                 placeholder={placeholder}
-                className={`inputPeerField peer ${isMandatory ? 'border-b-red-500' : 'border-borderColor'} focus:outline-none`}
+                className={`inputPeerField peer 
+                    ${readOnly ? 'cursor-not-allowed' : ''}
+                    ${isMandatory ? 'border-b-red-500' : 'border-borderColor'} focus:outline-none`}
                 readOnly={readOnly}
             />
             <label htmlFor={id} className="menuPeerLevel">
@@ -199,57 +201,60 @@ function CustomSearchInputFields({
             </label>
 
             {/* Dropdown Menu */}
-            {isOpen && (
-                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                    <ul>
-                        {filteredOptions?.length > 0 ? (
-                            filteredOptions.map((option, index) => {
-                                const uniqueId = option[uniqueKey];
-                                const itemName = option[searchWithName];
-                                return (
-                                    <li
-                                        key={uniqueId}
-                                        name={name}
-                                        className="my-1 px-2 py-1 cursor-pointer flex items-center gap-2"
-                                        onClick={() => {
-                                            // Set the displayed value in the input field
-                                            setDisplayValue(itemName);
+            {
+                !readOnly && (
+                    isOpen && (
+                        <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                            <ul>
+                                {filteredOptions?.length > 0 ? (
+                                    filteredOptions.map((option, index) => {
+                                        const uniqueId = option[uniqueKey];
+                                        const itemName = option[searchWithName];
+                                        return (
+                                            <li
+                                                key={uniqueId}
+                                                name={name}
+                                                className="my-1 px-2 py-1 cursor-pointer flex items-center gap-2"
+                                                onClick={() => {
+                                                    // Set the displayed value in the input field
+                                                    setDisplayValue(itemName);
 
-                                            // Close the dropdown
-                                            handleDropdownToggle(false);
+                                                    // Close the dropdown
+                                                    handleDropdownToggle(false);
 
-                                            // Send the selected object to the parent component
-                                            onChange({
-                                                target: {
-                                                    name,
-                                                    value: {
-                                                        [uniqueKey]: uniqueId,
-                                                        [searchWithName]: itemName,
-                                                    },
-                                                },
-                                            });
-                                        }}
-                                        onMouseEnter={() => setIsHovered(index)}
-                                        onMouseLeave={() => setIsHovered(null)}
-                                        style={{
-                                            background:
-                                                isHovered === index
-                                                    ? activeTheme.subMenuColor
-                                                    : "transparent",
-                                        }}
-                                    >
-                                        {itemName}
+                                                    // Send the selected object to the parent component
+                                                    onChange({
+                                                        target: {
+                                                            name,
+                                                            value: {
+                                                                [uniqueKey]: uniqueId,
+                                                                [searchWithName]: itemName,
+                                                            },
+                                                        },
+                                                    });
+                                                }}
+                                                onMouseEnter={() => setIsHovered(index)}
+                                                onMouseLeave={() => setIsHovered(null)}
+                                                style={{
+                                                    background:
+                                                        isHovered === index
+                                                            ? activeTheme.subMenuColor
+                                                            : "transparent",
+                                                }}
+                                            >
+                                                {itemName}
+                                            </li>
+                                        );
+                                    })
+                                ) : (
+                                    <li className="py-4 text-gray-500 text-center">
+                                        {filterText}
                                     </li>
-                                );
-                            })
-                        ) : (
-                            <li className="py-4 text-gray-500 text-center">
-                                {filterText}
-                            </li>
-                        )}
-                    </ul>
-                </div>
-            )}
+                                )}
+                            </ul>
+                        </div>
+                    ))
+            }
         </div>
     );
 }

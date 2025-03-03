@@ -52,7 +52,9 @@ function CustomDropdown({
 
       {/* Dropdown box */}
       <div
-        className={`inputPeerField  mt-[1.9px] peer focus:outline-none flex items-center ${isMandatory ? "border-b-red-500" : "border-borderColor"
+        className={`inputPeerField  mt-[1.9px] peer focus:outline-none flex items-center 
+          
+          ${isMandatory ? "border-b-red-500" : "border-borderColor"
           }  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer bg-white'} pl-2`}
         onClick={handleDropdownClick}
 

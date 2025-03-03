@@ -1005,6 +1005,14 @@ export const getAllResultTrackinDataApi = async (recordTrackinData) => {
     return response?.data;
 }
 
+//observation data
+export const getAllObserVationDataBasedOnTestName = async (testData) => {
+
+    const response = await privateAxios.post('/tnx_BookingItem/GetTestObservations', testData);
+
+    return response?.data;
+}
+
 //======================feed back=============
 export const getAllEmojiColorCodeApi = async () => {
 

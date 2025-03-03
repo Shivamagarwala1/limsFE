@@ -147,6 +147,7 @@ export default function PatientRegistration() {
     const [editInfoData, seteditInfoData] = useState(null);
     const [editTestData, setEditTestData] = useState(null);
     const [oldPatientId, setOLdPatientId] = useState([]);
+    const [patientWiseBarcode, setPatientWiseBarcode] = useState(false)
 
     const [allEditTestDataForInvasticationName, setallEditTestDataForInvasticationName] = useState([]);
 
@@ -776,7 +777,6 @@ export default function PatientRegistration() {
                         }
 
                         // Use a functional update for setState to check for duplicates
-
                         setinvestigationGridData((prevData) => {
 
                             const updateedData = {
@@ -835,23 +835,10 @@ export default function PatientRegistration() {
     }, [patientRegistrationData?.rateId, patientRegistrationData?.itemId])
 
 
-    //selecte only single data
-    const handelSelecteOnlyUniqueTestData = (data) => {
-
-        let isDuplicate = investigationGridData?.some((item) => item.itemId === data.itemId);
-
-        if (isDuplicate) {
-            toast.info('Already select the item')
-        } else {
-            setSelectedInvastigationList(prevList => [...prevList, { itemId: data?.itemId, itemName: data?.itemName }])
-        }
-    }
 
 
     // Function to delete data by itemId
     const deleteinvestigationGridDataByItemId = (indexToDelete) => {
-
-
 
         const updatedData = [...investigationGridData]; // Create a copy of the array to avoid mutating the original
         updatedData.splice(indexToDelete, 1); // Remove the item at the specified index
@@ -1043,10 +1030,6 @@ export default function PatientRegistration() {
             }
         });
 
-
-        console.log(investigationGridData);
-
-
         if (inputFields === '1') {
             setinvestigationGridData((prevData) =>
                 prevData.map((item) =>
@@ -1070,23 +1053,42 @@ export default function PatientRegistration() {
 
 
 
-    const handleSampleTypeChange = (event, index, itemType) => {
-
+    const handleSampleTypeChange = (event, index, itemId) => {
         const selectedOption = event.target.value;
 
-        const sampleTypeName = investigationGridData[index]?.sampleTypeName;
-        const updatedSampleType = {
-            id: sampleTypeName.indexOf(selectedOption) + 1,
 
+        // Create the updated sample type object based on the selected option
+        const updatedSampleType = {
+            // Get the id based on selected option
             name: selectedOption,  // The name is the selected value
-            itemType: itemType
+            id: itemId      // Assuming itemType comes from props or state
         };
 
-        setGridDataBarCodeandSampleType((prevState) => ({
-            ...prevState,
-            sampleType: [updatedSampleType], // Store the single selected sample type
-        }));
+        setGridDataBarCodeandSampleType((prevState) => {
+            // Check if the updatedSampleType.id already exists in the sampleType array
+            const existingSampleTypeIndex = prevState.sampleType.findIndex(item => item.id === updatedSampleType.id);
+
+            if (existingSampleTypeIndex !== -1) {
+                // If the id exists, update the sampleTypeName for that item
+                const updatedSampleTypes = prevState.sampleType.map((item, idx) =>
+                    idx === existingSampleTypeIndex ? { ...item, name: selectedOption } : item
+                );
+
+                return {
+                    ...prevState,
+                    sampleType: updatedSampleTypes,
+                };
+            } else {
+                // If the id does not exist, push the new sampleType
+                return {
+                    ...prevState,
+                    sampleType: [...prevState.sampleType, updatedSampleType],
+                };
+            }
+        });
     };
+
+
 
 
     //validations
@@ -1094,12 +1096,8 @@ export default function PatientRegistration() {
 
         const errors = {};
 
-
-
         // Check for  fields
         if (!patientRegistrationData.billingType) errors.billingType = true;
-
-
 
         if (!patientRegistrationData.title_id) errors.title_id = true;
         if (!patientRegistrationData.name) errors.name = true;
@@ -1180,7 +1178,7 @@ export default function PatientRegistration() {
 
     //cheack bar code data which showPopup===6
     const [checkedItems, setCheckedItems] = useState({});
-    //const [barcodeValues, setBarcodeValues] = useState({});
+    const [barcodeValues, setBarcodeValues] = useState({});
 
     // Function to handle checkbox toggle
     const handleCheckboxChange123 = (itemId) => {
@@ -1218,28 +1216,49 @@ export default function PatientRegistration() {
     //     console.log(gridDataBarCodeandSampleType);
 
     //     // Automatically check if there's a barcode entered
-    //     setCheckedItems((prev) => ({
-    //         ...prev,
-    //         [itemId]: value.length > 0, // Check if barcode is not empty
-    //     }));
+    // setCheckedItems((prev) => ({
+    //     ...prev,
+    //     [itemId]: value.length > 0, // Check if barcode is not empty
+    // }));
     // };
 
+    //function for det the default value of sample type
+    useEffect(() => {
 
+        const storeSampleTypeDefaultValue = () => {
+            // Transform investigationGridData to extract itemId and the first sampleTypeName
+            const transformedItems = investigationGridData.map(item => ({
+                id: item.itemId,
+                name: item.sampleTypeName[0] || '', // Access the first element of the array, fallback to empty string if the array is empty
+                itemName: item?.itemName
+            }));
+
+            // Update the state with the transformed sampleType values
+            setGridDataBarCodeandSampleType((prevState) => ({
+                ...prevState,
+                sampleType: transformedItems
+            }));
+
+
+        }
+
+        // Only run this logic when showPopup equals 6
+        if (showPopup === 6) {
+            storeSampleTypeDefaultValue();
+        }
+
+    }, [showPopup]); // Runs when showPopup changes
+
+
+    //console.log(gridDataBarCodeandSampleType);
+
+
+    //func  to handel barcode input change
     const handleInputChangeForPopUpGridData = (rowId, value) => {
+
+
         // Update the barCode state in the gridDataBarCodeandSampleType state
-        // setGridDataBarCodeandSampleType((prevState) => ({
-        //     ...prevState,
-        //     barCode: [
-        //         ...prevState.barCode, // Spread the existing barCode array
-        //         { itemId, name: newBarcodeValue } // Add the new object with itemId and barcode value (name)
-        //     ]
-        // }));
-
         setGridDataBarCodeandSampleType((prevState) => {
-
-            console.log(prevState);
-
-
             // Preserve barCode values while updating only the changed row
             const updatedBarCode = prevState.barCode.map(item =>
                 item.itemId === rowId ? { ...item, name: value } : item
@@ -1250,55 +1269,73 @@ export default function PatientRegistration() {
                 updatedBarCode.push({ itemId: rowId, name: value });
             }
 
-            console.log(updatedBarCode);
-
-
             return { ...prevState, barCode: updatedBarCode };
-
         });
 
 
-        console.log(gridDataBarCodeandSampleType);
 
-        // Automatically check the checkbox when barcode is entered
-        setCheckedItems((prevCheckedItems) => ({
-            ...prevCheckedItems,
-            [itemId]: value.trim() !== "",  // If barcode is not empty, check the checkbox
+        setCheckedItems((prev) => ({
+            ...prev,
+            [itemId]: value.length > 0, // Check if barcode is not empty
         }));
     };
 
 
 
 
+
     //console.log(gridDataBarCodeandSampleType?.barCode);
-    //!========================commeted=====================
+    //!========================in the bello code there may be chance of getting some issue if i we provied discount for each item =====================
     // Auto-check the checkbox if a barcode exists initially
-    // useEffect(() => {
-    //     const updatedCheckedItems = {};
-    //     const updatedBarcodeValues = {};
+    useEffect(() => {
+        const updatedCheckedItems = {};
+        const updatedBarcodeValues = {};
 
-    //     investigationGridData?.forEach((data) => {
-    //         const barcodeValue = gridDataBarCodeandSampleType?.barCode.find(
-    //             (item) => item.itemId === data?.itemId
-    //         )?.name;
+        investigationGridData?.forEach((data) => {
+            const barcodeValue = gridDataBarCodeandSampleType?.barCode.find(
+                (item) => item.itemId === data?.itemId
+            )?.name;
 
-    //         if (barcodeValue) {
-    //             updatedCheckedItems[data?.itemId] = true; // Auto-check if barcode exists
-    //             updatedBarcodeValues[data?.itemId] = barcodeValue; // Store initial barcode value
-    //         }
-    //     });
+            if (barcodeValue) {
+                updatedCheckedItems[data?.itemId] = true; // Auto-check if barcode exists
+                updatedBarcodeValues[data?.itemId] = barcodeValue; // Store initial barcode value
+            }
+        });
 
-    //     setCheckedItems(updatedCheckedItems);
-    //     //setBarcodeValues(updatedBarcodeValues);
-    // }, [gridDataBarCodeandSampleType?.barCode, investigationGridData]);
+        setCheckedItems(updatedCheckedItems);
+        setBarcodeValues(updatedBarcodeValues);
+    }, [gridDataBarCodeandSampleType?.barCode]);
 
+    //handel code for PatientWiseBarcode
+    const handelToUpdatePatientWiseBarcode = () => {
 
+        setPatientWiseBarcode((preventData) => !preventData)
+
+        const firstBarCodeName = gridDataBarCodeandSampleType?.barCode[0]?.name
+
+        if (!patientWiseBarcode) {
+
+            const updatedBarCodes = gridDataBarCodeandSampleType?.barCode?.map((item) => ({
+                ...item, // Spread the existing item properties
+                name: firstBarCodeName // Assign firstBarCodeName to the 'name' property
+            }));
+
+            setGridDataBarCodeandSampleType((preventData) => ({
+                ...preventData,
+                barCode: updatedBarCodes
+            }))
+
+        }
+
+    }
 
 
     //save patient registration data
-    const onSubmitForSavePatientRegistrationData = async () => {
+    const onSubmitForSavePatientRegistrationData = async (val) => {
 
         setIsButtonClick(2);
+
+        console.log(checkedItems);
 
 
         const updatedData = {
@@ -1375,7 +1412,7 @@ export default function PatientRegistration() {
                     source: '',
                     discountType: parseInt(patientRegistrationData?.discountType),
                     discountid: parseInt(patientRegistrationData?.discountid),
-                    discountReason: patientRegistrationSelectData?.discountid,
+                    discountReason: patientRegistrationSelectData?.discountid, //need to check
                     discountApproved: parseInt(patientRegistrationData?.discountApproved),
                     isDisCountApproved: 0,
                     patientRemarks: '',
@@ -1452,8 +1489,67 @@ export default function PatientRegistration() {
                         isSra: 0,
                         isMachineOrder: 0,
                         isEmailsent: 0,
-                        sampleTypeId: gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemId === data.itemType) ? id : 0,
-                        sampleTypeName: gridDataBarCodeandSampleType?.sampleType?.length !== 0 ? gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemType === data.itemType)?.name : data?.sampleTypeName[0],
+                        sampleTypeId: gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.id === data.itemId) ? gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.id === data.itemId).id : 0,
+                        sampleTypeName: gridDataBarCodeandSampleType?.sampleType?.length !== 0 ? gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.id === data.itemId)?.name : data?.sampleTypeName[0],
+
+                        "sampleCollectionDate": patientRegistrationData?.collectionDateAndTime || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+
+                        "sampleCollectedby": user?.name,
+                        "sampleCollectedID": parseInt(user?.employeeId),
+                        "sampleReceiveDate": val === 2 ? new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`) : '',
+                        "sampleReceivedBY": val === 2 ? user?.name : '',
+                        "resultDate": "2025-03-03T04:27:32.292Z",
+                        "resultDoneByID": 0,
+                        "resutDoneBy": '',
+                        "isResultDone": 0,
+                        "isApproved": 0,
+                        "approvedDate": "2025-03-03T04:27:32.292Z",
+                        "approvedByID": 0,
+                        "approvedbyName": '',
+                        "notApprovedBy": '',
+                        "notApprovedDate": "2025-03-03T04:27:32.292Z",
+                        "isReporting": 0,
+                        "isCritical": 0,
+                        "deliveryDate": "2025-03-03T04:27:32.292Z",
+                        "isInvoiceCreated": 0,
+                        "invoiceNumber": 0,
+                        "isUrgent": 0,
+                        "isSampleCollected": val == 1 ? checkedItems[data?.itemId] ? 'S' : '' : checkedItems[data?.itemId] ? 'Y' : '',
+                        "samplecollectionremarks": '',
+                        "departmentReceiveRemarks": '',
+                        "departmentReceiveDate": "2025-03-03T04:27:32.292Z",
+                        "departmentReceiveBy": '',
+                        "departmentReceiveByID": 0,
+                        "isRemoveItem": 0,
+                        "sampleRejectionBy": 0,
+                        "sampleRejectionByName": '',
+                        "sampleRejectionOn": "2025-03-03T04:27:32.292Z",
+                        "interpretationId": 0,
+                        "approvalDoctor": 0,
+                        "isOuthouse": 0,
+                        "outhouseLab": 0,
+                        "labName": '',
+                        "outhouseDoneBy": 0,
+                        "outhouseDoneOn": "2025-03-03T04:27:32.292Z",
+                        "sampleRecollectedby": 0,
+                        "sampleRecollectedDate": "2025-03-03T04:27:32.292Z",
+                        "isrerun": 0,
+                        "invoiceNo": '',
+                        "invoiceDate": "2025-03-03T04:27:32.292Z",
+                        "invoiceCycle": '',
+                        "invoiceAmount": 0,
+                        "invoiceCreatedBy": 0,
+                        "invoiceNoOld": '',
+                        "remarks": '',
+                        "showonReportdate": "2025-03-03T04:27:32.292Z",
+                        "hold": 0,
+                        "holdById": 0,
+                        "holdDate": "2025-03-03T04:27:32.292Z",
+                        "unholdById": 0,
+                        "unHoldDate": "2025-03-03T04:27:32.292Z",
+                        "doctorSignId": 0,
+                        "holdReason": '',
+                        "rejectedReason": ''
 
                     })),
                     addpaymentdetail: paymentModeType?.map((data) => ({
@@ -1514,240 +1610,292 @@ export default function PatientRegistration() {
             if (response?.success) {
                 toast.success(response?.message);
 
-                setPatientRegistrationData(
-                    {
-                        "address": "",
-                        "ageDays": 0,
-                        "ageMonth": 0,
-                        "ageTotal": 0,
-                        "ageYear": 0,
-                        "areaId": 0,
-                        "centreId": 0,
-                        "cityId": 0,
-                        "countryId": 0,
-                        "createdById": 0,
-                        "createdDateTime": "",
-                        "districtId": 0,
-                        "dob": "",
-                        "documentId": 0,
-                        "documnetnumber": 0,
-                        "emailId": "",
-                        "gender": "",
-                        "isActive": 0,
-                        "isActualDOB": 0,
-                        "mobileNo": "",
-                        "name": "",
-                        "password": 0,
-                        "patientId": 0,
-                        "pinCode": "",
-                        "remarks": "",
-                        "stateId": 0,
-                        "title_id": 0,
-                        "updateById": 0,
-                        "updateDateTime": "",
-                        "visitCount": 0,
-                        "addBooking": [
-                            {
-                                "ageDay": "",
-                                "ageMonth": "",
-                                "ageYear": "",
-                                "billNo": 0,
-                                "bookingDate": "",
-                                "centreId": 0,
-                                "clientCode": 0,
-                                "createdById": 0,
-                                "createdDateTime": "",
-                                "discount": 0,
-                                "discountApproved": 0,
-                                "discountReason": "",
-                                "discountType": 0,
-                                "discountid": 0,
-                                "dob": "",
-                                "gender": "",
-                                "grossAmount": 0,
-                                "invoiceNo": "",
-                                "isActive": 0,
-                                "isCredit": 0,
-                                "isDisCountApproved": 0,
-                                "labRemarks": "",
-                                "mobileNo": "",
-                                "mrp": 0,
-                                "name": "",
-                                "netAmount": 0,
-                                "otherLabRefer": "",
-                                "otherLabReferID": 0,
-                                "paidAmount": 0,
-                                "patientId": 0,
-                                "patientRemarks": "",
-                                "paymentMode": "",
-                                "rateId": 0,
-                                "refDoctor1": "",
-                                "refDoctor2": "",
-                                "refID1": 0,
-                                "refID2": 0,
-                                "salesExecutiveID": 0,
-                                "sessionCentreid": 0,
-                                "source": "",
-                                "tempDOCID": 0,
-                                "tempDoctroName": "",
-                                "title_id": "",
-                                "totalAge": 0,
-                                "transactionId": 0,
-                                "updateById": 0,
-                                "updateDateTime": "",
-                                "uploadDocument": "",
-                                "workOrderId": "",
-                                "addBookingStatus": [
-                                    {
-                                        "barcodeNo": "",
-                                        "centreId": 0,
-                                        "createdById": 0,
-                                        "createdDateTime": "",
-                                        "id": 0,
-                                        "isActive": 0,
-                                        "patientId": 0,
-                                        "remarks": "",
-                                        "roleId": 0,
-                                        "status": "",
-                                        "testId": 0,
-                                        "transactionId": 0,
-                                        "updateById": 0,
-                                        "updateDateTime": ""
-                                    }
-                                ],
-                                "addBookingItem": [
-                                    {
-                                        "barcodeNo": "",
-                                        "centreId": 0,
-                                        "createdById": 0,
-                                        "createdDateTime": "",
-                                        "departmentName": "",
-                                        "deptId": 0,
-                                        "discount": 0,
-                                        "id": 0,
-                                        "investigationName": "",
-                                        "isActive": 0,
-                                        "isEmailsent": 0,
-                                        "isMachineOrder": 0,
-                                        "isPackage": 0,
-                                        "isSra": 0,
-                                        "itemId": 0,
-                                        "itemType": 0,
-                                        "mrp": 0,
-                                        "netAmount": 0,
-                                        "packItemDiscount": 0,
-                                        "packItemNet": 0,
-                                        "packItemRate": 0,
-                                        "packMrp": 0,
-                                        "packageID": 0,
-                                        "packageName": "",
-                                        "rate": 0,
-                                        "reportType": 0,
-                                        "sampleTypeId": 0,
-                                        "sampleTypeName": "",
-                                        "sessionCentreid": 0,
-                                        "testcode": "",
-                                        "transactionId": 0,
-                                        "updateById": 0,
-                                        "updateDateTime": "",
-                                        "workOrderId": ""
-                                    },
-                                    {
-                                        "barcodeNo": "",
-                                        "centreId": 0,
-                                        "createdById": 0,
-                                        "createdDateTime": "",
-                                        "departmentName": "",
-                                        "deptId": 0,
-                                        "discount": 0,
-                                        "id": 0,
-                                        "investigationName": "",
-                                        "isActive": 0,
-                                        "isEmailsent": 0,
-                                        "isMachineOrder": 0,
-                                        "isPackage": 0,
-                                        "isSra": 0,
-                                        "itemId": 0,
-                                        "itemType": 0,
-                                        "mrp": 0,
-                                        "netAmount": 0,
-                                        "packItemDiscount": 0,
-                                        "packItemNet": 0,
-                                        "packItemRate": 0,
-                                        "packMrp": 0,
-                                        "packageID": 0,
-                                        "packageName": "",
-                                        "rate": 0,
-                                        "reportType": 0,
-                                        "sampleTypeId": 0,
-                                        "sampleTypeName": "",
-                                        "sessionCentreid": 0,
-                                        "testcode": "",
-                                        "transactionId": 0,
-                                        "updateById": 0,
-                                        "updateDateTime": "",
-                                        "workOrderId": ""
-                                    }
-                                ],
-                                "addpaymentdetail": [
-                                    {
-                                        "bankName": "",
-                                        "bookingCentreId": 0,
-                                        "cancelDate": "",
-                                        "cancelReason": "",
-                                        "canceledBy": "",
-                                        "cashAmt": 0,
-                                        "chequeAmt": 0,
-                                        "chequeNo": "",
-                                        "creditCardAmt": 0,
-                                        "creditCardNo": "",
-                                        "id": 0,
-                                        "isCancel": 0,
-                                        "nefTamt": 0,
-                                        "onlinewalletAmt": 0,
-                                        "paymentModeId": 0,
-                                        "receiptNo": 0,
-                                        "receivedAmt": 0,
-                                        "receivedBy": "",
-                                        "receivedID": 0,
-                                        "settlementCentreID": 0,
-                                        "transactionId": 0,
-                                        "transactionType": "",
-                                        "walletno": "",
-                                        "workOrderId": ""
-                                    },
-                                    {
-                                        "bankName": "",
-                                        "bookingCentreId": 0,
-                                        "cancelDate": "",
-                                        "cancelReason": "",
-                                        "canceledBy": "",
-                                        "cashAmt": 0,
-                                        "chequeAmt": 0,
-                                        "chequeNo": "",
-                                        "creditCardAmt": 0,
-                                        "creditCardNo": "",
-                                        "id": 0,
-                                        "isCancel": 0,
-                                        "nefTamt": 0,
-                                        "onlinewalletAmt": 0,
-                                        "paymentModeId": 0,
-                                        "receiptNo": 0,
-                                        "receivedAmt": 0,
-                                        "receivedBy": "",
-                                        "receivedID": 0,
-                                        "settlementCentreID": 0,
-                                        "transactionId": 0,
-                                        "transactionType": "",
-                                        "walletno": "",
-                                        "workOrderId": ""
-                                    }
-                                ]
-                            }
-                        ]
-                    }
+                // setPatientRegistrationData(
+                //     {
+                //         "address": "",
+                //         "ageDays": 0,
+                //         "ageMonth": 0,
+                //         "ageTotal": 0,
+                //         "ageYear": 0,
+                //         "areaId": 0,
+                //         "centreId": 0,
+                //         "cityId": 0,
+                //         "countryId": 0,
+                //         "createdById": 0,
+                //         "createdDateTime": "",
+                //         "districtId": 0,
+                //         "dob": "",
+                //         "documentId": 0,
+                //         "documnetnumber": 0,
+                //         "emailId": "",
+                //         "gender": "",
+                //         "isActive": 0,
+                //         "isActualDOB": 0,
+                //         "mobileNo": "",
+                //         "name": "",
+                //         "password": 0,
+                //         "patientId": 0,
+                //         "pinCode": "",
+                //         "remarks": "",
+                //         "stateId": 0,
+                //         "title_id": 0,
+                //         "updateById": 0,
+                //         "updateDateTime": "",
+                //         "visitCount": 0,
+                //         "addBooking": [
+                //             {
+                //                 "ageDay": "",
+                //                 "ageMonth": "",
+                //                 "ageYear": "",
+                //                 "billNo": 0,
+                //                 "bookingDate": "",
+                //                 "centreId": 0,
+                //                 "clientCode": 0,
+                //                 "createdById": 0,
+                //                 "createdDateTime": "",
+                //                 "discount": 0,
+                //                 "discountApproved": 0,
+                //                 "discountReason": "",
+                //                 "discountType": 0,
+                //                 "discountid": 0,
+                //                 "dob": "",
+                //                 "gender": "",
+                //                 "grossAmount": 0,
+                //                 "invoiceNo": "",
+                //                 "isActive": 0,
+                //                 "isCredit": 0,
+                //                 "isDisCountApproved": 0,
+                //                 "labRemarks": "",
+                //                 "mobileNo": "",
+                //                 "mrp": 0,
+                //                 "name": "",
+                //                 "netAmount": 0,
+                //                 "otherLabRefer": "",
+                //                 "otherLabReferID": 0,
+                //                 "paidAmount": 0,
+                //                 "patientId": 0,
+                //                 "patientRemarks": "",
+                //                 "paymentMode": "",
+                //                 "rateId": 0,
+                //                 "refDoctor1": "",
+                //                 "refDoctor2": "",
+                //                 "refID1": 0,
+                //                 "refID2": 0,
+                //                 "salesExecutiveID": 0,
+                //                 "sessionCentreid": 0,
+                //                 "source": "",
+                //                 "tempDOCID": 0,
+                //                 "tempDoctroName": "",
+                //                 "title_id": "",
+                //                 "totalAge": 0,
+                //                 "transactionId": 0,
+                //                 "updateById": 0,
+                //                 "updateDateTime": "",
+                //                 "uploadDocument": "",
+                //                 "workOrderId": "",
+                //                 "addBookingStatus": [
+                //                     {
+                //                         "barcodeNo": "",
+                //                         "centreId": 0,
+                //                         "createdById": 0,
+                //                         "createdDateTime": "",
+                //                         "id": 0,
+                //                         "isActive": 0,
+                //                         "patientId": 0,
+                //                         "remarks": "",
+                //                         "roleId": 0,
+                //                         "status": "",
+                //                         "testId": 0,
+                //                         "transactionId": 0,
+                //                         "updateById": 0,
+                //                         "updateDateTime": ""
+                //                     }
+                //                 ],
+                //                 "addBookingItem": [
+                //                     {
+                //                         "barcodeNo": "",
+                //                         "centreId": 0,
+                //                         "createdById": 0,
+                //                         "createdDateTime": "",
+                //                         "departmentName": "",
+                //                         "deptId": 0,
+                //                         "discount": 0,
+                //                         "id": 0,
+                //                         "investigationName": "",
+                //                         "isActive": 0,
+                //                         "isEmailsent": 0,
+                //                         "isMachineOrder": 0,
+                //                         "isPackage": 0,
+                //                         "isSra": 0,
+                //                         "itemId": 0,
+                //                         "itemType": 0,
+                //                         "mrp": 0,
+                //                         "netAmount": 0,
+                //                         "packItemDiscount": 0,
+                //                         "packItemNet": 0,
+                //                         "packItemRate": 0,
+                //                         "packMrp": 0,
+                //                         "packageID": 0,
+                //                         "packageName": "",
+                //                         "rate": 0,
+                //                         "reportType": 0,
+                //                         "sampleTypeId": 0,
+                //                         "sampleTypeName": "",
+                //                         "sessionCentreid": 0,
+                //                         "testcode": "",
+                //                         "transactionId": 0,
+                //                         "updateById": 0,
+                //                         "updateDateTime": "",
+                //                         "workOrderId": ""
+                //                     },
+                //                     {
+                //                         "barcodeNo": "",
+                //                         "centreId": 0,
+                //                         "createdById": 0,
+                //                         "createdDateTime": "",
+                //                         "departmentName": "",
+                //                         "deptId": 0,
+                //                         "discount": 0,
+                //                         "id": 0,
+                //                         "investigationName": "",
+                //                         "isActive": 0,
+                //                         "isEmailsent": 0,
+                //                         "isMachineOrder": 0,
+                //                         "isPackage": 0,
+                //                         "isSra": 0,
+                //                         "itemId": 0,
+                //                         "itemType": 0,
+                //                         "mrp": 0,
+                //                         "netAmount": 0,
+                //                         "packItemDiscount": 0,
+                //                         "packItemNet": 0,
+                //                         "packItemRate": 0,
+                //                         "packMrp": 0,
+                //                         "packageID": 0,
+                //                         "packageName": "",
+                //                         "rate": 0,
+                //                         "reportType": 0,
+                //                         "sampleTypeId": 0,
+                //                         "sampleTypeName": "",
+                //                         "sessionCentreid": 0,
+                //                         "testcode": "",
+                //                         "transactionId": 0,
+                //                         "updateById": 0,
+                //                         "updateDateTime": "",
+                //                         "workOrderId": ""
+                //                     }
+                //                 ],
+                //                 "addpaymentdetail": [
+                //                     {
+                //                         "bankName": "",
+                //                         "bookingCentreId": 0,
+                //                         "cancelDate": "",
+                //                         "cancelReason": "",
+                //                         "canceledBy": "",
+                //                         "cashAmt": 0,
+                //                         "chequeAmt": 0,
+                //                         "chequeNo": "",
+                //                         "creditCardAmt": 0,
+                //                         "creditCardNo": "",
+                //                         "id": 0,
+                //                         "isCancel": 0,
+                //                         "nefTamt": 0,
+                //                         "onlinewalletAmt": 0,
+                //                         "paymentModeId": 0,
+                //                         "receiptNo": 0,
+                //                         "receivedAmt": 0,
+                //                         "receivedBy": "",
+                //                         "receivedID": 0,
+                //                         "settlementCentreID": 0,
+                //                         "transactionId": 0,
+                //                         "transactionType": "",
+                //                         "walletno": "",
+                //                         "workOrderId": ""
+                //                     },
+                //                     {
+                //                         "bankName": "",
+                //                         "bookingCentreId": 0,
+                //                         "cancelDate": "",
+                //                         "cancelReason": "",
+                //                         "canceledBy": "",
+                //                         "cashAmt": 0,
+                //                         "chequeAmt": 0,
+                //                         "chequeNo": "",
+                //                         "creditCardAmt": 0,
+                //                         "creditCardNo": "",
+                //                         "id": 0,
+                //                         "isCancel": 0,
+                //                         "nefTamt": 0,
+                //                         "onlinewalletAmt": 0,
+                //                         "paymentModeId": 0,
+                //                         "receiptNo": 0,
+                //                         "receivedAmt": 0,
+                //                         "receivedBy": "",
+                //                         "receivedID": 0,
+                //                         "settlementCentreID": 0,
+                //                         "transactionId": 0,
+                //                         "transactionType": "",
+                //                         "walletno": "",
+                //                         "workOrderId": ""
+                //                     }
+                //                 ]
+                //             }
+                //         ]
+                //     }
 
-                );
+                // );
+
+                setPatientRegistrationData({
+                    billingType: '',
+
+                    centreId: 0,
+                    paymentMode: '',
+                    paymentModeId: 0,
+                    rateId: 0,
+                    mobileNo: '',
+                    title_id: 0,
+                    name: '',
+                    ageDays: 0,
+                    ageMonth: 0,
+                    ageYear: 0,
+                    dob: useFormattedDate(),
+                    gender: '',
+                    emailId: '',
+
+                    collectionDateAndTime: useFormattedDateTime(),
+
+                    investigationName: '',
+                    itemId: 0,
+                    refDoctor1: '',
+                    refID1: 0,
+                    refDoctor2: '',
+                    refID2: 0,
+                    address: '',
+                    pinCode: 0,
+                    uploadDocument: '',
+                    refLabID: 0,
+                    refLab: '',
+
+
+
+                    paidAmount: 0,
+                    cashAmt: 0,
+                    creditCardAmt: 0,
+                    lastFoureDigit: 0,
+                    bankName: '',
+                    onlinewalletAmt: 0,
+
+                    grossAmount: 0,
+
+                    balnceAmt: '',
+
+                    bank_Id: 0,
+                    discountAmmount: 0,
+                    discountPercentage: 0,
+                    discountType: 0,
+                    discountid: 0,
+                    discountApproved: 0,
+                })
 
                 setShowPopup(0);
                 setinvestigationGridData([]);
@@ -4756,7 +4904,11 @@ Discount Type
 
 
                                                 {/* Discount Ammount */}
-                                                <div className="relative flex-1">
+                                                <div className="relative flex-1"
+                                                    onBlur={() =>
+                                                        (patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt) && toast.error('Remove your amt')
+                                                    }
+                                                >
                                                     {/* <input
                                                         type="number"
                                                         id="discountAmmount"
@@ -4777,14 +4929,16 @@ Discount Type
                                                         value={patientRegistrationData?.discountAmmount || ''}
                                                         onChange={(e) => handelOnChangePatientRegistration(e)}
                                                         label="Discount Ammount"
+                                                        readOnly={patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt}
                                                         isMandatory={patientRegistrationDataError.discountAmmount}
                                                     />
                                                 </div>
 
                                                 {/* Discount % */}
                                                 <div className="relative flex-1"
-                                                // onMouseOut={handleMouseOut}
-
+                                                    onBlur={() =>
+                                                        (patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt) && toast.error('Remove your amt')
+                                                    }
                                                 >
                                                     {/* <input
                                                             type="number"
@@ -4807,6 +4961,7 @@ Discount Type
                                                         value={patientRegistrationData?.discountPercentage || ''}
                                                         onChange={(e) => handelOnChangePatientRegistration(e)}
                                                         label="Discount %"
+                                                        readOnly={patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt}
                                                         isMandatory={patientRegistrationDataError.discountPercentage}
                                                     />
                                                 </div>
@@ -4939,10 +5094,10 @@ Discount Approved By
 
                                                             onClick={() => {
                                                                 if (isPreprintedCode === 0) {
-                                                                    onSubmitForSavePatientRegistrationData();
+                                                                    onSubmitForSavePatientRegistrationData(0);
                                                                 } else {
-                                                                    setShowPopup(6);
 
+                                                                    setShowPopup(6);
                                                                 }
                                                             }}
                                                         >
@@ -4980,22 +5135,6 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
 
                                                 <div className='flex gap-[0.25rem] '>
                                                     <div className="relative flex-1 flex justify-start items-center">
-                                                        {/* <button
-    type="button"
-    data-ripple-light="true"
-    className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-    style={{
-        background: activeTheme?.menuColor, color: activeTheme?.iconColor
-    }}
-
-    onClick={onSubmitForSavePatientRegistrationData}
->
-
-    {
-        isButtonClick === 2 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-    }
-
-</button> */}
 
 
                                                         <button
@@ -5008,7 +5147,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
 
                                                             onClick={() => {
                                                                 if (isPreprintedCode === 0) {
-                                                                    onSubmitForSavePatientRegistrationData();
+                                                                    onSubmitForSavePatientRegistrationData(0);
                                                                 } else {
                                                                     setShowPopup(6);
 
@@ -5597,7 +5736,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     }}
                                                     maxLength={10}
                                                     label="Mobile No."
-                                                    readonly={true}
+                                                    readOnly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
                                                 />
                                             </div>
@@ -5617,7 +5756,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                     onChange={(e) => handelOnChangeEditTest(e)}
                                                     defaultIndex={0}
                                                     activeTheme={activeTheme}
-                                                    readonly={true}
+                                                    readOnly={true}
                                                     isMandatory={patientRegistrationForEditTestDataError?.title_id}
                                                 />
 
@@ -6494,7 +6633,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
                                                                     <select
                                                                         className="border rounded px-1 w-full outline-none"
-                                                                        onChange={(e) => handleSampleTypeChange(e, rowIndex, data?.itemType)}
+                                                                        onChange={(e) => handleSampleTypeChange(e, rowIndex, data?.itemId)}
                                                                         defaultValue={data?.sampleTypeName?.[0] || 0} // Set to the first value in the array
                                                                     >
                                                                         <option value={0} disabled hidden className="text-gray-400">
@@ -6510,16 +6649,21 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                 </td>
 
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                                                    <CustomTextBox
-                                                                        type="barcode"
-                                                                        name="barCode"
-                                                                        maxLength={12}
-                                                                        value={barcodeValue || ""}
-                                                                        onChange={(e) => handleInputChangeForPopUpGridData(data?.itemId, e.target.value)}
-                                                                        placeholder=" "
-                                                                        label="Barcode"
-                                                                        showLabel='false'
-                                                                    />
+                                                                    <form autoComplete='off'>
+                                                                        <CustomTextBox
+                                                                            type="barcode"
+                                                                            name="barCode"
+                                                                            maxLength={12}
+                                                                            value={barcodeValue || ""}
+
+                                                                            readOnly={patientWiseBarcode}
+
+                                                                            onChange={(e) => handleInputChangeForPopUpGridData(data?.itemId, e.target.value)}
+                                                                            placeholder=" "
+                                                                            label="Barcode"
+                                                                            showLabel='false'
+                                                                        />
+                                                                    </form>
                                                                 </td>
 
                                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
@@ -6547,10 +6691,24 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                     <div className="relative flex-1"></div>
                                     <div className="relative flex-1"></div>
                                     <div className="relative flex-1"></div>
-                                    <div className="relative flex-1 flex items-center gap-1 w-full rounded-md pl-2" style={{ background: activeTheme?.menuColor }}>
-                                        <input type="checkbox" name="" id="" />
-                                        <CustomeNormalButton activeTheme={activeTheme} text='Patient wise barcode' />
+                                    <div
+                                        className="relative flex-1 overflow-hidden cursor-pointer flex items-center gap-1 w-full rounded-md pl-2 text-xxxs h-[1.6rem] font-semibold"
+                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                        type="button"
+                                        data-ripple-light="true"
+                                        onClick={() => handelToUpdatePatientWiseBarcode()} // Toggle state on div click
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            name="patientWiseBarcode"
+                                            checked={patientWiseBarcode} // Bind checked state
+                                            readOnly // Prevent direct interaction with the checkbox
+                                        />
+                                        <div className=''>
+                                            Patient wise barcode
+                                        </div>
                                     </div>
+
                                     <div className="relative flex-1">
                                         {/* <CustomeNormalButton activeTheme={activeTheme} text='' /> */}
                                         <CustomFormButton
@@ -6559,12 +6717,19 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                             icon={FaSpinner}
                                             isButtonClick={isButtonClick}
                                             loadingButtonNumber={5} // Unique number for the first button
-                                            onClick={() => onSubmitForSavePatientRegistrationData()} // Pass button number to handler
+                                            onClick={() => onSubmitForSavePatientRegistrationData(1)} // Pass button number to handler
                                         />
                                     </div>
 
                                     <div className="relative flex-1">
-                                        <CustomeNormalButton activeTheme={activeTheme} text='Recive & Save' />
+                                        <CustomFormButton
+                                            activeTheme={activeTheme}
+                                            text="Recive & Save"
+                                            icon={FaSpinner}
+                                            isButtonClick={isButtonClick}
+                                            loadingButtonNumber={5} // Unique number for the first button
+                                            onClick={() => onSubmitForSavePatientRegistrationData(2)} // Pass button number to handler
+                                        />
                                     </div>
                                 </div>
 

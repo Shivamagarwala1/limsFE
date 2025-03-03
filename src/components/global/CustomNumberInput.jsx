@@ -57,12 +57,24 @@ export const CustomNumberInput = ({
                 maxLength={maxLength} // Prevent users from typing more characters
                 disabled={isDisabled}
                 readOnly={readOnly}
-                className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
-                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                    : "bg-white"
+                className={`
+                    ${readOnly && !isDisabled ? 'cursor-not-allowed bg-slate-600' : ''}
+                    inputPeerField peer border-borderColor focus:outline-none
+                      
+                     ${isDisabled
+                        ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                        : "bg-white"
                     } ${isInvalid ? "border-red-500" : "border-gray-300"}`}
+
+                style={{
+                    backgroundColor: readOnly ? (isDisabled ? "#eff5f5" : "#eff5f5") : "white !important"
+                }}
             />
-            <label htmlFor={name} className={`menuPeerLevel`}>
+            <label htmlFor={name} className={`menuPeerLevel`}
+                style={{
+                    backgroundColor: readOnly ? (isDisabled ? "#eff5f5" : "#eff5f5") : "white !important"
+                }}
+            >
                 {label}
             </label>
         </div>
