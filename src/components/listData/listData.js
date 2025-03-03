@@ -348,7 +348,10 @@ export const patientRecordHeader = [
 
 
 export const ResultTrackingHeader = [
-  "Sr. No", "Booking Date",  "Visit Id", "Sample Rec. Date", "Patient Name", "Age/Gender", "Barcode No.", "Test Name", "Approved Date", "Remark","Info", "Comments"
+  "Sr. No", "Booking Date", "Visit Id", "Sample Rec. Date", "Patient Name", "Age/Gender", "Barcode No.", "Test Name", "Approved Date", "Remark", "Info", "Comments"
 ];
+
+export const resultTrackingForObservationHeader = ["Test Name", "Value", "Flag", "Machine Reading", "Machine", "Min", "Max", "Unit", "Method Name", "Display Reading", "Old Reading"];
+
 
 

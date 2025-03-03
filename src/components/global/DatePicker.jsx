@@ -73,9 +73,11 @@ export const DatePicker = ({
                     onChange={(e) => onChange(e)} // Allow manual input (optional)
                     placeholder={placeholder}
                     disabled={true}
-                    className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
-                        ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                        : "bg-white"
+                    className={`inputPeerField peer border-borderColor focus:outline-none 
+                        ${readOnly ? 'cursor-not-allowed' : ''}
+                        ${isDisabled
+                            ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                            : "bg-white"
                         } ${isMandatory ? "border-b-red-500" : "border-borderColor"
                         } focus:outline-none`}
                 />

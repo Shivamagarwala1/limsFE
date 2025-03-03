@@ -114,9 +114,9 @@ export default function CustomFileUpload({
         <div className="relative flex-1 flex gap-[0.10rem]">
             <div
                 name="uploadDocument"
-                className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
+                className={`inputPeerField peer h-5 border-borderColor focus:outline-none  ${readOnly ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                 onClick={handelClickImage}
-                readOnly={readOnly}
+            // readOnly={readOnly}
             >
                 {
                     value === '' ? (
@@ -137,7 +137,8 @@ export default function CustomFileUpload({
                     ref={imgRef}
                     onChange={handelImageChange}
                     style={{ display: 'none' }}
-                    // accept=".jpg, .jpeg, .png"
+                    disabled={readOnly} // Disable the input when readOnly is true
+
                     max={'150px/150px'}
                 />
             </div>

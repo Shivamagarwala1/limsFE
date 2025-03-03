@@ -14,6 +14,8 @@ import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdo
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
 import { FaCommentDots, FaComments, FaPlus, FaPrint } from "react-icons/fa";
+import { LuFlagTriangleRight } from "react-icons/lu";
+
 import {
   InfoPopup,
   InvestigationRemarkPopupModal,
@@ -31,11 +33,15 @@ import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
 import { toast } from "react-toastify";
-import { getAllResultTrackinDataApi } from "../../../../service/service";
+import { getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
-import { ResultTrackingHeader } from "../../../listData/listData";
+import { resultTrackingForObservationHeader, ResultTrackingHeader } from "../../../listData/listData";
 import { FaCircleInfo } from "react-icons/fa6";
+import CustomeNormalButton from "../../../global/CustomeNormalButton";
+import { MdAddCircleOutline } from "react-icons/md";
+import CustomLoadingPage from "../../../global/CustomLoadingPage";
+import { CustomTextBox } from "../../../global/CustomTextBox";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -59,6 +65,9 @@ export default function ResultTrack() {
   const [isHoveredTable, setIsHoveredTable] = useState(null);
 
   const [allResultTrackingData, setAllResultTrackingData] = useState([]);
+  const [allObservationData, setAllObservationData] = useState([]);
+  const [isButtonClick, setIsButtonClick] = useState(0);
+  const [observationValue, setObservationValue] = useState({});
 
   useEffect(() => {
     AllCenterData?.fetchData(
@@ -580,9 +589,120 @@ export default function ResultTrack() {
       console.log(response);
 
       if (response?.success) {
-        setAllResultTrackingData(response?.data);
+
+
+        const data = [
+          {
+            age: "7 Y 10 M 15 D",
+            approveDateShow: "2025-Mar-01 01:10 PM",
+            approved: 0,
+            approvedDate: "2025-03-01 13:10:22",
+            approvedDateShow: "2025-03-01 13:10:22",
+            barcodeNo: "",
+            bookingDate: "2025-01-09 05:25:26",
+            centreId: 1,
+            centreName: "GENERIC DIAGNOSTIC PVT. LTD.",
+            centrecode: "GDPL01",
+            comment: "Lab Name2 Lab Name2 Lab Name2 Lab Name2 Lab Name2",
+            createdDateTime: "2025-03-01 13:10:22",
+            departmentName: "BIOCHEMISTRY",
+            deptId: 2,
+            eerun: 0,
+            gender: "M",
+            investigationName: "24H ALBUMIN PROTEIN",
+            investigationSortName: "",
+            isSampleCollected: "Y",
+            isremark: 0,
+            itemId: 4,
+            patientId: 2,
+            patientName: "Mr. Shuham Tiwari",
+            reportType: 1,
+            resultdone: 0,
+            rowcolor: "#FF4E12",
+            sampleCollectionDate: "2025-03-03 08:43:10",
+            sampleReceiveDate: "2025-03-03 17:15:04",
+            sampleRecievedDateShow: "2025-Mar-03 05:15 PM",
+            testid: 59,
+            transactionId: 1,
+            urgent: 1,
+            workOrderId: "iMarsar1",
+          },
+          {
+            age: "7 Y 10 M 15 D",
+            approveDateShow: "1883-Mar-01 04:43 PM",
+            approved: 0,
+            approvedDate: "1883-03-01 16:43:30",
+            approvedDateShow: "1883-03-01 16:43:30",
+            barcodeNo: "",
+            bookingDate: "2025-01-09 05:25:26",
+            centreId: 1,
+            centreName: "GENERIC DIAGNOSTIC PVT. LTD.",
+            centrecode: "GDPL01",
+            comment: "Lab Name2 Lab Name2 Lab Name2 Lab Name2 Lab Name2",
+            createdDateTime: "2025-03-01 17:20:02",
+            departmentName: "CLINICAL Pathology",
+            deptId: 3,
+            eerun: 0,
+            gender: "M",
+            investigationName: "24H MICROALBUMIN/CREATININE RATIO",
+            investigationSortName: "",
+            isSampleCollected: "Y",
+            isremark: 0,
+            itemId: 5,
+            patientId: 2,
+            patientName: "Mr. Shuham Tiwari",
+            reportType: 1,
+            resultdone: 0,
+            rowcolor: "#FF4E12",
+            sampleCollectionDate: "2025-03-03 08:43:10",
+            sampleReceiveDate: "2025-03-03 10:18:08",
+            sampleRecievedDateShow: "2025-Mar-03 10:18 AM",
+            testid: 58,
+            transactionId: 1,
+            urgent: 1,
+            workOrderId: "iMarsar1",
+          },
+          // More data entries can be added here
+        ];
+
+        // Initialize an empty object to group by workOrderId and accumulate investigation names
+        const result = {};
+
+        // Loop through the data and group by workOrderId
+        response?.data.forEach(item => {
+          const { workOrderId, investigationName, testid, gender, centreId } = item;
+
+          // If workOrderId exists in result, push the investigationName into the investigationName array
+          if (result[workOrderId]) {
+            result[workOrderId].investigationName.push({
+              investigationName,  // Store investigationName
+              testid,             // Store testId
+              gender,             // Store gender
+              fromAge: '36500',            // Store fromAge
+              toAge: 0,              // Store toAge
+              centreId
+            }          // Store centreId
+            );
+          } else {
+            // Otherwise, create a new entry for that workOrderId with the current item data and initialize the investigationName array
+            result[workOrderId] = {
+              ...item,  // Keep the full data
+              investigationName: [{ investigationName: investigationName, testid: testid, gender: gender, fromAge: '36500', toAge: 0, centreId: centreId }]  // Add the investigationName array containing the current investigationName
+            };
+          }
+        });
+
+        // Convert the result object into an array if needed
+        const groupedData = Object.values(result);
+
+        console.log(groupedData);
+
+
+
+
+        setAllResultTrackingData(groupedData);
       } else {
-        toast.error(error?.message);
+        toast.error(response?.message);
       }
 
     } catch (error) {
@@ -591,6 +711,55 @@ export default function ResultTrack() {
   };
 
 
+  //observation data
+  const handelObservationData = async (data, workOrderId) => {
+
+    setIsButtonClick(2);
+    // Find the testid(s) for the provided workOrderId
+    const matchedWorkOrder = allResultTrackingData.find(order => order.workOrderId === workOrderId);
+
+    console.log(matchedWorkOrder);
+
+
+    const testid = matchedWorkOrder
+      ? matchedWorkOrder.investigationName.map(item => item.testid).join(",")
+      : "";
+
+    console.log(testid);
+
+    // Construct the updatedData object with the testid and other fields
+    const updatedData = (({ gender, fromAge, toAge, centreId }) => ({
+      testid,       // Add the testid(s) we retrieved
+      gender,
+      fromAge,
+      toAge,
+      centreId
+    }))(data);
+
+    try {
+      const response = await getAllObserVationDataBasedOnTestName(updatedData);
+      console.log(response);
+
+      if (response?.success) {
+        setAllObservationData(response?.data)
+      } else {
+        toast.error(response?.message)
+      }
+
+    } catch (error) {
+      toast.error(error?.message);
+    }
+
+    setIsButtonClick(0);
+  }
+
+  //handel check 
+  const handleInputChangeForObserVtionValue = (index, value) => {
+    setObservationValue(prevState => ({
+      ...prevState,
+      [index]: value
+    }));
+  }
 
   const updatedArray = addObjectId(PostData?.data);
 
@@ -919,7 +1088,7 @@ export default function ResultTrack() {
 
 
           <div className="mt-1" style={{ maxHeight: "200px", overflow: "scroll" }}>
-           
+
             <DynamicTable
               rows={updatedArray}
               name="Patient Test Details"
@@ -932,99 +1101,99 @@ export default function ResultTrack() {
         </div>
 
         <div>
-          {/* {UserObj && (
-          <>
-            <CustomHandsontable
-              columns={columns1}
-              rows={tableData}
-              onEdit={setTableData}
-              name="Result Entry"
-            />
-            <div
-              className="w-full h-[0.10rem]"
-              style={{ background: activeTheme?.menuColor }}
-            ></div>
+          {UserObj && (
+            <>
+              <CustomHandsontable
+                columns={columns1}
+                rows={tableData}
+                onEdit={setTableData}
+                name="Result Entry"
+              />
+              <div
+                className="w-full h-[0.10rem]"
+                style={{ background: activeTheme?.menuColor }}
+              ></div>
 
-            <div style={{ maxHeight: "400px", overflowY: "auto" }}>
-              <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
-                  {/* Specimen Field *
-                  <InputGenerator
-                    inputFields={[
-                      { label: "Signature", type: "select", name: "Signature" },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Save",
-                        submit: false,
-                        callBack: () => console.log("Save clicked"),
-                      },
-                      {
-                        label: "Hold",
-                        submit: false,
-                        callBack: () => console.log("Hold clicked"),
-                      },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Approve",
-                        submit: false,
-                        callBack: () => console.log("Approve clicked"),
-                      },
-                      {
-                        label: "Print Report",
-                        submit: false,
-                        callBack: () => console.log("Print Report clicked"),
-                      },
-                    ]}
-                  />
+              <div style={{ maxHeight: "400px", overflowY: "auto" }}>
+                <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
+                    {/* Specimen Field */}
+                    <InputGenerator
+                      inputFields={[
+                        { label: "Signature", type: "select", name: "Signature" },
+                      ]}
+                    />
+                    <TwoSubmitButton
+                      options={[
+                        {
+                          label: "Save",
+                          submit: false,
+                          callBack: () => console.log("Save clicked"),
+                        },
+                        {
+                          label: "Hold",
+                          submit: false,
+                          callBack: () => console.log("Hold clicked"),
+                        },
+                      ]}
+                    />
+                    <TwoSubmitButton
+                      options={[
+                        {
+                          label: "Approve",
+                          submit: false,
+                          callBack: () => console.log("Approve clicked"),
+                        },
+                        {
+                          label: "Print Report",
+                          submit: false,
+                          callBack: () => console.log("Print Report clicked"),
+                        },
+                      ]}
+                    />
 
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Add Report",
-                        submit: false,
-                        callBack: () => console.log("Add Report clicked"),
-                      },
-                      {
-                        label: "Add Attachment",
-                        submit: false,
-                        callBack: () => console.log("Add Attachment clicked"),
-                      },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Main List",
-                        submit: false,
-                        callBack: () => console.log("Main List clicked"),
-                      },
-                      {
-                        label: "Previous",
-                        submit: false,
-                        callBack: () => console.log("Previous clicked"),
-                      },
-                    ]}
-                  />
-                  <TwoSubmitButton
-                    options={[
-                      {
-                        label: "Next",
-                        submit: false,
-                        callBack: () => console.log("Next clicked"),
-                      },
-                    ]}
-                  />
-                </div>
-              </form>
-            </div>
-          </>
-        )} */}
+                    <TwoSubmitButton
+                      options={[
+                        {
+                          label: "Add Report",
+                          submit: false,
+                          callBack: () => console.log("Add Report clicked"),
+                        },
+                        {
+                          label: "Add Attachment",
+                          submit: false,
+                          callBack: () => console.log("Add Attachment clicked"),
+                        },
+                      ]}
+                    />
+                    <TwoSubmitButton
+                      options={[
+                        {
+                          label: "Main List",
+                          submit: false,
+                          callBack: () => console.log("Main List clicked"),
+                        },
+                        {
+                          label: "Previous",
+                          submit: false,
+                          callBack: () => console.log("Previous clicked"),
+                        },
+                      ]}
+                    />
+                    <TwoSubmitButton
+                      options={[
+                        {
+                          label: "Next",
+                          submit: false,
+                          callBack: () => console.log("Next clicked"),
+                        },
+                      ]}
+                    />
+                  </div>
+                </form>
+              </div>
+            </>
+          )}
         </div>
 
         <div>
@@ -1032,9 +1201,13 @@ export default function ResultTrack() {
             gridDataDetails={'Patient Record Details'}
           />
 
-          <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme}>
+          {/* <div className="max-h-80 overflow-y-auto"> */}
+
+          <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme} height=
+            {"300px"}>
             <tbody>
               {allResultTrackingData?.map((data, index) => (
+
                 <tr
                   className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
                     ? ''
@@ -1052,7 +1225,19 @@ export default function ResultTrack() {
                   }}
                 >
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                    {index + 1}
+                    <div className="flex gap-1 items-center">
+                      <div>
+                        {index + 1}
+                      </div>
+                      {
+                        data?.urgent === 1 && (
+                          <div>
+                            <img src={UrgentGif} alt="path not found" />
+                          </div>
+                        )
+                      }
+
+                    </div>
                   </td>
 
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
@@ -1080,7 +1265,17 @@ export default function ResultTrack() {
                   </td>
 
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.investigationName}
+                    <div className="flex gap-1">
+                      {data?.investigationName?.map((item, index) => (
+                        <CustomeNormalButton
+                          key={index}
+                          activeTheme={activeTheme}
+                          text={item?.investigationName}
+                          onClick={() => handelObservationData(item, data?.workOrderId)}
+                        />
+                      ))}
+                    </div>
+
                   </td>
 
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
@@ -1088,16 +1283,38 @@ export default function ResultTrack() {
                   </td>
 
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.isremark}
+
+                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                    >
+                      <MdAddCircleOutline className="text-base" />
+                    </div>
                   </td>
 
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    <FaCircleInfo />
+                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                    >
+                      <FaCircleInfo />
+                    </div>
                   </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.comment}
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                    {data?.comment.length >= 9 ? (
+                      <div className="flex justify-center items-center gap-1">
+                        {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
+                        <div
+                          className="w-5 h-5 flex justify-center items-center rounded-sm"
+                          style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                        >
+                          <FaCommentDots />
+                        </div>
+                      </div>
+                    ) : (
+                      data?.comment
+                    )}
                   </td>
+
 
 
 
@@ -1162,10 +1379,153 @@ export default function ResultTrack() {
               ))}
             </tbody>
           </CustomDynamicTable >
+          {/* </div> */}
+
         </div >
 
+        {/* observation data */}
+        <div>
 
+          {
+            isButtonClick === 2 && (
+              <CustomLoadingPage />
+            )
+          }
+
+          {
+            allObservationData?.length !== 0 && (
+              <>
+                <GridDataDetails
+                  gridDataDetails={'Result Entry'}
+                />
+
+                <CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
+                  <tbody>
+                    {allObservationData?.map((data, index) => (
+
+                      <tr
+                        className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                          ? ''
+                          : index % 2 === 0
+                            ? 'bg-gray-100'
+                            : 'bg-white'
+                          }`}
+                        key={index}
+                        onMouseEnter={() => setIsHoveredTable(index)}
+                        onMouseLeave={() => setIsHoveredTable(null)}
+                        style={{
+                          background:
+                            isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                          // Hides scrollbar for IE/Edge
+                        }}
+                      >
+
+                        {
+                          data?.observationName === "" ?
+                            <>
+                              <td colSpan="12" className="border-b px-4 h-8 text-xxs font-bold text-gridTextColor w-full">
+                                <div className="flex items-center gap-2 w-full">
+                                  <div>{data?.investigationName}</div>
+                                  <div className="flex justify-center items-center">
+                                    <input type="checkbox" name="" id="" />
+                                  </div>
+                                  <div className="w-24">
+                                    <CustomeNormalButton activeTheme={activeTheme} text={'Reject'} />
+                                  </div>
+                                  <div className="w-24">
+                                    <CustomeNormalButton activeTheme={activeTheme} text={'Re-Run'} />
+                                  </div>
+                                  <div className="w-24">
+                                    <CustomeNormalButton activeTheme={activeTheme} text={'Comment'} />
+                                  </div>
+                                </div>
+                              </td>
+
+
+                            </>
+
+                            :
+                            <>
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                {data?.investigationName}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                <form autoComplete="off">
+                                  <CustomTextBox
+                                    type="positive"
+                                    name="observationValue"
+                                    maxLength={12}
+                                    value={observationValue[index] || ""}
+                                    onChange={(e) => handleInputChangeForObserVtionValue(index, e.target.value)}
+                                    placeholder=" "
+                                    label="Barcode"
+                                    showLabel="false"
+                                  />
+                                </form>
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold ">
+                                {observationValue[index] && (
+                                  <LuFlagTriangleRight
+                                    className={`text-xl ${observationValue[index] < data?.minVal
+                                      ? "text-red-500"
+                                      : observationValue[index] > data?.maxVal
+                                        ? "text-red-500"
+                                        : "text-green-500"
+                                      }`}
+                                  />
+                                )}
+
+                              </td>
+
+
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.machineReading}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.machineName}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.minVal}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.maxVal}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.unit}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.method}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.displayReading}
+                              </td>
+
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {data?.oldreading}
+                              </td>
+                            </>
+                        }
+
+                      </tr>
+                    ))}
+                  </tbody>
+                </CustomDynamicTable >
+              </>
+            )
+          }
+
+
+        </div >
       </>
-    </div>
+    </div >
   );
 }
