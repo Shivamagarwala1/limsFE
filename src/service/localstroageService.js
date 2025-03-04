@@ -41,7 +41,6 @@ export const doPasswordForgot = (data) => {
 //removePasswordForgot => remove from localstorage
 export const removePasswordForgot = (next) => {
     localStorage.removeItem("isPasswordForgot");
-    //localStorage.removeItem("clockin");
     next()
 }
 
@@ -68,10 +67,27 @@ export const isActiveTheme = () => {
     }
 }
 
-//dologin=>set localstorage
+
 export const doActiveTheame = (data, next) => {
     localStorage.setItem("activeTheme", JSON.stringify(data));
     next();
+}
+
+//save default centerid
+export const saveDefaultCentreId = (data) => {
+    localStorage.setItem("defaultLoginUserCentreId", JSON.stringify(data));
+
+}
+
+//get default centre id
+export const getDefaultCentreId = () => {
+    let data = localStorage.getItem("defaultLoginUserCentreId");
+
+    if (data !== null) {
+        return data;
+    } else {
+        return null;
+    }
 }
 
 // get token from local stroage

@@ -8,7 +8,7 @@ import facebook from '../../assets/facebook.png';
 import toast from 'react-hot-toast';
 import { employeeLogin, getMenuDataBasedOnEmpIdAndRoleIdAndCentreId } from '../../service/service';
 import { useNavigate } from 'react-router-dom';
-import { dologin, doPasswordForgot } from '../../service/localstroageService';
+import { dologin, doPasswordForgot, saveDefaultCentreId } from '../../service/localstroageService';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../redux/userSlices';
 import loginImage from "../../assets/loginimage.png";
@@ -60,6 +60,10 @@ export default function Login() {
                         token: resp.token,
                     };
 
+                    //save default centreid in local stroage
+                    saveDefaultCentreId(parseInt(combinedData?.user?.defaultCenter))
+
+
                     // Perform login action in Redux
                     dologin(combinedData, () => {
                         dispatch(loginUser(combinedData));
@@ -77,6 +81,8 @@ export default function Login() {
                         resp?.data?.defaultRole,
                         resp?.data?.defaultCenter
                     );
+
+
 
                     if (menuData?.data?.length > 0 && menuData.data[0]?.children?.length > 0) {
                         const navigationURL = menuData?.data[0]?.children[0]?.navigationURL;

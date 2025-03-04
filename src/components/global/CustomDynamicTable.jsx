@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 
-const CustomDynamicTable = ({ columns, activeTheme, children,height }) => {
+const CustomDynamicTable = ({ columns, activeTheme, children,height='300px' }) => {
 
   const tableRef = useRef(null);
 
