@@ -1,28 +1,215 @@
 import React, { useEffect, useState } from "react";
-import DynamicTable from "../../../Custom Components/DynamicTable";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../Custom Components/DynamicTable";
 import InputGenerator, {
   ClickChangeButton,
   SubmitButton,
   TwoSubmitButton,
+  WeekdayToggle,
 } from "../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../Custom Components/useFormHandler";
-import { useGetData } from "../../../service/apiService";
+import { useGetData, usePostData } from "../../../service/apiService";
 import { FormHeader } from "../../../Custom Components/FormGenerator";
 import SearchBarDropdown from "../../../Custom Components/SearchBarDropdown";
 import { LegendButtons } from "../../../Custom Components/LegendButtons";
+import toast from "react-hot-toast";
+import { addObjectId, addRandomObjectId } from "../../../service/RedendentData";
+import axios from "axios";
+import { getLocal } from "usehoks";
 
+// Create a separate component for the time input cell
+const TimeInputCell = ({ params, initialTime, setRow }) => {
+  const [startTime, setStartTime] = useState(initialTime || "");
+
+  useEffect(() => {
+    setRow(
+      (prev) =>
+        prev.some((item) => item.itemId === params?.row.itemId)
+          ? prev.map((item) =>
+              item.itemId === params?.row.itemId
+                ? { ...item, startTime: startTime }
+                : item
+            ) // Update if exists
+          : [
+              ...prev,
+              {
+                ...params?.row,
+                startTime: startTime,
+              },
+            ] // Add if not
+    );
+  }, [startTime]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        type="time"
+        className={`inputPeerField peer border-borderColor focus:outline-none`}
+        value={startTime}
+        name="startTime"
+        onChange={(e) => setStartTime(e.target.value)}
+      />
+    </div>
+  );
+};
+const EndTimeInputCell = ({ initialTime, setRow, params }) => {
+  const [startTime, setStartTime] = useState(initialTime || "");
+
+  useEffect(() => {
+    setRow(
+      (prev) =>
+        prev.some((item) => item.itemId === params?.row.itemId)
+          ? prev.map((item) =>
+              item.itemId === params?.row.itemId
+                ? { ...item, endTime: startTime }
+                : item
+            ) // Update if exists
+          : [
+              ...prev,
+              {
+                ...params?.row,
+                endTime: startTime,
+              },
+            ] // Add if not
+    );
+  }, [startTime]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        type="time"
+        className={`inputPeerField peer border-borderColor focus:outline-none`}
+        value={startTime}
+        name="endTime"
+        onChange={(e) => setStartTime(e.target.value)}
+      />
+    </div>
+  );
+};
+const MinInputCell = ({ initialTime, setRow, params }) => {
+  const [startTime, setStartTime] = useState(initialTime);
+
+  useEffect(() => {
+    setRow(
+      (prev) =>
+        prev.some((item) => item.itemId === params?.row.itemId)
+          ? prev.map((item) =>
+              item.itemId === params?.row.itemId
+                ? { ...item, mins: startTime }
+                : item
+            ) // Update if exists
+          : [
+              ...prev,
+              {
+                ...params?.row,
+                mins: parseInt(startTime),
+              },
+            ] // Add if not
+    );
+  }, [startTime]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        type="number"
+        className={`inputPeerField peer border-borderColor focus:outline-none`}
+        value={startTime}
+        name="mins"
+        onChange={(e) => setStartTime(e.target.value)}
+      />
+    </div>
+  );
+};
+
+const DayInputCell = ({ initialTime, setRow, params }) => {
+  const [startTime, setStartTime] = useState(initialTime);
+
+  useEffect(() => {
+    setRow(
+      (prev) =>
+        prev.some((item) => item.itemId === params?.row.itemId)
+          ? prev.map((item) =>
+              item.itemId === params?.row.itemId
+                ? { ...item, days: startTime }
+                : item
+            ) // Update if exists
+          : [
+              ...prev,
+              {
+                ...params?.row,
+                days: parseInt(startTime),
+              },
+            ] // Add if not
+    );
+  }, [startTime]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        type="number"
+        className={`inputPeerField peer border-borderColor focus:outline-none`}
+        value={startTime}
+        name="mins"
+        onChange={(e) => setStartTime(e.target.value)}
+      />
+    </div>
+  );
+};
+
+const WeekInputCell = ({ params, setRow }) => {
+  const [days, setDays] = useState({
+    sun: params?.row?.sun,
+    mon: params?.row?.mon,
+    tue: params?.row?.tue,
+    wed: params?.row?.wed,
+    thu: params?.row?.thu,
+    fri: params?.row?.fri,
+    sat: params?.row?.sat,
+  });
+
+  useEffect(() => {
+    setRow(
+      (prev) =>
+        prev.some((item) => item.itemId === params?.row.itemId)
+          ? prev.map((item) =>
+              item.itemId === params?.row.itemId ? { ...item, ...days } : item
+            ) // Update if exists
+          : [
+              ...prev,
+              {
+                ...params?.row,
+                ...days,
+              },
+            ] // Add if not
+    );
+  }, [days]);
+
+  return (
+    <div style={{ display: "flex", gap: "3px", fontSize: "15px" }}>
+      <WeekdayToggle setDays={setDays} days={days} />
+    </div>
+  );
+};
 export default function TATMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const lsData = getLocal("imarsar_laboratory");
   const { formRef, getValues, setValues } = useFormHandler();
+  const [SelectedData, setSelectedData] = useState([]);
+  // --------------------------------------------------------------
+  const [searchId, setSearchId] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
-  const [MachineValue, setMachineValue] = useState("");
-  const [MachineDropDown, setMachineDropDown] = useState(false);
-  const [MachineHoveIndex, setMachineHoveIndex] = useState(null);
-  const [MachineSelectedOption, setMachineSelectedOption] = useState("");
+  // ------------------------- Department ------------------------------
+  const [DepartmentId, setDepartmentId] = useState("");
+  const [DepartmentValue, setDepartmentValue] = useState("");
+  const [DepartmentDropDown, setDepartmentDropDown] = useState(false);
+  const [DepartmentHoveIndex, setDepartmentHoveIndex] = useState(null);
+  const [DepartmentSelectedOption, setDepartmentSelectedOption] = useState("");
   // ------------------ Register -------------------------------
   const [RegisterValue, setRegisterValue] = useState("");
   const [RegisterDropDown, setRegisterDropDown] = useState(false);
@@ -31,52 +218,67 @@ export default function TATMaster() {
 
   const [SelectAll, setSelectAll] = useState(false);
   const AllCenterData = useGetData();
+  const DepartmentData = useGetData();
+  const GridData = useGetData();
+  const PostData = usePostData();
+  const [row, setRow] = useState([]);
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
     );
+    DepartmentData?.fetchData(
+      "/labDepartment?select=id,deptname&$orderby=printSequence"
+    );
     // console.log(AllCenterData);
   }, []);
+
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
     {
-      field: `StartTime`,
+      field: `startTime`,
       headerName: `Start Time`,
       flex: 1,
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <InputGenerator
-              inputFields={[{ type: "time", name: "startTime" }]}
-            />
-          </div>
+          <TimeInputCell
+            setRow={setRow}
+            initialTime={params?.row?.startTime}
+            params={params}
+          />
         );
       },
     },
     {
-      field: `EndTime`,
+      field: `endTime`,
       headerName: `End Time`,
       flex: 1,
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <InputGenerator inputFields={[{ type: "time", name: "endTime" }]} />
-          </div>
+          <EndTimeInputCell
+            params={params}
+            setRow={setRow}
+            initialTime={params?.row?.endTime}
+          />
         );
       },
     },
     {
-      field: `TestName`,
+      field: `itemId`,
+      headerName: `Test Id`,
+      flex: 1,
+    },
+    {
+      field: `itemName`,
       headerName: `Test Name`,
       flex: 1,
     },
     {
-      field: `RegColl`,
+      field: `regcoll`,
       headerName: `Reg. Coll.`,
       flex: 1,
     },
     {
-      field: `CollRec`,
+      field: `collrecv`,
       headerName: `Coll. Rec.`,
       flex: 1,
     },
@@ -104,13 +306,17 @@ export default function TATMaster() {
     //   },
     // },
     {
-      field: `Mins`,
+      field: `mins`,
       headerName: `Mins`,
-      flex: 1,  
+      flex: 1,
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <InputGenerator inputFields={[{ type: "number", name: "mins" }]} />
+            <MinInputCell
+              setRow={setRow}
+              params={params}
+              initialTime={params?.row?.mins}
+            />
           </div>
         );
       },
@@ -122,7 +328,11 @@ export default function TATMaster() {
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <InputGenerator inputFields={[{ type: "number", name: "days" }]} />
+            <DayInputCell
+              setRow={setRow}
+              params={params}
+              initialTime={params?.row?.days}
+            />
           </div>
         );
       },
@@ -132,85 +342,45 @@ export default function TATMaster() {
       headerName: `Week Days`,
       flex: 1,
       renderCell: (params) => {
-        // console.log(params.row)
-        return (
-          <div style={{ display: "flex", gap: "3px", fontSize: "15px" }}>
-            <ClickChangeButton
-              submit={false}
-              text={"Sun"}
-              style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
-            />
-            <ClickChangeButton
-              submit={false}
-              text={"Mon"}
-              style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
-            />
-            <ClickChangeButton
-              submit={false}
-              text={"Tue"}
-              style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
-            />
-            <ClickChangeButton
-              submit={false}
-              text={"Wed"}
-              style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
-            />
-            <ClickChangeButton
-              submit={false}
-              text={"Thu"}
-              style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
-            />
-            <ClickChangeButton
-              submit={false}
-              text={"Fri"}
-              style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
-            />
-            <ClickChangeButton
-              submit={false}
-              text={"Sat"}
-              style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
-            />
-          </div>
-        );
+        return <WeekInputCell setRow={setRow} params={params} />;
       },
     },
     {
-      field: `Select`,
+      field: `select`,
       headerName: `Select`,
       flex: 1,
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-           <input type="checkbox" />
+            <input
+              type="checkbox"
+              onClick={() =>
+                setSelectedData(
+                  (prev) =>
+                    prev.some((item) => item.itemId === params?.row.itemId)
+                      ? prev.filter(
+                          (item) => item.itemId !== params?.row.itemId
+                        ) // Remove if exists
+                      : [
+                          ...prev,
+                          {
+                            ...params?.row,
+                            centreid: searchId,
+                            id: 0,
+                            deptid: DepartmentId,
+                            regcoll: RegisterValue === "Yes" ? 1 : 0,
+                            createdOn: new Date().toISOString(),
+                            createdby: lsData?.user?.employeeId,
+                            createdByName: lsData?.user?.name,
+                            itemid: params?.row?.itemId,
+                          },
+                        ] // Add if not
+                )
+              }
+            />
           </div>
         );
       },
-    },
-  ];
-  const row = [
-    {
-      id: 1,
-      Centre: "105 - center 1",
-      Department: "Nursing",
-      PatientName: "John Snow",
-      Barcode: "10993",
-      SampleRecDate: "10-02-2025",
-      VisitId: "302",
-      ApprovedDate: "12-Feb-25",
-      Reading: "Lorem Ipsum",
-      MachineComment: "Lorem Ipsum",
-      Remark: "Lorem Ipsum",
-      NotApprovedBy: "Tyron",
-      Machine: "Machine 1",
-      Params: "Alpu",
-      CollRec:"0",
-      RegColl:"0",
-      TestName: "CBC",
-      AgeGender: "25/male",
-      TransferDate: "15-Feb-2025",
-      Date: "11-Feb-2025",
-      ToCentre: "New-Delhi",
-      FromCentre: "Ayodhya",
     },
   ];
 
@@ -223,21 +393,23 @@ export default function TATMaster() {
   // Function to handle selection from the dropdown
   const handleOptionClick = (name, id) => {
     setSearchValue(name);
+    setSearchId(id);
     setSelectedOption(name);
     setShowDropdown(false);
   };
 
   // Function to handle input changes
   const handleSearchChange1 = (e) => {
-    setMachineValue(e.target.value);
-    setMachineDropDown(true); // Show dropdown when typing
+    setDepartmentValue(e.target.value);
+    setDepartmentDropDown(true); // Show dropdown when typing
   };
 
   // Function to handle selection from the dropdown
   const handleOptionClick1 = (name, id) => {
-    setMachineValue(name);
-    setMachineSelectedOption(name);
-    setMachineDropDown(false);
+    setDepartmentValue(name);
+    setDepartmentId(id);
+    setDepartmentSelectedOption(name);
+    setDepartmentDropDown(false);
   };
 
   // Function to handle input changes
@@ -253,8 +425,69 @@ export default function TATMaster() {
     setRegisterDropDown(false);
   };
 
-  const handleSubmit = () => {};
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const values = getValues(); // Getting form values
+    console.log(values);
 
+    // Transform SelectedData to match the required format
+    const formattedData = SelectedData.map((item) => ({
+      id: item.id || 0,
+      centreid: item.centreid || 0,
+      deptid: item.deptid || 0,
+      itemid: item.itemid || item.itemId || 0, // Ensures `itemid` is correctly mapped
+      startTime: item.startTime || "00:00",
+      endTime: item.endTime || "00:00",
+      mins: Number(item.mins) || 0, // Ensures numeric value
+      days: Number(item.days) || 0,
+      sun: item.sun || 0,
+      mon: item.mon || 0,
+      tue: item.tue || 0,
+      wed: item.wed || 0,
+      thu: item.thu || 0,
+      fri: item.fri || 0,
+      sat: item.sat || 0,
+      regcoll: item.regcoll || 0,
+      collrecv: item.collrecv || 0,
+      createdOn: item.createdOn || new Date().toISOString(), // Ensures ISO format
+      createdby: item.createdby || "string",
+      createdByName: item.createdByName || "string",
+      tatType: item.tatType || "string",
+    }));
+
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/api/tat_master/SaveUpdateTatMaster`,
+        formattedData
+      );
+
+      if (response?.success) {
+        console.log("Data submitted successfully:", response.data);
+        toast.success(response?.message);
+      }
+    } catch (error) {
+      console.error("Error submitting data:", error);
+      toast.error(error?.response?.data?.message || "Submission failed");
+    }
+  };
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/tat_master/GetTatMaster?centreId=${searchId}&departmentId=${DepartmentId}`
+      );
+
+      if (response?.data) {
+        // const grid = await addRandomObjectId(response?.data?.data);
+        setRow(response?.data?.data); // Store API response in the state
+      } else {
+        setRow([]); // Clear row if no data is returned
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    }
+  };
+
+  console.log("SelectedData ", SelectedData);
   return (
     <div>
       <>
@@ -272,6 +505,7 @@ export default function TATMaster() {
                 label="Centre"
                 options={AllCenterData?.data}
                 isRequired={false}
+                placeholder="Search Centre"
                 showSearchBarDropDown={showDropdown}
                 showValueField="companyName"
                 keyField="centreId"
@@ -282,18 +516,20 @@ export default function TATMaster() {
               />
               <SearchBarDropdown
                 id="search-bar"
-                name="Machine"
-                value={MachineValue}
+                name="Department"
+                value={DepartmentValue}
                 onChange={handleSearchChange1}
-                label="Machine"
-                options={[]}
+                label="Department"
+                options={DepartmentData?.data}
                 isRequired={false}
-                showSearchBarDropDown={MachineDropDown}
-                setShowSearchBarDropDown={setMachineDropDown}
+                placeholder="Search Department"
+                showSearchBarDropDown={DepartmentDropDown}
+                setShowSearchBarDropDown={setDepartmentDropDown}
                 handleOptionClickForCentre={handleOptionClick1}
-                setIsHovered={setMachineHoveIndex}
-                isHovered={MachineHoveIndex}
+                setIsHovered={setDepartmentHoveIndex}
+                isHovered={DepartmentHoveIndex}
               />
+
               <SearchBarDropdown
                 id="search-bar"
                 name="Register"
@@ -305,6 +541,7 @@ export default function TATMaster() {
                   { id: 2, data: "No" },
                 ]}
                 isRequired={false}
+                placeholder="Search Register Value"
                 showSearchBarDropDown={RegisterDropDown}
                 setShowSearchBarDropDown={setRegisterDropDown}
                 handleOptionClickForCentre={handleOptionClick2}
@@ -313,20 +550,26 @@ export default function TATMaster() {
               />
               <TwoSubmitButton
                 options={[
-                  { submit: false, label: "Search" },
-                  { submit: false, label: "Save" },
+                  {
+                    submit: false,
+                    label: "Search",
+                    callBack: () => {
+                      handleSearch();
+                    },
+                  },
+                  { submit: true, label: "Save" },
                 ]}
               />
             </div>
           </form>
-          <div style={{ maxHeight: "200px" }}>
-            <DynamicTable
+          <div style={{ maxHeight: "200px", marginBottom: "10px" }}>
+            <UpdatedDynamicTable
               rows={row}
               name="TAT Master Details"
-              //   loading={loading}
+              loading={GridData?.loading}
+              viewKey="itemId"
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
-              activeTheme={activeTheme}
             />
           </div>
         </div>

@@ -1,523 +1,321 @@
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useState } from 'react'
-import { IoMdMenu } from 'react-icons/io';
-import { useSelector } from 'react-redux';
-import { outSourceProcessMasterHeader } from '../../listData/listData';
-import { FaArrowDown, FaArrowUp } from 'react-icons/fa';
-import useRippleEffect from '../../customehook/useRippleEffect';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useEffect, useState } from "react";
+import { IoMdMenu } from "react-icons/io";
+import { useSelector } from "react-redux";
+import { outHouseProcessMasterHeader } from "../../listData/listData";
+import { FaArrowDown, FaArrowUp } from "react-icons/fa";
+import useRippleEffect from "../../customehook/useRippleEffect";
+import { FormHeader } from "../../../Custom Components/FormGenerator";
+import SearchBarDropdown from "../../../Custom Components/SearchBarDropdown";
+import { useGetData, usePostData } from "../../../service/apiService";
+import { TwoSubmitButton } from "../../../Custom Components/InputGenerator";
+import toast from "react-hot-toast";
+import { getLocal } from "usehoks";
+import { AiFillDelete } from "react-icons/ai";
+import DynamicTable from "../../../Custom Components/DynamicTable";
+import axios from "axios";
+import { UpdatedMultiSelectDropDown } from "../../../Custom Components/UpdatedMultiSelectDropDown";
 
 export default function OutSourceProcessMaster() {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const lsData = getLocal("imarsar_laboratory");
+  const [Flag, setFlag] = useState(false);
+  const [ShowRow, setShowRow] = useState(false);
+  const [BookingId, setBookingId] = useState("");
+  const [BookingValue, setBookingValue] = useState("");
+  const [BookingDropDown, setBookingDropDown] = useState(false);
+  const [BookingHoveIndex, setBookingHoveIndex] = useState(null);
+  const [BookingSelectedOption, setBookingSelectedOption] = useState("");
+  //   --------------- Lab Centre -------------------
+  const [LabId, setLabId] = useState("");
+  const [LabValue, setLabValue] = useState("");
+  const [LabDropDown, setLabDropDown] = useState(false);
+  const [LabHoveIndex, setLabHoveIndex] = useState(null);
+  const [LabSelectedOption, setLabSelectedOption] = useState("");
+  //   --------------- Departmnt -------------------
+  const [DepartmentId, setDepartmentId] = useState("");
+  const [DepartmentValue, setDepartmentValue] = useState("");
+  const [DepartmentDropDown, setDepartmentDropDown] = useState(false);
+  const [DepartmentHoveIndex, setDepartmentHoveIndex] = useState(null);
+  const [DepartmentSelectedOption, setDepartmentSelectedOption] = useState("");
+  // ----------------------- Investigation -----------------------
+  const [InvestigationId, setInvestigationId] = useState("");
+  const [InvestigationValue, setInvestigationValue] = useState([]);
 
-    const activeTheme = useSelector((state) => state.theme.activeTheme);
-    useRippleEffect();
+  const ItemData = useGetData();
+  const TestData = useGetData();
+  const LabData = useGetData();
+  const DepartmentData = useGetData();
+  const PostData = usePostData();
+  const GridData = useGetData();
+  useEffect(() => {
+    fetchedData();
+  }, [DepartmentId]);
+  useEffect(() => {
+    fetchGrid();
+  }, [LabId, DepartmentId, BookingId, Flag]);
+  const fetchedData = async () => {
+    await TestData?.fetchData(
+      `/itemMaster?select=itemId,ItemName&$filter=(deptId eq ${DepartmentId})&$OrderBy=itemName`
+    );
+    await ItemData?.fetchData("/centreMaster?select=centreid,companyName");
+    await LabData?.fetchData(`outSourcelabmaster?select=id,labname`);
+    await DepartmentData?.fetchData(
+      "/labDepartment?select=id,deptname&$orderby=printSequence"
+    );
+    // await ObservationData?.fetchData(
+    //   `/itemMaster/GetProfileObservation?itemId=${ObservationId}`
+    // );
+  };
 
-    const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
+  console.log(InvestigationValue);
+  const handleOptionClick = (name, id) => {
+    setLabValue(name);
+    setLabId(id);
+    setLabSelectedOption(name);
+    setLabDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange = (e) => {
+    setLabValue(e.target.value);
+    setLabDropDown(true); // Show dropdown when typing
+  };
+  const handleOptionClick3 = async (name, id) => {
+    setBookingValue(name);
+    setBookingId(id);
+    // await fetchGrid();
+    await sessionStorage.setItem("BookingId", JSON.stringify(id));
+    setBookingSelectedOption(name);
+    setBookingDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange3 = (e) => {
+    setBookingValue(e.target.value);
+    setBookingDropDown(true); // Show dropdown when typing
+  };
+  const handleOptionClick1 = (name, id) => {
+    setDepartmentValue(name);
+    setDepartmentId(id);
+    setDepartmentSelectedOption(name);
+    setDepartmentDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange1 = (e) => {
+    setDepartmentValue(e.target.value);
+    setDepartmentDropDown(true); // Show dropdown when typing
+  };
 
-    const openShowSearchBarDropDown = (val) => {
-        setShowSearchBarDropDown(val);
+  const fetchGrid = async () => {
+    if (!BookingId || !LabId || !DepartmentId) return;
+    GridData?.fetchData(
+      `/item_outsourcemaster/GetOutSourceMapping?BookingCentre=${BookingId}&OutSourceLab=${LabId}&DeptId=${DepartmentId}`
+    );
+    setShowRow(true);
+  };
+
+  const columns = [
+    { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "bookingCentre", headerName: "Centre Name", flex: 1 },
+    { field: "processingCentre", headerName: "Lab Centre", flex: 1 },
+    { field: "deptName", headerName: "Dept Name", flex: 1 },
+    { field: "itemName", headerName: "Item Name", flex: 1 },
+    {
+      field: "Delete",
+      headerName: "Delete",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div>
+            <div
+              onClick={() => handleDelete(params?.row?.id)}
+              className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+              style={{
+                background: activeTheme?.menuColor,
+                color: activeTheme?.iconColor,
+              }}
+            >
+              <AiFillDelete style={{ color: "red", fontSize: "15px" }} />
+            </div>
+          </div>
+        );
+      },
+    },
+  ];
+
+  const handleSubmit = async () => {
+    try {
+      const Payload = await InvestigationValue?.map((item) => {
+        return {
+          createdById: parseInt(lsData?.user?.employeeId),
+          createdDateTime: new Date().toISOString(),
+          labId: LabId,
+          bookingCentreId: BookingId,
+          itemId: item,
+          departmentId: DepartmentId,
+        };
+      });
+
+      const res = await PostData?.postRequest(
+        `/item_outsourcemaster/SaveOutSourceMapping`,
+        Payload
+      );
+      console.log(PostData?.response);
+      if (res?.success) {
+        toast.success(res?.message);
+        GridData?.fetchData(
+          `/item_outsourcemaster/GetOutSourceMapping?BookingCentre=${BookingId}&OutSourceLab=${LabId}&DeptId=${DepartmentId}`
+        );
+        // /item_OutHouseMaster/GetOutHouseMapping?BookingCentre=1&LabCentre=1&DeptId=1
+        setShowRow(true);
+      } else {
+        toast.error(res?.message);
+      }
+    } catch (error) {
+      toast.error(error?.message || "Something went wrong!");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!id) {
+      toast.error("Invalid item ID");
+      return;
     }
 
-    return (
-        <>
-            <div>
-                {/* Header Section */}
-                <div
-                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-                    style={{ background: activeTheme?.blockColor }}
-                >
-                    <div>
-                        <FontAwesomeIcon icon="fa-solid fa-house" />
-                    </div>
-                    <div>Out Source Process Master</div>
-                </div>
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/item_outsourcemaster/RemoveOutSourceMapping?id=${id}`
+      );
 
-                {/* form data */}
-                <form autoComplete='off'>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+      console.log("Delete Response:", res);
+      if (res?.data?.success) {
+        toast.success(res?.data?.message);
+      } else {
+        toast.error("Failed to delete item");
+      }
+    } catch (error) {
+      console.error("Delete Error:", error.response);
 
-                        {/* Booking Centre */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-                                onClick={() => openShowSearchBarDropDown(1)}
+      if (error.response) {
+        toast.error(error.response.data?.message || "Failed to delete item");
+      } else {
+        toast.error("Network error or no response received");
+      }
+    } finally {
+      setFlag(!Flag);
+    }
+  };
+  return (
+    <>
+      <div>
+        {/* Header Section */}
+        <FormHeader title="Out Source Process Master" />
 
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Booking Centre
-                            </label>
+        {/* form data */}
+        <form autoComplete="off">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+            {/* Booking Centre */}
+            <SearchBarDropdown
+              id="search-bar"
+              name="BookingValue"
+              value={BookingValue}
+              onChange={handleSearchChange3}
+              placeholder="Search Booking Center"
+              label="Booking Center"
+              options={ItemData?.data}
+              isRequired={false}
+              showSearchBarDropDown={BookingDropDown}
+              setShowSearchBarDropDown={setBookingDropDown}
+              handleOptionClickForCentre={handleOptionClick3}
+              setIsHovered={setBookingHoveIndex}
+              isHovered={BookingHoveIndex}
+            />
+            {/* Lab Centre */}
+            <SearchBarDropdown
+              id="search-bar"
+              name="Lab"
+              value={LabValue}
+              onChange={handleSearchChange}
+              label="Lab"
+              placeholder="Search Lab"
+              options={LabData?.data}
+              isRequired={false}
+              showValueField="labName"
+              keyField="id"
+              showSearchBarDropDown={LabDropDown}
+              setShowSearchBarDropDown={setLabDropDown}
+              handleOptionClickForCentre={handleOptionClick}
+              setIsHovered={setLabHoveIndex}
+              isHovered={LabHoveIndex}
+            />
+            {/* Department */}
+            <SearchBarDropdown
+              id="search-bar"
+              name="Department"
+              value={DepartmentValue}
+              onChange={handleSearchChange1}
+              label="Department"
+              placeholder="Search Department"
+              options={DepartmentData?.data}
+              isRequired={false}
+              showSearchBarDropDown={DepartmentDropDown}
+              setShowSearchBarDropDown={setDepartmentDropDown}
+              handleOptionClickForCentre={handleOptionClick1}
+              setIsHovered={setDepartmentHoveIndex}
+              isHovered={DepartmentHoveIndex}
+            />
+            {/* Investigation */}
+            {/* <SearchBarDropdown
+              id="search-bar"
+              name="Investigation"
+              value={InvestigationValue}
+              onChange={handleSearchChange2}
+              label="Investigation"
+              options={TestData?.data}
+              isRequired={false}
+              showSearchBarDropDown={InvestigationDropDown}
+              setShowSearchBarDropDown={setInvestigationDropDown}
+              handleOptionClickForCentre={handleOptionClick2}
+              setIsHovered={setInvestigationHoveIndex}
+              isHovered={InvestigationHoveIndex}
+            /> */}
+            <UpdatedMultiSelectDropDown
+              id="Investigation"
+              name="serachInvestigation"
+              label="Investigation"
+              placeHolder="Search Investigation"
+              options={TestData?.data || []}
+              isMandatory={false}
+              isDisabled={false}
+              optionKey="itemId"
+              optionValue={["itemName"]}
+              selectedValues={InvestigationValue}
+              setSelectedValues={setInvestigationValue}
+            />
+            <TwoSubmitButton
+              options={[
+                {
+                  label: "Save",
+                  submit: false,
+                  style: { width: "100px" },
+                  callBack: () => {
+                    handleSubmit();
+                  },
+                },
+              ]}
+            />
+          </div>
+        </form>
+      </div>
 
-                            {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 1 && (
-                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                                    <ul>
-
-                                        {
-                                            /* {filterAlltestNameData?.length > 0 ? (
-                                                filterAlltestNameData?.map((data, index) => (
-                                                    <li
-                                                        key={data?.itemId}
-                                                        name="testName"
-                                                        className="my-1 px-2 cursor-pointer"
-                                                        onClick={(e) => {
-                                                            openShowSearchBarDropDown(0);
-                                                            handelOnChangeTestMappingData({
-                                                                target: { name: 'testName', value: data?.itemId },
-                                                            });
-                                                            setSeleDropDown((preventData) => ({
-                                                                ...preventData,
-                                                                testName: data?.itemName
-                                                            }))
-                                                        }}
-                                                        onMouseEnter={() => setIsHovered(index)}
-                                                        onMouseLeave={() => setIsHovered(null)}
-                                                        style={{
-                                                            background:
-                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                        }}
-                                                    >
-                                                        {data?.itemName}
-                                                    </li>
-    
-                                                ))
-                                            )  */
-
-                                        }
-
-                                                        // : (
-                                                        // <li className="py-4 text-gray-500 text-center">
-                                                        //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                        // </li>
-                                                        // )
-
-                                        <div>Under Processing</div>
-
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Department */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-                                onClick={() => openShowSearchBarDropDown(3)}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Department
-                            </label>
-
-                            {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 3 && (
-                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                                    <ul>
-
-                                        {
-                                            /* {filterAlltestNameData?.length > 0 ? (
-                                                filterAlltestNameData?.map((data, index) => (
-                                                    <li
-                                                        key={data?.itemId}
-                                                        name="testName"
-                                                        className="my-1 px-2 cursor-pointer"
-                                                        onClick={(e) => {
-                                                            openShowSearchBarDropDown(0);
-                                                            handelOnChangeTestMappingData({
-                                                                target: { name: 'testName', value: data?.itemId },
-                                                            });
-                                                            setSeleDropDown((preventData) => ({
-                                                                ...preventData,
-                                                                testName: data?.itemName
-                                                            }))
-                                                        }}
-                                                        onMouseEnter={() => setIsHovered(index)}
-                                                        onMouseLeave={() => setIsHovered(null)}
-                                                        style={{
-                                                            background:
-                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                        }}
-                                                    >
-                                                        {data?.itemName}
-                                                    </li>
-    
-                                                ))
-                                            )  */
-
-                                        }
-
-                                                        // : (
-                                                        // <li className="py-4 text-gray-500 text-center">
-                                                        //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                        // </li>
-                                                        // )
-
-                                        <div>Under Processing</div>
-
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Investigation */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-                                onClick={() => openShowSearchBarDropDown(4)}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Investigation
-                            </label>
-
-                            {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 4 && (
-                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                                    <ul>
-
-                                        {
-                                            /* {filterAlltestNameData?.length > 0 ? (
-                                                filterAlltestNameData?.map((data, index) => (
-                                                    <li
-                                                        key={data?.itemId}
-                                                        name="testName"
-                                                        className="my-1 px-2 cursor-pointer"
-                                                        onClick={(e) => {
-                                                            openShowSearchBarDropDown(0);
-                                                            handelOnChangeTestMappingData({
-                                                                target: { name: 'testName', value: data?.itemId },
-                                                            });
-                                                            setSeleDropDown((preventData) => ({
-                                                                ...preventData,
-                                                                testName: data?.itemName
-                                                            }))
-                                                        }}
-                                                        onMouseEnter={() => setIsHovered(index)}
-                                                        onMouseLeave={() => setIsHovered(null)}
-                                                        style={{
-                                                            background:
-                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                        }}
-                                                    >
-                                                        {data?.itemName}
-                                                    </li>
-    
-                                                ))
-                                            )  */
-
-                                        }
-
-                                                        // : (
-                                                        // <li className="py-4 text-gray-500 text-center">
-                                                        //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                        // </li>
-                                                        // )
-
-                                        <div>Under Processing</div>
-
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Lab */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="testName"
-                                name="testName"
-                                // value={selectedDropDown?.testName || testMappingData?.testName || ''}
-                                // onChange={(e) => {
-                                //     handelOnChangeTestMappingData(e),
-                                //         setSeleDropDown((preventData) => ({
-                                //             ...preventData,
-                                //             testName: ''
-                                //         }))
-                                // }}
-                                onClick={() => openShowSearchBarDropDown(2)}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                                Lab
-                            </label>
-
-                            {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 2 && (
-                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                                    <ul>
-
-                                        {
-                                            /* {filterAlltestNameData?.length > 0 ? (
-                                                filterAlltestNameData?.map((data, index) => (
-                                                    <li
-                                                        key={data?.itemId}
-                                                        name="testName"
-                                                        className="my-1 px-2 cursor-pointer"
-                                                        onClick={(e) => {
-                                                            openShowSearchBarDropDown(0);
-                                                            handelOnChangeTestMappingData({
-                                                                target: { name: 'testName', value: data?.itemId },
-                                                            });
-                                                            setSeleDropDown((preventData) => ({
-                                                                ...preventData,
-                                                                testName: data?.itemName
-                                                            }))
-                                                        }}
-                                                        onMouseEnter={() => setIsHovered(index)}
-                                                        onMouseLeave={() => setIsHovered(null)}
-                                                        style={{
-                                                            background:
-                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                        }}
-                                                    >
-                                                        {data?.itemName}
-                                                    </li>
-    
-                                                ))
-                                            )  */
-
-                                        }
-
-                                                        // : (
-                                                        // <li className="py-4 text-gray-500 text-center">
-                                                        //     {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
-                                                        // </li>
-                                                        // )
-
-                                        <div>Under Processing</div>
-
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-
-                        <div className='flex gap-[0.25rem]'>
-
-                            {/* rate */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="search"
-                                    id="centreId"
-                                    name="centreId"
-                                    // value={selectMachinelMasterData?.centreId || machineMasterData?.centreId || ''}
-                                    // onChange={(e) => {
-                                    //     handelOnChnageTestApproveMaster(e),
-                                    //         setSelectMachinelMasterData((preventData) => ({
-                                    //             ...preventData,
-                                    //             centreId: ''
-                                    //         }))
-                                    // }}
-                                    onClick={() => openShowSearchBarDropDown(2)}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="centreId" className="menuPeerLevel">
-                                    Rate
-                                </label>
-                            </div>
-
-
-                            <div className="relative flex-1 flex justify-start items-center">
-
-                                {
-                                    // isEditData ? <button
-                                    //type = "button"
-                                    // data-ripple-light="true"
-                                    //className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                    //     style={{
-                                    //         background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                    //     }}
-                                    //     onClick={onSubmitUpdateEmployeeMaster}
-                                    // >
-
-                                    //     {
-                                    //         isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Update'
-                                    //     }
-
-                                    // </button>
-                                    //     :
-                                    <button button
-                                        type="button"
-                                        data-ripple-light="true"
-                                        className={`relative overflow-hidden 
-                                        font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                        style={{
-                                            background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                        }}
-                                    // onClick={onSubmitSaveEmployeeMaster}
-                                    >
-
-                                        {/* {
-                                                            isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                                        } */}
-                                        Save
-                                    </button>
-                                }
-
-                            </div>
-
-                        </div>
-                    </div>
-                </form >
-            </div >
-
-
-            {/* grid data */}
-            <div >
-                <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
-                <div
-                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
-                    style={{ background: activeTheme?.blockColor }}
-                >
-                    <div>
-                        <IoMdMenu className='font-semibold text-lg' />
-                    </div>
-                    <div>Out Source Process Details</div>
-                </div>
-
-
-
-                <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
-
-                    <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
-                        <tr>
-                            {outSourceProcessMasterHeader.map((data, index) => (
-                                <td
-                                    key={index}
-                                    className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
-                                >
-                                    <div className="flex gap-1">
-                                        <div>{data}</div>
-                                        {data !== 'Action' && (
-                                            <div className="flex items-center gap-1">
-                                                <div>
-                                                    <FaArrowUp className="text-xxs cursor-pointer" />
-                                                </div>
-                                                <div>
-                                                    <FaArrowDown className="text-xxs cursor-pointer" />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </td>
-                            ))}
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        {/* {
-                                                    allEmpMasterData?.map((data) => {
-                        
-                                                        return (
-                                                            <tr
-                                                                className={`cursor-pointer 
-                                                                    ${isHoveredTable === data?.empId
-                                                                        ? ''
-                                                                        : data?.empId % 2 === 0 ? 'bg-gray-100' : 'bg-white'
-                                                                    }`}
-                                                                key={data?.empId}
-                                                                onMouseEnter={() => setIsHoveredTable(data?.empId)}
-                                                                onMouseLeave={() => setIsHoveredTable(null)}
-                                                                style={{
-                                                                    background:
-                                                                        isHoveredTable === data?.empId ? activeTheme?.subMenuColor : undefined,
-                                                                }}
-                                                            >
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.empId}
-                                                                </td>
-                        
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.empCode}
-                                                                </td>
-                        
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.title + " " + data?.fName + " " + data?.lName}
-                                                                </td>
-                        
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.mobileNo}
-                                                                </td>
-                        
-                                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                    {data?.email}
-                                                                </td>
-                        
-                                                                <td className="border-b px-4 h-5 flex items-center text-xxs font-semibold gap-2">
-                                                                    <button className="w-4 h-4 flex justify-center items-center">
-                                                                        <FaRegEdit
-                                                                            className={`w-full h-full ${data?.isActive === 1 ? "text-blue-500 cursor-pointer" : "text-gray-400 cursor-not-allowed"
-                                                                                }`}
-                                                                            onClick={() => {
-                                                                                if (data?.isActive === 1) {
-                                                                                    getSingleMenuDataForUpDate(data?.empId);
-                                                                                    setIsEditData(true);
-                                                                                }
-                                                                            }}
-                                                                        />
-                        
-                                                                    </button>
-                                                                    <button
-                                                                        className={`w-4 h-4 flex justify-center items-center ${data?.isActive === 1 ? 'text-green-500' : 'text-red-500'
-                                                                            }`}
-                                                                    >
-                        
-                                                                        <ImSwitch className="w-full h-full"
-                                                                            onClick={() => {
-                                                                                setClickedRowId(data);
-                                                                                setShowPopup(true);
-                                                                            }}
-                                                                        />
-                        
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        )
-                                                    })
-                                                } */}
-
-                    </tbody>
-                </table>
-            </div >
-        </>
-    )
+      {/* grid data */}
+      <div>
+        <DynamicTable
+          name="Out House Process Master Details"
+          rows={ShowRow ? GridData?.data?.data : []}
+          columns={columns}
+        />
+      </div>
+    </>
+  );
 }
