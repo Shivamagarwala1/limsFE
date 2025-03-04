@@ -465,7 +465,7 @@ export const ClickChangeButton = ({
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const buttonRef = useRef(null); // Added ref for the button
-  const [isClicked, setIsclicked] = useState(false);
+  const [isClicked, setIsclicked] = useState(submit);
 
   const handleClick = (e) => {
     const button = buttonRef.current;
@@ -491,7 +491,8 @@ export const ClickChangeButton = ({
       <div className="relative flex-1 gap-1 flex justify-start items-center">
         <button
           ref={buttonRef} // Attach ref to the button
-          type={submit ? "submit" : "button"}
+          // type={submit ? "submit" : "button"}
+          type={"button"}
           data-ripple-light="true"
           onClick={(e) => {
             setIsclicked(!isClicked);
@@ -630,6 +631,56 @@ export const StatusSubmitButton = ({
           }
         `}</style>
       </div>
+    </div>
+  );
+};
+
+
+export const ClickChangeButton1 = ({ text, isActive, onToggle, style }) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const [isClicked, setIsClicked] = useState(isActive);
+
+  const handleClick = () => {
+    const newState = isClicked ? 0 : 1;
+    setIsClicked(newState);
+    onToggle(text, newState);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
+      style={{
+        ...style,
+        background: isClicked ? activeTheme?.menuColor : "transparent",
+        color: isClicked ? activeTheme?.iconColor : "black",
+        border: isClicked ? "none" : `1px solid black`,
+      }}
+    >
+      {text}
+    </button>
+  );
+};
+
+export const WeekdayToggle = ({setDays,days }) => {
+
+  const handleToggle = (day, newState) => {
+    setDays((prev) => ({ ...prev, [day]: newState }));
+    console.log("Updated Days:", { ...days, [day]: newState }); // Logs updated state
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "3px", fontSize: "15px" }}>
+      {Object.keys(days).map((day) => (
+        <ClickChangeButton1
+          key={day}
+          text={day}
+          isActive={days[day] === 1}
+          onToggle={handleToggle}
+          style={{ width: "40px", fontSize: "0.75rem", height: "20px" }}
+        />
+      ))}
     </div>
   );
 };

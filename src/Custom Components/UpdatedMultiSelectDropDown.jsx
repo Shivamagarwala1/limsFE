@@ -94,8 +94,8 @@ export const UpdatedMultiSelectDropDown = ({
   return (
     <div className="relative flex-1" ref={dropdownRef}>
       {/* Input Field */}
-      <div
-        className={`flex justify-between pl-2 items-center border-[1.5px] border-borderColor font-semibold rounded text-xxxs h-[1.6rem] text-[#495057] my-1 ${
+      <div style={{marginTop:"0.10rem"}}
+        className={`flex justify-between pl-2 items-center border-[1.5px]  font-semibold rounded text-xxxs h-[1.6rem] text-[#495057] my-1 ${
           isDisabled ? "bg-gray-100 cursor-not-allowed" : "bg-white"
         } ${isMandatory ? "border-b-red-500" : ""}`}
         onClick={() => setIsDropdownVisible(!isDropdownVisible)}
