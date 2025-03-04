@@ -23,6 +23,13 @@ export const addObjectId = (arr) => {
   }));
 };
 
+export const addRandomObjectId = (arr) => {
+  return arr.map((item, index) => ({
+    ...item,
+    Random: index + 1, // Adding objId starting from 1
+  }));
+};
+
 export const SampleCollectionStatus = [
   { id: 1, data: "Sample Not Collected", value: "N" },
   { id: 2, data: "Sample Collected", value: "S" },

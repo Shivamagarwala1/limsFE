@@ -374,7 +374,7 @@ export default function NABLMaster() {
             {/* Department */}
             <SearchBarDropdown
               id="search-bar"
-              name="Departmment"
+              name="Department"
               value={DepartmentValue}
               onChange={handleSearchChange}
               label="Department"

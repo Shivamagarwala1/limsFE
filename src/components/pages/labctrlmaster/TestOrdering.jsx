@@ -129,7 +129,7 @@ export default function TestOrdering() {
             {OrderTypeValue !== "Department" && (
               <SearchBarDropdown
                 id="search-bar"
-                name="Departmment"
+                name="Department"
                 value={DepartmentValue}
                 onChange={handleSearchChange}
                 label="Department"
