@@ -13,8 +13,6 @@ export default function CustomFormButton({
 
     useRippleEffect();
 
-    console.log(disabled);
-
     return (
         <div>
             <button

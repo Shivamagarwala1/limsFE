@@ -1335,9 +1335,6 @@ export default function PatientRegistration() {
 
         setIsButtonClick(2);
 
-        console.log(checkedItems);
-
-
         const updatedData = {
 
             isActive: 1,
@@ -1514,7 +1511,7 @@ export default function PatientRegistration() {
                         "isInvoiceCreated": 0,
                         "invoiceNumber": 0,
                         "isUrgent": 0,
-                        "isSampleCollected": val == 1 ? checkedItems[data?.itemId] ? 'S' : '' : checkedItems[data?.itemId] ? 'Y' : '',
+                        "isSampleCollected": val === 1 ? checkedItems[data?.itemId] ? 'S' : 'M' : checkedItems[data?.itemId] ? 'Y' : 'M',
                         "samplecollectionremarks": '',
                         "departmentReceiveRemarks": '',
                         "departmentReceiveDate": "2025-03-03T04:27:32.292Z",
@@ -1591,10 +1588,6 @@ export default function PatientRegistration() {
             ]
         };
 
-        console.log(updatedData);
-
-
-
         // Validate form before submitting
         if (!validateForm()) {
             toast.info("Please fill in all mandatory fields.");
@@ -1603,299 +1596,298 @@ export default function PatientRegistration() {
         }
 
 
-
         try {
             const response = await savePatientRegistrationDataApi(updatedData);
 
             if (response?.success) {
                 toast.success(response?.message);
 
-                // setPatientRegistrationData(
-                //     {
-                //         "address": "",
-                //         "ageDays": 0,
-                //         "ageMonth": 0,
-                //         "ageTotal": 0,
-                //         "ageYear": 0,
-                //         "areaId": 0,
-                //         "centreId": 0,
-                //         "cityId": 0,
-                //         "countryId": 0,
-                //         "createdById": 0,
-                //         "createdDateTime": "",
-                //         "districtId": 0,
-                //         "dob": "",
-                //         "documentId": 0,
-                //         "documnetnumber": 0,
-                //         "emailId": "",
-                //         "gender": "",
-                //         "isActive": 0,
-                //         "isActualDOB": 0,
-                //         "mobileNo": "",
-                //         "name": "",
-                //         "password": 0,
-                //         "patientId": 0,
-                //         "pinCode": "",
-                //         "remarks": "",
-                //         "stateId": 0,
-                //         "title_id": 0,
-                //         "updateById": 0,
-                //         "updateDateTime": "",
-                //         "visitCount": 0,
-                //         "addBooking": [
-                //             {
-                //                 "ageDay": "",
-                //                 "ageMonth": "",
-                //                 "ageYear": "",
-                //                 "billNo": 0,
-                //                 "bookingDate": "",
-                //                 "centreId": 0,
-                //                 "clientCode": 0,
-                //                 "createdById": 0,
-                //                 "createdDateTime": "",
-                //                 "discount": 0,
-                //                 "discountApproved": 0,
-                //                 "discountReason": "",
-                //                 "discountType": 0,
-                //                 "discountid": 0,
-                //                 "dob": "",
-                //                 "gender": "",
-                //                 "grossAmount": 0,
-                //                 "invoiceNo": "",
-                //                 "isActive": 0,
-                //                 "isCredit": 0,
-                //                 "isDisCountApproved": 0,
-                //                 "labRemarks": "",
-                //                 "mobileNo": "",
-                //                 "mrp": 0,
-                //                 "name": "",
-                //                 "netAmount": 0,
-                //                 "otherLabRefer": "",
-                //                 "otherLabReferID": 0,
-                //                 "paidAmount": 0,
-                //                 "patientId": 0,
-                //                 "patientRemarks": "",
-                //                 "paymentMode": "",
-                //                 "rateId": 0,
-                //                 "refDoctor1": "",
-                //                 "refDoctor2": "",
-                //                 "refID1": 0,
-                //                 "refID2": 0,
-                //                 "salesExecutiveID": 0,
-                //                 "sessionCentreid": 0,
-                //                 "source": "",
-                //                 "tempDOCID": 0,
-                //                 "tempDoctroName": "",
-                //                 "title_id": "",
-                //                 "totalAge": 0,
-                //                 "transactionId": 0,
-                //                 "updateById": 0,
-                //                 "updateDateTime": "",
-                //                 "uploadDocument": "",
-                //                 "workOrderId": "",
-                //                 "addBookingStatus": [
-                //                     {
-                //                         "barcodeNo": "",
-                //                         "centreId": 0,
-                //                         "createdById": 0,
-                //                         "createdDateTime": "",
-                //                         "id": 0,
-                //                         "isActive": 0,
-                //                         "patientId": 0,
-                //                         "remarks": "",
-                //                         "roleId": 0,
-                //                         "status": "",
-                //                         "testId": 0,
-                //                         "transactionId": 0,
-                //                         "updateById": 0,
-                //                         "updateDateTime": ""
-                //                     }
-                //                 ],
-                //                 "addBookingItem": [
-                //                     {
-                //                         "barcodeNo": "",
-                //                         "centreId": 0,
-                //                         "createdById": 0,
-                //                         "createdDateTime": "",
-                //                         "departmentName": "",
-                //                         "deptId": 0,
-                //                         "discount": 0,
-                //                         "id": 0,
-                //                         "investigationName": "",
-                //                         "isActive": 0,
-                //                         "isEmailsent": 0,
-                //                         "isMachineOrder": 0,
-                //                         "isPackage": 0,
-                //                         "isSra": 0,
-                //                         "itemId": 0,
-                //                         "itemType": 0,
-                //                         "mrp": 0,
-                //                         "netAmount": 0,
-                //                         "packItemDiscount": 0,
-                //                         "packItemNet": 0,
-                //                         "packItemRate": 0,
-                //                         "packMrp": 0,
-                //                         "packageID": 0,
-                //                         "packageName": "",
-                //                         "rate": 0,
-                //                         "reportType": 0,
-                //                         "sampleTypeId": 0,
-                //                         "sampleTypeName": "",
-                //                         "sessionCentreid": 0,
-                //                         "testcode": "",
-                //                         "transactionId": 0,
-                //                         "updateById": 0,
-                //                         "updateDateTime": "",
-                //                         "workOrderId": ""
-                //                     },
-                //                     {
-                //                         "barcodeNo": "",
-                //                         "centreId": 0,
-                //                         "createdById": 0,
-                //                         "createdDateTime": "",
-                //                         "departmentName": "",
-                //                         "deptId": 0,
-                //                         "discount": 0,
-                //                         "id": 0,
-                //                         "investigationName": "",
-                //                         "isActive": 0,
-                //                         "isEmailsent": 0,
-                //                         "isMachineOrder": 0,
-                //                         "isPackage": 0,
-                //                         "isSra": 0,
-                //                         "itemId": 0,
-                //                         "itemType": 0,
-                //                         "mrp": 0,
-                //                         "netAmount": 0,
-                //                         "packItemDiscount": 0,
-                //                         "packItemNet": 0,
-                //                         "packItemRate": 0,
-                //                         "packMrp": 0,
-                //                         "packageID": 0,
-                //                         "packageName": "",
-                //                         "rate": 0,
-                //                         "reportType": 0,
-                //                         "sampleTypeId": 0,
-                //                         "sampleTypeName": "",
-                //                         "sessionCentreid": 0,
-                //                         "testcode": "",
-                //                         "transactionId": 0,
-                //                         "updateById": 0,
-                //                         "updateDateTime": "",
-                //                         "workOrderId": ""
-                //                     }
-                //                 ],
-                //                 "addpaymentdetail": [
-                //                     {
-                //                         "bankName": "",
-                //                         "bookingCentreId": 0,
-                //                         "cancelDate": "",
-                //                         "cancelReason": "",
-                //                         "canceledBy": "",
-                //                         "cashAmt": 0,
-                //                         "chequeAmt": 0,
-                //                         "chequeNo": "",
-                //                         "creditCardAmt": 0,
-                //                         "creditCardNo": "",
-                //                         "id": 0,
-                //                         "isCancel": 0,
-                //                         "nefTamt": 0,
-                //                         "onlinewalletAmt": 0,
-                //                         "paymentModeId": 0,
-                //                         "receiptNo": 0,
-                //                         "receivedAmt": 0,
-                //                         "receivedBy": "",
-                //                         "receivedID": 0,
-                //                         "settlementCentreID": 0,
-                //                         "transactionId": 0,
-                //                         "transactionType": "",
-                //                         "walletno": "",
-                //                         "workOrderId": ""
-                //                     },
-                //                     {
-                //                         "bankName": "",
-                //                         "bookingCentreId": 0,
-                //                         "cancelDate": "",
-                //                         "cancelReason": "",
-                //                         "canceledBy": "",
-                //                         "cashAmt": 0,
-                //                         "chequeAmt": 0,
-                //                         "chequeNo": "",
-                //                         "creditCardAmt": 0,
-                //                         "creditCardNo": "",
-                //                         "id": 0,
-                //                         "isCancel": 0,
-                //                         "nefTamt": 0,
-                //                         "onlinewalletAmt": 0,
-                //                         "paymentModeId": 0,
-                //                         "receiptNo": 0,
-                //                         "receivedAmt": 0,
-                //                         "receivedBy": "",
-                //                         "receivedID": 0,
-                //                         "settlementCentreID": 0,
-                //                         "transactionId": 0,
-                //                         "transactionType": "",
-                //                         "walletno": "",
-                //                         "workOrderId": ""
-                //                     }
-                //                 ]
-                //             }
-                //         ]
-                //     }
+                setPatientRegistrationData(
+                    {
+                        "address": "",
+                        "ageDays": 0,
+                        "ageMonth": 0,
+                        "ageTotal": 0,
+                        "ageYear": 0,
+                        "areaId": 0,
+                        "centreId": 0,
+                        "cityId": 0,
+                        "countryId": 0,
+                        "createdById": 0,
+                        "createdDateTime": "",
+                        "districtId": 0,
+                        "dob": "",
+                        "documentId": 0,
+                        "documnetnumber": 0,
+                        "emailId": "",
+                        "gender": "",
+                        "isActive": 0,
+                        "isActualDOB": 0,
+                        "mobileNo": "",
+                        "name": "",
+                        "password": 0,
+                        "patientId": 0,
+                        "pinCode": "",
+                        "remarks": "",
+                        "stateId": 0,
+                        "title_id": 0,
+                        "updateById": 0,
+                        "updateDateTime": "",
+                        "visitCount": 0,
+                        "addBooking": [
+                            {
+                                "ageDay": "",
+                                "ageMonth": "",
+                                "ageYear": "",
+                                "billNo": 0,
+                                "bookingDate": "",
+                                "centreId": 0,
+                                "clientCode": 0,
+                                "createdById": 0,
+                                "createdDateTime": "",
+                                "discount": 0,
+                                "discountApproved": 0,
+                                "discountReason": "",
+                                "discountType": 0,
+                                "discountid": 0,
+                                "dob": "",
+                                "gender": "",
+                                "grossAmount": 0,
+                                "invoiceNo": "",
+                                "isActive": 0,
+                                "isCredit": 0,
+                                "isDisCountApproved": 0,
+                                "labRemarks": "",
+                                "mobileNo": "",
+                                "mrp": 0,
+                                "name": "",
+                                "netAmount": 0,
+                                "otherLabRefer": "",
+                                "otherLabReferID": 0,
+                                "paidAmount": 0,
+                                "patientId": 0,
+                                "patientRemarks": "",
+                                "paymentMode": "",
+                                "rateId": 0,
+                                "refDoctor1": "",
+                                "refDoctor2": "",
+                                "refID1": 0,
+                                "refID2": 0,
+                                "salesExecutiveID": 0,
+                                "sessionCentreid": 0,
+                                "source": "",
+                                "tempDOCID": 0,
+                                "tempDoctroName": "",
+                                "title_id": "",
+                                "totalAge": 0,
+                                "transactionId": 0,
+                                "updateById": 0,
+                                "updateDateTime": "",
+                                "uploadDocument": "",
+                                "workOrderId": "",
+                                "addBookingStatus": [
+                                    {
+                                        "barcodeNo": "",
+                                        "centreId": 0,
+                                        "createdById": 0,
+                                        "createdDateTime": "",
+                                        "id": 0,
+                                        "isActive": 0,
+                                        "patientId": 0,
+                                        "remarks": "",
+                                        "roleId": 0,
+                                        "status": "",
+                                        "testId": 0,
+                                        "transactionId": 0,
+                                        "updateById": 0,
+                                        "updateDateTime": ""
+                                    }
+                                ],
+                                "addBookingItem": [
+                                    {
+                                        "barcodeNo": "",
+                                        "centreId": 0,
+                                        "createdById": 0,
+                                        "createdDateTime": "",
+                                        "departmentName": "",
+                                        "deptId": 0,
+                                        "discount": 0,
+                                        "id": 0,
+                                        "investigationName": "",
+                                        "isActive": 0,
+                                        "isEmailsent": 0,
+                                        "isMachineOrder": 0,
+                                        "isPackage": 0,
+                                        "isSra": 0,
+                                        "itemId": 0,
+                                        "itemType": 0,
+                                        "mrp": 0,
+                                        "netAmount": 0,
+                                        "packItemDiscount": 0,
+                                        "packItemNet": 0,
+                                        "packItemRate": 0,
+                                        "packMrp": 0,
+                                        "packageID": 0,
+                                        "packageName": "",
+                                        "rate": 0,
+                                        "reportType": 0,
+                                        "sampleTypeId": 0,
+                                        "sampleTypeName": "",
+                                        "sessionCentreid": 0,
+                                        "testcode": "",
+                                        "transactionId": 0,
+                                        "updateById": 0,
+                                        "updateDateTime": "",
+                                        "workOrderId": ""
+                                    },
+                                    {
+                                        "barcodeNo": "",
+                                        "centreId": 0,
+                                        "createdById": 0,
+                                        "createdDateTime": "",
+                                        "departmentName": "",
+                                        "deptId": 0,
+                                        "discount": 0,
+                                        "id": 0,
+                                        "investigationName": "",
+                                        "isActive": 0,
+                                        "isEmailsent": 0,
+                                        "isMachineOrder": 0,
+                                        "isPackage": 0,
+                                        "isSra": 0,
+                                        "itemId": 0,
+                                        "itemType": 0,
+                                        "mrp": 0,
+                                        "netAmount": 0,
+                                        "packItemDiscount": 0,
+                                        "packItemNet": 0,
+                                        "packItemRate": 0,
+                                        "packMrp": 0,
+                                        "packageID": 0,
+                                        "packageName": "",
+                                        "rate": 0,
+                                        "reportType": 0,
+                                        "sampleTypeId": 0,
+                                        "sampleTypeName": "",
+                                        "sessionCentreid": 0,
+                                        "testcode": "",
+                                        "transactionId": 0,
+                                        "updateById": 0,
+                                        "updateDateTime": "",
+                                        "workOrderId": ""
+                                    }
+                                ],
+                                "addpaymentdetail": [
+                                    {
+                                        "bankName": "",
+                                        "bookingCentreId": 0,
+                                        "cancelDate": "",
+                                        "cancelReason": "",
+                                        "canceledBy": "",
+                                        "cashAmt": 0,
+                                        "chequeAmt": 0,
+                                        "chequeNo": "",
+                                        "creditCardAmt": 0,
+                                        "creditCardNo": "",
+                                        "id": 0,
+                                        "isCancel": 0,
+                                        "nefTamt": 0,
+                                        "onlinewalletAmt": 0,
+                                        "paymentModeId": 0,
+                                        "receiptNo": 0,
+                                        "receivedAmt": 0,
+                                        "receivedBy": "",
+                                        "receivedID": 0,
+                                        "settlementCentreID": 0,
+                                        "transactionId": 0,
+                                        "transactionType": "",
+                                        "walletno": "",
+                                        "workOrderId": ""
+                                    },
+                                    {
+                                        "bankName": "",
+                                        "bookingCentreId": 0,
+                                        "cancelDate": "",
+                                        "cancelReason": "",
+                                        "canceledBy": "",
+                                        "cashAmt": 0,
+                                        "chequeAmt": 0,
+                                        "chequeNo": "",
+                                        "creditCardAmt": 0,
+                                        "creditCardNo": "",
+                                        "id": 0,
+                                        "isCancel": 0,
+                                        "nefTamt": 0,
+                                        "onlinewalletAmt": 0,
+                                        "paymentModeId": 0,
+                                        "receiptNo": 0,
+                                        "receivedAmt": 0,
+                                        "receivedBy": "",
+                                        "receivedID": 0,
+                                        "settlementCentreID": 0,
+                                        "transactionId": 0,
+                                        "transactionType": "",
+                                        "walletno": "",
+                                        "workOrderId": ""
+                                    }
+                                ]
+                            }
+                        ]
+                    }
 
-                // );
+                );
 
-                setPatientRegistrationData({
-                    billingType: '',
+                // setPatientRegistrationData({
+                //     billingType: '',
 
-                    centreId: 0,
-                    paymentMode: '',
-                    paymentModeId: 0,
-                    rateId: 0,
-                    mobileNo: '',
-                    title_id: 0,
-                    name: '',
-                    ageDays: 0,
-                    ageMonth: 0,
-                    ageYear: 0,
-                    dob: useFormattedDate(),
-                    gender: '',
-                    emailId: '',
+                //     centreId: 0,
+                //     paymentMode: '',
+                //     paymentModeId: 0,
+                //     rateId: 0,
+                //     mobileNo: '',
+                //     title_id: 0,
+                //     name: '',
+                //     ageDays: 0,
+                //     ageMonth: 0,
+                //     ageYear: 0,
+                //     dob: useFormattedDate(),
+                //     gender: '',
+                //     emailId: '',
 
-                    collectionDateAndTime: useFormattedDateTime(),
+                //     collectionDateAndTime: useFormattedDateTime(),
 
-                    investigationName: '',
-                    itemId: 0,
-                    refDoctor1: '',
-                    refID1: 0,
-                    refDoctor2: '',
-                    refID2: 0,
-                    address: '',
-                    pinCode: 0,
-                    uploadDocument: '',
-                    refLabID: 0,
-                    refLab: '',
+                //     investigationName: '',
+                //     itemId: 0,
+                //     refDoctor1: '',
+                //     refID1: 0,
+                //     refDoctor2: '',
+                //     refID2: 0,
+                //     address: '',
+                //     pinCode: 0,
+                //     uploadDocument: '',
+                //     refLabID: 0,
+                //     refLab: '',
 
 
 
-                    paidAmount: 0,
-                    cashAmt: 0,
-                    creditCardAmt: 0,
-                    lastFoureDigit: 0,
-                    bankName: '',
-                    onlinewalletAmt: 0,
+                //     paidAmount: 0,
+                //     cashAmt: 0,
+                //     creditCardAmt: 0,
+                //     lastFoureDigit: 0,
+                //     bankName: '',
+                //     onlinewalletAmt: 0,
 
-                    grossAmount: 0,
+                //     grossAmount: 0,
 
-                    balnceAmt: '',
+                //     balnceAmt: '',
 
-                    bank_Id: 0,
-                    discountAmmount: 0,
-                    discountPercentage: 0,
-                    discountType: 0,
-                    discountid: 0,
-                    discountApproved: 0,
-                })
+                //     bank_Id: 0,
+                //     discountAmmount: 0,
+                //     discountPercentage: 0,
+                //     discountType: 0,
+                //     discountid: 0,
+                //     discountApproved: 0,
+                // })
 
                 setShowPopup(0);
                 setinvestigationGridData([]);
@@ -2216,8 +2208,6 @@ export default function PatientRegistration() {
 
         } catch (error) {
             toast.error(error?.message);
-            console.log(error);
-
         }
 
         setIsButtonClick(0);
@@ -2233,9 +2223,6 @@ export default function PatientRegistration() {
             const response = await getSingleEditTestApi(searchData?.editTestId);
 
             if (response?.success) {
-
-                console.log(response);
-
 
                 try {
 
@@ -2342,9 +2329,6 @@ export default function PatientRegistration() {
                 editTestData?.rateId || 0,
                 editTestData?.itemId || 0
             );
-
-
-            console.log(response);
 
 
             setEditTestData((prevState) => {
@@ -2790,8 +2774,6 @@ export default function PatientRegistration() {
             console.log(error);
 
         }
-        console.log(transformedList);
-
         setIsButtonClick(0);
     }
 
@@ -2801,9 +2783,6 @@ export default function PatientRegistration() {
         try {
 
             const response = await getOldPatientApi(searchData?.oldPatientId);
-
-            console.log(response);
-
 
             if (response?.success) {
 
@@ -2841,7 +2820,6 @@ export default function PatientRegistration() {
 
         const response = oldPatientId.filter((data) => data?.patientId === val)
 
-        console.log(response);
         setPatientRegistrationData((preventData) => ({
             ...preventData,
             ageDays: response[0]?.ageDay,

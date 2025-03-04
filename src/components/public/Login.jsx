@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { dologin, doPasswordForgot, saveDefaultCentreId } from '../../service/localstroageService';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../redux/userSlices';
-import loginImage from "../../assets/loginimage.png";
+import loginImage from "../../assets/clientbk.png";
 import ForgotPassword from './ForgotPassword';
 import { updateUserPassword } from '../../redux/updatePasswordSlice';
 import Footer from './Footer'
@@ -131,17 +131,17 @@ export default function Login() {
             <div className='absolute inset-0 bg-transparent '></div>
 
 
-            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch lg:justify-between  mx-20 lg:pt-20 '>
+            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch   mx-20 pt-60 lg:pt-[20.5rem] '>
 
-                <div className='py-1 lg:py-0'>
+                {/* <div className='py-1 lg:py-0'>
                     <img src={logo} alt="path not found" className='w-32 h-10' />
-                </div>
+                </div> */}
 
-                <div className=" border-2 w-80 sm:w-96 h-auto shadow-xl rounded-lg bg-white/30 z-40">
+                <div className=" border-2 w-80 sm:w-96 h-auto shadow-xl rounded-lg bg-white/60 z-40 pt-2">
 
-                    <div className='flex flex-col justify-center items-center mt-6'>
+                    {/* <div className='flex flex-col justify-center items-center mt-6'>
                         <img src={clientLogo} alt="path not found" className='w-10 h-10 sm:w-16 sm:h-16 ' />
-                    </div>
+                    </div> */}
 
 
                     {/* form design */}
@@ -149,17 +149,17 @@ export default function Login() {
                         forgotPassord === false ?
                             <div>
 
-                                <div className='flex flex-col justify-center items-center my-6'>
+                                {/* <div className='flex flex-col justify-center items-center my-6'>
 
                                     <div className='font-bold text-sm text-center sm:text-nowrap text-black'>Sign in to manage and track your lab information</div>
                                     <p className='text-xs font-semibold text-black'>Laboratory Information Management System</p>
-                                </div>
+                                </div> */}
 
                                 <form onSubmit={userLoginSubmit} autoComplete='off'>
 
-                                    <div className="flex items-stretch border-[1px] bg-white mx-10 h-10 rounded-md">
+                                    <div className="flex items-stretch border-[1px] bg-white mx-10 h-8 rounded-md">
                                         <div className="flex items-center px-2">
-                                            <FaUser className='text-gray-500' />
+                                            <FaUser className='text-gray-500 text-sm' />
                                         </div>
                                         <div className="flex-1">
                                             <input
@@ -175,11 +175,11 @@ export default function Login() {
 
 
 
-                                    <div className='mt-4'>
+                                    <div className='mt-2'>
 
-                                        <div className="flex items-stretch border-[1px] bg-white mx-10 h-10 rounded-md">
+                                        <div className="flex items-stretch border-[1px] bg-white mx-10 h-8 rounded-md">
                                             <div className="flex items-center px-2">
-                                                <FaLock className='text-gray-500' />
+                                                <FaLock className='text-gray-500 text-sm' />
                                             </div>
                                             <div className="flex-1">
                                                 <input
@@ -206,9 +206,9 @@ export default function Login() {
                                         </div>
                                     </div>
 
-                                    <div className='text-end mx-10 mt-2 text-sm font-semibold cursor-pointer' onClick={() => setForgotPassword(true)}>Forgot password</div>
+                                    <div className='text-end mx-10 mt-1 text-xs font-semibold cursor-pointer' onClick={() => setForgotPassword(true)}>Forgot password</div>
 
-                                    <div className="flex items-stretch border-[1px] bg-textColor border-textColor text-white mx-10 mt-2 h-10 rounded-md">
+                                    <div className="flex items-stretch border-[1px] bg-textColor border-textColor text-white mx-10 mt-2 h-8 rounded-md">
                                         <button className="w-full h-full font-semibold border-none outline-none rounded-md text-sm flex justify-center items-center">
                                             {
                                                 isButtonClick ? <FaSpinner className='text-xl animate-spin' /> : 'Get started'
@@ -224,17 +224,17 @@ export default function Login() {
                     }
 
 
-                    <div className="my-3 mx-7 flex justify-center items-center text-xs font-bold text-black">
+                    {/* <div className="my-3 mx-7 flex justify-center items-center text-xs font-bold text-black">
                         <div className="flex-1 border-t border-textColor mx-2"></div>
                         <div >Let's Connect iMARSAR Info Tech.</div>
                         <div className="flex-1 border-t border-textColor mx-2"></div>
-                    </div>
+                    </div> */}
 
                     <div className='my-3 flex justify-between items-center mx-10'>
                         {
                             iconData.map((data, index) => {
                                 return (
-                                    <img src={data.name} key={index} alt="path not found" className='w-7 h-7 cursor-pointer'
+                                    <img src={data.name} key={index} alt="path not found" className='w-5 h-5 cursor-pointer'
                                         onClick={() => setShowNotificationPopup(true)}
                                     />
                                 )

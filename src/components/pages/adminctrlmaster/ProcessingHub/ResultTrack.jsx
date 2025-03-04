@@ -14,7 +14,7 @@ import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdo
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
 import { FaCommentDots, FaComments, FaPlus, FaPrint, FaSpinner } from "react-icons/fa";
-import { LuFlagTriangleRight } from "react-icons/lu";
+import { FaFlag } from "react-icons/fa";
 
 import {
   InfoPopup,
@@ -77,6 +77,7 @@ export default function ResultTrack() {
   const [allDoctorData, setAllDoctorData] = useState([]);
   const [isButtonClick, setIsButtonClick] = useState(0);
   const [observationValue, setObservationValue] = useState({});
+  const [observationCheckValue, setObservationCheckValue] = useState({});
   const [showPopup, setShowPopup] = useState(0);
   //!================Anil code end=======================
 
@@ -576,6 +577,8 @@ export default function ResultTrack() {
   //   },
   // ];
 
+
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
@@ -589,9 +592,6 @@ export default function ResultTrack() {
     };
     //setLocal("payload", payload);
 
-    console.log(payload);
-
-
     //console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
     // PostData?.postRequest("/tnx_BookingItem/GetResultEntryAllData", payload);
     // console.log(PostData?.data);
@@ -599,8 +599,6 @@ export default function ResultTrack() {
     try {
 
       const response = await getAllResultTrackinDataApi(payload);
-
-      console.log(response);
 
       if (response?.success) {
 
@@ -680,7 +678,7 @@ export default function ResultTrack() {
         // ];
 
         // Initialize an empty object to group by workOrderId and accumulate investigation names
-        
+
         const result = {};
 
         // Loop through the data and group by workOrderId
@@ -710,10 +708,6 @@ export default function ResultTrack() {
         // Convert the result object into an array if needed
         const groupedData = Object.values(result);
 
-        console.log(groupedData);
-
-
-
 
         setAllResultTrackingData(groupedData);
       } else {
@@ -733,14 +727,9 @@ export default function ResultTrack() {
     // Find the testid(s) for the provided workOrderId
     const matchedWorkOrder = allResultTrackingData.find(order => order.workOrderId === workOrderId);
 
-    console.log(matchedWorkOrder);
-
-
     const testid = matchedWorkOrder
       ? matchedWorkOrder.investigationName.map(item => item.testid).join(",")
       : "";
-
-    console.log(testid);
 
     // Construct the updatedData object with the testid and other fields
     const updatedData = (({ gender, fromAge, toAge, centreId }) => ({
@@ -753,10 +742,24 @@ export default function ResultTrack() {
 
     try {
       const response = await getAllObserVationDataBasedOnTestName(updatedData);
-      console.log(response);
 
       if (response?.success) {
-        setAllObservationData(response?.data)
+        setAllObservationData(response?.data);
+
+        // Extract unique testIds
+        const uniqueTestIds = response?.data?.reduce((acc, current) => {
+          if (!acc[current.testId]) {
+            acc[current.testId] = true;  // Add testId to the object with value true
+          }
+          return acc;
+        }, {});
+
+        // Update the state with unique testIds
+        setObservationCheckValue(uniqueTestIds);
+
+        console.log(uniqueTestIds);
+
+
       } else {
         toast.error(response?.message)
       }
@@ -769,12 +772,30 @@ export default function ResultTrack() {
   }
 
   //handel check 
-  const handleInputChangeForObserVtionValue = (index, value) => {
-    setObservationValue(prevState => ({
-      ...prevState,
-      [index]: value
-    }));
-  }
+  // const handleInputChangeForObserVtionValue = (testId, value) => {
+  //   // setObservationValue(prevState => ({
+  //   //   ...prevState,
+  //   //   [testId]: value
+  //   // }));
+
+  // }
+  const handleInputChangeForObserVtionValue = (testId, index, value) => {
+
+    const allowedPattern = /^[a-z0-9. -]*$/i; // Allows a-z, 0-9, dot (.), space (' '), and single quote (')
+
+    if (allowedPattern.test(value)) {
+      setObservationValue(prev => ({
+        ...prev,
+        [testId]: {
+          ...prev[testId],
+          [index]: value
+        }
+      }));
+    } else {
+      toast.error("Invalid character! Only a-z, 0-9, spaces and dots (.), are allowed.");
+    }
+  };
+
 
   const handelOnChangeResultTrackData = (e) => {
 
@@ -794,7 +815,6 @@ export default function ResultTrack() {
       } else {
         toast.error(response?.message);
       }
-      console.log(response);
 
     }
 
@@ -804,18 +824,48 @@ export default function ResultTrack() {
 
   }, [allObservationData])
 
+  //validation for 
+  const getMissingFields = () => {
+    return Object.keys(observationCheckValue) // Get all testIds
+      .filter(testId => observationCheckValue[testId]) // Only validate checked testIds
+      .filter(testId => {
+        const textFields = observationValue[testId] || {}; // Get text fields for this testId
+
+        if (Object.keys(textFields).length === 0) {
+          return true; // Mark as missing if no fields exist
+        }
+
+        return Object.values(textFields).some(value => value.trim() === ""); // Check if any field is empty
+      });
+  };
+
+
+
+
+
+
+
 
   //save observation data
   const onSubmitObservationData = async (btnName, loadingButtonNo) => {
 
-    console.log(observationValue);
 
     setIsButtonClick(loadingButtonNo);
 
-    const listOfObservationData = allObservationData?.map((item, index) => {
-      const flag = observationValue[index] < item?.minVal
+
+    const missingFields = getMissingFields();
+    console.log(missingFields);
+
+    if (missingFields.length > 0) {
+      toast.error(`Please fill in all mandatory fields for test IDs: ${missingFields.join(", ")}`);
+      setIsButtonClick(0);
+      return;
+    }
+
+    const listOfObservationData = allObservationData?.map((item) => {
+      const flag = observationValue[item?.testId] < item?.minVal
         ? "N"
-        : observationValue[index] > item?.maxVal
+        : observationValue[item?.testId] > item?.maxVal
           ? "L"
           : "H";
 
@@ -827,7 +877,7 @@ export default function ResultTrack() {
         testId: item?.testId,
         labObservationId: item?.labObservationId,
         observationName: item?.observationName,
-        value: observationValue[index],
+        value: observationValue[item?.testId],
         flag: flag, // Using the calculated flag
         minVal: item?.minVal,
         maxVal: item?.maxVal,
@@ -1203,7 +1253,7 @@ export default function ResultTrack() {
 
         </div>
 
-        <div>
+        {/* <div>
           {UserObj && (
             <>
               <CustomHandsontable
@@ -1220,7 +1270,7 @@ export default function ResultTrack() {
               <div style={{ maxHeight: "400px", overflowY: "auto" }}>
                 <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
-                    {/* Specimen Field */}
+                    {/* Specimen Field *
                     <InputGenerator
                       inputFields={[
                         { label: "Signature", type: "select", name: "Signature" },
@@ -1297,7 +1347,7 @@ export default function ResultTrack() {
               </div>
             </>
           )}
-        </div>
+        </div> */}
 
         <div>
           <GridDataDetails
@@ -1445,6 +1495,10 @@ export default function ResultTrack() {
                   gridDataDetails={'Result Entry'}
                 />
 
+                {
+                  console.log(allObservationData)
+
+                }
                 <CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
                   <tbody>
                     {allObservationData?.map((data, index) => (
@@ -1469,19 +1523,28 @@ export default function ResultTrack() {
                         {
                           data?.observationName === "" ?
                             <>
-                              <td colSpan="12" className="border-b px-4 h-6 text-xxs font-bold text-gridTextColor w-full">
-                                <div className="flex items-center gap-2 w-full">
+                              <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
+                                <div className="flex items-center  gap-2 w-full">
                                   <div>{data?.investigationName}</div>
                                   <div className="flex justify-center items-center">
-                                    <input type="checkbox" name="" id="" />
-                                  </div>
-                                  <div className="w-20">
-                                    <CustomeNormalButton activeTheme={activeTheme} text={'Reject'}
-                                      onClick={()=>setShowPopup(4)}
+                                    <input
+                                      type="checkbox"
+                                      checked={observationCheckValue[data?.testId] || false}
+                                      onChange={() =>
+                                        setObservationCheckValue(prev => ({
+                                          ...prev,
+                                          [data?.testId]: !prev[data?.testId] // Toggle checkbox state
+                                        }))
+                                      }
                                     />
                                   </div>
                                   <div className="w-20">
-                                    <CustomeNormalButton activeTheme={activeTheme} text={'Re-Run'} onClick={()=>setShowPopup(5)} />
+                                    <CustomeNormalButton activeTheme={activeTheme} text={'Reject'}
+                                      onClick={() => setShowPopup(4)}
+                                    />
+                                  </div>
+                                  <div className="w-20">
+                                    <CustomeNormalButton activeTheme={activeTheme} text={'Re-Run'} onClick={() => setShowPopup(5)} />
                                   </div>
                                   <div className="w-20">
                                     <CustomeNormalButton activeTheme={activeTheme} text={'Comment'} />
@@ -1500,30 +1563,47 @@ export default function ResultTrack() {
 
                               <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                 <form autoComplete="off">
-                                  <CustomTextBox
-                                    type="charNumber"
-                                    name="observationValue"
-                                    maxLength={12}
-                                    value={observationValue[index] || ""}
-                                    onChange={(e) => handleInputChangeForObserVtionValue(index, e.target.value)}
-                                    placeholder=" "
-                                    label="Barcode"
-                                    showLabel="false"
+
+
+                                  <input type="text" name="charNumber" id="charNumber"
+                                    value={observationValue[data?.testId]?.[index] || ""} // Get value for specific testId & index
+                                    maxLength={15}
+                                    onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
+                                    className="w-[5.5rem] h-[1.6rem] outline-none rounded-sm border-[1px] pl-1"
                                   />
+
                                 </form>
                               </td>
 
                               <td className="border-b px-4 h-5 text-xxs font-semibold ">
-                                {observationValue[index] && (
-                                  <LuFlagTriangleRight
-                                    className={`text-xl ${observationValue[index] < data?.minVal
-                                      ? "text-red-500"
-                                      : observationValue[index] > data?.maxVal
-                                        ? "text-red-500"
-                                        : "text-green-500"
-                                      }`}
-                                  />
-                                )}
+                                {observationValue[data?.testId] &&
+                                  Object.values(observationValue[data?.testId]).some(value => value !== "") && (
+                                    <div className="flex items-center justify-center gap-2">
+                                      <FaFlag
+                                        className={`text-xl  ${Object.values(observationValue[data?.testId]).some(value => Number(value) < Number(data?.minVal))
+                                          ? "text-yellow-500"
+                                          : Object.values(observationValue[data?.testId]).some(value => Number(value) > Number(data?.maxVal))
+                                            ? "text-red-500"
+                                            : "text-green-500"
+                                          }`}
+                                      />
+                                      <div className={`text-xl font-semibold ${Object.values(observationValue[data?.testId]).some(value => Number(value) < Number(data?.minVal))
+                                        ? "text-yellow-500"
+                                        : Object.values(observationValue[data?.testId]).some(value => Number(value) > Number(data?.maxVal))
+                                          ? "text-red-500"
+                                          : "text-green-500"
+                                        }`}>
+                                        {Object.values(observationValue[data?.testId]).some(value => Number(value) < Number(data?.minVal))
+                                          ? "L"
+                                          : Object.values(observationValue[data?.testId]).some(value => Number(value) > Number(data?.maxVal))
+                                            ? "H"
+                                            : "N"}
+                                      </div>
+                                    </div>
+                                  )
+                                }
+
+
 
                               </td>
 
@@ -1611,7 +1691,7 @@ export default function ResultTrack() {
                         isButtonClick={isButtonClick}
                         loadingButtonNumber={2} // Unique number for the first button
 
-                        disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
+                      // // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
                       />
                     </div>
                   </div>
@@ -1625,7 +1705,7 @@ export default function ResultTrack() {
                         isButtonClick={isButtonClick}
                         loadingButtonNumber={3} // Unique number for the first button
                         onClick={() => onSubmitObservationData('Approve', 3)}
-                        disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+                      // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
                       />
                     </div>
                     <div className="relative flex-1">

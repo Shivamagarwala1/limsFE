@@ -18,8 +18,6 @@ export const CustomTextBox = ({
     const [isValid, setIsValid] = useState(true);
     const prevIsValidRef = useRef(false);
 
-
-
     const allowedSpecialChars = allowSpecialChars ? "!@#$%^&*/" : "";
 
     const validateField = (value) => {
@@ -288,7 +286,7 @@ export const CustomTextBox = ({
                 readOnly={readOnly}
                 aria-invalid={!isValid}
                 aria-describedby={!isValid ? `${name}-error` : undefined}
-                className={`inputPeerField peer border-borderColor focus:outline-none ${readOnly?'cursor-not-allowed ':''} ${isDisabled
+                className={`inputPeerField peer border-borderColor focus:outline-none ${readOnly ? 'cursor-not-allowed ' : ''} ${isDisabled
                     ? "bg-gray-100 text-gray-500 cursor-not-allowed"
                     : "bg-white"
                     } ${!isValid

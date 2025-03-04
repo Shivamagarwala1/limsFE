@@ -1016,8 +1016,6 @@ export const getAllObserVationDataBasedOnTestName = async (testData) => {
 
 //get Doctors centerwise
 export const getAllDoctorsBasedOnCentreWise = async (empId, centreWiseId) => {
-
-    console.log(centreWiseId);
     
     const response = await privateAxios.get(`/doctorApprovalMaster/Doctorcenterwise?empid=${empId}&centreid=${centreWiseId}`);
 
