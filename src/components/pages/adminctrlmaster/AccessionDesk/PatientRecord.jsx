@@ -25,14 +25,16 @@ import CustomDropdown from "../../../global/CustomDropdown";
 import { useFormattedDate } from "../../../customehook/useDateTimeFormate";
 import { DatePicker } from "../../../global/DatePicker";
 import { toast } from "react-toastify";
+import CustomMultiSelectDropdown from '../../../global/CustomMultiSelectDropdown'
 import { CustomTextBox } from "../../../global/CustomTextBox";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import CustomeNormalButton from "../../../global/CustomeNormalButton";
 import GridDataDetails from '../../../global/GridDataDetails';
 import useRippleEffect from "../../../customehook/useRippleEffect";
 import CustomeSearchInputFields from "../../../global/CustomeSearchInputFields";
-import { patientRecordHeader } from "../../../listData/listData";
+import { patientRecordHeader, patientRegistrationPaymentMode } from "../../../listData/listData";
 import CustomFormButton from "../../../global/CustomFormButton";
+import { IoMdCloseCircleOutline } from "react-icons/io";
 
 export default function PatientRecord() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -231,6 +233,7 @@ export default function PatientRecord() {
   const [allPatientRecordData, setAllPatientRecordData] = useState([]);
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   const [loadingId, setLoadingId] = useState(0);
+  const [showPopup, setShowPopup] = useState(0);
 
   useRippleEffect();
 
@@ -301,7 +304,7 @@ export default function PatientRecord() {
       const response = await getGridDataBasedOnPatientRecordData(updateData);
       if (response?.success) {
         setAllPatientRecordData(response?.data)
-        
+
       } else {
         toast.error(response?.message);
       }
@@ -757,7 +760,9 @@ export default function PatientRecord() {
                 <td className="border-b px-4 h-5 text-sm font-semibold">
                   <div className="flex justify-center items-center">
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                      onClick={() => setShowPopup(1)}
+                    >
                       <FaRupeeSign />
                     </div>
                   </div>
@@ -795,6 +800,246 @@ export default function PatientRecord() {
           </tbody>
         </CustomDynamicTable >
       </div >
+
+
+      {
+        showPopup === 1 && (
+          <div className="fixed inset-0 px-2 lg:px-32 bg-black bg-opacity-50 z-50">
+            <div className="w-full  mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
+
+              <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
+                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
+              >
+                <div className=" font-semibold"
+                  style={{ color: activeTheme?.iconColor }}
+                >
+                  Edit Settelment
+
+                </div>
+
+                <IoMdCloseCircleOutline className='text-xl cursor-pointer'
+                  style={{ color: activeTheme?.iconColor }}
+                  onClick={() => { setShowPopup(0) }}
+                />
+              </div>
+
+              <div className=''>
+
+                <div
+                  className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
+                  style={{ background: activeTheme?.blockColor }}
+                >
+                  <div>
+                    <FontAwesomeIcon icon="fa-solid fa-house" />
+                  </div>
+                  <div>Settelment  Details</div>
+                </div>
+
+                <form autoComplete='off'>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
+
+                    <div className="relative flex-1">
+                      <CustomDropdown
+                        name="Currency"
+                        label="Select Currency"
+                        // value={selectCurrencyValue || ''}
+                        options={[
+                          { label: 'INR', value: '1' },
+                          { label: 'USD', value: '2' },
+                        ]}
+                        // onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
+                        defaultIndex={0}
+                        activeTheme={activeTheme}
+                        isMandatory={false}
+                      />
+                    </div>
+
+                    <div className="relative flex-1">
+                      <CustomMultiSelectDropdown
+                        id="paymentModeType"
+                        name="paymentModeType"
+                        label="Select Payment Modes"
+                        // options={paymentModes}
+                        // selectedItems={paymentModeType}
+                        // onSelectionChange={handelOnChangePaymentMode}
+                        placeholder=" "
+                        activeTheme={activeTheme}
+                        uniqueId={'value'}
+                        searchWithName={'label'}
+                      />
+                    </div>
+
+                    {/* Paid Amt. */}
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        id="paidAmount"
+                        name="paidAmount"
+                        // value={patientRegistrationData?.paidAmount || ''}
+                        placeholder=" "
+                        className="inputPeerField peer border-borderColor focus:outline-none"
+                        readOnly
+                      />
+
+                      <label htmlFor="paidAmount" className="menuPeerLevel">
+                        Paid Amt.
+                      </label>
+
+                    </div>
+
+                    {/* Balance Amt. */}
+                    <div className="relative flex-1">
+                      <input
+                        type="text"
+                        id="balanceAmt"
+                        name="balanceAmt"
+
+
+                        placeholder=" "
+                        className={`inputPeerField peer border-borderColor            focus:outline-none `}
+                        readOnly
+                      />
+                      <label htmlFor="balanceAmt" className="menuPeerLevel">
+                        Balance Amt.
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* grid data */}
+                  <CustomDynamicTable columns={patientRegistrationPaymentMode} activeTheme={activeTheme}>
+                    <tbody>
+                      <tr className=''>
+
+                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                        >
+
+                          <CustomTextBox
+                            type="decimalpositive"
+                            name="cashAmt"
+                            // value={patientRegistrationData?.cashAmt || ''}
+                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            label="Paid Amt."
+                            // isDisabled={!paymentModeType.some((item) => item.value === "1")}
+                            // isMandatory={patientRegistrationDataError.cashAmt}
+                            // readOnly={!paymentModeType.some((item) => item.value === "1")}
+                            showLabel={true}
+                          />
+                        </td>
+
+
+                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                        >
+
+
+                          <CustomTextBox
+                            type="decimalpositive"
+                            name="creditCardAmt"
+                            // value={patientRegistrationData?.creditCardAmt || ''}
+                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            label="Credit Card Amt."
+                            // isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                            // isMandatory={patientRegistrationDataError.creditCardAmt}
+                            // readOnly={!paymentModeType.some((item) => item.value === "2")}
+                            showLabel={true}
+                          />
+                        </td>
+
+                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                        >
+
+
+                          <CustomTextBox
+                            type="positive"
+                            name="lastFoureDigit"
+                            // value={patientRegistrationData?.lastFoureDigit || ''}
+                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            label="Last 4 digits"
+                            // isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                            // isMandatory={patientRegistrationDataError.lastFoureDigit}
+                            maxLength={4}
+                            // readOnly={!paymentModeType.some((item) => item.value === "2")}
+                            showLabel={true}
+                          />
+                        </td>
+
+
+                        <td className='text-xxs font-semibold text-gridTextColor relative flex-1 -mt-[1.9px]'>
+
+                          <CustomDropdown
+                            name="bank_Id"
+                            label="Select Bank"
+                            // value={patientRegistrationData?.bank_Id}
+                            options={[
+                              { label: 'Select Bank Name', value: 0, disabled: true },
+                              // ...allBankNameData?.map(item => ({
+                              //   label: item.bankName,
+                              //   value: parseInt(item.id),
+                              // })),
+                            ]}
+                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            defaultIndex={0}
+                            // isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                            activeTheme={activeTheme}
+                            showLabel={false}
+                          // isMandatory={patientRegistrationDataError?.bank_Id}
+                          />
+                        </td>
+
+                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
+                        >
+
+
+                          <CustomTextBox
+                            type="decimalpositive"
+                            name="onlinewalletAmt"
+                            // value={patientRegistrationData?.onlinewalletAmt || ''}
+                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            label="Last 4 digits"
+                            // isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                            // isMandatory={patientRegistrationDataError.onlinewalletAmt}
+
+                            // readOnly={!paymentModeType.some((item) => item.value === "3")}
+                            showLabel={true}
+                          />
+                        </td>
+
+
+
+                        <td className='text-xxs font-semibold text-gridTextColor relative flex-1'>
+
+                          <CustomDropdown
+                            name="paymentModeId"
+                            label="Select Bank"
+                            // value={patientRegistrationData?.paymentModeId}
+                            options={[
+                              { label: 'Select Payment Mode', value: 0, disabled: true },
+                              { label: 'Paytm', value: 1, },
+                              { label: 'PhonePay', value: 2, },
+                              { label: 'BHIM', value: 3, },
+                              { label: 'GooglePay', value: 4, },
+                            ]}
+                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            // defaultIndex={0}
+                            // isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                            // activeTheme={activeTheme}
+                            showLabel={false}
+                          // isMandatory={patientRegistrationDataError?.paymentModeId}
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </CustomDynamicTable>
+                </form>
+
+              </div>
+
+            </div>
+          </div>
+        )
+      }
+
+      
 
     </>
 

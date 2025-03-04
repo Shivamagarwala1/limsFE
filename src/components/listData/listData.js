@@ -354,4 +354,7 @@ export const ResultTrackingHeader = [
 export const resultTrackingForObservationHeader = ["Test Name", "Value", "Flag", "Machine Reading", "Machine", "Min", "Max", "Unit", "Method Name", "Display Reading", "Old Reading"];
 
 
+export const resultTrackForPatientInformation = ['Sr. No.', 'Test Name', 'Barcode', 'Collection At', 'Collection By', 'Receive By', 'Receive At', 'Entry At', 'Entry By', 'Result At', 'Result By', 'OutSource Date', 'OutSource Lab', 'OutSource By', 'Out-House Transfer Date', 'Out-House Transfer Lab', 'Out-House Transfer By'];
 
+
+export const resultTrackingForReRun = ['Sr. No', 'Observation Name', 'Re-Run Remark'];

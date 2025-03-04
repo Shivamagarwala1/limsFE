@@ -5306,8 +5306,8 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
 
             {
                 showPopup === 2 && (
-                    <div className="fixed inset-0 px-32 bg-black bg-opacity-50 z-50">
-                        <div className="w-full mx-2  mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
+                    <div className="fixed inset-0 px-2 lg:px-32  bg-black bg-opacity-50 z-50">
+                        <div className="w-full lg:mx-2  mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
 
                             <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}

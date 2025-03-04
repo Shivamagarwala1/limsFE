@@ -1013,6 +1013,17 @@ export const getAllObserVationDataBasedOnTestName = async (testData) => {
     return response?.data;
 }
 
+
+//get Doctors centerwise
+export const getAllDoctorsBasedOnCentreWise = async (empId, centreWiseId) => {
+
+    console.log(centreWiseId);
+    
+    const response = await privateAxios.get(`/doctorApprovalMaster/Doctorcenterwise?empid=${empId}&centreid=${centreWiseId}`);
+
+    return response?.data;
+}
+
 //======================feed back=============
 export const getAllEmojiColorCodeApi = async () => {
 
