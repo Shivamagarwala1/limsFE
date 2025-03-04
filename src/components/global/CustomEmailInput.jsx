@@ -59,9 +59,11 @@ export const CustomEmailInput = ({
                 readOnly={readOnly}
                 aria-invalid={!isValid}
                 aria-describedby={!isValid ? `${name}-error` : undefined}
-                className={`inputPeerField peer border-borderColor focus:outline-none ${isDisabled
-                    ? "bg-gray-100 text-gray-500 cursor-not-allowed"
-                    : "bg-white"
+                className={`inputPeerField peer border-borderColor focus:outline-none 
+                    ${readOnly ? 'cursor-not-allowed' : ''}
+                    ${isDisabled
+                        ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                        : "bg-white"
                     } ${!isValid ? "border-red-500" : "border-gray-300"} focus:outline-none`}
             />
             <label htmlFor={name} className={`menuPeerLevel`}>

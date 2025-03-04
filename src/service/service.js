@@ -1005,6 +1005,25 @@ export const getAllResultTrackinDataApi = async (recordTrackinData) => {
     return response?.data;
 }
 
+//observation data
+export const getAllObserVationDataBasedOnTestName = async (testData) => {
+
+    const response = await privateAxios.post('/tnx_BookingItem/GetTestObservations', testData);
+
+    return response?.data;
+}
+
+
+//get Doctors centerwise
+export const getAllDoctorsBasedOnCentreWise = async (empId, centreWiseId) => {
+
+    console.log(centreWiseId);
+    
+    const response = await privateAxios.get(`/doctorApprovalMaster/Doctorcenterwise?empid=${empId}&centreid=${centreWiseId}`);
+
+    return response?.data;
+}
+
 //======================feed back=============
 export const getAllEmojiColorCodeApi = async () => {
 

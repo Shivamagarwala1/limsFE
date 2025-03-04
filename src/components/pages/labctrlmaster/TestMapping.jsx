@@ -26,7 +26,8 @@ export default function TestMapping() {
     });
 
     const [selectedDropDown, setSeleDropDown] = useState({
-        testName: ''
+        testName: '',
+        observationName: ''
     });
 
     const [selectedDropDownForRefRangePopup, setSeleDropDownForRefRangePopup] = useState({
@@ -182,7 +183,7 @@ export default function TestMapping() {
         const getGridData = async () => {
 
             try {
-                const response = await getAllTestMapingGridDataApi(testMappingData?.itemType, testMappingData?.testName === '' ? 0 : testMappingData?.testName);
+                const response = await getAllTestMapingGridDataApi(testMappingData?.itemType || '', testMappingData?.testName === '' ? 0 : testMappingData?.testName || '');
 
                 if (response?.success) {
 
@@ -193,7 +194,9 @@ export default function TestMapping() {
                 }
 
             } catch (error) {
-                toast.error(error?.message)
+                if (error.status !== 400) {
+                    toast.error(error?.message)
+                }
             }
         }
 
@@ -981,7 +984,13 @@ export default function TestMapping() {
     const filterAlltestNameData = allTestNameData.filter((data) => (data?.itemName?.toLowerCase() || '').includes(String(selectedDropDown?.testName?.toLowerCase() || '')));
 
 
+    //    observationName
+    const filterObservationNameData = allObseravationData.filter((data) => (data?.labObservationName?.toLowerCase() || '').includes(String(selectedDropDown?.observationName?.toLowerCase() || '')));
+
+
     const filterAllCentreData = allCenreDataForReferanceRange.filter((data) => (data?.companyName?.toLowerCase() || '').includes(String(selectedDropDown?.centreId?.toLowerCase() || '')));
+
+
 
 
     const filterAllMachineData = allMachineDataForReferanceRange.filter((data) => (data?.machineName?.toLowerCase() || '').includes(String(selectedDropDown?.machineID?.toLowerCase() || '')));
@@ -1041,7 +1050,7 @@ export default function TestMapping() {
                                 handelOnChangeTestMappingData(e),
                                     setSeleDropDown((preventData) => ({
                                         ...preventData,
-                                        testName: ''
+                                        testName: e.target.value
                                     }))
                             }}
                             onClick={() => openShowSearchBarDropDown(1)}
@@ -1151,32 +1160,48 @@ export default function TestMapping() {
                                             :
                                             <ul className='w-full'>
 
+                                                <div className='mx-2'>
+                                                    <input type="text" name="observationName"
+                                                        className='border-[1px]  my-1 h-[1.6rem] rounded-md pl-2 outline-none w-full'
+                                                        value={selectedDropDown?.observationName || ''}
+                                                        onChange={(e) => setSeleDropDown((preventData) => ({
+                                                            ...preventData,
+                                                            [e.target.name]: e.target.value
+                                                        }))}
+                                                    />
+                                                </div>
+
                                                 {/* Individual Checkboxes */}
-                                                {allObseravationData?.length > 0 ? (
-                                                    allObseravationData?.map((data, index) => {
+                                                {filterObservationNameData?.length > 0 ? (
+                                                    <>
 
-                                                        return (
-                                                            <li
-                                                                key={data?.id}
-                                                                className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2"
-                                                                onMouseEnter={() => setIsHovered(index)}
-                                                                onMouseLeave={() => setIsHovered(null)}
-                                                                style={{
-                                                                    background: isHovered === index ? activeTheme?.subMenuColor : 'transparent',
-                                                                }}
-                                                            >
-                                                                <div>
+                                                        {
+                                                            filterObservationNameData?.map((data, index) => {
 
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={testMappingData?.observation?.some((item) => item?.id === data?.id)}
-                                                                        onChange={(e) => handleCheckboxChange(e, data)}
-                                                                    />
-                                                                </div>
-                                                                <div>{data?.labObservationName}</div>
-                                                            </li>
-                                                        )
-                                                    })
+                                                                return (
+                                                                    <li
+                                                                        key={data?.id}
+                                                                        className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2"
+                                                                        onMouseEnter={() => setIsHovered(index)}
+                                                                        onMouseLeave={() => setIsHovered(null)}
+                                                                        style={{
+                                                                            background: isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                                                        }}
+                                                                    >
+                                                                        <div>
+
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={testMappingData?.observation?.some((item) => item?.id === data?.id)}
+                                                                                onChange={(e) => handleCheckboxChange(e, data)}
+                                                                            />
+                                                                        </div>
+                                                                        <div>{data?.labObservationName}</div>
+                                                                    </li>
+                                                                )
+                                                            })
+                                                        }
+                                                    </>
                                                 ) : (
                                                     <li className="py-4 text-gray-500 text-center">
                                                         {import.meta.env.VITE_API_RECORD_NOT_FOUND}

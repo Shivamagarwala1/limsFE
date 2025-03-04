@@ -1,8 +1,8 @@
 import React, { useRef } from "react";
 
-const CustomDynamicTable = ({ columns, activeTheme, children }) => {
+const CustomDynamicTable = ({ columns, activeTheme, children,height='300px' }) => {
 
- const tableRef = useRef(null);
+  const tableRef = useRef(null);
 
   const handleMouseDown = (event) => {
     const table = tableRef.current;
@@ -35,11 +35,22 @@ const CustomDynamicTable = ({ columns, activeTheme, children }) => {
         msOverflowStyle: "none",
         whiteSpace: "nowrap",
         cursor: "grab", // Shows a grab cursor
+        maxHeight:height
       }}
+
+      className=" overflow-y-auto mb-2"
     >
       <table className="table-auto border-collapse w-full text-xxs text-left">
         {/* Header */}
-        <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
+        <thead
+          style={{
+            position: "sticky",
+            top: 0,
+            zIndex: 1,
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+          }}
+        >
           <tr>
             {columns.map((col, index) => (
               <th
