@@ -15,7 +15,7 @@ import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
 import { FaCommentDots, FaComments, FaPlus, FaPrint, FaSpinner } from "react-icons/fa";
 import { FaFlag } from "react-icons/fa";
-
+import CustomeEditor from '../../../sharecomponent/CustomeEditor'
 import {
   InfoPopup,
   InvestigationRemarkPopupModal,
@@ -33,7 +33,7 @@ import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
 import { toast } from "react-toastify";
-import { convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, SaveTestObservationsDataApi } from "../../../../service/service";
+import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, SaveTestObservationsDataApi } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import { resultTrackForPatientInformation, resultTrackingForObservationHeader, resultTrackingForReRun, ResultTrackingHeader } from "../../../listData/listData";
@@ -41,7 +41,6 @@ import { FaCircleInfo } from "react-icons/fa6";
 import CustomeNormalButton from "../../../global/CustomeNormalButton";
 import { MdAddCircleOutline } from "react-icons/md";
 import CustomLoadingPage from "../../../global/CustomLoadingPage";
-import { CustomTextBox } from "../../../global/CustomTextBox";
 import CustomDropdown from "../../../global/CustomDropdown";
 import CustomPopup from "../../../global/CustomPopup";
 import { getDefaultCentreId } from "../../../../service/localstroageService";
@@ -72,10 +71,12 @@ export default function ResultTrack() {
   const user = useSelector((state) => state.userSliceName?.user || null);
   const [resultTrackData, setResultTrackData] = useState({
     doctorId: 0,
+    template: 0
   })
   const [allResultTrackingData, setAllResultTrackingData] = useState([]);
   const [allObservationData, setAllObservationData] = useState([]);
   const [allDoctorData, setAllDoctorData] = useState([]);
+  const [allTemplateData, setAllTemplateData] = useState([]);
   const [isButtonClick, setIsButtonClick] = useState(0);
   const [observationValue, setObservationValue] = useState({});
   const [observationCheckValue, setObservationCheckValue] = useState({});
@@ -88,6 +89,7 @@ export default function ResultTrack() {
   });
   const [reasionForHoldOrUnHoldAndApprovedOrNotApproved, setReasionForHoldOrUnHoldAndApprovedOrNotApproved] = useState('');
   const [trackingHoldOrApproved, setTrackingHoldOrApproved] = useState('');
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   //!================Anil code end=======================
 
 
@@ -694,7 +696,7 @@ export default function ResultTrack() {
 
         // Loop through the data and group by workOrderId
         response?.data.forEach(item => {
-          const { workOrderId, investigationName, testid, gender, centreId } = item;
+          const { workOrderId, investigationName, testid, gender, centreId, reportType, itemId } = item;
 
           // If workOrderId exists in result, push the investigationName into the investigationName array
           if (result[workOrderId]) {
@@ -702,22 +704,25 @@ export default function ResultTrack() {
               investigationName,  // Store investigationName
               testid,             // Store testId
               gender,             // Store gender
-              fromAge: '36500',            // Store fromAge
+              fromAge: 0,            // Store fromAge
               toAge: 0,              // Store toAge
-              centreId
+              centreId,
+              reportType,
+              itemId
             }          // Store centreId
             );
           } else {
             // Otherwise, create a new entry for that workOrderId with the current item data and initialize the investigationName array
             result[workOrderId] = {
               ...item,  // Keep the full data
-              investigationName: [{ investigationName: investigationName, testid: testid, gender: gender, fromAge: '36500', toAge: 0, centreId: centreId }]  // Add the investigationName array containing the current investigationName
+              investigationName: [{ investigationName: investigationName, testid: testid, gender: gender, fromAge: 0, toAge: 0, centreId: centreId, reportType: reportType, itemId: itemId }]  // Add the investigationName array containing the current investigationName
             };
           }
         });
 
         // Convert the result object into an array if needed
         const groupedData = Object.values(result);
+
 
 
 
@@ -735,9 +740,13 @@ export default function ResultTrack() {
 
 
   //observation data
-  const handelObservationData = async (data, workOrderId) => {
+  const handelObservationData = async (totalAge, data, workOrderId, reportType, itemId) => {
 
     setIsButtonClick(2);
+
+    console.log(data);
+
+
     // Find the testid(s) for the provided workOrderId
     const matchedWorkOrder = allResultTrackingData.find(order => order.workOrderId === workOrderId);
 
@@ -745,33 +754,36 @@ export default function ResultTrack() {
       ? matchedWorkOrder.investigationName.map(item => item.testid).join(",")
       : "";
 
+
+
     // Construct the updatedData object with the testid and other fields
-    const updatedData = (({ gender, fromAge, toAge, centreId }) => ({
+    const updatedData = (({ gender, centreId, }) => ({
       testid,       // Add the testid(s) we retrieved
       gender,
-      fromAge,
-      toAge,
+      fromAge: totalAge,
+      toAge: totalAge,
       centreId
     }))(data);
+
 
     try {
       const response = await getAllObserVationDataBasedOnTestName(updatedData);
 
       if (response?.success) {
+
         setAllObservationData(response?.data);
-        console.log(response?.data);
+
+
 
         //check which button is hold or unhold
         const dataForHoldOrUnHold = response?.data.find((item) => item?.hold === 1);
         if (dataForHoldOrUnHold === undefined) {
-          console.log(response?.data[0]?.testId + "======" + response?.data[0]?.hold);
           setTestIsHold((preventData) => ({
             ...preventData,
             testIdHold: response?.data[0]?.testId,
             hold: response?.data[0]?.hold
           }))
         } else {
-          console.log(dataForHoldOrUnHold);
           setTestIsHold((preventData) => ({
             ...preventData,
             testIdHold: dataForHoldOrUnHold?.testId,
@@ -782,14 +794,12 @@ export default function ResultTrack() {
 
         const dataForApprovedOrUnApproved = response?.data.find((item) => item?.isapproved === 1);
         if (dataForApprovedOrUnApproved === undefined) {
-          console.log(response?.data[0]?.testId + "======" + response?.data[0]?.isapproved);
           setTestIsHold((preventData) => ({
             ...preventData,
             testIdApprove: response?.data[0]?.testId,
             isApproved: response?.data[0]?.isapproved
           }))
         } else {
-          console.log(dataForApprovedOrUnApproved);
           setTestIsHold((preventData) => ({
             ...preventData,
             testIdApprove: dataForApprovedOrUnApproved?.testId,
@@ -798,6 +808,29 @@ export default function ResultTrack() {
         }
 
 
+
+        //check reporttype!==1 then only open editor
+        const isOpenEditor = String(reportType) !== '1';
+
+        if (isOpenEditor) {
+          try {
+            const response = await getAllTemplateDataForResultTrackingApi(getDefaultCentreId(), itemId);
+            console.log(response);
+
+            if (response?.success) {
+              console.log(response?.data);
+              setAllTemplateData(response?.data);
+            } else {
+              console.log(response?.message);
+
+            }
+
+          } catch (error) {
+            toast.error(error?.message)
+          }
+        }
+        setIsEditorOpen(isOpenEditor);
+
         // Extract unique testIds
         const uniqueTestIds = response?.data?.reduce((acc, current) => {
           if (!acc[current.testId]) {
@@ -805,7 +838,6 @@ export default function ResultTrack() {
           }
           return acc;
         }, {});
-
 
 
         // Update the state with unique testIds
@@ -874,7 +906,12 @@ export default function ResultTrack() {
       getAllData();
     }
 
+
+
   }, [allObservationData])
+
+
+
 
   //validation for 
   const getMissingFields = () => {
@@ -892,19 +929,10 @@ export default function ResultTrack() {
   };
 
 
-
-
-
-
-
-
   //save observation data
   const onSubmitObservationData = async (btnName, loadingButtonNo) => {
 
-
     setIsButtonClick(loadingButtonNo);
-
-
     const missingFields = getMissingFields();
 
     if (missingFields.length > 0) {
@@ -913,13 +941,10 @@ export default function ResultTrack() {
       return;
     }
 
-
-
     const listOfObservationData = allObservationData
       ?.filter(item => observationCheckValue[item?.testId]) // Only include checked items
       .filter(item => item?.observationName !== '')
       .map((item, index) => {
-
         const flag = observationValue[item?.testId]?.[index + 1] !== undefined && observationValue[item?.testId]?.[index + 1] !== null
           ? Number(observationValue[item?.testId]?.[index + 1]) < Number(item?.minVal)
             ? "L"  // If value is less than minVal, set flag to "L"
@@ -970,6 +995,21 @@ export default function ResultTrack() {
 
         if (response?.success) {
           toast.success(response?.message);
+
+          //find any fields are approved  or not
+          if (btnName === 'Approve') {
+
+            // console.log(listOfObservationData);
+            const dataForApprovedOrUnApproved = listOfObservationData?.find((item) => item?.isApproved === 1);
+
+            setTestIsHold((preventData) => ({
+              ...preventData,
+              testIdApprove: dataForApprovedOrUnApproved?.testId,
+              isApproved: dataForApprovedOrUnApproved?.isapproved
+            }))
+
+          }
+
         } else {
           toast.error(response?.message)
         }
@@ -982,8 +1022,6 @@ export default function ResultTrack() {
       toast.warning('Empty Data')
     }
 
-
-
     setIsButtonClick(0);
   }
 
@@ -993,7 +1031,6 @@ export default function ResultTrack() {
 
     setIsButtonClick(3)
 
-    console.log(testIsHold);
     //console.log(reasionForHoldOrUnHoldAndApprovedOrNotApproved);
     if (trackingHoldOrApproved === 'Hold') {
 
@@ -1003,7 +1040,6 @@ export default function ResultTrack() {
 
         const response = await convsertHoldToUnHoldOrUnHoldToHold(testIsHold?.testIdHold, isHold, parseInt(user?.employeeId), reasionForHoldOrUnHoldAndApprovedOrNotApproved);
 
-        console.log(response);
         if (response?.success) {
           toast.success(response?.message);
           setShowPopup(0);
@@ -1022,6 +1058,24 @@ export default function ResultTrack() {
       }
     } else {
 
+      try {
+        const response = await convertUnApproveToApprove(testIsHold?.testIdApprove, parseInt(user?.employeeId));
+
+        if (response?.success) {
+          toast.success(response?.message);
+          setTestIsHold((preventData) => ({
+            ...preventData,
+            isApproved: 0
+          }));
+          setTrackingHoldOrApproved('');
+          setReasionForHoldOrUnHoldAndApprovedOrNotApproved('');
+        } else {
+          toast.error(response?.message);
+        }
+      } catch (error) {
+        toast.error(error?.message)
+      }
+
     }
 
     setIsButtonClick(0);
@@ -1038,23 +1092,23 @@ export default function ResultTrack() {
   //   return row[0];
   // }
 
-  // const statuses = [
-  //   {
-  //     Data: 1,
-  //     CallBack: () => { },
-  //   },
-  //   { Data: 3, CallBack: () => { } },
-  //   { Data: 11, CallBack: () => { } },
-  //   // { Data: "Tested", CallBack: () => {} },
-  //   { Data: 5, CallBack: () => { } },
-  //   { Data: 4, CallBack: () => { } },
-  //   { Data: 7, CallBack: () => { } },
-  //   { Data: 9, CallBack: () => { } },
-  //   { Data: 12, CallBack: () => { } },
-  //   { Data: 8, CallBack: () => { } },
-  //   { Data: 6, CallBack: () => { } },
-  //   { Data: 10, CallBack: () => { } },
-  // ];
+  const statuses = [
+    {
+      Data: 1,
+      CallBack: () => { },
+    },
+    { Data: 3, CallBack: () => { } },
+    { Data: 11, CallBack: () => { } },
+    // { Data: "Tested", CallBack: () => {} },
+    { Data: 5, CallBack: () => { } },
+    { Data: 4, CallBack: () => { } },
+    { Data: 7, CallBack: () => { } },
+    { Data: 9, CallBack: () => { } },
+    { Data: 12, CallBack: () => { } },
+    { Data: 8, CallBack: () => { } },
+    { Data: 6, CallBack: () => { } },
+    { Data: 10, CallBack: () => { } },
+  ];
 
   // const InfoColumns = [
   //   { field: "id", headerName: "Sr. No", width: 20 },
@@ -1195,6 +1249,7 @@ export default function ResultTrack() {
   //   { id: 1, TestName: "CBC" },
   //   { id: 2, TestName: "HB" },
   // ];
+
   return (
     <div>
       {/* <ResultTrackRemarkPopupModal
@@ -1356,7 +1411,7 @@ export default function ResultTrack() {
               </div>
             </div>
 
-            {/* <LegendButtons statuses={statuses} /> */}
+            <LegendButtons statuses={statuses} />
           </form>
 
 
@@ -1552,7 +1607,7 @@ export default function ResultTrack() {
                           key={index}
                           activeTheme={activeTheme}
                           text={item?.investigationName}
-                          onClick={() => handelObservationData(item, data?.workOrderId)}
+                          onClick={() => handelObservationData(data?.totalAge, item, data?.workOrderId, item?.reportType, item?.itemId)}
                         />
                       ))}
                     </div>
@@ -1603,6 +1658,8 @@ export default function ResultTrack() {
               ))}
             </tbody>
           </CustomDynamicTable >
+
+
           {/* </div> */}
 
         </div >
@@ -1623,158 +1680,219 @@ export default function ResultTrack() {
                   gridDataDetails={'Result Entry'}
                 />
 
-                <CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
-                  <tbody>
-                    {allObservationData?.map((data, index) => (
-                      data?.observationName === "" ? (
-                        <React.Fragment key={index}>
-                          <tr>
-                            <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
-                              <div className="flex items-center gap-2 w-full">
-                                <div>{data?.investigationName}</div>
-                                <div className="flex justify-center items-center">
-                                  <input
-                                    type="checkbox"
-                                    checked={observationCheckValue[data?.testId] || false}
-                                    onChange={() =>
-                                      setObservationCheckValue(prev => ({
-                                        ...prev,
-                                        [data?.testId]: !prev[data?.testId] // Toggle checkbox state
-                                      }))
-                                    }
-                                  />
-                                </div>
-                                <div className="w-20">
-                                  <CustomeNormalButton activeTheme={activeTheme} text={'Reject'}
-                                    onClick={() => setShowPopup(4)}
-                                  />
-                                </div>
-                                <div className="w-20">
-                                  <CustomeNormalButton activeTheme={activeTheme} text={'Re-Run'} onClick={() => setShowPopup(5)} />
-                                </div>
-                                <div className="w-20">
-                                  <CustomeNormalButton activeTheme={activeTheme} text={'Comment'} />
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
+                {
+                  isEditorOpen ?
 
-                          <tr>
-                            <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
-                            </td>
-                          </tr>
-                        </React.Fragment>
-                      )
-                        :
+                    <>
 
-                        <tr
-                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                            ? ''
-                            : index % 2 === 0
-                              ? 'bg-gray-100'
-                              : 'bg-white'
-                            }`}
-                          key={index}
-                          onMouseEnter={() => setIsHoveredTable(index)}
-                          onMouseLeave={() => setIsHoveredTable(null)}
-                          style={{
-                            background:
-                              isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                            // Hides scrollbar for IE/Edge
-                          }}
-                        >
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
-                            {data?.observationName}
-                          </td>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
+                        <div className="relative flex-1">
+                          <CustomDropdown
+                            name="template"
+                            label="Select Template"
+                            value={resultTrackData?.template}
+                            options={[
+                              { label: 'Select Template Name', value: 0, disabled: true },
+                              ...allTemplateData?.map(item => ({
+                                label: item.name,
+                                value: parseInt(item.id),
+                              })),
+                            ]}
+                            onChange={(e) => handelOnChangeResultTrackData(e)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
+                            isMandatory={!resultTrackData?.template}
+                          />
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                            <form autoComplete="off">
-                              <input
-                                type="text"
-                                name="charNumber"
-                                id="charNumber"
-                                value={observationValue[data?.testId]?.[index] || ""} // Get value for specific testId & index
-                                maxLength={15}
-                                onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
-                                className="w-[5.5rem] h-[1.6rem] outline-none rounded-sm border-[1px] pl-1"
-                              />
-                            </form>
-                          </td>
-
-                          <td className="border-b px-4 h-5 text-xxs font-semibold">
-                            {observationValue[data?.testId]?.[index] && observationValue[data?.testId]?.[index] !== "" && (
-                              <div className="flex items-center justify-center gap-2">
-                                <FaFlag
-                                  className={`text-xl ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                    ? "text-yellow-500"
-                                    : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                      ? "text-red-500"
-                                      : "text-green-500"
-                                    }`}
-                                />
-                                <div className={`text-xl font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                  ? "text-yellow-500"
-                                  : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                    ? "text-red-500"
-                                    : "text-green-500"
-                                  }`}>
-                                  {Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                    ? "L"
-                                    : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                      ? "H"
-                                      : "N"}
-                                </div>
-                              </div>
-                            )}
-                          </td>
+                        </div>
+                      </div>
 
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.machineReading}>
-                            {/* {data?.machineReading} */}
-                            {data?.machineReading?.length > 7 ? `${data.machineReading.slice(0, 19)}...` : data?.machineReading}
+                      <div className="mb-2">
+                        <CustomeEditor />
+                      </div>
+                    </>
+                    :
 
-                          </td>
+                    <CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
+                      <tbody>
+                        {allObservationData?.map((data, index) => (
+                          data?.reportType === 1 &&
+                            data?.observationName === "" ? (
+                            <React.Fragment key={index}>
+                              <tr>
+                                <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
+                                  <div className="flex items-center gap-2 w-full">
+                                    <div>{data?.investigationName}</div>
+                                    <div className="flex justify-center items-center">
+                                      <input
+                                        type="checkbox"
+                                        checked={observationCheckValue[data?.testId] || false}
+                                        onChange={() =>
+                                          setObservationCheckValue(prev => ({
+                                            ...prev,
+                                            [data?.testId]: !prev[data?.testId] // Toggle checkbox state
+                                          }))
+                                        }
+                                      />
+                                    </div>
+                                    <div className="w-20">
+                                      <CustomeNormalButton activeTheme={activeTheme} text={'Reject'}
+                                        onClick={() => setShowPopup(4)}
+                                      />
+                                    </div>
+                                    <div className="w-20">
+                                      <CustomeNormalButton activeTheme={activeTheme} text={'Re-Run'} onClick={() => setShowPopup(5)} />
+                                    </div>
+                                    <div className="w-20">
+                                      <CustomeNormalButton activeTheme={activeTheme} text={'Comment'} />
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+
+                              <tr>
+                                <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
+                                </td>
+                              </tr>
+                            </React.Fragment>
+                          )
+                            :
+
+                            data?.reportType === 1 && (
+                              <tr
+                                className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                                  ? ''
+                                  : index % 2 === 0
+                                    ? 'bg-gray-100'
+                                    : 'bg-white'
+                                  }`}
+                                key={index}
+                                onMouseEnter={() => setIsHoveredTable(index)}
+                                onMouseLeave={() => setIsHoveredTable(null)}
+                                style={{
+                                  background:
+                                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                  // Hides scrollbar for IE/Edge
+                                }}
+                              >
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
+                                  {data?.observationName}
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  <form autoComplete="off">
+                                    <input
+                                      type="text"
+                                      name="charNumber"
+                                      id="charNumber"
+                                      value={observationValue[data?.testId]?.[index] ?? data?.value ?? ""} // Get value for specific testId & index
+                                      maxLength={15}
+                                      onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
+                                      className="w-[5.5rem] h-[1.6rem] outline-none rounded-sm border-[1px] pl-1"
+                                    />
+                                  </form>
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold">
+
+                                  {data?.value ?
+                                    <div className="flex items-center justify-center gap-2">
+                                      <FaFlag
+                                        className={`text-xl ${Number(data?.value) < Number(data?.minVal)
+                                          ? "text-yellow-500"
+                                          : Number(data?.value) > Number(data?.maxVal)
+                                            ? "text-red-500"
+                                            : "text-green-500"
+                                          }`}
+                                      />
+                                      <div className={`text-xl font-semibold ${Number(data?.value) < Number(data?.minVal)
+                                        ? "text-yellow-500"
+                                        : Number(data?.value) > Number(data?.maxVal)
+                                          ? "text-red-500"
+                                          : "text-green-500"
+                                        }`}>
+                                        {Number(data?.value) < Number(data?.minVal)
+                                          ? "L"
+                                          : Number(data?.value) > Number(data?.maxVal)
+                                            ? "H"
+                                            : "N"}
+                                      </div>
+                                    </div>
+                                    :
+                                    observationValue[data?.testId]?.[index] && observationValue[data?.testId]?.[index] !== "" && (
+                                      <div className="flex items-center justify-center gap-2">
+                                        <FaFlag
+                                          className={`text-xl ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                            ? "text-yellow-500"
+                                            : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
+                                              ? "text-red-500"
+                                              : "text-green-500"
+                                            }`}
+                                        />
+                                        <div className={`text-xl font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                          ? "text-yellow-500"
+                                          : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
+                                            ? "text-red-500"
+                                            : "text-green-500"
+                                          }`}>
+                                          {Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                            ? "L"
+                                            : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
+                                              ? "H"
+                                              : "N"}
+                                        </div>
+                                      </div>
+                                    )}
+                                </td>
+
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.machineReading}>
+                                  {/* {data?.machineReading} */}
+                                  {data?.machineReading?.length > 7 ? `${data.machineReading.slice(0, 19)}...` : data?.machineReading}
+
+                                </td>
 
 
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            {data?.machineName}
-                          </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                  {data?.machineName}
+                                </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            {data?.minVal}
-                          </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                  {data?.minVal}
+                                </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            {data?.maxVal}
-                          </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                  {data?.maxVal}
+                                </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            {data?.unit}
-                          </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                  {data?.unit}
+                                </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.method}>
-                            {data?.method?.length > 19 ? `${data.method.slice(0, 19)}...` : data?.method}
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.method}>
+                                  {data?.method?.length > 19 ? `${data.method.slice(0, 19)}...` : data?.method}
 
-                          </td>
+                                </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.displayReading}>
-                            {/* {data?.displayReading} */}
-                            {data?.displayReading?.length > 19 ? `${data.displayReading.slice(0, 19)}...` : data?.displayReading}
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.displayReading}>
+                                  {/* {data?.displayReading} */}
+                                  {data?.displayReading?.length > 19 ? `${data.displayReading.slice(0, 19)}...` : data?.displayReading}
 
-                          </td>
+                                </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            {data?.oldreading}
-                          </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                  {data?.oldreading}
+                                </td>
 
+                              </tr >
+                            )
 
-
-                        </tr >
-                    ))}
-                  </tbody>
-                </CustomDynamicTable >
-
+                        ))}
+                      </tbody>
+                    </CustomDynamicTable >
+                }
                 <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
@@ -1807,7 +1925,6 @@ export default function ResultTrack() {
                         isButtonClick={isButtonClick}
                         loadingButtonNumber={1} // Unique number for the first button
                         onClick={() => onSubmitObservationData('Save', 1)}
-
                       />
                     </div>
                     <div className="relative flex-1">
@@ -1823,17 +1940,37 @@ export default function ResultTrack() {
 
                   <div className='flex gap-[0.25rem]'>
                     <div className="relative flex-1 ">
-                      <CustomeNormalButton
-                        activeTheme={activeTheme}
-                        text={String(testIsHold?.isApproved) === '1' ? 'Not Approved' : 'Approved'}
+                      {
+                        String(testIsHold?.isApproved) === '1' ?
+                          <CustomeNormalButton
+                            activeTheme={activeTheme}
+                            text={'Un Approve'}
 
-                        // icon={FaSpinner}
-                        // isButtonClick={isButtonClick}
-                        // loadingButtonNumber={2} // Unique number for the first button
-                        // onClick={() => onSubmitObservationData('Approve', 3)}
-                        // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
-                        onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Approve') }}
-                      />
+                            icon={FaSpinner}
+                            isButtonClick={isButtonClick}
+                            loadingButtonNumber={2} // Unique number for the first button
+                            // onClick={() => onSubmitObservationData('Approve', 3)}
+                            // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+                            onClick={() => { setTrackingHoldOrApproved('Approve'), onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved() }}
+                          />
+
+                          :
+                          <CustomFormButton
+                            activeTheme={activeTheme}
+                            text="Approve"
+                            icon={FaSpinner}
+                            isButtonClick={isButtonClick}
+                            loadingButtonNumber={3} // Unique number for the first button
+
+                            // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+
+                            disabled={resultTrackData?.doctorId === 0}
+                            onClick={() => onSubmitObservationData('Approve', 3)}
+                          />
+
+                      }
+
+
                     </div>
                     <div className="relative flex-1">
                       <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'} />
@@ -2015,6 +2152,61 @@ export default function ResultTrack() {
             </CustomSmallPopup>
           )
         }
+
+        {/* add report */}
+        {
+          showPopup === 6 && (
+            <CustomSmallPopup
+              headerData={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold' : testIsHold?.isApproved === '1' ? 'Not Approve' : 'Approve'}
+              activeTheme={activeTheme}
+              setShowPopup={setShowPopup} // Pass the function, not the value
+            >
+              <GridDataDetails
+                gridDataDetails={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold Reason' : 'Hold Reason' : testIsHold?.isApproved === '1' ? 'Not Approve Reason' : 'Approve Reason'}
+              />
+              <div className="flex justify-between items-center gap-2 mx-2">
+
+                {/* <form autoComplete="off">
+                  <div className="realative flex-1 w-full">
+                    <CustomTextBox
+                      type="text"
+                      name="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                      value={reasionForHoldOrUnHoldAndApprovedOrNotApproved || ''}
+                      onChange={(e) => setReasionForHoldOrUnHoldAndApprovedOrNotApproved(e.target.value)}
+                      label="Reason"
+                      isDisabled={false}
+                      showLabel={true}
+                    />
+                  </div> */}
+
+                <input
+                  type="text"
+                  id="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                  name="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                  value={reasionForHoldOrUnHoldAndApprovedOrNotApproved}
+                  onChange={(e) => setReasionForHoldOrUnHoldAndApprovedOrNotApproved(e.target.value)}
+                  autoComplete="off"
+                  placeholder=" "
+                  className={`inputPeerField peer mt-2 border-borderColor focus:outline-none`}
+                />
+
+                {/* </form> */}
+
+                <div className="w-20 md:w-20 mt-2">
+                  <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Update'}
+                    isButtonClick={isButtonClick}
+                    loadingButtonNumber={3} // Unique number for the first button
+                    onClick={() => onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved()}
+                  />
+                </div>
+
+              </div>
+
+
+            </CustomSmallPopup>
+          )
+        }
+
       </>
     </div >
   );
