@@ -1,1013 +1,882 @@
-
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import React, { useEffect, useRef, useState } from 'react'
-import { IoMdImages, IoMdMenu } from 'react-icons/io';
-import { useSelector } from 'react-redux';
-import { uploadReportLetterHead } from '../../listData/listData';
-import toast from 'react-hot-toast';
-import { getAllUploadReportLetterHeadApi, getCenterDataForUploadReportLetterHeadApi, saveUploadReportLetterHeadApi } from '../../../service/service';
-import { FaSpinner } from 'react-icons/fa';
-import useRippleEffect from '../../customehook/useRippleEffect';
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import React, { useEffect, useRef, useState } from "react";
+import { IoMdImages, IoMdMenu } from "react-icons/io";
+import { useSelector } from "react-redux";
+import { uploadReportLetterHead } from "../../listData/listData";
+import toast from "react-hot-toast";
+import {
+  getAllUploadReportLetterHeadApi,
+  getCenterDataForUploadReportLetterHeadApi,
+  saveUploadReportLetterHeadApi,
+} from "../../../service/service";
+import { FaSpinner } from "react-icons/fa";
+import useRippleEffect from "../../customehook/useRippleEffect";
+import { useGetData, usePostData } from "../../../service/apiService";
+import SearchBarDropdown from "../../../Custom Components/SearchBarDropdown";
+import { FormHeader } from "../../../Custom Components/FormGenerator";
+import { TwoSubmitButton } from "../../../Custom Components/InputGenerator";
+import DynamicTable, {
+  TableHeader,
+  UpdatedDynamicTable,
+} from "../../../Custom Components/DynamicTable";
+import { ImagePopup } from "../../../Custom Components/PopupModal";
+import { addObjectId, addRandomObjectId } from "../../../service/RedendentData";
 
 export default function UploadReportLetterHead() {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  useRippleEffect();
 
+  const [Img, setImg] = useState("");
+  const [Img1, setImg1] = useState("");
+  const [Img2, setImg2] = useState("");
+  const [Img3, setImg3] = useState("");
+  const [Img4, setImg4] = useState("");
+  const [imageView, setImageView] = useState(false);
+  const [IsBase64, setIsBase64] = useState(false);
+  const [BookingId, setBookingId] = useState("");
+  const [BookingValue, setBookingValue] = useState("");
+  const [BookingDropDown, setBookingDropDown] = useState(false);
+  const [BookingHoveIndex, setBookingHoveIndex] = useState(null);
+  const [BookingSelectedOption, setBookingSelectedOption] = useState("");
+  const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
+  const [uploadReportLetterHeadData, setUploadReportLetterHeadData] = useState({
+    centreId: BookingId,
+    reporrtHeaderHeightY: 0,
+    patientYHeader: 0,
+    barcodeXPosition: 0,
+    barcodeYPosition: 0,
+    qrCodeXPosition: 0,
+    qrCodeYPosition: 0,
+    isQRheader: 0,
+    isBarcodeHeader: 0,
+    footerHeight: 0,
+    nabLxPosition: 0,
+    nabLyPosition: 0,
+    docSignYPosition: 0,
+    receiptHeaderY: 0,
+    reportHeader: "",
+    reciptHeader: "",
+    reciptFooter: "",
+    rWaterMark: "",
+  });
 
-    const activeTheme = useSelector((state) => state.theme.activeTheme);
-    useRippleEffect();
+  //   const [FillerData, setFillerData] = useState([]);
+  const [allCentreData, setAllCentreData] = useState([]);
+  const [singleCentreData, setSingleCentreData] = useState("");
+  const [isHovered, setIsHovered] = useState(null);
+  const [isButtonClick, setIsButtonClick] = useState(0);
+  const [isHoveredTable, setIsHoveredTable] = useState(null);
+  const imgRef = useRef();
+  const imgRefForReciptHeader = useRef();
+  const imgRefForReciptFooter = useRef();
+  const imgRefForRWaterMark = useRef();
 
-    const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
-    const [uploadReportLetterHeadData, setUploadReportLetterHeadData] = useState({
-        centreId: 0,
-        reporrtHeaderHeightY: 0,
-        patientYHeader: 0,
-        barcodeXPosition: 0,
-        barcodeYPosition: 0,
-        qrCodeXPosition: 0,
-        qrCodeYPosition: 0,
-        isQRheader: 0,
-        isBarcodeHeader: 0,
-        footerHeight: 0,
-        nabLxPosition: 0,
-        nabLyPosition: 0,
-        docSignYPosition: 0,
-        receiptHeaderY: 0,
-        reportHeader: '',
-        reciptHeader: '',
-        reciptFooter: '',
-        rWaterMark: ''
-    });
+  const CenterData = useGetData();
+  const FillerData = useGetData();
+  const GridData = useGetData();
+  const PostData = usePostData();
+  const openShowSearchBarDropDown = (val) => {
+    setShowSearchBarDropDown(val);
+  };
 
-    const [gridData, setGridData] = useState([]);
-    const [allCentreData, setAllCentreData] = useState([]);
-    const [singleCentreData, setSingleCentreData] = useState('');
-    const [isHovered, setIsHovered] = useState(null);
-    const [isButtonClick, setIsButtonClick] = useState(0);
-    const [isHoveredTable, setIsHoveredTable] = useState(null);
-    const imgRef = useRef();
-    const imgRefForReciptHeader = useRef();
-    const imgRefForReciptFooter = useRef();
-    const imgRefForRWaterMark = useRef();
+  useEffect(() => {
+    const getAllCentreData = async () => {
+      await CenterData?.fetchData("centreMaster");
+      await GridData?.fetchData("/centreMaster/GetLetterHeaddetailall");
+    };
 
-    const openShowSearchBarDropDown = (val) => {
-        setShowSearchBarDropDown(val);
+    getAllCentreData();
+  }, [BookingId]);
+
+  const handleOptionClick3 = async (name, id) => {
+    setBookingValue(name);
+    setBookingId(id);
+    // await fetchGrid();
+    await sessionStorage.setItem("BookingId", JSON.stringify(id));
+    setBookingSelectedOption(name);
+    setBookingDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange3 = (e) => {
+    setBookingValue(e.target.value);
+    setBookingDropDown(true); // Show dropdown when typing
+  };
+
+  const handelOnChangeuploadReportLetterHeadData = (event) => {
+    setUploadReportLetterHeadData((preventData) => ({
+      ...preventData,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+  const handelImageChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      const imageUrl = URL.createObjectURL(file); // Create a preview URL
+      setUploadReportLetterHeadData({ reportHeader: imageUrl }); // Set the image for preview
+      setImg1(imageUrl);
     }
 
-    useEffect(() => {
+    if (file) {
+      const reader = new FileReader();
 
-        const getAllCentreData = async () => {
+      reader.onloadend = () => {
+        const base64String = reader.result.split(",")[1]; // Extract Base64
+        setUploadReportLetterHeadData((prevData) => ({
+          ...prevData,
+          reportHeader: base64String, // Store Base64 string
+        }));
+      };
 
-            try {
+      reader.readAsDataURL(file); // Convert PDF to Base64
+    }
+  };
 
-                const response = await getCenterDataForUploadReportLetterHeadApi();
-                console.log(response);
+  const handelClickImage = () => {
+    if (imgRef.current) {
+      imgRef.current.click();
+    }
+  };
 
-                setAllCentreData(response);
+  const handelImageChangeForLetterHead = (e) => {
+    const file = e.target.files?.[0];
 
-            } catch (error) {
-                toast.error(error?.message);
-            }
-        }
-
-        getAllCentreData();
-
-    }, [])
-
-
-    const handelOnChangeuploadReportLetterHeadData = (event) => {
-
-        setUploadReportLetterHeadData((preventData) => ({
-            ...preventData,
-            [event.target.name]: event.target.value
-        }))
-
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImg1(imageUrl); // Set the image for preview
+      setIsBase64(false);
     }
 
-    const handelImageChange = (e) => {
-        const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
 
-        if (file) {
-            const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result.split(",")[1]; // Extract Base64
+        setUploadReportLetterHeadData((prevData) => ({
+          ...prevData,
+          reportHeader: base64String, // Store Base64 string
+        }));
+      };
 
-            reader.onloadend = () => {
-                const base64String = reader.result.split(',')[1]; // Extract Base64
-                setUploadReportLetterHeadData((prevData) => ({
-                    ...prevData,
-                    reportHeader: base64String, // Store Base64 string
-                }));
-            };
+      reader.readAsDataURL(file); // Convert PDF to Base64
+    }
+  };
 
-            reader.readAsDataURL(file); // Convert PDF to Base64
-        }
+  const handelImageChangeForReceiptHeader = (e) => {
+    const file = e.target.files?.[0];
 
-    };
-
-    const handelClickImage = () => {
-        if (imgRef.current) {
-            imgRef.current.click();
-        }
-    };
-
-
-    const handelImageChangeForReceiptHeader = (e) => {
-        const file = e.target.files?.[0];
-
-        if (file) {
-            const reader = new FileReader();
-
-            reader.onloadend = () => {
-                const base64String = reader.result.split(',')[1]; // Extract Base64
-                setUploadReportLetterHeadData((prevData) => ({
-                    ...prevData,
-                    reciptHeader: base64String, // Store Base64 string
-                }));
-            };
-
-            reader.readAsDataURL(file); // Convert PDF to Base64
-        }
-    };
-
-
-    const handelImageChangeForReceiptFooter = (e) => {
-
-        const file = e.target.files?.[0];
-
-        if (file) {
-            const reader = new FileReader();
-
-            reader.onloadend = () => {
-                const base64String = reader.result.split(',')[1]; // Extract Base64
-                setUploadReportLetterHeadData((prevData) => ({
-                    ...prevData,
-                    reciptFooter: base64String, // Store Base64 string
-                }));
-            };
-
-            reader.readAsDataURL(file); // Convert PDF to Base64
-        }
-    };
-
-
-    const handelImageChangeForRwaterMark = (e) => {
-
-        const file = e.target.files?.[0];
-
-        if (file) {
-            const reader = new FileReader();
-
-            reader.onloadend = () => {
-                const base64String = reader.result.split(',')[1]; // Extract Base64
-                setUploadReportLetterHeadData((prevData) => ({
-                    ...prevData,
-                    rWaterMark: base64String, // Store Base64 string
-                }));
-            };
-
-            reader.readAsDataURL(file); // Convert PDF to Base64
-        }
-    };
-
-
-    const openPDF = (base64String) => {
-        if (!base64String) return;
-
-        toast.success('ghjkl')
-        // Convert Base64 to a Blob
-        const byteCharacters = atob(base64String);
-        const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: "application/pdf" });
-
-        // Create a URL for the Blob and open it in a new tab
-        const blobUrl = URL.createObjectURL(blob);
-        window.open(blobUrl, "_blank");
-    };
-
-    //save upload report letter
-    const onSubmitUploadReportLetterHead = async () => {
-
-        setIsButtonClick(1);
-
-        try {
-
-            const response = await saveUploadReportLetterHeadApi(uploadReportLetterHeadData);
-
-            if (response?.success) {
-                toast.success(response?.message);
-                setUploadReportLetterHeadData({
-                    centreId: 0,
-                    reporrtHeaderHeightY: 0,
-                    patientYHeader: 0,
-                    barcodeXPosition: 0,
-                    barcodeYPosition: 0,
-                    qrCodeXPosition: 0,
-                    qrCodeYPosition: 0,
-                    isQRheader: 0,
-                    isBarcodeHeader: 0,
-                    footerHeight: 0,
-                    nabLxPosition: 0,
-                    nabLyPosition: 0,
-                    docSignYPosition: 0,
-                    receiptHeaderY: 0,
-                    reportHeader: '',
-                    reciptHeader: '',
-                    reciptFooter: '',
-                    rWaterMark: ''
-                });
-            } else {
-                toast.error(response?.message);
-            }
-
-        } catch (error) {
-            toast.error(error?.message);
-        }
-
-        setIsButtonClick(0);
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImg2(imageUrl); // Set the image for preview
     }
 
-
-    useEffect(() => {
-
-        const getAllData = async () => {
-            try {
-                const response = await getAllUploadReportLetterHeadApi(uploadReportLetterHeadData.centreId);
-                console.log(response);
-                setGridData(response);
-            } catch (error) {
-                toast.error(error);
-            }
-        }
-
-        if (uploadReportLetterHeadData?.centreId !== 0) {
-            getAllData();
-        }
-
-    }, [uploadReportLetterHeadData.centreId])
-    const filterCentreData = allCentreData.filter((data) => (data?.companyName?.toLowerCase() || '').includes(String(singleCentreData?.toLowerCase() || '')));
-
-
-    return (
-        <>
-            <div>
-                {/* Header Section */}
-                <div
-                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-                    style={{ background: activeTheme?.blockColor }}
-                >
-                    <div>
-                        <FontAwesomeIcon icon="fa-solid fa-house" />
-                    </div>
-                    <div>Upload Report Letter Head</div>
-                </div>
-
-                {/* form data */}
-                <form autoComplete='off'>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-
-                        {/* Centre */}
-                        <div className="relative flex-1">
-                            <input
-                                type="search"
-                                id="centreId"
-                                name="centreId"
-                                value={singleCentreData || uploadReportLetterHeadData?.centreId || ''}
-                                onChange={(e) => {
-                                    handelOnChangeuploadReportLetterHeadData(e)
-                                    setSingleCentreData('')
-                                }}
-                                onClick={() => openShowSearchBarDropDown(1)}
-
-                                placeholder=" "
-                                className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="centreId" className="menuPeerLevel">
-                                Centre
-                            </label>
-
-                            {/* Dropdown to select the menu */}
-                            {showSearchBarDropDown === 1 && (
-                                <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                                    <ul>
-                                        {filterCentreData?.length > 0 ? (
-                                            filterCentreData.map((data, index) => (
-                                                <li
-                                                    key={data?.centreId}
-                                                    name="centreId"
-                                                    className="my-1 px-2 cursor-pointer"
-                                                    onClick={() => {
-                                                        openShowSearchBarDropDown(0);
-                                                        handelOnChangeuploadReportLetterHeadData({
-                                                            target: { name: "centreId", value: data?.centreId },
-                                                        });
-                                                        setSingleCentreData(data?.companyName)
-                                                    }}
-                                                    onMouseEnter={() => setIsHovered(index)}
-                                                    onMouseLeave={() => setIsHovered(null)}
-                                                    style={{
-                                                        background:
-                                                            isHovered === index ? activeTheme?.subMenuColor : "transparent",
-                                                    }}
-                                                >
-                                                    {data?.companyName}
-                                                </li>
-                                            ))
-                                        ) : (
-                                            <li className="py-4 text-gray-500 text-center">
-                                                {import.meta.env.VITE_API_RECORD_NOT_FOUND || "No records found"}
-                                            </li>
-                                        )}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-                            {/* Report HdrH. Y */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="reporrtHeaderHeightY"
-                                    name="reporrtHeaderHeightY"
-                                    value={uploadReportLetterHeadData?.reporrtHeaderHeightY || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="reporrtHeaderHeightY" className="menuPeerLevel">
-                                    Report HdrH. Y
-                                </label>
-
-                            </div>
-
-                            {/* Patient Y H */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="patientYHeader"
-                                    name="patientYHeader"
-                                    value={uploadReportLetterHeadData?.patientYHeader || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="patientYHeader" className="menuPeerLevel">
-                                    Patient Y H
-                                </label>
-
-                            </div>
-                        </div>
-
-
-                        <div className='flex gap-[0.25rem]'>
-
-                            {/* Barcode X Po. */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="barcodeXPosition"
-                                    name="barcodeXPosition"
-                                    value={uploadReportLetterHeadData?.barcodeXPosition || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="barcodeXPosition" className="menuPeerLevel">
-                                    Barcode X Po.
-                                </label>
-
-                            </div>
-
-                            {/* Barcode Y Po. */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="search"
-                                    id="barcodeYPosition"
-                                    name="barcodeYPosition"
-                                    value={uploadReportLetterHeadData?.barcodeYPosition || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="barcodeYPosition" className="menuPeerLevel">
-                                    Barcode Y Po.
-                                </label>
-
-                            </div>
-
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-
-                            {/* QR Code X Po. */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="qrCodeXPosition"
-                                    name="qrCodeXPosition"
-                                    value={uploadReportLetterHeadData?.qrCodeXPosition || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="qrCodeXPosition" className="menuPeerLevel">
-                                    QR Code X Po.
-                                </label>
-
-                            </div>
-
-
-
-                            {/* QR Code Y Po. */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="search"
-                                    id="qrCodeYPosition"
-                                    name="qrCodeYPosition"
-                                    value={uploadReportLetterHeadData?.qrCodeYPosition || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="qrCodeYPosition" className="menuPeerLevel">
-                                    QR Code Y Po.
-                                </label>
-
-                            </div>
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-
-                            {/* QR Header */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="isQRheader"
-                                    name="isQRheader"
-                                    value={uploadReportLetterHeadData?.isQRheader || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="isQRheader" className="menuPeerLevel">
-                                    QR Header
-                                </label>
-
-                            </div>
-
-                            {/* Barcode HY */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="isBarcodeHeader"
-                                    name="isBarcodeHeader"
-                                    value={uploadReportLetterHeadData?.isBarcodeHeader || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="isBarcodeHeader" className="menuPeerLevel">
-                                    Barcode HY
-                                </label>
-
-                            </div>
-
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-                            {/* Footer Height */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="footerHeight"
-                                    name="footerHeight"
-                                    value={uploadReportLetterHeadData?.footerHeight || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="footerHeight" className="menuPeerLevel">
-                                    Footer Height
-                                </label>
-
-                            </div>
-
-                            {/* Doc Sign Y Position */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="docSignYPosition"
-                                    name="docSignYPosition"
-                                    value={uploadReportLetterHeadData?.docSignYPosition || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="docSignYPosition" className="menuPeerLevel">
-                                    Dr Sign Y Position
-                                </label>
-
-                            </div>
-                        </div>
-
-
-                        <div className='flex gap-[0.25rem]'>
-                            {/* nabLxPosition */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="nabLxPosition"
-                                    name="nabLxPosition"
-                                    value={uploadReportLetterHeadData?.nabLxPosition || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="nabLxPosition" className="menuPeerLevel">
-                                    NABL X Position
-                                </label>
-
-                            </div>
-
-                            {/* nabLyPosition */}
-                            <div className="relative flex-1">
-                                <input
-                                    type="number"
-                                    id="nabLyPosition"
-                                    name="nabLyPosition"
-                                    value={uploadReportLetterHeadData?.nabLyPosition || ''}
-                                    onChange={(e) => {
-                                        handelOnChangeuploadReportLetterHeadData(e)
-                                    }}
-
-                                    placeholder=" "
-                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
-                                />
-                                <label htmlFor="nabLyPosition" className="menuPeerLevel">
-                                    NABL Y Position
-                                </label>
-
-                            </div>
-
-                        </div>
-
-
-
-
-                        {/* Letter Head */}
-                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
-                            <div className="relative flex-1">
-
-                                <div
-                                    name="reportHeader"
-                                    className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
-                                    onClick={handelClickImage}
-                                >
-                                    {
-                                        uploadReportLetterHeadData.reportHeader === '' ? (
-                                            <div className="pt-2 z-40 font-semibold text-center">
-                                                Upload Image
-                                            </div>
-                                        ) : (
-                                            <div className="pt-2 z-40 text-center">
-                                                Image uploaded Successfully
-                                            </div>
-                                        )
-                                    }
-
-                                    <input
-                                        type="file"
-                                        id="reportHeader"
-                                        name="reportHeader"
-                                        ref={imgRef}
-                                        onChange={handelImageChange}
-                                        style={{ display: 'none' }}
-                                        accept=".pdf"
-                                    />
-
-                                </div>
-
-
-
-                                <label htmlFor="reportHeader" className="menuPeerLevel">
-                                    Letter Head
-                                </label>
-
-                            </div>
-
-                            {
-                                uploadReportLetterHeadData?.reportHeader && (
-                                    <div
-                                        className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                                        onClick={() => openPDF(uploadReportLetterHeadData.reportHeader)}
-                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                    >
-                                        <IoMdImages className="w-4 h-4 font-semibold" />
-                                    </div>
-                                )
-                            }
-
-
-                        </div>
-
-                        {/* Receipt Header */}
-                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
-                            <div className="relative flex-1">
-                                <div
-                                    className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
-                                    onClick={() => imgRefForReciptHeader.current.click()}
-                                >
-                                    {
-                                        uploadReportLetterHeadData.reciptHeader === '' ? (
-                                            <div className="pt-2 z-40 font-semibold text-center">
-                                                Upload Image
-                                            </div>
-                                        ) : (
-                                            <div className="pt-2 z-40 text-center">
-                                                Image uploaded Successfully
-                                            </div>
-                                        )
-                                    }
-                                </div>
-
-                                <input
-                                    type="file"
-                                    id="reciptHeader"
-                                    name="reciptHeader"
-                                    ref={imgRefForReciptHeader}
-                                    onChange={handelImageChangeForReceiptHeader}
-                                    style={{ display: 'none' }}
-                                    accept=".pdf"
-                                />
-
-                                <label htmlFor="reciptHeader" className="menuPeerLevel">
-                                    Receipt Header
-                                </label>
-                            </div>
-
-                            {
-                                uploadReportLetterHeadData?.reciptHeader && (
-                                    <div
-                                        className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                                        onClick={() => openPDF(uploadReportLetterHeadData.reciptHeader)}
-                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                    >
-                                        <IoMdImages className="w-4 h-4 font-semibold" />
-                                    </div>
-                                )
-                            }
-                        </div>
-
-
-                        {/* Receipt Footer */}
-                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
-                            <div className="relative flex-1">
-                                <div
-                                    className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
-                                    onClick={() => imgRefForReciptFooter.current.click()}
-                                >
-                                    {
-                                        uploadReportLetterHeadData.reciptFooter === '' ? (
-                                            <div className="pt-2 z-40 font-semibold text-center">
-                                                Upload Image
-                                            </div>
-                                        ) : (
-                                            <div className="pt-2 z-40 text-center">
-                                                Image uploaded Successfully
-                                            </div>
-                                        )
-                                    }
-                                </div>
-
-                                <input
-                                    type="file"
-                                    id="reciptFooter"
-                                    name="reciptFooter"
-                                    ref={imgRefForReciptFooter}
-                                    onChange={handelImageChangeForReceiptFooter}
-                                    style={{ display: 'none' }}
-                                    accept=".pdf"
-                                />
-
-                                <label htmlFor="reciptFooter" className="menuPeerLevel">
-                                    Receipt Footer
-                                </label>
-                            </div>
-
-                            {
-                                uploadReportLetterHeadData?.reciptFooter && (
-                                    <div
-                                        className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                                        onClick={() => openPDF(uploadReportLetterHeadData.reciptFooter)}
-                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                    >
-                                        <IoMdImages className="w-4 h-4 font-semibold" />
-                                    </div>
-                                )
-                            }
-                        </div>
-
-
-                        {/* R Water Mark */}
-                        <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
-                            <div className="relative flex-1">
-                                <div
-                                    className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
-                                    onClick={() => imgRefForRWaterMark.current.click()}
-                                >
-                                    {
-                                        uploadReportLetterHeadData.rWaterMark === '' ? (
-                                            <div className="pt-2 z-40 font-semibold text-center">
-                                                Upload Image
-                                            </div>
-                                        ) : (
-                                            <div className="pt-2 z-40 text-center">
-                                                Image uploaded Successfully
-                                            </div>
-                                        )
-                                    }
-                                </div>
-
-                                <input
-                                    type="file"
-                                    id="rWaterMark"
-                                    name="rWaterMark"
-                                    ref={imgRefForRWaterMark}
-                                    onChange={handelImageChangeForRwaterMark}
-                                    style={{ display: 'none' }}
-                                    accept=".pdf"
-                                />
-
-                                <label htmlFor="rWaterMark" className="menuPeerLevel">
-                                    R Water Mark
-                                </label>
-                            </div>
-
-                            {
-                                uploadReportLetterHeadData?.rWaterMark && (
-                                    <div
-                                        className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                                        onClick={() => openPDF(uploadReportLetterHeadData.rWaterMark)}
-                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                    >
-                                        <IoMdImages className="w-4 h-4 font-semibold" />
-                                    </div>
-                                )
-                            }
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-
-                            <div className="relative flex-1 flex justify-start items-center">
-
-                                {
-                                    // isEditData ? <button
-                                    //     className={`font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                    //     style={{
-                                    //          background: activeTheme?.menuColor, color:      activeTheme?.iconColor
-                                    //     }}
-                                    //     onClick={onSubmitUpdateEmployeeMaster}
-                                    // >
-
-                                    //     {
-                                    //         isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Update'
-                                    //     }
-
-                                    // </button>
-                                    //     :
-                                    <button
-                                        type='button'
-                                        data-ripple-light="true"
-                                        className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                                        style={{
-                                            background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                        }}
-                                        onClick={onSubmitUploadReportLetterHead}
-                                    >
-
-                                        {
-                                            isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                        }
-                                    </button>
-                                }
-
-                            </div>
-
-                            <div className="relative flex-1"></div>
-                        </div>
-                    </div>
-                </form>
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const base64String = reader.result.split(",")[1]; // Extract Base64
+        setUploadReportLetterHeadData((prevData) => ({
+          ...prevData,
+          reciptHeader: base64String, // Store Base64 string
+        }));
+      };
+
+      reader.readAsDataURL(file); // Convert PDF to Base64
+    }
+  };
+
+  const handelImageChangeForReceiptFooter = (e) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImg3(imageUrl); // Set the image for preview
+    }
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const base64String = reader.result.split(",")[1]; // Extract Base64
+        setUploadReportLetterHeadData((prevData) => ({
+          ...prevData,
+          reciptFooter: base64String, // Store Base64 string
+        }));
+      };
+
+      reader.readAsDataURL(file); // Convert PDF to Base64
+    }
+  };
+
+  const handelImageChangeForRwaterMark = (e) => {
+    const file = e.target.files?.[0];
+
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setImg4(imageUrl);
+    }
+
+    if (file) {
+      const reader = new FileReader();
+
+      reader.onloadend = () => {
+        const base64String = reader.result.split(",")[1]; // Extract Base64
+        setUploadReportLetterHeadData((prevData) => ({
+          ...prevData,
+          rWaterMark: base64String, // Store Base64 string
+        }));
+      };
+
+      reader.readAsDataURL(file); // Convert PDF to Base64
+    }
+  };
+
+  const openPDF = (base64String) => {
+    if (!base64String) return;
+
+    toast.success("ghjkl");
+    // Convert Base64 to a Blob
+    const byteCharacters = atob(base64String);
+    const byteNumbers = new Array(byteCharacters.length)
+      .fill(0)
+      .map((_, i) => byteCharacters.charCodeAt(i));
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+
+    // Create a URL for the Blob and open it in a new tab
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank");
+  };
+
+  //save upload report letter
+  const onSubmitUploadReportLetterHead = async () => {
+    setIsButtonClick(1);
+
+    console.log(uploadReportLetterHeadData);
+    const transformedData = {
+      centreId: uploadReportLetterHeadData.centreId || 0,
+      reporrtHeaderHeightY:
+        parseInt(uploadReportLetterHeadData.reporrtHeaderHeightY) || 0,
+      patientYHeader: parseInt(uploadReportLetterHeadData.patientYHeader) || 0,
+      barcodeXPosition:
+        parseInt(uploadReportLetterHeadData.barcodeXPosition) || 0,
+      barcodeYPosition:
+        parseInt(uploadReportLetterHeadData.barcodeYPosition) || 0,
+      qrCodeXPosition:
+        parseInt(uploadReportLetterHeadData.qrCodeXPosition) || 0,
+      qrCodeYPosition:
+        parseInt(uploadReportLetterHeadData.qrCodeYPosition) || 0,
+      isQRheader: parseInt(uploadReportLetterHeadData.isQRheader) || 0,
+      isBarcodeHeader:
+        parseInt(uploadReportLetterHeadData.isBarcodeHeader) || 0,
+      footerHeight: parseInt(uploadReportLetterHeadData.footerHeight) || 0,
+      nabLxPosition: parseInt(uploadReportLetterHeadData.nabLxPosition) || 0,
+      nabLyPosition: parseInt(uploadReportLetterHeadData.nabLyPosition) || 0,
+      docSignYPosition:
+        parseInt(uploadReportLetterHeadData.docSignYPosition) || 0,
+      receiptHeaderY: parseInt(uploadReportLetterHeadData.receiptHeaderY) || 0,
+      reportHeader: uploadReportLetterHeadData.reportHeader || "string",
+      reciptHeader: uploadReportLetterHeadData.reciptHeader || "string",
+      reciptFooter: uploadReportLetterHeadData.reciptFooter || "string",
+      waterMarkImage: uploadReportLetterHeadData.rWaterMark || "string",
+      nablImage: "", // Since nablImage is missing in input, setting it to an empty string
+    };
+
+    try {
+      //   const response = await saveUploadReportLetterHeadApi(
+      //     uploadReportLetterHeadData
+      //   );
+      const response = await PostData?.postRequest(
+        "/centreMaster/SaveLetterHead",
+        transformedData
+      );
+
+      if (response?.success) {
+        toast.success(response?.message);
+        setUploadReportLetterHeadData({
+          centreId: 0,
+          reporrtHeaderHeightY: 0,
+          patientYHeader: 0,
+          barcodeXPosition: 0,
+          barcodeYPosition: 0,
+          qrCodeXPosition: 0,
+          qrCodeYPosition: 0,
+          isQRheader: 0,
+          isBarcodeHeader: 0,
+          footerHeight: 0,
+          nabLxPosition: 0,
+          nabLyPosition: 0,
+          docSignYPosition: 0,
+          receiptHeaderY: 0,
+          reportHeader: "",
+          reciptHeader: "",
+          reciptFooter: "",
+          rWaterMark: "",
+        });
+      } else {
+        toast.error(response?.message);
+      }
+    } catch (error) {
+      toast.error(error?.message);
+    }
+
+    setIsButtonClick(0);
+  };
+
+  useEffect(() => {
+    const getAllData = async () => {
+      const res = await FillerData?.fetchData(
+        `/centreMaster/GetLetterHeaddetails?CentreId=${BookingId}`
+      );
+      await setUploadReportLetterHeadData({
+        centreId: BookingId,
+        reporrtHeaderHeightY: res?.data?.data[0]?.reporrtHeaderHeightY,
+        patientYHeader: res?.data?.data[0]?.patientYHeader,
+        barcodeXPosition: res?.data?.data[0]?.barcodeXPosition,
+        barcodeYPosition: res?.data?.data[0]?.barcodeYPosition,
+        qrCodeXPosition: res?.data?.data[0]?.qrCodeXPosition,
+        qrCodeYPosition: res?.data?.data[0]?.qrCodeYPosition,
+        isQRheader: res?.data?.data[0]?.isQRheader,
+        isBarcodeHeader: res?.data?.data[0]?.isBarcodeHeader,
+        footerHeight: res?.data?.data[0]?.footerHeight,
+        nabLxPosition: res?.data?.data[0]?.nabLxPosition,
+        nabLyPosition: res?.data?.data[0]?.nabLyPosition,
+        docSignYPosition: res?.data?.data[0]?.docSignYPosition,
+        receiptHeaderY: res?.data?.data[0]?.receiptHeaderY,
+        reportHeader: res?.data?.data[0]?.reportHeader,
+        reciptHeader: res?.data?.data[0]?.reciptHeader,
+        reciptFooter: res?.data?.data[0]?.reciptFooter,
+        rWaterMark: res?.data?.data[0]?.waterMarkImage,
+      });
+      setImg1(res?.data?.data[0]?.reportHeader);
+      setImg2(res?.data?.data[0]?.reciptHeader);
+      setImg3(res?.data?.data[0]?.reciptFooter);
+      setImg4(res?.data?.data[0]?.waterMarkImage);
+      setIsBase64(true);
+      console.log(res);
+    };
+
+    if (BookingId !== "") {
+      getAllData();
+      const data = {
+        target: {
+          name: "centreId",
+          value: BookingId,
+        },
+      };
+      handelOnChangeuploadReportLetterHeadData(data);
+    }
+  }, [BookingId]);
+
+  const columns = [
+    {
+      field: "reporrtHeaderHeightY",
+      headerName: "Report Header Height Y",
+      flex: 1,
+    },
+    { field: "patientYHeader", headerName: "Patient Y Header", flex: 1 },
+    { field: "barcodeXPosition", headerName: "Barcode X Position", flex: 1 },
+    { field: "barcodeYPosition", headerName: "Barcode Y Position", flex: 1 },
+    { field: "qrCodeXPosition", headerName: "QR Code X Position", flex: 1 },
+    { field: "qrCodeYPosition", headerName: "QR Code Y Position", flex: 1 },
+    { field: "isQRheader", headerName: "Is QR Header", flex: 1 },
+    { field: "isBarcodeHeader", headerName: "Is Barcode Header", flex: 1 },
+    { field: "footerHeight", headerName: "Footer Height", flex: 1 },
+    { field: "nabLxPosition", headerName: "NABL X Position", flex: 1 },
+    { field: "nabLyPosition", headerName: "NABL Y Position", flex: 1 },
+    { field: "docSignYPosition", headerName: "Doc Sign Y Position", flex: 1 },
+    { field: "receiptHeaderY", headerName: "Receipt Header Y", flex: 1 },
+    // { field: "reportHeader", headerName: "Report Header", flex:1 },
+    // { field: "reciptHeader", headerName: "Receipt Header", flex:1 },
+    // { field: "reciptFooter", headerName: "Receipt Footer", flex:1 },
+    // { field: "waterMarkImage", headerName: "Watermark Image", flex:1 },
+    // { field: "nablImage", headerName: "NABL Image", flex:1 },
+  ];
+  const GridShow = addRandomObjectId(GridData?.data?.data || []);
+
+  console.log("img1 ", GridShow);
+  return (
+    <>
+      <div>
+        <ImagePopup
+          Img={Img}
+          setImageView={setImageView}
+          imageView={imageView}
+        />{" "}
+        {/* Header Section */}
+        <FormHeader title={"Upload Report Letter Head"} />
+        {/* form data */}
+        <form autoComplete="off">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+            {/* Centre */}
+            <SearchBarDropdown
+              id="search-bar"
+              name="BookingValue"
+              value={BookingValue}
+              onChange={handleSearchChange3}
+              placeholder="Search Center"
+              label="Booking Center"
+              options={CenterData?.data}
+              showValueField="companyName"
+              keyField="centreId"
+              isRequired={false}
+              showSearchBarDropDown={BookingDropDown}
+              setShowSearchBarDropDown={setBookingDropDown}
+              handleOptionClickForCentre={handleOptionClick3}
+              setIsHovered={setBookingHoveIndex}
+              isHovered={BookingHoveIndex}
+            />
+
+            <div className="flex gap-[0.25rem]">
+              {/* Report HdrH. Y */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="reporrtHeaderHeightY"
+                  name="reporrtHeaderHeightY"
+                  value={uploadReportLetterHeadData?.reporrtHeaderHeightY || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="reporrtHeaderHeightY" className="menuPeerLevel">
+                  Report HdrH. Y
+                </label>
+              </div>
+
+              {/* Patient Y H */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="patientYHeader"
+                  name="patientYHeader"
+                  value={uploadReportLetterHeadData?.patientYHeader || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="patientYHeader" className="menuPeerLevel">
+                  Patient Y H
+                </label>
+              </div>
             </div>
 
-            {/* grid data */}
-            <div>
-                <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
-                <div
-                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
-                    style={{ background: activeTheme?.blockColor }}
-                >
-                    <div>
-                        <IoMdMenu className='font-semibold text-lg' />
-                    </div>
-                    <div>Upload Report Letter Head Details</div>
-                </div>
+            <div className="flex gap-[0.25rem]">
+              {/* Barcode X Po. */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="barcodeXPosition"
+                  name="barcodeXPosition"
+                  value={uploadReportLetterHeadData?.barcodeXPosition || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="barcodeXPosition" className="menuPeerLevel">
+                  Barcode X Po.
+                </label>
+              </div>
 
-                <div className="w-full overflow-auto"> {/* Wrapper for horizontal scroll */}
-                    <table className="table-auto border-collapse w-full text-xxs text-left ">
-                        {/* Table Header */}
-                        <thead
-                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                            className="w-full"
-                        >
-                            <tr>
-                                {uploadReportLetterHead.map((data, index) => (
-                                    <th
-                                        key={index}
-                                        className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap overflow-hidden truncate min-w-[150px]"
-                                        title={data}
-                                    >
-                                        {data}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-
-                        {/* Table Body */}
-                        <tbody>
-                            {gridData?.map((data, index) => (
-                                <tr
-                                    className={`cursor-pointer ${isHoveredTable === index
-                                        ? ""
-                                        : index % 2 === 0
-                                            ? "bg-gray-100"
-                                            : "bg-white"
-                                        }`}
-                                    key={index}
-                                    onMouseEnter={() => setIsHoveredTable(index)}
-                                    onMouseLeave={() => setIsHoveredTable(null)}
-                                    style={{
-                                        background:
-                                            isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                                    }}
-                                >
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {index + 1}
-                                    </td>
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" onClick={() => {
-                                        if (uploadReportLetterHeadData?.reportHeader) {
-                                            openPDF(uploadReportLetterHeadData.reportHeader);
-                                        } else {
-                                            console.warn("No PDF available to open");
-                                        }
-                                    }}>
-                                        {/* {data?.reportHeader !== '' ? 'View' : ''} */}
-                                        {data?.reportHeader}
-                                    </td>
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" onClick={() => openPDF(uploadReportLetterHeadData.reciptHeader)}>
-                                        {data?.reciptHeader !== '' ? 'View' : ''}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" onClick={() => openPDF(uploadReportLetterHeadData.reciptFooter)}>
-                                        {data?.reciptFooter !== '' ? 'View' : ''}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.reporrtHeaderHeightY}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.patientYHeader}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.barcodeXPosition}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.barcodeYPosition}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.qrCodeXPosition}
-                                    </td>
-
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.qrCodeYPosition}
-                                    </td>
-
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.isQRheader}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.isBarcodeHeader}
-                                    </td>
-
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.footerHeight}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.nabLxPosition}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.nabLyPosition}
-                                    </td>
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.docSignYPosition}
-                                    </td>
-
-
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                        {data?.receiptHeaderY}
-                                    </td>
-
-                                    {/* <td className="border-b px-4 h-5 flex items-center text-xxs font-semibold gap-2">
-                                        <button className="w-4 h-4 flex justify-center items-center">
-                                            <FaRegEdit
-                                                className={`w-full h-full ${data?.isActive === 1
-                                                    ? "text-blue-500 cursor-pointer"
-                                                    : "text-gray-400 cursor-not-allowed"
-                                                    }`}
-                                                onClick={() => {
-                                                    if (data?.isActive === 1) {
-                                                        getSingleMenuDataForUpDate(index);
-                                                        setIsEditData(true);
-                                                    }
-                                                }}
-                                            />
-                                        </button>
-                                        <button
-                                            className={`w-4 h-4 flex justify-center items-center ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
-                                                }`}
-                                        >
-                                            <ImSwitch
-                                                className="w-full h-full"
-                                                onClick={() => {
-                                                    setClickedRowId(data);
-                                                    setShowPopup(true);
-                                                }}
-                                            />
-                                        </button>
-                                    </td> */}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
+              {/* Barcode Y Po. */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="barcodeYPosition"
+                  name="barcodeYPosition"
+                  value={uploadReportLetterHeadData?.barcodeYPosition || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="barcodeYPosition" className="menuPeerLevel">
+                  Barcode Y Po.
+                </label>
+              </div>
             </div>
-        </>
-    )
+
+            <div className="flex gap-[0.25rem]">
+              {/* QR Code X Po. */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="qrCodeXPosition"
+                  name="qrCodeXPosition"
+                  value={uploadReportLetterHeadData?.qrCodeXPosition || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="qrCodeXPosition" className="menuPeerLevel">
+                  QR Code X Po.
+                </label>
+              </div>
+
+              {/* QR Code Y Po. */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="qrCodeYPosition"
+                  name="qrCodeYPosition"
+                  value={uploadReportLetterHeadData?.qrCodeYPosition || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="qrCodeYPosition" className="menuPeerLevel">
+                  QR Code Y Po.
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-[0.25rem]">
+              {/* QR Header */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="isQRheader"
+                  name="isQRheader"
+                  value={uploadReportLetterHeadData?.isQRheader || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="isQRheader" className="menuPeerLevel">
+                  QR Header
+                </label>
+              </div>
+
+              {/* Barcode HY */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="isBarcodeHeader"
+                  name="isBarcodeHeader"
+                  value={uploadReportLetterHeadData?.isBarcodeHeader || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="isBarcodeHeader" className="menuPeerLevel">
+                  Barcode HY
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-[0.25rem]">
+              {/* Footer Height */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="footerHeight"
+                  name="footerHeight"
+                  value={uploadReportLetterHeadData?.footerHeight || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="footerHeight" className="menuPeerLevel">
+                  Footer Height
+                </label>
+              </div>
+
+              {/* Doc Sign Y Position */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="docSignYPosition"
+                  name="docSignYPosition"
+                  value={uploadReportLetterHeadData?.docSignYPosition || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="docSignYPosition" className="menuPeerLevel">
+                  Dr Sign Y Position
+                </label>
+              </div>
+            </div>
+
+            <div className="flex gap-[0.25rem]">
+              {/* nabLxPosition */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="nabLxPosition"
+                  name="nabLxPosition"
+                  value={uploadReportLetterHeadData?.nabLxPosition || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="nabLxPosition" className="menuPeerLevel">
+                  NABL X Position
+                </label>
+              </div>
+
+              {/* nabLyPosition */}
+              <div className="relative flex-1">
+                <input
+                  type="number"
+                  id="nabLyPosition"
+                  name="nabLyPosition"
+                  value={uploadReportLetterHeadData?.nabLyPosition || ""}
+                  onChange={(e) => {
+                    handelOnChangeuploadReportLetterHeadData(e);
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="nabLyPosition" className="menuPeerLevel">
+                  NABL Y Position
+                </label>
+              </div>
+            </div>
+
+            {/* Letter Head */}
+            <div className="relative flex-1 flex items-center gap-[0.20rem] w-full justify-between">
+              <div className="relative flex-1">
+                <div
+                  name="reportHeader"
+                  className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
+                  onClick={handelClickImage}
+                >
+                  {uploadReportLetterHeadData.reportHeader === "" ? (
+                    <div className="pt-2 z-40 font-semibold text-center">
+                      Upload Image
+                    </div>
+                  ) : (
+                    <div className="pt-2 z-40 text-center">
+                      Image uploaded Successfully
+                    </div>
+                  )}
+
+                  <input
+                    type="file"
+                    id="reportHeader"
+                    name="reportHeader"
+                    ref={imgRef}
+                    onChange={handelImageChangeForLetterHead}
+                    style={{ display: "none" }}
+                    accept="image/png, image/jpeg, image/jpg"
+                  />
+                </div>
+
+                <label htmlFor="reportHeader" className="menuPeerLevel">
+                  Letter Head
+                </label>
+              </div>
+
+              {uploadReportLetterHeadData?.reportHeader && (
+                <div
+                  className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  onClick={() => {
+                    // openPDF(uploadReportLetterHeadData.reportHeader)
+                    {
+                      setImg(IsBase64 ? `data:image/png;base64,${Img1}` : `${Img1}`);
+                      setImageView(true);
+                    }
+                  }}
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <IoMdImages className="w-4 h-4 font-semibold" />
+                </div>
+              )}
+            </div>
+
+            {/* Receipt Header */}
+            <div className="relative flex-1 flex items-center gap-[0.20rem] w-full justify-between">
+              <div className="relative flex-1">
+                <div
+                  className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
+                  onClick={() => imgRefForReciptHeader.current.click()}
+                >
+                  {uploadReportLetterHeadData.reciptHeader === "" ? (
+                    <div className="pt-2 z-40 font-semibold text-center">
+                      Upload Image
+                    </div>
+                  ) : (
+                    <div className="pt-2 z-40 text-center">
+                      Image uploaded Successfully
+                    </div>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  id="reciptHeader"
+                  name="reciptHeader"
+                  ref={imgRefForReciptHeader}
+                  onChange={handelImageChangeForReceiptHeader}
+                  style={{ display: "none" }}
+                  accept="image/png, image/jpeg, image/jpg"
+                />
+
+                <label htmlFor="reciptHeader" className="menuPeerLevel">
+                  Receipt Header
+                </label>
+              </div>
+
+              {uploadReportLetterHeadData?.reciptHeader && (
+                <div
+                  className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  onClick={() => {
+                    setImg(IsBase64 ? `data:image/png;base64,${Img2}` : `${Img2}`);
+                     setImageView(true);
+                  }}
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <IoMdImages className="w-4 h-4 font-semibold" />
+                </div>
+              )}
+            </div>
+
+            {/* Receipt Footer */}
+            <div className="relative flex-1 flex items-center gap-[0.20rem] w-full justify-between">
+              <div className="relative flex-1">
+                <div
+                  className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
+                  onClick={() => imgRefForReciptFooter.current.click()}
+                >
+                  {uploadReportLetterHeadData.reciptFooter === "" ? (
+                    <div className="pt-2 z-40 font-semibold text-center">
+                      Upload Image
+                    </div>
+                  ) : (
+                    <div className="pt-2 z-40 text-center">
+                      Image uploaded Successfully
+                    </div>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  id="reciptFooter"
+                  name="reciptFooter"
+                  ref={imgRefForReciptFooter}
+                  onChange={handelImageChangeForReceiptFooter}
+                  style={{ display: "none" }}
+                  accept="image/png, image/jpeg, image/jpg"
+                />
+
+                <label htmlFor="reciptFooter" className="menuPeerLevel">
+                  Receipt Footer
+                </label>
+              </div>
+
+              {uploadReportLetterHeadData?.reciptFooter && (
+                <div
+                  className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  onClick={() => {
+                    setImg(IsBase64 ? `data:image/png;base64,${Img3}` : `${Img3}`);
+                      setImageView(true);
+                  }}
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <IoMdImages className="w-4 h-4 font-semibold" />
+                </div>
+              )}
+            </div>
+
+            {/* R Water Mark */}
+            <div className="relative flex-1 flex items-center gap-[0.20rem] w-full justify-between">
+              <div className="relative flex-1">
+                <div
+                  className="inputPeerField peer h-5 border-borderColor focus:outline-none cursor-pointer"
+                  onClick={() => imgRefForRWaterMark.current.click()}
+                >
+                  {uploadReportLetterHeadData.rWaterMark === "" ? (
+                    <div className="pt-2 z-40 font-semibold text-center">
+                      Upload Image
+                    </div>
+                  ) : (
+                    <div className="pt-2 z-40 text-center">
+                      Image uploaded Successfully
+                    </div>
+                  )}
+                </div>
+
+                <input
+                  type="file"
+                  id="rWaterMark"
+                  name="rWaterMark"
+                  ref={imgRefForRWaterMark}
+                  onChange={handelImageChangeForRwaterMark}
+                  style={{ display: "none" }}
+                  accept="image/png, image/jpeg, image/jpg"
+                />
+
+                <label htmlFor="rWaterMark" className="menuPeerLevel">
+                  R Water Mark
+                </label>
+              </div>
+
+              {uploadReportLetterHeadData?.rWaterMark && (
+                <div
+                  className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  onClick={() => {
+                    setImg(IsBase64 ? `data:image/png;base64,${Img4}` : `${Img4}`);
+                      setImageView(true);
+                  }}
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <IoMdImages className="w-4 h-4 font-semibold" />
+                </div>
+              )}
+            </div>
+
+            <TwoSubmitButton
+              options={[
+                {
+                  label: "Save",
+                  submit: false,
+                  callBack: () => {
+                    onSubmitUploadReportLetterHead();
+                  },
+                },
+              ]}
+            />
+          </div>
+        </form>
+      </div>
+
+      {/* grid data */}
+      <UpdatedDynamicTable viewKey="Random" rows={GridShow} columns={columns} />
+    </>
+  );
 }

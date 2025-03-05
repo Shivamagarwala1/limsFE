@@ -366,7 +366,8 @@ export default function TATMaster() {
                           {
                             ...params?.row,
                             centreid: searchId,
-                            id: 0,
+                            id: params?.row?.id,
+                            // id:0,
                             deptid: DepartmentId,
                             regcoll: RegisterValue === "Yes" ? 1 : 0,
                             createdOn: new Date().toISOString(),
@@ -457,13 +458,13 @@ export default function TATMaster() {
 
     try {
       const response = await axios.post(
-        `${BASE_URL}/api/tat_master/SaveUpdateTatMaster`,
+        `${BASE_URL}/tat_master/SaveUpdateTatMaster`,
         formattedData
       );
-
-      if (response?.success) {
-        console.log("Data submitted successfully:", response.data);
-        toast.success(response?.message);
+      console.log("Data submitted successfully:", response);
+      if (response?.data?.success) {
+        
+        toast.success(response?.data?.message);
       }
     } catch (error) {
       console.error("Error submitting data:", error);

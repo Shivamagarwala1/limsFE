@@ -4,6 +4,7 @@ import { IoMdMenu } from 'react-icons/io';
 import { useSelector } from 'react-redux';
 import { rateTypeWiseRateListHeader } from '../../listData/listData';
 import useRippleEffect from '../../customehook/useRippleEffect';
+import { FormHeader } from '../../../Custom Components/FormGenerator';
 
 export default function RateTypeWiseRateList() {
 
@@ -19,16 +20,7 @@ export default function RateTypeWiseRateList() {
         <>
             <div>
                 {/* Header Section */}
-                <div
-                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-                    style={{ background: activeTheme?.blockColor }}
-                >
-                    <div>
-                        <FontAwesomeIcon icon="fa-solid fa-house" />
-                    </div>
-                    <div>Rate Type Wise RateList</div>
-                </div>
-
+               <FormHeader title="Rate Type Wise RateList" />
                 {/* form data */}
                 <form autoComplete='off'>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">

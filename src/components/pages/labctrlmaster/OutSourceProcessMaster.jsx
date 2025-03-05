@@ -49,6 +49,7 @@ export default function OutSourceProcessMaster() {
   const DepartmentData = useGetData();
   const PostData = usePostData();
   const GridData = useGetData();
+  const ProcessingData = useGetData();
   useEffect(() => {
     fetchedData();
   }, [DepartmentId]);
@@ -56,6 +57,7 @@ export default function OutSourceProcessMaster() {
     fetchGrid();
   }, [LabId, DepartmentId, BookingId, Flag]);
   const fetchedData = async () => {
+    await ProcessingData?.fetchData(`/centreMaster/GetProcesiongLab`);
     await TestData?.fetchData(
       `/itemMaster?select=itemId,ItemName&$filter=(deptId eq ${DepartmentId})&$OrderBy=itemName`
     );
@@ -222,7 +224,9 @@ export default function OutSourceProcessMaster() {
               onChange={handleSearchChange3}
               placeholder="Search Booking Center"
               label="Booking Center"
-              options={ItemData?.data}
+              options={ProcessingData?.data?.data}
+              showValueField="companyName"
+              keyField="centreId"
               isRequired={false}
               showSearchBarDropDown={BookingDropDown}
               setShowSearchBarDropDown={setBookingDropDown}
