@@ -24,6 +24,7 @@ import {
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import toast from "react-hot-toast";
 import { FaCommentDots, FaRegCopy } from "react-icons/fa";
+import { printBarCodeData } from "../../../../service/service";
 
 export default function SampleCollection() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -120,7 +121,7 @@ export default function SampleCollection() {
           <div style={{ display: "flex", gap: "5px" }}>
             <SubmitButton
               callBack={() => {
-                alert("Printing");
+                handelPrintBarcodeData(params?.row?.barcodeNo)
               }}
               style={{ width: "70px" }}
               submit={false}
@@ -207,7 +208,7 @@ export default function SampleCollection() {
               type="checkbox"
               checked={
                 params?.row?.isSampleCollected === "S" ||
-                params?.row?.isSampleCollected === "Y"
+                  params?.row?.isSampleCollected === "Y"
                   ? false
                   : AllCollected.some((item) => item.id === params?.row.id)
               }
@@ -221,18 +222,18 @@ export default function SampleCollection() {
                     prev.some((item) => item.id === params?.row.id)
                       ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
                       : [
-                          ...prev,
-                          {
-                            ...params?.row,
-                            isSampleCollected: "S",
-                            empId: lsData?.user?.employeeId,
-                          },
-                        ] // Add if not
+                        ...prev,
+                        {
+                          ...params?.row,
+                          isSampleCollected: "S",
+                          empId: lsData?.user?.employeeId,
+                        },
+                      ] // Add if not
                 )
               }
             />
             {params?.row?.isSampleCollected === "S" ||
-            params?.row?.isSampleCollected === "Y" ? (
+              params?.row?.isSampleCollected === "Y" ? (
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: "10px" }}>Collected</span>
                 <span style={{ fontSize: "7px", fontWeight: "700" }}>
@@ -275,13 +276,13 @@ export default function SampleCollection() {
                     prev.some((item) => item.id === params?.row.id)
                       ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
                       : [
-                          ...prev,
-                          {
-                            ...params?.row,
-                            isSampleCollected: "Y",
-                            empId: lsData?.user?.employeeId,
-                          },
-                        ] // Add if not
+                        ...prev,
+                        {
+                          ...params?.row,
+                          isSampleCollected: "Y",
+                          empId: lsData?.user?.employeeId,
+                        },
+                      ] // Add if not
                 );
               }}
             />
@@ -507,6 +508,36 @@ export default function SampleCollection() {
       console.log(error);
     }
   };
+
+
+
+  //print the data for bar code
+  const handelPrintBarcodeData = async (barcodeNo) => {
+
+    try {
+      const response = await printBarCodeData(barcodeNo);
+      if (response.success) {
+        //console.log(response?.data);
+
+        // const barcodeUrl = `barcode:///?cmd=${response?.data}&source=barcode_source`;
+
+        // // Redirect the user to the barcode URL
+        // window.location = barcodeUrl;
+
+        const data = response?.data;
+        const encodedData = encodeURIComponent(data);
+        const barcodeUrl = `barcode://?cmd=${encodedData}`;
+        window.location.href = barcodeUrl;
+
+
+      } else {
+        toast.error(error?.message);
+      }
+    } catch (error) {
+      toast.error(error?.message);
+    }
+
+  }
 
   return (
     <div>

@@ -11,7 +11,8 @@ createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <BrowserRouter>
       <StrictMode>
-      <ToastContainer position="top-right" autoClose={3000} />
+        <ToastContainer theme="colored"
+          position="top-right" autoClose={3000} />
         <App />
       </StrictMode>
     </BrowserRouter>
