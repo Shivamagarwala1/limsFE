@@ -2612,7 +2612,7 @@ export const SampleCollectionCommentPopupModal = ({
 
 export const ImagePopup = ({ imageView, setImageView, Img }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
-  console.log(Img);
+  // console.log(Img);
   return (
     <>
       {imageView && (
@@ -2620,7 +2620,7 @@ export const ImagePopup = ({ imageView, setImageView, Img }) => {
           <div className="border-[1px] w-60 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
             <div className="flex flex-col items-center gap-5 my-2">
               <div>
-                <img src={Img} alt="path not found" />
+                <img src={Img} alt="" />
               </div>
 
               <div>

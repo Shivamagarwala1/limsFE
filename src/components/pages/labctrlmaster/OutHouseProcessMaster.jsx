@@ -222,8 +222,10 @@ export default function OutHouseProcessMaster() {
               value={BookingValue}
               onChange={handleSearchChange3}
               label="Booking Center"
-              options={ItemData?.data}
+              options={ProcessingData?.data?.data}
               isRequired={false}
+              showValueField="companyName"
+              keyField="centreId"
               showSearchBarDropDown={BookingDropDown}
               setShowSearchBarDropDown={setBookingDropDown}
               handleOptionClickForCentre={handleOptionClick3}
