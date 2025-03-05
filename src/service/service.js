@@ -997,6 +997,15 @@ export const handelDownloadInfoOrDocumentApi = async (workId) => {
     return response;
 };
 
+
+//convert hold to unhold or unhold to hold
+export const convsertHoldToUnHoldOrUnHoldToHold = async (testId, isHold, holdBy, holdReason) => {
+
+    const response = await privateAxios.post(`/tnx_Observations/ReportHoldUnHold?TestId=${testId}&isHold=${isHold}&holdBy=${holdBy}&holdReason=${holdReason}`)
+
+    return response?.data;
+}
+
 //=====================result tracking========================
 export const getAllResultTrackinDataApi = async (recordTrackinData) => {
 
@@ -1016,12 +1025,29 @@ export const getAllObserVationDataBasedOnTestName = async (testData) => {
 
 //get Doctors centerwise
 export const getAllDoctorsBasedOnCentreWise = async (empId, centreWiseId) => {
-    
+
     const response = await privateAxios.get(`/doctorApprovalMaster/Doctorcenterwise?empid=${empId}&centreid=${centreWiseId}`);
 
     return response?.data;
 }
 
+//save observation
+
+export const SaveTestObservationsDataApi = async (listOfObservationData) => {
+
+    const response = await privateAxios.post(`/tnx_BookingItem/SaveTestObservations`, listOfObservationData);
+
+    return response?.data;
+}
+
+
+//================Samplecollection============
+export const printBarCodeData = async (barcodeNo) => {
+
+    const response = await privateAxios.get(`/tnx_Booking/PrintBarcode?BarcodeNO=${barcodeNo}`);
+
+    return response.data;
+}
 //======================feed back=============
 export const getAllEmojiColorCodeApi = async () => {
 
