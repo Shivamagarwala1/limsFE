@@ -6,7 +6,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { FaSpinner } from 'react-icons/fa';
 import { IoMdAddCircleOutline, IoMdCloseCircleOutline } from 'react-icons/io';
 import { IoMdRemoveCircleOutline } from "react-icons/io";
-import { createNewObserVationDataApi, deleteHelpMapingApi, deleteReferancePopupDataApi, deleteSingleGridDataApi, getAllGridAllHelpMenuData, getAllHelpMenuDataApi, getAllItemObservationApi, getAllMachineDataForReferanceRangeApi, getAllReferancePopupDataApi, getAllTestMapingGridDataApi, getAllTestNameApi, getCenterDataForReferanceRangeApi, getSingleObserVationDataApi, saveGridListOfDataApi, saveHelperMenuDataApi, saveMapDataApi, saveReferanceRangePopupApi } from '../../../service/service';
+import { createNewObserVationDataApi, deleteHelpMapingApi, deleteReferancePopupDataApi, deleteSingleGridDataApi, getAllGridAllHelpMenuData, getAllHelpMenuDataApi, getAllItemObservationApi, getAllMachineDataForReferanceRangeApi, getAllReferancePopupDataApi, getAllReferancePopupDataForBothCaseApi, getAllTestMapingGridDataApi, getAllTestNameApi, getCenterDataForReferanceRangeApi, getSingleObserVationDataApi, saveGridListOfDataApi, saveHelperMenuDataApi, saveMapDataApi, saveReferanceRangePopupApi } from '../../../service/service';
 import { CgAdd } from "react-icons/cg";
 import toast from 'react-hot-toast';
 import { IoAlertCircleOutline } from 'react-icons/io5';
@@ -583,9 +583,8 @@ export default function TestMapping() {
         event.preventDefault();
         setIsButtonClick(5);
 
-        let pushData = [];
 
-        const updatedReferanceData = {
+        const baseData = {
             ...referanceRangePopupFormData,
             createdById: parseInt(user?.employeeId),
             createdDateTime: new Date().toISOString(),
@@ -601,14 +600,18 @@ export default function TestMapping() {
             maxAutoApprovalValue: parseInt(referanceRangePopupFormData?.maxAutoApprovalValue),
         }
 
-
-
-        pushData.push(updatedReferanceData);
-
+        //extract the data based on both M/F
+        const updatedReferanceData =
+            referanceRangePopupFormData?.gender === "Both (F/M)"
+                ? [
+                    { ...baseData, gender: 'Male', genderTextValue: "Male" }, // Copy for Male
+                    { ...baseData, gender: 'Female', genderTextValue: "Female" }, // Copy for Female
+                ]
+                : [{ ...baseData, genderTextValue: referanceRangePopupFormData?.gender }];
 
         try {
 
-            const response = await saveReferanceRangePopupApi(pushData);
+            const response = await saveReferanceRangePopupApi(updatedReferanceData);
 
             if (response?.success) {
                 toast.success(response?.message);
@@ -643,6 +646,8 @@ export default function TestMapping() {
 
         } catch (error) {
             toast.error(error?.message);
+            console.log(error);
+
         }
 
         setIsButtonClick(0);
@@ -653,19 +658,40 @@ export default function TestMapping() {
         const getData = async () => {
             try {
 
-                const response = await getAllReferancePopupDataApi(singleGridData?.observationID, referanceRangePopupFormData?.gender);
-                if (referanceRangePopupFormData?.gender === 'Both (F/M)') {
-                    // Create two separate arrays for M and F, and add the appropriate gender label
-                    const genderMResponse = response.map(item => ({ ...item, genderTextValue: 'M' }));
-                    const genderFResponse = response.map(item => ({ ...item, genderTextValue: 'F' }));
 
-                    // Combine the M and F responses
-                    const doubledResponse = [...genderMResponse, ...genderFResponse];
-                    setAllReferancePopupDataApi(doubledResponse)
+                // const genderData = referanceRangePopupFormData?.gender === 'Both (F/M)' ? '' : referanceRangePopupFormData?.gender;
+
+                //console.log(genderData);
+
+                let response = null;
+
+                if (referanceRangePopupFormData?.gender === 'Both (F/M)') {
+
+                    response = await getAllReferancePopupDataForBothCaseApi(singleGridData?.observationID)
+
                 } else {
-                    setAllReferancePopupDataApi(response);
+
+                    response = await getAllReferancePopupDataApi(singleGridData?.observationID, referanceRangePopupFormData?.gender);
+
                 }
-                // setAllReferancePopupDataApi(response);
+
+                // const response = await getAllReferancePopupDataApi(singleGridData?.observationID, referanceRangePopupFormData?.gender);
+
+                // if (referanceRangePopupFormData?.gender === 'Both (F/M)') {
+                //     // Create two separate arrays for M and F, and add the appropriate gender label
+                //     const genderMResponse = response.map(item => ({ ...item, genderTextValue: 'M' }));
+                //     const genderFResponse = response.map(item => ({ ...item, genderTextValue: 'F' }));
+
+                //     // Combine the M and F responses
+                //     const doubledResponse = [...genderMResponse, ...genderFResponse];
+                //     setAllReferancePopupDataApi(doubledResponse)
+                // } else {
+                //     setAllReferancePopupDataApi(response);
+                // }
+
+                //console.log(response);
+
+                setAllReferancePopupDataApi(response);
 
             } catch (error) {
                 toast.error(error?.message);
@@ -746,6 +772,7 @@ export default function TestMapping() {
                 return item; // Return other items unchanged
             });
         }
+
 
 
         try {

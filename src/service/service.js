@@ -506,6 +506,12 @@ export const saveReferanceRangePopupApi = async (referanceData) => {
 }
 
 //get all data
+export const getAllReferancePopupDataForBothCaseApi = async (observationId) => {
+
+    const response = await privateAxios.get(`/observationReferenceRanges?$filter=(observationId eq ${observationId})`);
+    return response?.data;
+}
+
 export const getAllReferancePopupDataApi = async (observationId, gender) => {
 
     const response = await privateAxios.get(`/observationReferenceRanges?$filter=(observationId eq ${observationId} and gender eq '${gender}')`);
@@ -1006,6 +1012,14 @@ export const convsertHoldToUnHoldOrUnHoldToHold = async (testId, isHold, holdBy,
     return response?.data;
 }
 
+//convert unapprove to approve
+export const convertUnApproveToApprove = async (testId, userid) => {
+
+    const response = await privateAxios.post(`/tnx_Observations/ReportNotApprove?TestId=${testId}&userid=${userid}`);
+
+    return response?.data;
+}
+
 //=====================result tracking========================
 export const getAllResultTrackinDataApi = async (recordTrackinData) => {
 
@@ -1032,7 +1046,6 @@ export const getAllDoctorsBasedOnCentreWise = async (empId, centreWiseId) => {
 }
 
 //save observation
-
 export const SaveTestObservationsDataApi = async (listOfObservationData) => {
 
     const response = await privateAxios.post(`/tnx_BookingItem/SaveTestObservations`, listOfObservationData);
@@ -1040,6 +1053,14 @@ export const SaveTestObservationsDataApi = async (listOfObservationData) => {
     return response?.data;
 }
 
+//get template
+
+export const getAllTemplateDataForResultTrackingApi = async (centreId, itemId) => {
+
+    const response = await privateAxios.post(`/itemTemplate/GetTemplateData?CentreID=${centreId}&testid=${itemId}`);
+
+    return response?.data;
+}
 
 //================Samplecollection============
 export const printBarCodeData = async (barcodeNo) => {
