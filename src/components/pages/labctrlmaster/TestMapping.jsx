@@ -1325,7 +1325,6 @@ export default function TestMapping() {
                         </tr>
                     </thead>
 
-
                     <tbody>
 
                         {
@@ -1452,13 +1451,26 @@ export default function TestMapping() {
                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
 
 
-                                                    <input
+                                                    {/* <input
                                                         type="checkbox"
                                                         name="dlcCheck"
                                                         id="dlcCheck"
                                                         checked={data?.dlcCheck === parseInt(1)} // Checked if isHeader is not 0
                                                         className='flex'
                                                         onChange={(e) => handleCheckboxChangeForRowTable(e, data?.id, "dlcCheck")}
+                                                    /> */}
+                                                    <input
+                                                        type="checkbox"
+                                                        name="dlcCheck"
+                                                        id="dlcCheck"
+                                                        checked={data?.dlcCheck === 1} // No need to use parseInt(1), since it's already a number
+                                                        className="flex cursor-pointer disabled:opacity-50"
+                                                        disabled={data?.isHeader === 1} // Disables the checkbox when isHeader is 1
+                                                        onChange={(e) => {
+                                                            if (data?.isHeader !== 1) {
+                                                                handleCheckboxChangeForRowTable(e, data?.id, "dlcCheck");
+                                                            }
+                                                        }}
                                                     />
 
                                                 </td>
@@ -1468,7 +1480,10 @@ export default function TestMapping() {
                                         {
                                             testMappingData?.itemType !== '3' && (
                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                    <CgAdd className='text-lg cursor-pointer' />
+                                                    <CgAdd
+                                                        className={`text-lg cursor-pointer ${data?.isHeader === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                    // onClick={data?.isHeader === 1 ? undefined : handleClick}
+                                                    />
                                                 </td>
 
                                             )
@@ -1478,10 +1493,12 @@ export default function TestMapping() {
                                             testMappingData?.itemType !== '3' && (
                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
 
-                                                    <CgAdd className='text-lg cursor-pointer'
+                                                    <CgAdd className={`text-lg cursor-pointer ${data?.isHeader === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                         onClick={() => {
-                                                            setIsOpenReferenceRangePopup(true); setSingleGridData(data);
-
+                                                            if (data?.isHeader !== 1) {
+                                                                setIsOpenReferenceRangePopup(true);
+                                                                setSingleGridData(data);
+                                                            }
                                                         }}
                                                     />
 
@@ -1493,7 +1510,14 @@ export default function TestMapping() {
                                         {
                                             testMappingData?.itemType !== '3' && (
                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                    <CgAdd className='text-lg cursor-pointer' onClick={() => { setMenuHelperPopup(true), setSingleGridData(data) }} />
+                                                    <CgAdd className={`text-lg cursor-pointer ${data?.isHeader === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        onClick={() => {
+                                                            if (data?.isHeader !== 1) {
+
+                                                                setMenuHelperPopup(true), setSingleGridData(data)
+                                                            }
+                                                        }
+                                                        } />
                                                 </td>
 
                                             )

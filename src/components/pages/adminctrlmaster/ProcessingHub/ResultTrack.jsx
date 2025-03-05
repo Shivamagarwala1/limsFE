@@ -14,7 +14,7 @@ import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdo
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
 import { FaCommentDots, FaComments, FaPlus, FaPrint, FaSpinner } from "react-icons/fa";
-import { LuFlagTriangleRight } from "react-icons/lu";
+import { FaFlag } from "react-icons/fa";
 
 import {
   InfoPopup,
@@ -33,7 +33,7 @@ import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
 import { toast } from "react-toastify";
-import { getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi } from "../../../../service/service";
+import { convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, SaveTestObservationsDataApi } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import { resultTrackForPatientInformation, resultTrackingForObservationHeader, resultTrackingForReRun, ResultTrackingHeader } from "../../../listData/listData";
@@ -46,6 +46,7 @@ import CustomDropdown from "../../../global/CustomDropdown";
 import CustomPopup from "../../../global/CustomPopup";
 import { getDefaultCentreId } from "../../../../service/localstroageService";
 import CustomFormButton from "../../../global/CustomFormButton";
+import CustomSmallPopup from "../../../global/CustomSmallPopup";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -77,7 +78,16 @@ export default function ResultTrack() {
   const [allDoctorData, setAllDoctorData] = useState([]);
   const [isButtonClick, setIsButtonClick] = useState(0);
   const [observationValue, setObservationValue] = useState({});
+  const [observationCheckValue, setObservationCheckValue] = useState({});
   const [showPopup, setShowPopup] = useState(0);
+  const [testIsHold, setTestIsHold] = useState({
+    testIdHold: 0,
+    hold: 0,
+    testIdApprove: 0,
+    isApproved: 0
+  });
+  const [reasionForHoldOrUnHoldAndApprovedOrNotApproved, setReasionForHoldOrUnHoldAndApprovedOrNotApproved] = useState('');
+  const [trackingHoldOrApproved, setTrackingHoldOrApproved] = useState('');
   //!================Anil code end=======================
 
 
@@ -576,6 +586,8 @@ export default function ResultTrack() {
   //   },
   // ];
 
+
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
@@ -589,9 +601,6 @@ export default function ResultTrack() {
     };
     //setLocal("payload", payload);
 
-    console.log(payload);
-
-
     //console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
     // PostData?.postRequest("/tnx_BookingItem/GetResultEntryAllData", payload);
     // console.log(PostData?.data);
@@ -599,8 +608,6 @@ export default function ResultTrack() {
     try {
 
       const response = await getAllResultTrackinDataApi(payload);
-
-      console.log(response);
 
       if (response?.success) {
 
@@ -679,8 +686,10 @@ export default function ResultTrack() {
         //   // More data entries can be added here
         // ];
 
+        setIsButtonClick(1);
+
         // Initialize an empty object to group by workOrderId and accumulate investigation names
-        
+
         const result = {};
 
         // Loop through the data and group by workOrderId
@@ -710,9 +719,6 @@ export default function ResultTrack() {
         // Convert the result object into an array if needed
         const groupedData = Object.values(result);
 
-        console.log(groupedData);
-
-
 
 
         setAllResultTrackingData(groupedData);
@@ -723,6 +729,8 @@ export default function ResultTrack() {
     } catch (error) {
       toast.error(error?.message);
     }
+
+    setIsButtonClick(0);
   };
 
 
@@ -733,14 +741,9 @@ export default function ResultTrack() {
     // Find the testid(s) for the provided workOrderId
     const matchedWorkOrder = allResultTrackingData.find(order => order.workOrderId === workOrderId);
 
-    console.log(matchedWorkOrder);
-
-
     const testid = matchedWorkOrder
       ? matchedWorkOrder.investigationName.map(item => item.testid).join(",")
       : "";
-
-    console.log(testid);
 
     // Construct the updatedData object with the testid and other fields
     const updatedData = (({ gender, fromAge, toAge, centreId }) => ({
@@ -753,10 +756,61 @@ export default function ResultTrack() {
 
     try {
       const response = await getAllObserVationDataBasedOnTestName(updatedData);
-      console.log(response);
 
       if (response?.success) {
-        setAllObservationData(response?.data)
+        setAllObservationData(response?.data);
+        console.log(response?.data);
+
+        //check which button is hold or unhold
+        const dataForHoldOrUnHold = response?.data.find((item) => item?.hold === 1);
+        if (dataForHoldOrUnHold === undefined) {
+          console.log(response?.data[0]?.testId + "======" + response?.data[0]?.hold);
+          setTestIsHold((preventData) => ({
+            ...preventData,
+            testIdHold: response?.data[0]?.testId,
+            hold: response?.data[0]?.hold
+          }))
+        } else {
+          console.log(dataForHoldOrUnHold);
+          setTestIsHold((preventData) => ({
+            ...preventData,
+            testIdHold: dataForHoldOrUnHold?.testId,
+            hold: dataForHoldOrUnHold?.hold
+          }))
+        }
+
+
+        const dataForApprovedOrUnApproved = response?.data.find((item) => item?.isapproved === 1);
+        if (dataForApprovedOrUnApproved === undefined) {
+          console.log(response?.data[0]?.testId + "======" + response?.data[0]?.isapproved);
+          setTestIsHold((preventData) => ({
+            ...preventData,
+            testIdApprove: response?.data[0]?.testId,
+            isApproved: response?.data[0]?.isapproved
+          }))
+        } else {
+          console.log(dataForApprovedOrUnApproved);
+          setTestIsHold((preventData) => ({
+            ...preventData,
+            testIdApprove: dataForApprovedOrUnApproved?.testId,
+            isApproved: dataForApprovedOrUnApproved?.isapproved
+          }))
+        }
+
+
+        // Extract unique testIds
+        const uniqueTestIds = response?.data?.reduce((acc, current) => {
+          if (!acc[current.testId]) {
+            acc[current.testId] = true;  // Add testId to the object with value true
+          }
+          return acc;
+        }, {});
+
+
+
+        // Update the state with unique testIds
+        setObservationCheckValue(uniqueTestIds);
+
       } else {
         toast.error(response?.message)
       }
@@ -769,12 +823,31 @@ export default function ResultTrack() {
   }
 
   //handel check 
-  const handleInputChangeForObserVtionValue = (index, value) => {
-    setObservationValue(prevState => ({
-      ...prevState,
-      [index]: value
-    }));
-  }
+  // const handleInputChangeForObserVtionValue = (testId, value) => {
+  //   // setObservationValue(prevState => ({
+  //   //   ...prevState,
+  //   //   [testId]: value
+  //   // }));
+
+  // }
+  const handleInputChangeForObserVtionValue = (testId, index, value) => {
+
+    const allowedPattern = /^[a-z0-9. -]*$/i; // Allows a-z, 0-9, dot (.), space (' '), and single quote (')
+
+
+    if (allowedPattern.test(value)) {
+      setObservationValue(prev => ({
+        ...prev,
+        [testId]: {
+          ...prev[testId],
+          [index]: value
+        }
+      }));
+    } else {
+      toast.error("Invalid character! Only a-z, 0-9, spaces and dots (.), are allowed.");
+    }
+  };
+
 
   const handelOnChangeResultTrackData = (e) => {
 
@@ -794,7 +867,6 @@ export default function ResultTrack() {
       } else {
         toast.error(response?.message);
       }
-      console.log(response);
 
     }
 
@@ -804,63 +876,156 @@ export default function ResultTrack() {
 
   }, [allObservationData])
 
+  //validation for 
+  const getMissingFields = () => {
+    return Object.keys(observationCheckValue) // Get all testIds
+      .filter(testId => observationCheckValue[testId]) // Only validate checked testIds
+      .filter(testId => {
+        const textFields = observationValue[testId] || {}; // Get text fields for this testId
+
+        if (Object.keys(textFields).length === 0) {
+          return true; // Mark as missing if no fields exist
+        }
+
+        return Object.values(textFields).some(value => value.trim() === ""); // Check if any field is empty
+      });
+  };
+
+
+
+
+
+
+
 
   //save observation data
   const onSubmitObservationData = async (btnName, loadingButtonNo) => {
 
-    console.log(observationValue);
 
     setIsButtonClick(loadingButtonNo);
 
-    const listOfObservationData = allObservationData?.map((item, index) => {
-      const flag = observationValue[index] < item?.minVal
-        ? "N"
-        : observationValue[index] > item?.maxVal
-          ? "L"
-          : "H";
 
-      // Returning the object correctly
-      return {
-        transactionId: item?.transactionId,
-        patientId: item?.patientId,
-        barcodeNo: '',
-        testId: item?.testId,
-        labObservationId: item?.labObservationId,
-        observationName: item?.observationName,
-        value: observationValue[index],
-        flag: flag, // Using the calculated flag
-        minVal: item?.minVal,
-        maxVal: item?.maxVal,
-        minCritical: 0,
-        maxCritical: 0,
-        isCritical: 0,
-        readingFormat: "",
-        unit: item?.unit,
-        displayReading: item?.displayReading,
-        machineReading: item?.machineReading,
-        machineID: item?.machineId,
-        printSeperate: item?.printSeperate,
-        isBold: (flag === "L" || flag === "H") ? 1 : 0,
-        machineName: item?.machineName,
-        showInReport: item?.showInReport,
-        method: item?.method,
-        isResultDone: btnName === 'Save' || btnName === 'Approve' && 1,
-        isApproved: btnName === 'Approve' ? 1 : 0,
-        createdBy: user?.name,
-        createdById: parseInt(user?.employeeId),
-        createdDate: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
-        appcovaldoctorId: resultTrackData?.doctorId
-      };
-    });
+    const missingFields = getMissingFields();
+
+    if (missingFields.length > 0) {
+      toast.info(`Please fill in all mandatory fields`);
+      setIsButtonClick(0);
+      return;
+    }
 
 
-    console.log(listOfObservationData);
+
+    const listOfObservationData = allObservationData
+      ?.filter(item => observationCheckValue[item?.testId]) // Only include checked items
+      .filter(item => item?.observationName !== '')
+      .map((item, index) => {
+
+        const flag = observationValue[item?.testId]?.[index + 1] !== undefined && observationValue[item?.testId]?.[index + 1] !== null
+          ? Number(observationValue[item?.testId]?.[index + 1]) < Number(item?.minVal)
+            ? "L"  // If value is less than minVal, set flag to "L"
+            : Number(observationValue[item?.testId]?.[index + 1]) > Number(item?.maxVal)
+              ? "H"  // If value is greater than maxVal, set flag to "H"
+              : "N"  // Otherwise, set flag to "N"
+          : "";  // If no value exists at the specified index, set flag to an empty string
+
+        // Returning the object correctly
+        return {
+          transactionId: item?.transactionId,
+          patientId: item?.patientId,
+          barcodeNo: '',
+          testId: item?.testId,
+          labObservationId: item?.labObservationId,
+          observationName: item?.observationName,
+          value: observationValue[item?.testId][index + 1],
+          flag: flag, // Using the calculated flag
+          minVal: item?.minVal,
+          maxVal: item?.maxVal,
+          minCritical: 0,
+          maxCritical: 0,
+          isCritical: 0,
+          readingFormat: "",
+          unit: item?.unit,
+          displayReading: item?.displayReading,
+          machineReading: item?.machineReading,
+          machineID: item?.machineId || 1,
+          printSeperate: item?.printSeperate,
+          isBold: (flag === "L" || flag === "H") ? 1 : 0,
+          machineName: item?.machineName,
+          showInReport: item?.showInReport,
+          method: item?.method,
+          isResultDone: btnName === 'Save' || btnName === 'Approve' ? 1 : 0,
+          isApproved: btnName === 'Approve' ? 1 : 0,
+          createdBy: user?.name,
+          createdById: parseInt(user?.employeeId),
+          createdDate: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+          appcovaldoctorId: btnName === 'Approve' ? resultTrackData?.doctorId : 0
+        };
+      });
+
+
+    if (listOfObservationData.length !== 0) {
+
+      try {
+        const response = await SaveTestObservationsDataApi(listOfObservationData);
+
+        if (response?.success) {
+          toast.success(response?.message);
+        } else {
+          toast.error(response?.message)
+        }
+
+      } catch (error) {
+        toast.error(error?.message)
+      }
+
+    } else {
+      toast.warning('Empty Data')
+    }
+
+
 
     setIsButtonClick(0);
   }
 
 
+  //update approve, hold
+  const onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved = async () => {
 
+    setIsButtonClick(3)
+
+    console.log(testIsHold);
+    //console.log(reasionForHoldOrUnHoldAndApprovedOrNotApproved);
+    if (trackingHoldOrApproved === 'Hold') {
+
+      const isHold = String(testIsHold?.hold) === '1' ? 0 : 1;
+
+      try {
+
+        const response = await convsertHoldToUnHoldOrUnHoldToHold(testIsHold?.testIdHold, isHold, parseInt(user?.employeeId), reasionForHoldOrUnHoldAndApprovedOrNotApproved);
+
+        console.log(response);
+        if (response?.success) {
+          toast.success(response?.message);
+          setShowPopup(0);
+          setTestIsHold((preventData) => ({
+            ...preventData,
+            hold: isHold
+          }));
+          setTrackingHoldOrApproved('');
+          setReasionForHoldOrUnHoldAndApprovedOrNotApproved('');
+        } else {
+          toast.success(response?.message);
+        }
+
+      } catch (error) {
+        toast.error(error?.message)
+      }
+    } else {
+
+    }
+
+    setIsButtonClick(0);
+  }
 
   //!=========================end===============================
   // const updatedArray = addObjectId(PostData?.data);
@@ -1182,7 +1347,13 @@ export default function ResultTrack() {
                 setSelectedValues={setSelectedDepartment}
               />
 
-              <SubmitButton text={"Search"} />
+              <div className="flex gap-[0.25rem]">
+                <div className="relative flex-1">
+                  <SubmitButton text={"Search"} />
+                </div>
+                <div className="relative flex-1">
+                </div>
+              </div>
             </div>
 
             {/* <LegendButtons statuses={statuses} /> */}
@@ -1203,7 +1374,7 @@ export default function ResultTrack() {
 
         </div>
 
-        <div>
+        {/* <div>
           {UserObj && (
             <>
               <CustomHandsontable
@@ -1220,7 +1391,7 @@ export default function ResultTrack() {
               <div style={{ maxHeight: "400px", overflowY: "auto" }}>
                 <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-4 mx-1 lg:mx-2">
-                    {/* Specimen Field */}
+                    {/* Specimen Field *
                     <InputGenerator
                       inputFields={[
                         { label: "Signature", type: "select", name: "Signature" },
@@ -1297,9 +1468,16 @@ export default function ResultTrack() {
               </div>
             </>
           )}
-        </div>
+        </div> */}
 
         <div>
+
+          {/* {
+            isButtonClick === 1 && (
+              <CustomLoadingPage />
+            )
+          } */}
+
           <GridDataDetails
             gridDataDetails={'Patient Record Details'}
           />
@@ -1448,122 +1626,151 @@ export default function ResultTrack() {
                 <CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
                   <tbody>
                     {allObservationData?.map((data, index) => (
-
-                      <tr
-                        className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                          ? ''
-                          : index % 2 === 0
-                            ? 'bg-gray-100'
-                            : 'bg-white'
-                          }`}
-                        key={index}
-                        onMouseEnter={() => setIsHoveredTable(index)}
-                        onMouseLeave={() => setIsHoveredTable(null)}
-                        style={{
-                          background:
-                            isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                          // Hides scrollbar for IE/Edge
-                        }}
-                      >
-
-                        {
-                          data?.observationName === "" ?
-                            <>
-                              <td colSpan="12" className="border-b px-4 h-6 text-xxs font-bold text-gridTextColor w-full">
-                                <div className="flex items-center gap-2 w-full">
-                                  <div>{data?.investigationName}</div>
-                                  <div className="flex justify-center items-center">
-                                    <input type="checkbox" name="" id="" />
-                                  </div>
-                                  <div className="w-20">
-                                    <CustomeNormalButton activeTheme={activeTheme} text={'Reject'}
-                                      onClick={()=>setShowPopup(4)}
-                                    />
-                                  </div>
-                                  <div className="w-20">
-                                    <CustomeNormalButton activeTheme={activeTheme} text={'Re-Run'} onClick={()=>setShowPopup(5)} />
-                                  </div>
-                                  <div className="w-20">
-                                    <CustomeNormalButton activeTheme={activeTheme} text={'Comment'} />
-                                  </div>
+                      data?.observationName === "" ? (
+                        <React.Fragment key={index}>
+                          <tr>
+                            <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
+                              <div className="flex items-center gap-2 w-full">
+                                <div>{data?.investigationName}</div>
+                                <div className="flex justify-center items-center">
+                                  <input
+                                    type="checkbox"
+                                    checked={observationCheckValue[data?.testId] || false}
+                                    onChange={() =>
+                                      setObservationCheckValue(prev => ({
+                                        ...prev,
+                                        [data?.testId]: !prev[data?.testId] // Toggle checkbox state
+                                      }))
+                                    }
+                                  />
                                 </div>
-                              </td>
-
-
-                            </>
-
-                            :
-                            <>
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
-                                {data?.observationName}
-                              </td>
-
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                <form autoComplete="off">
-                                  <CustomTextBox
-                                    type="charNumber"
-                                    name="observationValue"
-                                    maxLength={12}
-                                    value={observationValue[index] || ""}
-                                    onChange={(e) => handleInputChangeForObserVtionValue(index, e.target.value)}
-                                    placeholder=" "
-                                    label="Barcode"
-                                    showLabel="false"
+                                <div className="w-20">
+                                  <CustomeNormalButton activeTheme={activeTheme} text={'Reject'}
+                                    onClick={() => setShowPopup(4)}
                                   />
-                                </form>
-                              </td>
+                                </div>
+                                <div className="w-20">
+                                  <CustomeNormalButton activeTheme={activeTheme} text={'Re-Run'} onClick={() => setShowPopup(5)} />
+                                </div>
+                                <div className="w-20">
+                                  <CustomeNormalButton activeTheme={activeTheme} text={'Comment'} />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold ">
-                                {observationValue[index] && (
-                                  <LuFlagTriangleRight
-                                    className={`text-xl ${observationValue[index] < data?.minVal
+                          <tr>
+                            <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
+                            </td>
+                          </tr>
+                        </React.Fragment>
+                      )
+                        :
+
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredTable(index)}
+                          onMouseLeave={() => setIsHoveredTable(null)}
+                          style={{
+                            background:
+                              isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
+                            {data?.observationName}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                            <form autoComplete="off">
+                              <input
+                                type="text"
+                                name="charNumber"
+                                id="charNumber"
+                                value={observationValue[data?.testId]?.[index] || ""} // Get value for specific testId & index
+                                maxLength={15}
+                                onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
+                                className="w-[5.5rem] h-[1.6rem] outline-none rounded-sm border-[1px] pl-1"
+                              />
+                            </form>
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold">
+                            {observationValue[data?.testId]?.[index] && observationValue[data?.testId]?.[index] !== "" && (
+                              <div className="flex items-center justify-center gap-2">
+                                <FaFlag
+                                  className={`text-xl ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                    ? "text-yellow-500"
+                                    : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
                                       ? "text-red-500"
-                                      : observationValue[index] > data?.maxVal
-                                        ? "text-red-500"
-                                        : "text-green-500"
-                                      }`}
-                                  />
-                                )}
+                                      : "text-green-500"
+                                    }`}
+                                />
+                                <div className={`text-xl font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                  ? "text-yellow-500"
+                                  : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
+                                    ? "text-red-500"
+                                    : "text-green-500"
+                                  }`}>
+                                  {Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                    ? "L"
+                                    : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
+                                      ? "H"
+                                      : "N"}
+                                </div>
+                              </div>
+                            )}
+                          </td>
 
-                              </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.machineReading}>
+                            {/* {data?.machineReading} */}
+                            {data?.machineReading?.length > 7 ? `${data.machineReading.slice(0, 19)}...` : data?.machineReading}
+
+                          </td>
 
 
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.machineReading}
-                              </td>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            {data?.machineName}
+                          </td>
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.machineName}
-                              </td>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            {data?.minVal}
+                          </td>
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.minVal}
-                              </td>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            {data?.maxVal}
+                          </td>
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.maxVal}
-                              </td>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            {data?.unit}
+                          </td>
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.unit}
-                              </td>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.method}>
+                            {data?.method?.length > 19 ? `${data.method.slice(0, 19)}...` : data?.method}
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.method}
-                              </td>
+                          </td>
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.displayReading}
-                              </td>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.displayReading}>
+                            {/* {data?.displayReading} */}
+                            {data?.displayReading?.length > 19 ? `${data.displayReading.slice(0, 19)}...` : data?.displayReading}
 
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {data?.oldreading}
-                              </td>
-                            </>
-                        }
+                          </td>
 
-                      </tr>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            {data?.oldreading}
+                          </td>
+
+
+
+                        </tr >
                     ))}
                   </tbody>
                 </CustomDynamicTable >
@@ -1604,28 +1811,28 @@ export default function ResultTrack() {
                       />
                     </div>
                     <div className="relative flex-1">
-                      <CustomFormButton
+                      <CustomeNormalButton
                         activeTheme={activeTheme}
-                        text="Hold"
-                        icon={FaSpinner}
-                        isButtonClick={isButtonClick}
-                        loadingButtonNumber={2} // Unique number for the first button
+                        text={String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold'}
+                        onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Hold') }}
 
-                        disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
+                      // // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
                       />
                     </div>
                   </div>
 
                   <div className='flex gap-[0.25rem]'>
                     <div className="relative flex-1 ">
-                      <CustomFormButton
+                      <CustomeNormalButton
                         activeTheme={activeTheme}
-                        text="Approve"
-                        icon={FaSpinner}
-                        isButtonClick={isButtonClick}
-                        loadingButtonNumber={3} // Unique number for the first button
-                        onClick={() => onSubmitObservationData('Approve', 3)}
-                        disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+                        text={String(testIsHold?.isApproved) === '1' ? 'Not Approved' : 'Approved'}
+
+                        // icon={FaSpinner}
+                        // isButtonClick={isButtonClick}
+                        // loadingButtonNumber={2} // Unique number for the first button
+                        // onClick={() => onSubmitObservationData('Approve', 3)}
+                        // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+                        onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Approve') }}
                       />
                     </div>
                     <div className="relative flex-1">
@@ -1753,6 +1960,59 @@ export default function ResultTrack() {
                 </tbody>
               </CustomDynamicTable >
             </CustomPopup>
+          )
+        }
+
+        {
+          showPopup === 6 && (
+            <CustomSmallPopup
+              headerData={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold' : testIsHold?.isApproved === '1' ? 'Not Approve' : 'Approve'}
+              activeTheme={activeTheme}
+              setShowPopup={setShowPopup} // Pass the function, not the value
+            >
+              <GridDataDetails
+                gridDataDetails={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold Reason' : 'Hold Reason' : testIsHold?.isApproved === '1' ? 'Not Approve Reason' : 'Approve Reason'}
+              />
+              <div className="flex justify-between items-center gap-2 mx-2">
+
+                {/* <form autoComplete="off">
+                  <div className="realative flex-1 w-full">
+                    <CustomTextBox
+                      type="text"
+                      name="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                      value={reasionForHoldOrUnHoldAndApprovedOrNotApproved || ''}
+                      onChange={(e) => setReasionForHoldOrUnHoldAndApprovedOrNotApproved(e.target.value)}
+                      label="Reason"
+                      isDisabled={false}
+                      showLabel={true}
+                    />
+                  </div> */}
+
+                <input
+                  type="text"
+                  id="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                  name="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                  value={reasionForHoldOrUnHoldAndApprovedOrNotApproved}
+                  onChange={(e) => setReasionForHoldOrUnHoldAndApprovedOrNotApproved(e.target.value)}
+                  autoComplete="off"
+                  placeholder=" "
+                  className={`inputPeerField peer mt-2 border-borderColor focus:outline-none`}
+                />
+
+                {/* </form> */}
+
+                <div className="w-20 md:w-20 mt-2">
+                  <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Update'}
+                    isButtonClick={isButtonClick}
+                    loadingButtonNumber={3} // Unique number for the first button
+                    onClick={() => onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved()}
+                  />
+                </div>
+
+              </div>
+
+
+            </CustomSmallPopup>
           )
         }
       </>
