@@ -1511,7 +1511,7 @@ export default function PatientRegistration() {
                         "isInvoiceCreated": 0,
                         "invoiceNumber": 0,
                         "isUrgent": 0,
-                        "isSampleCollected": val === 1 ? checkedItems[data?.itemId] ? 'S' : 'M' : checkedItems[data?.itemId] ? 'Y' : 'M',
+                        "isSampleCollected": val === 1 ? checkedItems[data?.itemId] ? 'S' : 'N' : checkedItems[data?.itemId] ? 'Y' : 'N',
                         "samplecollectionremarks": '',
                         "departmentReceiveRemarks": '',
                         "departmentReceiveDate": "2025-03-03T04:27:32.292Z",
@@ -2295,6 +2295,7 @@ export default function PatientRegistration() {
                 toast.error(error?.message);
             }
         }
+
     }
 
 
@@ -2656,7 +2657,6 @@ export default function PatientRegistration() {
     const onSubmitForSaveEditTestData = async () => {
         setIsButtonClick(4);
 
-
         // Generate the transformed list based on testData
         const transformedList = editTestData?.testData.map((data) => ({
 
@@ -2722,7 +2722,7 @@ export default function PatientRegistration() {
             isInvoiceCreated: 0,
             invoiceNumber: 0,
             isUrgent: data?.isUrgent,
-            isSampleCollected: "N",
+            isSampleCollected: data?.id !== 0 ? data?.isSampleCollected : "N",
             samplecollectionremarks: "",
             departmentReceiveRemarks: "",
             departmentReceiveDate: data?.departmentReceiveDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
@@ -2759,6 +2759,7 @@ export default function PatientRegistration() {
             holdReason: ""
 
         }))
+
 
         try {
             const response = await updateEditTestApi(transformedList);
