@@ -35,6 +35,8 @@ import CustomeSearchInputFields from "../../../global/CustomeSearchInputFields";
 import { patientRecordHeader, patientRegistrationPaymentMode } from "../../../listData/listData";
 import CustomFormButton from "../../../global/CustomFormButton";
 import { IoMdCloseCircleOutline } from "react-icons/io";
+import { TbCoinRupeeFilled } from "react-icons/tb";
+import CustomSmallPopup from "../../../global/CustomSmallPopup";
 
 export default function PatientRecord() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -769,6 +771,19 @@ export default function PatientRecord() {
 
                 </td>
 
+                {/*   */}
+                <td className="border-b px-4 h-5 text-sm font-semibold">
+                  <div className="flex justify-center items-center">
+                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                      onClick={() => setShowPopup(2)}
+                    >
+                      <TbCoinRupeeFilled />
+                    </div>
+                  </div>
+
+                </td>
+
                 <td className="border-b px-4 h-5 text-sm font-semibold">
                   <div className="flex justify-center items-center">
 
@@ -1039,16 +1054,21 @@ export default function PatientRecord() {
         )
       }
 
-      
+      {
+        showPopup === 2 && (
+          <CustomSmallPopup
+            headerData={'Online Payment Mode'}
+            activeTheme={activeTheme}
+            setShowPopup={setShowPopup} // Pass the function, not the value
+          >
+            <div className="flex justify-center font-semibold ">
+              Comming soon :)
+            </div>
+
+          </CustomSmallPopup>
+        )
+      }
 
     </>
-
-
-
-
   );
-
-
-
-
 }
