@@ -32,11 +32,16 @@ const MrpInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-        type="number"
+      style={{height:"1rem"}}
+        type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={mrp}
         name="mrp"
-        onChange={(e) => setMrp(e.target.value)}
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+          setMrp(newValue);
+        }}
+        
       />
     </div>
   );
@@ -62,11 +67,16 @@ const RateInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-        type="number"
+      style={{height:"1rem"}}
+        type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={rate}
         name="rate"
-        onChange={(e) => setRate(e.target.value)}
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+          setRate(newValue);
+        }}
+        
       />
     </div>
   );
@@ -155,6 +165,8 @@ export default function TestWiseRateList() {
     { field: "itemCode", headerName: "Item Code", flex: 1 },
     { field: "itemid", headerName: "Item Id", flex: 1 },
     { field: "itemname", headerName: "Item Name", flex: 1 },
+    { field: "rateTypeId", headerName: "Rate Type Id", flex: 1 },
+    { field: "ratetype", headerName: "Rate Type", flex: 1 },
     {
       field: "mrp",
       headerName: "MRP",
@@ -183,8 +195,6 @@ export default function TestWiseRateList() {
         );
       },
     },
-    { field: "rateTypeId", headerName: "Rate Type Id", flex: 1 },
-    { field: "ratetype", headerName: "Rate Type", flex: 1 },
     {
       field: `select`,
       headerName: `Select`,

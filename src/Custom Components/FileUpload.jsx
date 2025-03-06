@@ -1,7 +1,14 @@
 import React, { useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-export default function FileUpload({ FileData, text="Uploaded Successfully", setFileData,accept = "*/*", inputFields }) {
+export default function FileUpload({
+  FileData,
+  placeholder = "Upload",
+  text = "Uploaded Successfully",
+  setFileData,
+  accept = "*/*",
+  inputFields,
+}) {
   const imgRef = useRef(null);
 
   // Function to handle file selection
@@ -13,7 +20,7 @@ export default function FileUpload({ FileData, text="Uploaded Successfully", set
         toast.info(`File size exceeds ${inputFields?.Size}MB limit!`);
         return;
       }
-      setFileData({ ...FileData, fileName: file.name,fileData: file, });
+      setFileData({ ...FileData, fileName: file.name, fileData: file });
     }
   };
 
@@ -26,11 +33,11 @@ export default function FileUpload({ FileData, text="Uploaded Successfully", set
         onClick={() => imgRef.current.click()} // Trigger file input when clicked
       >
         {FileData.fileName === "" ? (
-          <div className="pt-2 z-40 font-semibold text-center">Upload</div>
-        ) : (
-          <div className="pt-2 z-40 text-center text-green-600">
-            {text}
+          <div className="pt-2 z-40 font-semibold text-center">
+            {placeholder}
           </div>
+        ) : (
+          <div className="pt-2 z-40 text-center text-green-600">{text}</div>
         )}
       </div>
       {/* accept=".xls, .xlsx" */}

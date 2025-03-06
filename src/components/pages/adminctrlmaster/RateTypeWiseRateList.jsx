@@ -1,9 +1,7 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import React, { useEffect, useState } from "react";
 import FormHeader from "../../../components/global/FormHeader";
 import { useSelector } from "react-redux";
-import { testWiseRateListHeader } from "../../listData/listData";
-import useRippleEffect from "../../customehook/useRippleEffect";
 import { TwoSubmitButton } from "../../../Custom Components/InputGenerator";
 import SearchBarDropdown from "../../../Custom Components/SearchBarDropdown";
 import { useGetData, usePostData } from "../../../service/apiService";
@@ -32,11 +30,15 @@ const MrpInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-        type="number"
+      style={{height:"1rem"}}
+        type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={mrp}
         name="mrp"
-        onChange={(e) => setMrp(e.target.value)}
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+          setMrp(newValue);
+        }}
       />
     </div>
   );
@@ -62,11 +64,15 @@ const RateInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-        type="number"
+      style={{height:"1rem"}}
+        type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={rate}
         name="rate"
-        onChange={(e) => setRate(e.target.value)}
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+          setRate(newValue);
+        }}
       />
     </div>
   );
@@ -103,9 +109,9 @@ const CheckboxInputCell = ({ params, setSelectedData, row }) => {
 };
 
 export default function RateTypeWiseRateList() {
+  const [SelectedData, setSelectedData] = useState([]);
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const lsData = getLocal("imarsar_laboratory");
-  const [SelectedData, setSelectedData] = useState([]);
   const [row, setRow] = useState([]);
   //   --------------------- RateType ------------------------------
   const [RateTypeId, setRateTypeId] = useState("");
@@ -241,39 +247,39 @@ export default function RateTypeWiseRateList() {
     setRateTypeDropDown(true); // Show dropdown when typing
   };
 
-//   const handleSubmit = async () => {
-//     if (SelectedData.length === 0) {
-//       toast.error("No data selected for submission.");
-//       return;
-//     }
+  const handleSubmit = async () => {
+    if (SelectedData.length === 0) {
+      toast.error("No data selected for submission.");
+      return;
+    }
 
-//     const formattedData = SelectedData.map((item) => ({
-//       isActive: 1,
-//       createdby: parseInt(lsData?.user?.employeeId),
-//       createdDateTime: new Date().toISOString(),
-//       id: 0,
-//       deptId: DepartmentId,
-//       rateTypeId: item?.rateTypeId,
-//       mrp: item?.mrp,
-//       discount: 0,
-//       rate: item?.rate,
-//       itemid: item?.itemid,
-//       itemCode: item?.itemCode,
-//       transferRemarks: "string",
-//       transferDate: new Date().toISOString(),
-//     }));
-//     console.log(formattedData);
-//     const res = await PostData?.postRequest(
-//       "/rateTypeWiseRateList/SaveRateListitemWise",
-//       formattedData
-//     );
+    const formattedData = SelectedData.map((item) => ({
+      isActive: 1,
+      createdById: parseInt(lsData?.user?.employeeId),
+      createdDateTime: new Date().toISOString(),
+      id: 0,
+      deptId: DepartmentId,
+      rateTypeId: RateTypeId,
+      mrp: item?.mrp,
+      discount: 0,
+      rate: item?.rate,
+      itemid: item?.itemId,
+      itemCode: item?.itemCode,
+      transferRemarks: "string",
+      transferDate: new Date().toISOString(),
+    }));
+    console.log(formattedData);
+    const res = await PostData?.postRequest(
+      "/rateTypeWiseRateList/SaveRateList",
+      formattedData
+    );
 
-//     if (res.success) {
-//       toast.success(res.message);
-//     } else {
-//       toast.error(res.message);
-//     }
-//   };
+    if (res.success) {
+      toast.success(res.message);
+    } else {
+      toast.error(res.message);
+    }
+  };
 
   console.log(SelectedData);
   return (

@@ -155,7 +155,7 @@ export const UpdatedDynamicTable = ({
   trstyle,
   tableStyle,
   statuses = [],
-  noData = "No data available",
+  noData = "",
   rowcolor = "rowcolor",
   legendColors = false,
   name = "Table Details",

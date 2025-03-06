@@ -20,7 +20,7 @@ export default function OutHouseProcessMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const lsData = getLocal("imarsar_laboratory");
-  const [Flag,setFlag] = useState(false);
+  const [Flag, setFlag] = useState(false);
   const [ShowRow, setShowRow] = useState(false);
   const [BookingId, setBookingId] = useState("");
   const [BookingValue, setBookingValue] = useState("");
@@ -50,11 +50,23 @@ export default function OutHouseProcessMaster() {
   const PostData = usePostData();
   const GridData = useGetData();
   useEffect(() => {
+    if (BookingId !== "" || ProcessingId !== "") {
+      if (BookingId === ProcessingId) {
+        setProcessingId("");
+        setProcessingValue("");
+        setProcessingDropDown(false);
+        setProcessingHoveIndex(null);
+        setProcessingSelectedOption("");
+        toast.error("Processing Center & Booking Center Cannot Be Same");
+      }
+    }
+  }, [BookingId, ProcessingId]);
+  useEffect(() => {
     fetchedData();
   }, [DepartmentId]);
   useEffect(() => {
     fetchGrid();
-  }, [ProcessingId, DepartmentId, BookingId,Flag]);
+  }, [ProcessingId, DepartmentId, BookingId, Flag]);
   const fetchedData = async () => {
     await TestData?.fetchData(
       `/itemMaster?select=itemId,ItemName&$filter=(deptId eq ${DepartmentId})&$OrderBy=itemName`
@@ -68,7 +80,7 @@ export default function OutHouseProcessMaster() {
     //   `/itemMaster/GetProfileObservation?itemId=${ObservationId}`
     // );
   };
-  
+
   console.log(InvestigationValue);
   const handleOptionClick = (name, id) => {
     setProcessingValue(name);
@@ -106,7 +118,6 @@ export default function OutHouseProcessMaster() {
     setDepartmentDropDown(true); // Show dropdown when typing
   };
 
-
   const fetchGrid = async () => {
     if (!BookingId || !ProcessingId || !DepartmentId) return;
     GridData?.fetchData(
@@ -130,13 +141,13 @@ export default function OutHouseProcessMaster() {
           <div>
             <div
               onClick={() => handleDelete(params?.row?.id)}
-              className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+              className="h-[1rem] flex justify-center items-center cursor-pointer rounded font-semibold w-4"
               style={{
                 background: activeTheme?.menuColor,
                 color: activeTheme?.iconColor,
               }}
             >
-              <AiFillDelete style={{ color: "red", fontSize: "15px" }} />
+              <AiFillDelete style={{ color: "red", fontSize: "10px" }} />
             </div>
           </div>
         );
@@ -146,17 +157,17 @@ export default function OutHouseProcessMaster() {
 
   const handleSubmit = async () => {
     try {
-        const Payload =await InvestigationValue?.map((item) => {
-            return {
-                createdById: parseInt(lsData?.user?.employeeId),
-                createdDateTime: new Date().toISOString(),
-                processingLabId: ProcessingId,
-                bookingCentreId: BookingId,
-                itemId: item,
-                departmentId: DepartmentId
-            };
-        });
-        
+      const Payload = await InvestigationValue?.map((item) => {
+        return {
+          createdById: parseInt(lsData?.user?.employeeId),
+          createdDateTime: new Date().toISOString(),
+          processingLabId: ProcessingId,
+          bookingCentreId: BookingId,
+          itemId: item,
+          departmentId: DepartmentId,
+        };
+      });
+
       const res = await PostData?.postRequest(
         `/item_OutHouseMaster/SaveOutHouseMapping`,
         Payload
@@ -238,7 +249,7 @@ export default function OutHouseProcessMaster() {
               name="Processing"
               value={ProcessingValue}
               onChange={handleSearchChange}
-              label="Processing"
+              label="Processing Center"
               options={ProcessingData?.data?.data}
               isRequired={false}
               showValueField="companyName"
@@ -279,7 +290,7 @@ export default function OutHouseProcessMaster() {
               setIsHovered={setInvestigationHoveIndex}
               isHovered={InvestigationHoveIndex}
             /> */}
-             <UpdatedMultiSelectDropDown
+            <UpdatedMultiSelectDropDown
               id="Investigation"
               name="serachInvestigation"
               label="Investigation"
