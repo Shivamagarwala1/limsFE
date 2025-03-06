@@ -342,7 +342,7 @@ export const dummyDataForpatientRegistrationoldPatient = [
 export const doctorShareMasterHeaderApi = ['SR. NO.', 'Departement', 'Percentage(%)', 'Amount'];
 
 export const patientRecordHeader = [
-  "Sr. No", "Booking Date", "Visit Id", "Patient Name", "Age/Gender", "Mobile", "Ref. Doctor", "Centre", "Rate Type", "Reg. By", "Gross Amount", "Dis. Amount", "Net Amount", "Paid Amount", "Due Amount", "Info/Documents", "Settlement",
+  "Sr. No", "Booking Date", "Visit Id", "Patient Name", "Age/Gender", "Mobile", "Ref. Doctor", "Centre", "Rate Type", "Reg. By", "Gross Amount", "Dis. Amount", "Net Amount", "Paid Amount", "Due Amount", "Info/Documents", "Settlement",'Online Payment',
   "Cash Receipt", "MRP Receipt"
 ];
 
