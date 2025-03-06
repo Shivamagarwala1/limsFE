@@ -185,9 +185,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 readOnly={field?.readOnly}
                 required={field?.required}
                 onChange={(e) => {
-                  if (!field?.readOnly && field?.onChange) {
                     field.onChange(e.target.value);
-                  }
                 }}
                 placeholder={field?.placeholder || ""}
                 className={`inputPeerField peer border-borderColor ${
@@ -653,6 +651,7 @@ export const ClickChangeButton1 = ({ text, isActive, onToggle, style }) => {
       className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
       style={{
         ...style,
+        height:"1rem",
         background: isClicked ? activeTheme?.menuColor : "transparent",
         color: isClicked ? activeTheme?.iconColor : "black",
         border: isClicked ? "none" : `1px solid black`,

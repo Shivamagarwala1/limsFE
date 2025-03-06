@@ -387,10 +387,113 @@ export default function UploadReportLetterHead() {
     { field: "nabLyPosition", headerName: "NABL Y Position", flex: 1 },
     { field: "docSignYPosition", headerName: "Doc Sign Y Position", flex: 1 },
     { field: "receiptHeaderY", headerName: "Receipt Header Y", flex: 1 },
-    // { field: "reportHeader", headerName: "Report Header", flex:1 },
-    // { field: "reciptHeader", headerName: "Receipt Header", flex:1 },
-    // { field: "reciptFooter", headerName: "Receipt Footer", flex:1 },
-    // { field: "waterMarkImage", headerName: "Watermark Image", flex:1 },
+    {
+      field: "reportHeader",
+      headerName: "Report Header",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <>
+            {params?.row?.reportHeader && params?.row?.reportHeader !== "" && (
+              <div
+                className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                onClick={() => {
+                  setImg(`data:image/png;base64,${params?.row?.reportHeader}`);
+                  setImageView(true);
+                }}
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              >
+                <IoMdImages className="w-4 h-4 font-semibold" />
+              </div>
+            )}
+          </>
+        );
+      },
+    },
+    {
+      field: "reciptHeader",
+      headerName: "Receipt Header",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <>
+            {params?.row?.reciptHeader && params?.row?.reciptHeader !== "" && (
+              <div
+                className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                onClick={() => {
+                  setImg(`data:image/png;base64,${params?.row?.reciptHeader}`);
+                  setImageView(true);
+                }}
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              >
+                <IoMdImages className="w-4 h-4 font-semibold" />
+              </div>
+            )}
+          </>
+        );
+      },
+    },
+    {
+      field: "reciptFooter",
+      headerName: "Receipt Footer",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <>
+            {params?.row?.reciptFooter && params?.row?.reciptFooter !== "" && (
+              <div
+                className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                onClick={() => {
+                  setImg(`data:image/png;base64,${params?.row?.reciptFooter}`);
+                  setImageView(true);
+                }}
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              >
+                <IoMdImages className="w-4 h-4 font-semibold" />
+              </div>
+            )}
+          </>
+        );
+      },
+    },
+    {
+      field: "waterMarkImage",
+      headerName: "Watermark Image",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <>
+            {params?.row?.waterMarkImage &&
+              params?.row?.waterMarkImage !== "" && (
+                <div
+                  className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  onClick={() => {
+                    setImg(
+                      `data:image/png;base64,${params?.row?.waterMarkImage}`
+                    );
+                    setImageView(true);
+                  }}
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <IoMdImages className="w-4 h-4 font-semibold" />
+                </div>
+              )}
+          </>
+        );
+      },
+    },
     // { field: "nablImage", headerName: "NABL Image", flex:1 },
   ];
   const GridShow = addRandomObjectId(GridData?.data?.data || []);
@@ -696,7 +799,9 @@ export default function UploadReportLetterHead() {
                   onClick={() => {
                     // openPDF(uploadReportLetterHeadData.reportHeader)
                     {
-                      setImg(IsBase64 ? `data:image/png;base64,${Img1}` : `${Img1}`);
+                      setImg(
+                        IsBase64 ? `data:image/png;base64,${Img1}` : `${Img1}`
+                      );
                       setImageView(true);
                     }
                   }}
@@ -747,8 +852,10 @@ export default function UploadReportLetterHead() {
                 <div
                   className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
                   onClick={() => {
-                    setImg(IsBase64 ? `data:image/png;base64,${Img2}` : `${Img2}`);
-                     setImageView(true);
+                    setImg(
+                      IsBase64 ? `data:image/png;base64,${Img2}` : `${Img2}`
+                    );
+                    setImageView(true);
                   }}
                   style={{
                     background: activeTheme?.menuColor,
@@ -797,8 +904,10 @@ export default function UploadReportLetterHead() {
                 <div
                   className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
                   onClick={() => {
-                    setImg(IsBase64 ? `data:image/png;base64,${Img3}` : `${Img3}`);
-                      setImageView(true);
+                    setImg(
+                      IsBase64 ? `data:image/png;base64,${Img3}` : `${Img3}`
+                    );
+                    setImageView(true);
                   }}
                   style={{
                     background: activeTheme?.menuColor,
@@ -847,8 +956,10 @@ export default function UploadReportLetterHead() {
                 <div
                   className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
                   onClick={() => {
-                    setImg(IsBase64 ? `data:image/png;base64,${Img4}` : `${Img4}`);
-                      setImageView(true);
+                    setImg(
+                      IsBase64 ? `data:image/png;base64,${Img4}` : `${Img4}`
+                    );
+                    setImageView(true);
                   }}
                   style={{
                     background: activeTheme?.menuColor,

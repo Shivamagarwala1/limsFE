@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 import { addObjectId, addRandomObjectId } from "../../../service/RedendentData";
 import axios from "axios";
 import { getLocal } from "usehoks";
+import { UpdatedMultiSelectDropDown } from "../../../Custom Components/UpdatedMultiSelectDropDown";
 
 // Create a separate component for the time input cell
 const TimeInputCell = ({ params, initialTime, setRow }) => {
@@ -45,6 +46,7 @@ const TimeInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
+        style={{ height: "1rem" }}
         type="time"
         className={`inputPeerField peer border-borderColor focus:outline-none`}
         value={startTime}
@@ -79,6 +81,7 @@ const EndTimeInputCell = ({ initialTime, setRow, params }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
+        style={{ height: "1rem" }}
         type="time"
         className={`inputPeerField peer border-borderColor focus:outline-none`}
         value={startTime}
@@ -113,12 +116,53 @@ const MinInputCell = ({ initialTime, setRow, params }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-        type="number"
+        style={{ height: "1rem" }}
+        type="text"
         className={`inputPeerField peer border-borderColor focus:outline-none`}
         value={startTime}
+        disabled={!params?.row?.isMins} // Disable when isMins is false
         name="mins"
-        onChange={(e) => setStartTime(e.target.value)}
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+          setStartTime(newValue);
+        }}
       />
+    </div>
+  );
+};
+const MinDayInputCell = ({ initialTime, setRow, params }) => {
+  const [isMins, setIsMins] = useState(initialTime ?? true); // Default to true ("Min")
+
+  useEffect(() => {
+    setRow(
+      (prev) =>
+        prev.some((item) => item.itemId === params?.row.itemId)
+          ? prev.map((item) =>
+              item.itemId === params?.row.itemId
+                ? { ...item, isMins: isMins }
+                : item
+            ) // Update if exists
+          : [
+              ...prev,
+              {
+                ...params?.row,
+                isMins: isMins,
+              },
+            ] // Add if not
+    );
+  }, [isMins]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <select
+        style={{ height: "1rem" }}
+        className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none`}
+        value={isMins ? "Min" : "Day"} // Show "Min" when true, "Day" when false
+        onChange={(e) => setIsMins(e.target.value === "Min")} // Convert selection to boolean
+      >
+        <option value="Min">Min</option>
+        <option value="Day">Day</option>
+      </select>
     </div>
   );
 };
@@ -148,11 +192,16 @@ const DayInputCell = ({ initialTime, setRow, params }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-        type="number"
+        style={{ height: "1rem" }}
+        type="text"
         className={`inputPeerField peer border-borderColor focus:outline-none`}
         value={startTime}
+        disabled={params?.row?.isMins}
         name="mins"
-        onChange={(e) => setStartTime(e.target.value)}
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
+          setStartTime(newValue);
+        }}
       />
     </div>
   );
@@ -210,27 +259,27 @@ export default function TATMaster() {
   const [DepartmentDropDown, setDepartmentDropDown] = useState(false);
   const [DepartmentHoveIndex, setDepartmentHoveIndex] = useState(null);
   const [DepartmentSelectedOption, setDepartmentSelectedOption] = useState("");
-  // ------------------ Register -------------------------------
-  const [RegisterValue, setRegisterValue] = useState("");
-  const [RegisterDropDown, setRegisterDropDown] = useState(false);
-  const [RegisterHoveIndex, setRegisterHoveIndex] = useState(null);
-  const [RegisterSelectedOption, setRegisterSelectedOption] = useState("");
 
-  const [SelectAll, setSelectAll] = useState(false);
+  const [SelectedInvestigation, setSelectedInvestigation] = useState([]);
+
   const AllCenterData = useGetData();
   const DepartmentData = useGetData();
   const GridData = useGetData();
+  const ItemData = useGetData();
   const PostData = usePostData();
   const [row, setRow] = useState([]);
   useEffect(() => {
     AllCenterData?.fetchData(
-      "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
+      "/centreMaster/GetProcesiongLab"
     );
     DepartmentData?.fetchData(
       "/labDepartment?select=id,deptname&$orderby=printSequence"
     );
+    ItemData?.fetchData(
+      `/itemMaster?select=itemId,ItemName&$filter=(deptId eq ${DepartmentId})&$OrderBy=itemName`
+    );
     // console.log(AllCenterData);
-  }, []);
+  }, [DepartmentId]);
 
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
@@ -282,29 +331,22 @@ export default function TATMaster() {
       headerName: `Coll. Rec.`,
       flex: 1,
     },
-    // {
-    //   field: `TatType`,
-    //   headerName: `Params`,
-    //   flex: 1,
-    //   renderCell: (params) => {
-    //     return (
-    //       <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-    //         <InputGenerator
-    //           inputFields={[
-    //             {
-    //               type: "select",
-    //               dataOptions: [
-    //                 { id: 1, data: "Mins" },
-    //                 { id: 2, data: "Days" },
-    //               ],
-    //               name: "endTime",
-    //             },
-    //           ]}
-    //         />
-    //       </div>
-    //     );
-    //   },
-    // },
+    {
+      field: `TatType`,
+      headerName: `Mins/Date`,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+            <MinDayInputCell
+              setRow={setRow}
+              params={params}
+              initialTime={params?.row?.mins}
+            />
+          </div>
+        );
+      },
+    },
     {
       field: `mins`,
       headerName: `Mins`,
@@ -369,7 +411,7 @@ export default function TATMaster() {
                             id: params?.row?.id,
                             // id:0,
                             deptid: DepartmentId,
-                            regcoll: RegisterValue === "Yes" ? 1 : 0,
+                            regcoll: 0,
                             createdOn: new Date().toISOString(),
                             createdby: lsData?.user?.employeeId,
                             createdByName: lsData?.user?.name,
@@ -413,19 +455,6 @@ export default function TATMaster() {
     setDepartmentDropDown(false);
   };
 
-  // Function to handle input changes
-  const handleSearchChange2 = (e) => {
-    setRegisterValue(e.target.value);
-    setRegisterDropDown(true); // Show dropdown when typing
-  };
-
-  // Function to handle selection from the dropdown
-  const handleOptionClick2 = (name, id) => {
-    setRegisterValue(name);
-    setRegisterSelectedOption(name);
-    setRegisterDropDown(false);
-  };
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues(); // Getting form values
@@ -463,7 +492,6 @@ export default function TATMaster() {
       );
       console.log("Data submitted successfully:", response);
       if (response?.data?.success) {
-        
         toast.success(response?.data?.message);
       }
     } catch (error) {
@@ -473,8 +501,9 @@ export default function TATMaster() {
   };
   const handleSearch = async () => {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/tat_master/GetTatMaster?centreId=${searchId}&departmentId=${DepartmentId}`
+      const response = await axios.post(
+        `${BASE_URL}/tat_master/GetTatMaster?centreId=${searchId}&departmentId=${DepartmentId}`,
+        SelectedInvestigation
       );
 
       if (response?.data) {
@@ -504,7 +533,7 @@ export default function TATMaster() {
                 value={searchValue}
                 onChange={handleSearchChange}
                 label="Centre"
-                options={AllCenterData?.data}
+                options={AllCenterData?.data?.data}
                 isRequired={false}
                 placeholder="Search Centre"
                 showSearchBarDropDown={showDropdown}
@@ -515,6 +544,7 @@ export default function TATMaster() {
                 setIsHovered={setHoveredIndex}
                 isHovered={hoveredIndex}
               />
+
               <SearchBarDropdown
                 id="search-bar"
                 name="Department"
@@ -530,24 +560,18 @@ export default function TATMaster() {
                 setIsHovered={setDepartmentHoveIndex}
                 isHovered={DepartmentHoveIndex}
               />
-
-              <SearchBarDropdown
-                id="search-bar"
-                name="Register"
-                value={RegisterValue}
-                onChange={handleSearchChange2}
-                label="Sample Not Register"
-                options={[
-                  { id: 1, data: "Yes" },
-                  { id: 2, data: "No" },
-                ]}
-                isRequired={false}
-                placeholder="Search Register Value"
-                showSearchBarDropDown={RegisterDropDown}
-                setShowSearchBarDropDown={setRegisterDropDown}
-                handleOptionClickForCentre={handleOptionClick2}
-                setIsHovered={setRegisterHoveIndex}
-                isHovered={RegisterHoveIndex}
+              <UpdatedMultiSelectDropDown
+                id="Investigation"
+                name="Investigation"
+                label="Investigation"
+                placeHolder="Search Investigation"
+                options={ItemData?.data}
+                isMandatory={false}
+                isDisabled={false}
+                optionKey="itemId"
+                optionValue={["itemName"]}
+                selectedValues={SelectedInvestigation}
+                setSelectedValues={setSelectedInvestigation}
               />
               <TwoSubmitButton
                 options={[

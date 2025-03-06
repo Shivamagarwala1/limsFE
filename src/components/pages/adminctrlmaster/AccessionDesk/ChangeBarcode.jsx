@@ -2,131 +2,196 @@ import React, { useEffect, useState } from "react";
 import DynamicTable from "../../../../Custom Components/DynamicTable";
 import InputGenerator, {
   SubmitButton,
+  TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
-import { useGetData } from "../../../../service/apiService";
-import { ImCross } from "react-icons/im";
-import {
-  FaDownload,
-  FaPlus,
-  FaRegFilePdf,
-  FaRegMoneyBillAlt,
-} from "react-icons/fa";
+import { useGetData, usePostData } from "../../../../service/apiService";
 import "./ReportDispatch.css";
-import {
-  InvestigationRemarkPopupModal,
-  RejectPopupModal,
-} from "../../../../Custom Components/PopupModal";
-import { setLocal } from "usehoks";
-import { FaCircleInfo } from "react-icons/fa6";
-import { RiBillLine } from "react-icons/ri";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
+import { addObjectId } from "../../../../service/RedendentData";
+import toast from "react-hot-toast";
 
+// BarcodeInputCell Component
+const BarcodeInputCell = ({
+  params,
+  initialTime,
+  setRow,
+  setUpdatedBarcode,
+  row,
+}) => {
+  // Get the barcode value from the row state
+  const barcodeValue =
+    row.find((item) => item.sampleTypeName === params?.row?.sampleTypeName)
+      ?.Barcode || "";
+
+  const handleChange = (e) => {
+    const newBarcode = e.target.value;
+
+    // Update row state for all rows with the same sampleTypeName
+    setRow((prev) =>
+      prev.map((item) =>
+        item.sampleTypeName === params?.row?.sampleTypeName
+          ? {
+              ...item,
+              Barcode: newBarcode,
+              edited: parseInt(newBarcode) !== initialTime,
+            }
+          : item
+      )
+    );
+
+    // Update setUpdatedBarcode with new barcode and corresponding testIds
+    setUpdatedBarcode((prev) => {
+      const testIds = row
+        .filter((item) => item.sampleTypeName === params?.row?.sampleTypeName)
+        .map((item) => item.testId);
+
+      // Create an object to add
+      const newEntry = {
+        testIds,
+        barcodeNoNew: newBarcode,
+      };
+
+      // Remove any existing entry with the same testIds
+      const filteredData = prev.filter(
+        (item) => !testIds.some((id) => item.testIds.includes(id))
+      );
+
+      return [...filteredData, newEntry];
+    });
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={barcodeValue} // Controlled input based on state
+        name="Barcode"
+        onChange={(e) => {
+          const newValue = e.target.value;
+
+          // Ensure only alphanumeric characters and dashes (-) are allowed
+          if (/^[a-zA-Z0-9-]*$/.test(newValue)) {
+            handleChange({ target: { value: newValue } }); // Update state with valid input
+          }
+        }}
+      />
+    </div>
+  );
+};
+
+// Main Component
 export default function ChangeBarcode() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
-  const { formRef, getValues, setValues } = useFormHandler();
+  const [VisitorId, setVisitorId] = useState("");
+  const [UpdatedBarcode, setUpdatedBarcode] = useState([]);
+  const [row, setRow] = useState([]);
+  const getData = useGetData();
+  const PostData = usePostData();
 
+  useEffect(() => {
+    if (getData?.data?.data) {
+      setRow(addObjectId(getData.data.data));
+    }
+  }, [getData?.data]);
+
+  // Columns for the table
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "workOrderId", headerName: "Visiter Id", flex: 1 },
+    { field: "patientName", headerName: "Patient Name", flex: 1 },
+    { field: "investigationName", headerName: "Test Name", flex: 1 },
+    { field: "sampleTypeName", headerName: "Sample Type", flex: 1 },
+    { field: "barcodeNo", headerName: "Old Barcode", flex: 1 },
     {
-      field: `BookingDate`,
-      headerName: `Booking Date`,
-      flex: 1,
-    },
-    {
-      field: `VisiotId`,
-      headerName: `Visiter Id`,
-      flex: 1,
-    },
-    {
-      field: `VisitorName`,
-      headerName: `Visitor Name`,
-      flex: 1,
-    },
-    {
-      field: `Barcode`,
-      headerName: `Barcode`,
-      flex: 1,
-    },
-    
-    {
-      field: `TestName`,
-      headerName: `Test Name`,
-      flex: 1,
-    },
-    {
-      field: `SampleType`,
-      headerName: `Sample Type`,
-      flex: 1,
-    },
-    {
-      headerName: `New Barcode`,
-      flex: 1,
+      headerName: "New Barcode",
+      width: 150,
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <InputGenerator inputFields={[{
-              type:"text",
-              placeholder:"New Barcode"
-            }]} />
-          </div>
+          <>
+            <BarcodeInputCell
+              setRow={setRow}
+              row={row}
+              setUpdatedBarcode={setUpdatedBarcode}
+              initialTime={params?.row?.Barcode}
+              params={params}
+            />
+          </>
         );
       },
-    },
-    {
-      headerName: `Remark`,
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <InputGenerator inputFields={[{
-              type:"text",
-              placeholder:"Remark"
-            }]} />
-          </div>
-        );
-      },
-    },
-  ];
-  const row = [
-    {
-      id: 1,
-      VisiotId: "302",
-      VisitorName: "John Doe",
-      TestName: "CBC",
-      BookingDate: "11-Feb-2025",
-      Barcode: "123456",
-      SampleType:"Blood"
     },
   ];
 
-  const handleSubmit = () => {};
+  // Handle form submission
+  const handleSubmit = async () => {
+    await getData?.fetchData(
+      `/tnx_Booking/GetbarcodeChangedetail?WorkOrderId=${VisitorId}`
+    );
+  };
+
+  // Handle form submission
+  const handleSave = async () => {
+    try {
+      const res = await PostData?.postRequest(
+        `/tnx_Booking/UpdateBarcode`,
+        UpdatedBarcode
+      );
+      if (res?.success) {
+        toast?.success(res?.message);
+        window.location.reload();
+      } else {
+        toast?.error(res?.message);
+      }
+    } catch (error) {
+      toast?.error(res?.message);
+    }
+  };
 
   return (
     <div>
       <FormHeader title="Change Barcode" />
-      <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+      <form autoComplete="off">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
           <InputGenerator
             inputFields={[
               {
-                label: "Visitor  Id",
+                label: "Visit Id",
                 type: "text",
-                name: "VisitorId",
+                name: "VisitId",
+                onChange: (e) => {
+                  setVisitorId(e);
+                },
               },
             ]}
           />
-          <SubmitButton text={"Search"} />
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Search",
+                submit: false,
+                callBack: () => {
+                  handleSubmit();
+                },
+              },
+              {
+                label: "Save",
+                submit: false,
+                callBack: () => {
+                  handleSave();
+                },
+              },
+            ]}
+          />
         </div>
       </form>
       <div style={{ height: "300px" }}>
         <DynamicTable
           rows={row}
           name="Barcode Details"
-          //   loading={loading}
+          loading={getData?.loading}
           columns={columns}
           activeTheme={activeTheme}
         />
