@@ -1020,6 +1020,44 @@ export const convertUnApproveToApprove = async (testId, userid) => {
     return response?.data;
 }
 
+//save document
+export const saveAttachementDataInResultTrackingApi = async (attachement) => {
+
+    let formData = new FormData();
+    formData.append("Document", attachement);
+
+    const response = await privateAxios.post(`/empMaster/UploadDocument`, formData,
+        {
+            headers: {
+                "Content-Type": "multipart/form-data", // Let Axios handle this automatically
+            },
+        });
+    return response?.data;
+}
+
+//save attachement
+export const saveAttachementInResultTrackingApi = async (updatedData) => {
+
+    const response = await privateAxios.post(`/tnx_InvestigationAttchment/AddAttchment`, updatedData);
+
+    return response?.data;
+}
+
+//save report
+export const saveReportInResultTrackingApi = async (updatedData) => {
+
+    const response = await privateAxios.post(`/tnx_InvestigationAttchment/AddReport`, updatedData);
+
+    return response?.data;
+}
+
+//view document
+export const viewUploadResultTrackingApi = async (path) => {
+
+    const response = await privateAxios.get(`/tnx_InvestigationAttchment/ViewDocument?Documentpath=${path}`);
+
+    return response?.data;
+}
 //=====================result tracking========================
 export const getAllResultTrackinDataApi = async (recordTrackinData) => {
 

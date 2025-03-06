@@ -13,7 +13,7 @@ import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
-import { FaCommentDots, FaComments, FaPlus, FaPrint, FaSpinner } from "react-icons/fa";
+import { FaCommentDots, FaComments, FaEye, FaPlus, FaPrint, FaSpinner } from "react-icons/fa";
 import { FaFlag } from "react-icons/fa";
 import CustomeEditor from '../../../sharecomponent/CustomeEditor'
 import {
@@ -33,13 +33,13 @@ import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
 import { toast } from "react-toastify";
-import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, SaveTestObservationsDataApi } from "../../../../service/service";
+import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, saveAttachementDataInResultTrackingApi, saveAttachementInResultTrackingApi, saveReportInResultTrackingApi, SaveTestObservationsDataApi, viewUploadResultTrackingApi } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import { resultTrackForPatientInformation, resultTrackingForObservationHeader, resultTrackingForReRun, ResultTrackingHeader } from "../../../listData/listData";
 import { FaCircleInfo } from "react-icons/fa6";
 import CustomeNormalButton from "../../../global/CustomeNormalButton";
-import { MdAddCircleOutline } from "react-icons/md";
+import { MdAddCircleOutline, MdDelete } from "react-icons/md";
 import CustomLoadingPage from "../../../global/CustomLoadingPage";
 import CustomDropdown from "../../../global/CustomDropdown";
 import CustomPopup from "../../../global/CustomPopup";
@@ -92,505 +92,9 @@ export default function ResultTrack() {
   const [trackingHoldOrApproved, setTrackingHoldOrApproved] = useState('');
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [addAttachment, setAddAttachment] = useState('');
+  const [testIdForTracingAddAttachement, setTestIdForTracingAddAttachement] = useState(0);
+  const [imageLocationPath, setImageLocationPath] = useState([]);
   //!================Anil code end=======================
-
-
-
-
-  // useEffect(() => {
-  //   AllCenterData?.fetchData(
-  //     "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
-  //   );
-  //   TestData?.fetchData(
-  //     "/itemMaster?select=itemId,ItemName&$filter=(isactive eq 1)"
-  //   );
-
-  //   DepartmentData?.fetchData(
-  //     "/labDepartment?select=id,deptname&$filter=(isactive eq 1)"
-  //   );
-  //   // console.log(AllCenterData);
-  // }, []);
-
-  // const columns = [
-  //   {
-  //     field: "id",
-  //     headerName: "Sr. No",
-  //     width: 20,
-  //     renderCell: (params) => {
-  //       return (
-  //         <div
-  //           style={{
-  //             display: "flex",
-  //             gap: "10px",
-  //             alignItems: "center",
-  //           }}
-  //         >
-  //           <div>{params?.row?.id}</div>
-  //           {params?.row?.urgent == 1 && (
-  //             <img style={{ width: "20px" }} src={UrgentGif} alt="Urgent Gif" />
-  //           )}
-  //         </div>
-  //       );
-  //     },
-  //   },
-
-  //   {
-  //     field: `bookingDate`,
-  //     headerName: `Booking Date`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `patientId`,
-  //     headerName: `Visit Id`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `sampleReceiveDate`,
-  //     headerName: `Sample Rec. Date`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `patientName`,
-  //     headerName: `Patient Name`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `age`,
-  //     headerName: `Age/Gender`,
-  //     flex: 1,
-  //     renderCell: (params) => {
-  //       return (
-  //         <div style={{ display: "flex" }}>
-  //           {params?.row?.age}/{params?.row?.gender}
-  //         </div>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: `barcodeNo`,
-  //     headerName: `Barcode No.`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `investigationName`,
-  //     headerName: `Test Name`,
-  //     flex: 1,
-  //     renderCell: (params) => {
-
-  //       return (
-  //         <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-  //           <SubmitButton
-  //             submit={false}
-  //             text={params?.row?.investigationName}
-  //             callBack={() => {
-  //               setRow(params?.row);
-  //               currentRow(params?.row?.id);
-  //             }}
-  //             style={{
-  //               // width: "30px",
-  //               fontSize: "0.75rem",
-  //               padding: "0px 20px",
-  //               height: "20px",
-  //             }}
-  //           />
-  //           {/* <SubmitButton
-  //             submit={false}
-  //             text={"ESR"}
-  //             callBack={() => {
-  //               setUserObj(params?.row);
-  //             }}
-  //             style={{
-  //               width: "30px",
-  //               fontSize: "0.75rem",
-  //               padding: "0px 20px",
-  //               height: "20px",
-  //             }}
-  //           />
-  //           <SubmitButton
-  //             submit={false}
-  //             text={"HB"}
-  //             callBack={() => {
-  //               setUserObj(params?.row);
-  //             }}
-  //             style={{
-  //               width: "30px",
-  //               fontSize: "0.75rem",
-  //               padding: "0px 20px",
-  //               height: "20px",
-  //             }}
-  //           />
-  //           <SubmitButton
-  //             submit={false}
-  //             text={"HBA1"}
-  //             callBack={() => {
-  //               setUserObj(params?.row);
-  //             }}
-  //             style={{
-  //               width: "30px",
-  //               fontSize: "0.75rem",
-  //               padding: "0px 20px",
-  //               height: "20px",
-  //             }}
-  //           /> */}
-  //         </div>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: `approvedDate`,
-  //     headerName: `Approved Date`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `Remark`,
-  //     headerName: `Remark`,
-  //     flex: 1,
-  //     renderCell: (params) => {
-  //       return (
-  //         <div style={{
-  //           display: "flex",
-  //           gap: "5px",
-  //           fontSize: "15px",
-  //           alignItems: "center",
-  //         }}>
-  //           <SubmitButton
-  //             submit={false}
-  //             text={"+"}
-  //             callBack={() => {
-  //               setLocal("testName", params?.row?.TestName);
-  //               setRow({ ...params?.row });
-  //               setRemarkPopup(true);
-  //             }}
-  //             style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
-  //           />
-  //           {params?.row?.isremark > 0 && (
-  //             <img style={{ width: "20px" }} src={RemarkGif} alt="Remark Gif" />
-  //           )}
-  //         </div>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: `Info`,
-  //     headerName: `Info`,
-  //     flex: 1,
-  //     renderCell: (params) => {
-  //       // console.log(params.row)
-  //       return (
-  //         <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-  //           <SubmitButton
-  //             submit={false}
-  //             text={"i"}
-  //             callBack={() => {
-  //               setInfo(true);
-  //             }}
-  //             style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
-  //           />
-  //         </div>
-  //       );
-  //     },
-  //   },
-
-  //   {
-  //     field: `comment`,
-  //     headerName: `Comments`,
-  //     flex: 1,
-  //     renderCell: (params) => {
-  //       const rowId = params.row.id;
-  //       const isShown = showStates[rowId] || false;
-
-  //       const hideComment = () => {
-  //         setShowStates((prev) => ({
-  //           ...prev,
-  //           [rowId]: !isShown,
-  //         }));
-  //       };
-  //       return (
-  //         <>
-  //           <SampleCollectionCommentPopupModal
-  //             setShowPopup={hideComment}
-  //             showPopup={isShown}
-  //             comment={params?.row?.comment}
-  //           />
-  //           <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
-  //             {params?.row?.comment?.slice(0, 10)}
-  //             {params?.row?.comment.length > 10 && (
-  //               <>
-  //                 ...
-  //                 <div
-  //                   onClick={() => {
-  //                     setShowStates((prev) => ({
-  //                       ...prev,
-  //                       [rowId]: !isShown,
-  //                     }));
-  //                   }}
-  //                   className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-  //                   style={{
-  //                     background: activeTheme?.menuColor,
-  //                     color: activeTheme?.iconColor,
-  //                   }}
-  //                 >
-  //                   <FaCommentDots />
-  //                 </div>
-  //               </>
-  //             )}
-  //           </div>
-  //         </>
-  //       );
-  //     },
-  //   },
-  // ];
-
-
-  // const row = [
-  //   {
-  //     id: 1,
-  //     Centre: "105 - center 1",
-  //     Department: "Nursing",
-  //     PatientName: "John, 50032",
-  //     Barcode: "10993",
-  //     SampleRecDate: "10-02-2025",
-  //     VisitId: "302",
-  //     ApprovedDate: "12-Feb-25",
-  //     SampleType: "Blood",
-  //     Comments: "Lorem Ipsum",
-  //     TestName: "CBC",
-  //     AgeGender: "25/male",
-  //     TransferDate: "15-Feb-2025",
-  //     BookingDate: "11-Feb-2025",
-  //     ToCentre: "New-Delhi",
-  //     FromCentre: "Ayodhya",
-  //     ResultBy: "Dr. John",
-  //     ResultAt: "15-Feb-2025",
-  //     EntryBy: "Dr. Brock",
-  //     EntryAt: "11-Feb-2025",
-  //     RecieveAt: "05-Feb-2025",
-  //     RecieveBy: "Dr. Rock",
-  //     CollectionBy: "Dr. Roman",
-  //     CollectionAt: "01-Feb-2025",
-  //   },
-  // ];
-
-  //accept child to parent in editor
-  // const handleContentChange = (content) => {
-  //   // Update editor content
-  //   setCommentMasterData((preventDefault) => ({
-  //     ...preventDefault,
-  //     template: content,
-  //   }));
-  //   //setEditorContent(content);
-  // };
-
-
-  // -------------------------------------------------------------
-  // const [tableData, setTableData] = useState([
-  //   {
-  //     id: 2,
-  //     Test: "Thyroid - T3 T4 & TSH",
-  //     R: true,
-  //     Checkbox: true,
-  //     ReRun: true,
-  //     name: "John",
-  //     Value: null,
-  //     comment: false,
-  //     age: 28,
-  //     role: "Developer",
-  //     subTest: [
-  //       {
-  //         id: "i1",
-  //         Test: "Triodothyrine",
-  //         flag: "Normal",
-  //         Machine: "#01",
-  //         Min: "0.70",
-  //         Max: "2.10",
-  //         comment: true,
-  //         MachineReading: "001",
-  //         Unit: "ng/ml",
-  //         MethodName: "CLIA",
-  //         DisplayReading: "0.82-2.34",
-  //         OldReading: "0.01",
-  //         Value: "Lorem Ipsum",
-  //       },
-  //       {
-  //         id: "i2",
-  //         Test: "Triodothyrine 1",
-  //         flag: "Normal",
-  //         Machine: "#01",
-  //         Min: "0.70",
-  //         Max: "2.10",
-  //         comment: true,
-  //         Unit: "ng/ml",
-  //         MachineReading: "002",
-  //         MethodName: "CLIA",
-  //         DisplayReading: "0.82-2.34",
-  //         OldReading: "0.01",
-  //         Value: "Lorem Ipsum",
-  //       },
-  //       {
-  //         id: "i3",
-  //         Test: "Triodothyrine 2",
-  //         flag: "Normal",
-  //         Machine: "#01",
-  //         Min: "0.70",
-  //         Max: "2.10",
-  //         Unit: "ng/ml",
-  //         comment: true,
-  //         MachineReading: "003",
-  //         MethodName: "CLIA",
-  //         DisplayReading: "0.82-2.34",
-  //         OldReading: "0.01",
-  //         Value: "Lorem Ipsum",
-  //       },
-  //     ],
-  //   },
-  // ]);
-
-  // const columns1 = [
-  //   {
-  //     field: "Test",
-  //     headerName: "Test Name",
-  //     flex: 1,
-  //     renderCell: ({ row }) => {
-  //       const [Checked, setChecked] = useState(true);
-  //       return (
-  //         <div style={{ width: "160px" }} className="flex gap-2 text-center">
-  //           {row?.Test}
-  //           {row?.Checkbox && (
-  //             <input
-  //               type="checkbox"
-  //               checked={Checked}
-  //               onChange={() => setChecked(!Checked)}
-  //             />
-  //           )}
-  //           {row?.R && (
-  //             <SubmitButton
-  //               submit={false}
-  //               text={"Reject"}
-  //               callBack={() => {
-  //                 setRejectPopup(true);
-  //               }}
-  //               style={{
-  //                 width: "80px",
-  //                 fontSize: "0.75rem",
-  //                 height: "20px",
-  //                 backgroundColor: "red !important",
-  //               }}
-  //             />
-  //           )}
-  //           {row?.ReRun && (
-  //             <SubmitButton
-  //               submit={false}
-  //               text={"Re-Run"}
-  //               callBack={() => {
-  //                 setReRun(true);
-  //               }}
-  //               style={{
-  //                 width: "80px",
-  //                 fontSize: "0.75rem",
-  //                 height: "20px",
-  //                 backgroundColor: "red !important",
-  //               }}
-  //             />
-  //           )}
-  //           {row?.ReRun && (
-  //             <SubmitButton
-  //               submit={false}
-  //               text={"Comment"}
-  //               style={{
-  //                 width: "80px",
-  //                 fontSize: "0.75rem",
-  //                 height: "20px",
-  //                 backgroundColor: "red !important",
-  //               }}
-  //             />
-  //           )}
-  //         </div>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: "Value",
-  //     headerName: "Value",
-  //     width: 80,
-  //     renderCell: ({ row }) => {
-  //       const [value, setValues] = useState(row?.Value);
-  //       return (
-  //         <div style={{ width: "80px" }} className="flex gap-2 text-center">
-  //           {row?.Value ? (
-  //             <input
-  //               style={{ width: "80px" }}
-  //               className=" border border-gray-300"
-  //               type="text"
-  //               value={value}
-  //               onChange={(e) => setValues(e.target.value)}
-  //             />
-  //           ) : (
-  //             ""
-  //           )}
-  //         </div>
-  //       );
-  //     },
-  //   },
-  //   {
-  //     field: "flag",
-  //     headerName: "Flag",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "Comment",
-  //     headerName: "Comment",
-  //     flex: 1,
-  //     renderCell: ({ row }) => (
-  //       <>
-  //         <div style={{}} className="flex gap-2 text-center">
-  //           {row?.comment ? <FaComments /> : ""}
-  //         </div>
-  //       </>
-  //     ),
-  //   },
-  //   {
-  //     field: "MachineReading",
-  //     headerName: "Machine Reading",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "Machine",
-  //     headerName: "Machine",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "Min",
-  //     headerName: "Min",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "Max",
-  //     headerName: "Max",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "Unit",
-  //     headerName: "Unit",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "MethodName",
-  //     headerName: "Method Name",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "DisplayReading",
-  //     headerName: "Display Reading",
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: "OldReading",
-  //     headerName: "Old Reading",
-  //     flex: 1,
-  //   },
-  // ];
-
-
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -615,80 +119,6 @@ export default function ResultTrack() {
 
       if (response?.success) {
 
-
-        // const data = [
-        //   {
-        //     age: "7 Y 10 M 15 D",
-        //     approveDateShow: "2025-Mar-01 01:10 PM",
-        //     approved: 0,
-        //     approvedDate: "2025-03-01 13:10:22",
-        //     approvedDateShow: "2025-03-01 13:10:22",
-        //     barcodeNo: "",
-        //     bookingDate: "2025-01-09 05:25:26",
-        //     centreId: 1,
-        //     centreName: "GENERIC DIAGNOSTIC PVT. LTD.",
-        //     centrecode: "GDPL01",
-        //     comment: "Lab Name2 Lab Name2 Lab Name2 Lab Name2 Lab Name2",
-        //     createdDateTime: "2025-03-01 13:10:22",
-        //     departmentName: "BIOCHEMISTRY",
-        //     deptId: 2,
-        //     eerun: 0,
-        //     gender: "M",
-        //     investigationName: "24H ALBUMIN PROTEIN",
-        //     investigationSortName: "",
-        //     isSampleCollected: "Y",
-        //     isremark: 0,
-        //     itemId: 4,
-        //     patientId: 2,
-        //     patientName: "Mr. Shuham Tiwari",
-        //     reportType: 1,
-        //     resultdone: 0,
-        //     rowcolor: "#FF4E12",
-        //     sampleCollectionDate: "2025-03-03 08:43:10",
-        //     sampleReceiveDate: "2025-03-03 17:15:04",
-        //     sampleRecievedDateShow: "2025-Mar-03 05:15 PM",
-        //     testid: 59,
-        //     transactionId: 1,
-        //     urgent: 1,
-        //     workOrderId: "iMarsar1",
-        //   },
-        //   {
-        //     age: "7 Y 10 M 15 D",
-        //     approveDateShow: "1883-Mar-01 04:43 PM",
-        //     approved: 0,
-        //     approvedDate: "1883-03-01 16:43:30",
-        //     approvedDateShow: "1883-03-01 16:43:30",
-        //     barcodeNo: "",
-        //     bookingDate: "2025-01-09 05:25:26",
-        //     centreId: 1,
-        //     centreName: "GENERIC DIAGNOSTIC PVT. LTD.",
-        //     centrecode: "GDPL01",
-        //     comment: "Lab Name2 Lab Name2 Lab Name2 Lab Name2 Lab Name2",
-        //     createdDateTime: "2025-03-01 17:20:02",
-        //     departmentName: "CLINICAL Pathology",
-        //     deptId: 3,
-        //     eerun: 0,
-        //     gender: "M",
-        //     investigationName: "24H MICROALBUMIN/CREATININE RATIO",
-        //     investigationSortName: "",
-        //     isSampleCollected: "Y",
-        //     isremark: 0,
-        //     itemId: 5,
-        //     patientId: 2,
-        //     patientName: "Mr. Shuham Tiwari",
-        //     reportType: 1,
-        //     resultdone: 0,
-        //     rowcolor: "#FF4E12",
-        //     sampleCollectionDate: "2025-03-03 08:43:10",
-        //     sampleReceiveDate: "2025-03-03 10:18:08",
-        //     sampleRecievedDateShow: "2025-Mar-03 10:18 AM",
-        //     testid: 58,
-        //     transactionId: 1,
-        //     urgent: 1,
-        //     workOrderId: "iMarsar1",
-        //   },
-        //   // More data entries can be added here
-        // ];
 
         setIsButtonClick(1);
 
@@ -746,6 +176,9 @@ export default function ResultTrack() {
 
     setIsButtonClick(2);
     setAllObservationData([]);
+
+    //strore the test id for uploading attachement
+    setTestIdForTracingAddAttachement(data?.testid)
 
     // Find the testid(s) for the provided workOrderId
     const matchedWorkOrder = allResultTrackingData.find(order => order.workOrderId === workOrderId);
@@ -825,6 +258,7 @@ export default function ResultTrack() {
               setAllTemplateData(response?.data);
             } else {
               console.log(response?.message);
+              toast.error(error?.message);
             }
 
           } catch (error) {
@@ -836,10 +270,12 @@ export default function ResultTrack() {
         // Extract unique testIds
         const uniqueTestIds = response?.data?.reduce((acc, current) => {
           if (String(current.reportType) === '1' && !acc[current.testId]) {
+
             acc[current.testId] = true;  // Add testId to the object with value true
           }
           return acc;
         }, {});
+
 
 
         // Update the state with unique testIds
@@ -943,6 +379,8 @@ export default function ResultTrack() {
       return;
     }
 
+
+
     const listOfObservationData = allObservationData
       ?.filter(item => observationCheckValue[item?.testId]) // Only include checked items
       .filter(item => item?.observationName !== '')
@@ -963,7 +401,7 @@ export default function ResultTrack() {
           testId: item?.testId,
           labObservationId: item?.labObservationId,
           observationName: item?.observationName,
-          value: observationValue[item?.testId][index + 1],
+          value: observationValue[item?.testId][index + 1] || item?.value,
           flag: flag, // Using the calculated flag
           minVal: item?.minVal,
           maxVal: item?.maxVal,
@@ -1089,30 +527,151 @@ export default function ResultTrack() {
     const file = e.target.files[0];
 
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setAddAttachment(reader?.result);
-      };
-      reader.readAsDataURL(file); // Convert the file to base64 URL
+      setAddAttachment(file); // Store the file object directly
     }
   };
 
   //upload attachemtnt file
   const uploadAttachmentFiles = async (imageType) => {
     setIsButtonClick(4);
-    if (imageType === 'pdf') {
-      console.log('pdf');
 
-      console.log(addAttachment);
+    if (addAttachment === '') {
+      toast.error('Select attachment');
+      setIsButtonClick(0);
+      return;
+    }
+
+
+    if (imageType === 'pdf') {
+
+      try {
+        const response = await saveAttachementDataInResultTrackingApi(addAttachment);
+
+        if (response?.success) {
+
+
+
+          const updatedData = {
+
+            "isActive": 1,
+            "createdById": parseInt(user?.employeeId),
+            "createdDateTime": new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            "updateById": 0,
+            "updateDateTime": new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            "id": 0,
+            "testId": testIdForTracingAddAttachement,
+            "attachment": response?.data?.filePath
+          }
+
+          try {
+            const responseAttatchement = await saveAttachementInResultTrackingApi(updatedData);
+
+            if (responseAttatchement?.success) {
+              toast.success(responseAttatchement?.message);
+              setImageLocationPath([response?.data?.filePath])
+              setAddAttachment('')
+            } else {
+              toast.error(responseAttatchement?.message);
+            }
+          } catch (error) {
+            toast.error(error?.message)
+            console.log(error);
+          }
+
+        } else {
+          toast.error(error?.message);
+        }
+
+      } catch (error) {
+        toast.error(error?.message);
+        console.log(error);
+      }
+
     } else {
-      console.log(addAttachment);
-      console.log('img');
+
+      try {
+        const response = await saveAttachementDataInResultTrackingApi(addAttachment);
+
+        if (response?.success) {
+
+          const updatedData = {
+
+            "isActive": 1,
+            "createdById": parseInt(user?.employeeId),
+            "createdDateTime": new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            "updateById": 0,
+            "updateDateTime": new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+            "id": 0,
+            "testId": testIdForTracingAddAttachement,
+            "attachment": response?.data?.filePath
+          }
+
+          try {
+            const responseAttatchement = await saveReportInResultTrackingApi(updatedData);
+
+            if (responseAttatchement?.success) {
+              toast.success(responseAttatchement?.message);
+              setImageLocationPath([response?.data?.filePath])
+              setAddAttachment('')
+            } else {
+              toast.error(responseAttatchement?.message);
+            }
+          } catch (error) {
+            toast.error(error?.message)
+            console.log(error);
+          }
+
+        } else {
+          toast.error(error?.message);
+        }
+
+      } catch (error) {
+        toast.error(error?.message);
+        console.log(error);
+      }
 
     }
     setIsButtonClick(0);
   }
 
+  //view image
+  const viewResultData = async (path) => {
 
+    try {
+
+      const response = await viewUploadResultTrackingApi(path);
+
+      // Ensure the response is valid
+      if (response && response.data) {
+        // Check if the 'content-type' header exists and is valid
+        const contentType = response.headers["content-type"];
+        if (!contentType) {
+          console.error("Content-Type header is missing");
+          return;
+        }
+
+        // Create a blob with the correct content type
+        const blob = new Blob([response.data], { type: contentType });
+
+        // Create a URL for the blob
+        const url = URL.createObjectURL(blob);
+
+        // Open the file in a new tab
+        window.open(url, "_blank");
+
+        // Optionally revoke the object URL after 10 seconds to free up memory
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      } else {
+        console.error("Invalid response or missing data");
+      }
+
+
+    } catch (error) {
+      toast.error(error?.message)
+      console.log(error);
+
+    }
+  }
 
 
   //!=========================end===============================
@@ -1144,145 +703,6 @@ export default function ResultTrack() {
     { Data: 10, CallBack: () => { } },
   ];
 
-  // const InfoColumns = [
-  //   { field: "id", headerName: "Sr. No", width: 20 },
-
-  //   {
-  //     field: `TestName`,
-  //     headerName: `Test Name`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `Barcode`,
-  //     headerName: `Barcode`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `CollectionAt`,
-  //     headerName: `Collection At`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `CollectionBy`,
-  //     headerName: `Collection By`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `RecieveBy`,
-  //     headerName: `Recieve By`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `RecieveAt`,
-  //     headerName: `Recieve At`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `EntryAt`,
-  //     headerName: `Entry At`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `EntryBy`,
-  //     headerName: `Entry By`,
-  //     flex: 1,
-  //   },
-
-  //   {
-  //     field: `ResultAt`,
-  //     headerName: `Result At`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `ResultBy`,
-  //     headerName: `Result By`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `OutSourceDate`,
-  //     headerName: `OutSource Date`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `OutSourceLab`,
-  //     headerName: `OutSource Lab`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `OutSourceBy`,
-  //     headerName: `OutSource By`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `Out-HouseTransferDate`,
-  //     headerName: `Out-House Transfer Date`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `Out-HouseTransferLab`,
-  //     headerName: `Out-House Transfer Lab`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `Out-HouseTransferBy`,
-  //     headerName: `Out-House Transfer By`,
-  //     flex: 1,
-  //   },
-  // ];
-  // const ReRunColumns = [
-  //   {
-  //     field: "id",
-  //     headerName: "Sr. No",
-  //     width: 20,
-  //     renderCell: ({ row }) => (
-  //       <>
-  //         <div className="flex gap-2 text-center">
-  //           {row?.id} <input type="checkbox" />
-  //         </div>
-  //       </>
-  //     ),
-  //   },
-
-  //   {
-  //     field: `TestName`,
-  //     headerName: `Observation Name`,
-  //     flex: 1,
-  //   },
-  //   {
-  //     field: `Reson`,
-  //     headerName: `Re-Run Remark`,
-  //     flex: 1,
-  //     renderCell: ({ row }) => (
-  //       <>
-  //         <div style={{}} className="flex gap-2 text-center">
-  //           <InputGenerator
-  //             inputFields={[{ type: "select", name: "rerun", dataOptions: [] }]}
-  //           />
-  //         </div>
-  //       </>
-  //     ),
-  //   },
-  //   {
-  //     field: `Action`,
-  //     headerName: ``,
-  //     flex: 1,
-  //     renderCell: ({ row }) => (
-  //       <>
-  //         <div style={{}} className="flex gap-2 text-center">
-  //           <SubmitButton
-  //             text={"Save"}
-  //             submit={false}
-  //             style={{ width: "80px" }}
-  //           />
-  //         </div>
-  //       </>
-  //     ),
-  //   },
-  // ];
-  // const ReRunRow = [
-  //   { id: 1, TestName: "CBC" },
-  //   { id: 2, TestName: "HB" },
-  // ];
 
   return (
     <div>
@@ -1730,12 +1150,17 @@ export default function ResultTrack() {
                               data?.reportType === 1 && (
 
                                 <tr
-                                  className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                                    ? ''
-                                    : index % 2 === 0
-                                      ? 'bg-gray-100'
-                                      : 'bg-white'
+                                  className={`cursor-pointer whitespace-nowrap 
+                                  ${isHoveredTable === index ? '' : index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}  
+                                  ${data?.value !== "" && data?.value !== "Header"
+                                      ? Number(data?.value) < Number(data?.minVal)
+                                        ? "bg-yellow-500"
+                                        : Number(data?.value) > Number(data?.maxVal)
+                                          ? "bg-red-500"
+                                          : "bg-green-500"
+                                      : "" // No background color if value is "Header" or ""
                                     }`}
+
                                   key={index}
                                   onMouseEnter={() => setIsHoveredTable(index)}
                                   onMouseLeave={() => setIsHoveredTable(null)}
@@ -1746,7 +1171,28 @@ export default function ResultTrack() {
                                   }}
                                 >
                                   <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
-                                    {data?.observationName}
+                                    <div className="flex items-center gap-1">
+                                      <div>
+                                        {data?.observationName}
+                                      </div>
+                                      {
+                                        data?.observationName === 'DIFFERENTIAL LEUKOCYTE COUNT(DLC)' && (
+                                          <div>
+                                            <input
+                                              type="checkbox"
+                                              checked={observationCheckValue[data?.testId] || false}
+                                              onChange={() =>
+                                                setObservationCheckValue(prev => ({
+                                                  ...prev,
+                                                  [data?.testId]: !prev[data?.testId] // Toggle checkbox state
+                                                }))
+                                              }
+                                            />
+                                          </div>
+                                        )
+                                      }
+
+                                    </div>
                                   </td>
 
                                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
@@ -1759,7 +1205,7 @@ export default function ResultTrack() {
                                         maxLength={15}
                                         readOnly={data?.value}
                                         onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
-                                        className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'} }`}
+                                        className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  }`}
 
                                         style={{
                                           background: data?.value === "Header" ? activeTheme?.menuColor : "black",
@@ -1776,14 +1222,14 @@ export default function ResultTrack() {
                                     {data?.value !== 'Header' && data?.value ?
                                       <div className="flex items-center justify-center gap-2">
                                         <FaFlag
-                                          className={`text-xl ${Number(data?.value) < Number(data?.minVal)
+                                          className={`text-base ${Number(data?.value) < Number(data?.minVal)
                                             ? "text-yellow-500"
                                             : Number(data?.value) > Number(data?.maxVal)
                                               ? "text-red-500"
                                               : "text-green-500"
                                             }`}
                                         />
-                                        <div className={`text-xl font-semibold ${Number(data?.value) < Number(data?.minVal)
+                                        <div className={`text-base font-semibold ${Number(data?.value) < Number(data?.minVal)
                                           ? "text-yellow-500"
                                           : Number(data?.value) > Number(data?.maxVal)
                                             ? "text-red-500"
@@ -1800,14 +1246,14 @@ export default function ResultTrack() {
                                       observationValue[data?.testId]?.[index] && observationValue[data?.testId]?.[index] !== "" && (
                                         <div className="flex items-center justify-center gap-2">
                                           <FaFlag
-                                            className={`text-xl ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                            className={`text-base ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
                                               ? "text-yellow-500"
                                               : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
                                                 ? "text-red-500"
                                                 : "text-green-500"
                                               }`}
                                           />
-                                          <div className={`text-xl font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                          <div className={`text-base font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
                                             ? "text-yellow-500"
                                             : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
                                               ? "text-red-500"
@@ -2135,16 +1581,16 @@ export default function ResultTrack() {
           )
         }
 
-        {/* add attachement */}
+        {/* add attachment */}
         {
           showPopup === 7 && (
             <CustomSmallPopup
-              headerData={'Add Attachement'}
+              headerData={'Add Attachment'}
               activeTheme={activeTheme}
               setShowPopup={setShowPopup} // Pass the function, not the value
             >
               <GridDataDetails
-                gridDataDetails={'Add Attachement'}
+                gridDataDetails={'Add Attachment'}
               />
               <div className="flex justify-between items-center gap-2 mx-2 mt-2">
 
@@ -2153,7 +1599,7 @@ export default function ResultTrack() {
                   label='Upload Document'
                   handelImageChange={handelImageChange}
                   activeTheme={activeTheme}
-                  fileType={'pdf'}
+                  fileType={'all'}
                 />
 
 
@@ -2169,9 +1615,46 @@ export default function ResultTrack() {
 
               <div className="my-1">
                 <GridDataDetails gridDataDetails={'Attachement Information'} />
-                <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="100px">
+                <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
+                  <tbody>
+                    {
+                      imageLocationPath.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredTable(index)}
+                          onMouseLeave={() => setIsHoveredTable(null)}
+                          style={{
+                            background:
+                              isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            {data}
+                          </td>
 
-
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            <div className="flex gap-2 items-center text-base">
+                              <div>
+                                <FaEye className="text-blue-500"
+                                  onClick={() => viewResultData(data)}
+                                />
+                              </div>
+                              <div>
+                                <MdDelete className="text-red-500" />
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    }
+                  </tbody>
                 </CustomDynamicTable>
               </div>
 
@@ -2215,7 +1698,45 @@ export default function ResultTrack() {
               <div className="my-1">
                 <GridDataDetails gridDataDetails={'Attachement Information'} />
                 <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="100px">
+                  <tbody>
+                    {
+                      imageLocationPath.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredTable(index)}
+                          onMouseLeave={() => setIsHoveredTable(null)}
+                          style={{
+                            background:
+                              isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            {data}
+                          </td>
 
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                            <div className="flex gap-2 items-center text-base">
+                              <div>
+                                <FaEye className="text-blue-500"
+                                  onClick={() => viewResultData(data)}
+                                />
+                              </div>
+                              <div>
+                                <MdDelete className="text-red-500" />
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    }
+                  </tbody>
 
                 </CustomDynamicTable>
               </div>

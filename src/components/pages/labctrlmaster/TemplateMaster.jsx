@@ -124,7 +124,9 @@ export default function TemplateMaster() {
                 }
 
             } catch (error) {
-                toast.error(error?.message);
+                //toast.error(error?.message);
+                console.log(error);
+
             }
         }
 
@@ -275,10 +277,21 @@ export default function TemplateMaster() {
         setIsButtonClick(0);
     }
 
-    const filterAllCentreData = allCenterData?.filter((data) => (data?.companyName?.toLowerCase() || '').includes(String(selectedTemplateMasterData?.centreId?.toLowerCase() || '')));
+    // const filterAllCentreData = allCenterData?.filter((data) => (data?.companyName?.toLowerCase() || '').includes(String(selectedTemplateMasterData?.centreId?.toLowerCase() || '')));       
+
+    const filterAllCentreData = allCenterData?.filter((data) =>
+        (data?.companyName?.toLowerCase() || '').includes(String(selectedTemplateMasterData?.centreId?.toLowerCase() || ''))
+    );
 
 
-    const filterAllItemData = allTestNameData?.filter((data) => (data?.itemName?.toLowerCase() || '').includes(String(selectedTemplateMasterData?.itemId?.toLowerCase() || '')));
+
+    const searchText = String(selectedTemplateMasterData?.itemId ?? '').toLowerCase();
+    const filterAllItemData = Array.isArray(allTestNameData)
+        ? allTestNameData.filter((data) =>
+            (data?.itemName?.toLowerCase() || '').includes(searchText)
+        )
+        : [];
+
 
 
     return (
@@ -309,7 +322,7 @@ export default function TemplateMaster() {
                                     handelOnChangeTemplateMasterData(e),
                                         setSelectedTemplateMasterData((preventData) => ({
                                             ...preventData,
-                                            centreId: ''
+                                            centreId: e.target.value
                                         }))
                                 }}
                                 onClick={() => openShowSearchBarDropDown(1)}
@@ -393,7 +406,7 @@ export default function TemplateMaster() {
                                     handelOnChangeTemplateMasterData(e),
                                         setSelectedTemplateMasterData((preventData) => ({
                                             ...preventData,
-                                            itemId: ''
+                                            itemId: e.target.value
                                         }))
                                 }}
                                 onClick={() => openShowSearchBarDropDown(2)}

@@ -59,9 +59,12 @@ export default function CommentMaster() {
                 }
 
             } catch (error) {
-                toast.error(error?.message);
+                //toast.error(error?.message);
+                console.log(error);
+
             }
         }
+
         getAllData();
 
     }, [commentMasterData?.type])
@@ -98,8 +101,8 @@ export default function CommentMaster() {
         const getAllCmtData = async () => {
 
             // Extract necessary data
-            const centerId = commentMasterData?.centreId;
-            const type = commentMasterData?.type;
+            const centerId = commentMasterData?.centreId || 0;
+            const type = commentMasterData?.type || '';
 
             const itemType = commentMasterData?.type === 'Item Wise' ? commentMasterData?.itemId === '' ? 0 : commentMasterData?.itemId : commentMasterData?.observationId === '' ? 0 : commentMasterData?.observationId;
 
@@ -108,7 +111,7 @@ export default function CommentMaster() {
 
             // Uncomment below if needed
             setAllCommentData(response?.data);
-        };
+        }
 
         // Ensure all conditions are satisfied before calling the function
         if (commentMasterData?.centreId !== 0 && commentMasterData?.type !== '' && (commentMasterData?.itemType !== 0 || commentMasterData?.observationId !== 0)) {
@@ -280,7 +283,14 @@ export default function CommentMaster() {
         setIsButtonClick(0);
     }
 
-    const filterAllObseravationData = allObservationData?.filter((data) => (data?.labObservationName?.toLowerCase() || '').includes(String(selectedObseravation?.toLowerCase() || '')));
+
+    const filterAllObseravationData = allObservationData?.filter((data) =>
+        (data?.labObservationName?.toLowerCase() || '').includes(String(selectedObseravation?.toLowerCase() || ''))
+    );
+
+    const filterAllTestData = allObservationData?.filter((data) =>
+        (data?.labObservationName?.toLowerCase() || '').includes(String(SeleteItemType?.toLowerCase() || ''))
+    );
 
     const filterAllCentreData = allCenterData?.filter((data) => (data?.companyName?.toLowerCase() || '').includes(String(selectCentre?.toLowerCase() || '')));
 
@@ -433,8 +443,8 @@ export default function CommentMaster() {
                                         {showSearchBarDropDown === 1 && (
                                             <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                                                 <ul>
-                                                    {filterAllObseravationData?.length > 0 ? (
-                                                        filterAllObseravationData?.map((data, index) => (
+                                                    {filterAllTestData?.length > 0 ? (
+                                                        filterAllTestData?.map((data, index) => (
                                                             <li
                                                                 key={data?.id}
                                                                 name="itemId"
