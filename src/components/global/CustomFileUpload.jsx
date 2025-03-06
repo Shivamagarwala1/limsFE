@@ -100,7 +100,8 @@ export default function CustomFileUpload({
     label = 'Upload Document',
     handelImageChange,
     readOnly = false,
-    activeTheme
+    activeTheme,
+    fileType
 }) {
 
     const imgRef = useRef();
@@ -138,12 +139,18 @@ export default function CustomFileUpload({
                     onChange={handelImageChange}
                     style={{ display: 'none' }}
                     disabled={readOnly} // Disable the input when readOnly is true
-
+                    accept={
+                        fileType === "pdf"
+                            ? "application/pdf"
+                            : fileType === "img"
+                                ? "image/png, image/jpeg, image/jpg"
+                                : "*/*" // Allows all file types if no specific type is set
+                    }
                     max={'150px/150px'}
                 />
             </div>
 
-            <label htmlFor="uploadDocument" className="menuPeerLevel">
+            <label htmlFor="uploadDocument" className="menuPeerLevel -mt-[0.23rem]">
                 {label}
             </label>
 
