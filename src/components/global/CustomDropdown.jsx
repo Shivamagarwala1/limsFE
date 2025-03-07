@@ -71,7 +71,7 @@ function CustomDropdown({
 
           !isDisabled && (
             isOpen && (
-              <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+              <div className="absolute border-[1px] rounded-md z-50 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                 {options.map((option, index) => {
 
                   return (

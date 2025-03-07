@@ -33,7 +33,7 @@ import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
 import { toast } from "react-toastify";
-import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, saveAttachementDataInResultTrackingApi, saveAttachementInResultTrackingApi, saveReportInResultTrackingApi, SaveTestObservationsDataApi, useRetrieveData, viewUploadResultTrackingApi } from "../../../../service/service";
+import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, saveAttachementDataInResultTrackingApi, saveAttachementInResultTrackingApi, saveReportInResultTrackingApi, SaveTestObservationsDataApi, useRetrieveData, viewPrintreportTrackingApi, viewUploadResultTrackingApi } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import { resultTrackForPatientInformation, resultTrackingForObservationHeader, resultTrackingForReRun, ResultTrackingHeader } from "../../../listData/listData";
@@ -94,6 +94,8 @@ export default function ResultTrack() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [addAttachment, setAddAttachment] = useState('');
   const [testIdForTracingAddAttachement, setTestIdForTracingAddAttachement] = useState(0);
+  const [storeWorkOrderId, setStoreWorkOrderId] = useState(0);
+  const [selectRejections, setSelectRejections] = useState(0);
   //!================Anil code end=======================
 
   const handleSubmit = async (event) => {
@@ -179,16 +181,22 @@ export default function ResultTrack() {
     setIsButtonClick(2);
     setAllObservationData([]);
 
-    //strore the test id for uploading attachement
+
+
+    //store the test id for uploading attachement
     setTestIdForTracingAddAttachement(data?.testid)
 
     // Find the testid(s) for the provided workOrderId
     const matchedWorkOrder = allResultTrackingData.find(order => order.workOrderId === workOrderId);
 
+
+    //set workorder id
+    setStoreWorkOrderId(workOrderId)
+
+
     const testid = matchedWorkOrder
       ? matchedWorkOrder.investigationName.map(item => item.testid).join(",")
       : "";
-
 
 
 
@@ -687,7 +695,7 @@ export default function ResultTrack() {
       if (index > 0) {
         setTestIdForTracingAddAttachement(allResultTrackingForNextAndPrevious[index - 1]?.testid)
       }
-     
+
       if (index > 0) {
         const previousTest = allResultTrackingForNextAndPrevious[index - 1];
         setAllResultTrackingData([previousTest]);
@@ -714,11 +722,60 @@ export default function ResultTrack() {
 
   }
 
+  //show print report
+  const handelOnSubmitForPrintReport = async (workOrderId) => {
 
+    // Find the testid(s) for the provided workOrderId
+    const matchedWorkOrder = allResultTrackingForNextAndPrevious.find(order => order.workOrderId === workOrderId);
+
+
+    const testid = matchedWorkOrder
+      ? matchedWorkOrder.investigationName.map(item => item.testid).join(",")
+      : "";
+
+    try {
+
+      const response = await viewPrintreportTrackingApi(testid);
+
+      // // Check the content type
+      const contentType = response.headers["content-type"];
+
+
+      if (contentType === "application/pdf") {
+        // Handle PDF
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        window.open(pdfUrl, "_blank");
+        console.log("PDF opened successfully.");
+      } else if (
+        contentType === "image"
+      ) {
+        // Handle Image
+        const imageBlob = new Blob([response.data], { type: contentType });
+        const imageUrl = URL.createObjectURL(imageBlob);
+        window.open(imageUrl, "_blank");
+        console.log("Image opened successfully.");
+      } else {
+        console.error(
+          `Unexpected content type: ${contentType}. Unable to open file.`
+        );
+      }
+
+
+
+    } catch (error) {
+      toast.error(error?.message)
+      console.log(error);
+
+    }
+
+  }
 
   //!============morden way code===============
   const allFileAttachementData = useRetrieveData();
   const allReportFileData = useRetrieveData();
+  const allRejectionData = useRetrieveData();
+
   useEffect(() => {
 
     if (showPopup === 7) {
@@ -730,9 +787,80 @@ export default function ResultTrack() {
     }
 
 
+    if (showPopup === 4) {
+      allRejectionData?.fetchDataFromApi(`/sampleRejectionReason?select=id,rejectionReason&$filter=(isactive eq 1)`);
+    }
 
   }, [showPopup])
 
+
+  //handel submit handel data
+  const onSubmitHandelData = async () => {
+    setIsButtonClick(3);
+
+    console.log(testIdForTracingAddAttachement);
+
+    // console.log(allResultTrackingForNextAndPrevious);
+
+
+
+
+    // Filter parentdata and perticularData based on the testId
+    const parentdata = allResultTrackingForNextAndPrevious.filter((item) => item?.testid === testIdForTracingAddAttachement);
+    const perticularData = allObservationData.filter((item) => item?.testId === testIdForTracingAddAttachement);
+
+    console.log(perticularData);
+
+    // Merge parentdata with perticularData
+    const updatedData = parentdata?.map((parentItem) => {
+      // Find the matching item from perticularData
+      const matchedItem = perticularData.find((perticularItem) => perticularItem?.testId === parentItem?.testid);
+
+      return {
+        centreId: user?.defaultCenter,
+        centreName: "",
+        deptId: parentItem?.deptId,
+        departmentName: parentItem?.departmentName,
+        patientId: parentItem?.patientId,
+        workOrderId: parentItem?.workOrderId,
+        patientName: parentItem?.patientName,
+        age: parentItem?.age,
+        itemId: parentItem?.itemId,
+        investigationName: parentItem?.investigationName?.find((data) => data?.testid === testIdForTracingAddAttachement)?.investigationName,
+        barcodeNo: parentItem?.barcodeNo,
+        sampleTypeId: 0,
+        sampleTypeName: "",
+        isSampleCollected: "R",
+        comment: parentItem?.comment,
+        transactionId: parseInt(parentItem?.transactionId),
+        createdDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+        rejectionReason: allRejectionData?.data?.find((item) => item?.id === selectRejections)?.rejectionReason,
+        empId: parseInt(user?.employeeId),
+        urgent: parentItem?.urgent,
+        rowcolor: parentItem?.rowcolor,
+        isRemoveItem: 0,
+        sampletypedata: "",
+        containercolor: "",
+        isremark: 0,
+        bookingdate: parentItem?.bookingDate,
+        samplecollectiondate: parentItem?.sampleCollectionDate,
+        sampleRecievedDate: parentItem?.sampleReceiveDate,
+        resultdone: parentItem?.resultdone,
+
+        // Add properties from perticularData
+        ...matchedItem, // Merge perticularItem data with parentItem data
+      };
+    });
+
+    console.log(updatedData);
+
+
+
+
+
+
+    setIsButtonClick(0);
+  }
 
 
   //!=========================end===============================
@@ -984,7 +1112,7 @@ export default function ResultTrack() {
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                     <div className="flex gap-1 items-center">
                       <div>
-                        {/* {index + 1} */}{data?.testid}
+                        {index + 1}
                       </div>
                       {
                         data?.urgent === 1 && (
@@ -1094,7 +1222,10 @@ export default function ResultTrack() {
             )
           }
 
+          {
+            console.log(allObservationData)
 
+          }
 
           {
             allObservationData?.length !== 0 && (
@@ -1186,7 +1317,7 @@ export default function ResultTrack() {
                                           activeTheme={activeTheme}
                                           text={'Reject'}
                                           disabled={String(data?.isapproved) !== '0'}
-                                          onClick={() => setShowPopup(4)}
+                                          onClick={() => { setShowPopup(4), setTestIdForTracingAddAttachement(data?.testId) }}
                                         />
                                       </div>
                                       <div className="w-20">
@@ -1233,6 +1364,10 @@ export default function ResultTrack() {
                                     // Hides scrollbar for IE/Edge
                                   }}
                                 >
+
+                                  <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
+                                    {data?.testId}
+                                  </td>
                                   <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
                                     <div className="flex items-center gap-1">
                                       <div>
@@ -1462,7 +1597,9 @@ export default function ResultTrack() {
 
                     </div>
                     <div className="relative flex-1">
-                      <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'} />
+                      <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'}
+                        onClick={() => handelOnSubmitForPrintReport(storeWorkOrderId)}
+                      />
                     </div>
                   </div>
 
@@ -1565,12 +1702,63 @@ export default function ResultTrack() {
 
         {
           showPopup === 4 && (
-            <CustomPopup
-              headerData={'Reject'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
-            </CustomPopup>
+            // <CustomPopup
+            //   headerData={'Reject'}
+            //   activeTheme={activeTheme}
+            //   setShowPopup={setShowPopup} // Pass the function, not the value
+            // >
+            // </CustomPopup>
+            <div className="relative">
+              <CustomSmallPopup activeTheme={activeTheme} headerData={'Reject'} setShowPopup={setShowPopup}>
+                <FormHeader title={'Rejection Reason'} />
+                <div className="flex justify-between items-center gap-2 mx-2">
+
+
+                  {
+                    allRejectionData?.loading ?
+                      <CustomLoadingPage />
+                      :
+                      <>
+                        <div className="absolute w-72 mt-1">
+
+
+                          <CustomDropdown
+                            name="billingType"
+                            label="Select Billing Type"
+                            value={selectRejections || ''}
+                            options={[
+                              { label: 'Select Option', value: 0, disabled: true },
+                              ...allRejectionData?.data?.map(item => ({
+                                label: item.rejectionReason,
+                                value: item.id,
+                              })),
+                            ]}
+                            onChange={(e) => setSelectRejections(e.target.value)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
+                            showLabel={false}
+                          />
+                        </div>
+
+
+
+                        <div className="w-20 md:w-20 mt-1 ml-[18.5rem]">
+                          <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                            isButtonClick={isButtonClick}
+                            loadingButtonNumber={3} // Unique number for the first button
+                            onClick={() => onSubmitHandelData()}
+                          />
+                        </div>
+                      </>
+
+                  }
+
+                </div>
+
+
+              </CustomSmallPopup>
+            </div>
+
           )
         }
 
