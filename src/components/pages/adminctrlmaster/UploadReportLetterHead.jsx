@@ -371,6 +371,11 @@ export default function UploadReportLetterHead() {
 
   const columns = [
     {
+      field: "Random",
+      headerName: "Sr. No.",
+      flex: 1,
+    },
+    {
       field: "reporrtHeaderHeightY",
       headerName: "Report Header Height Y",
       flex: 1,

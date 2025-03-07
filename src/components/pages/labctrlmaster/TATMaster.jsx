@@ -132,7 +132,14 @@ const MinInputCell = ({ initialTime, setRow, params }) => {
 };
 const MinDayInputCell = ({ initialTime, setRow, params }) => {
   const [isMins, setIsMins] = useState(initialTime ?? true); // Default to true ("Min")
-
+  const [DepartmentId, setDepartmentId] = useState(params?.row?.outsourceLabId);
+  const [DepartmentValue, setDepartmentValue] = useState(
+    "Min"
+    // params?.row?.outsourceLabName
+  );
+  const [DepartmentDropDown, setDepartmentDropDown] = useState(false);
+  const [DepartmentHoveIndex, setDepartmentHoveIndex] = useState(null);
+  const [DepartmentSelectedOption, setDepartmentSelectedOption] = useState("");
   useEffect(() => {
     setRow(
       (prev) =>
@@ -152,9 +159,30 @@ const MinDayInputCell = ({ initialTime, setRow, params }) => {
     );
   }, [isMins]);
 
+  useEffect(() => {
+    if (DepartmentValue == "Min") {
+      setIsMins(true);
+    } else {
+      setIsMins(false);
+    }
+  }, [DepartmentValue]);
+  // Handle input change
+  const handleSearchChange1 = (e) => {
+    setDepartmentValue(e.target.value);
+    setDepartmentDropDown(true);
+  };
+  console.log(DepartmentValue);
+
+  // Handle dropdown selection
+  const handleOptionClick1 = (name, id) => {
+    setDepartmentValue(name);
+    setDepartmentId(id);
+    setDepartmentSelectedOption(name);
+    setDepartmentDropDown(false);
+  };
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-      <select
+      {/* <select
         style={{ height: "1rem" }}
         className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none`}
         value={isMins ? "Min" : "Day"} // Show "Min" when true, "Day" when false
@@ -162,7 +190,30 @@ const MinDayInputCell = ({ initialTime, setRow, params }) => {
       >
         <option value="Min">Min</option>
         <option value="Day">Day</option>
-      </select>
+      </select> */}
+      <SearchBarDropdown
+        id="search-bar"
+        name="Department"
+        value={DepartmentValue}
+        onChange={handleSearchChange1}
+        options={[
+          { id: "Min", data: "Min" },
+          { id: "Day", data: "Day" },
+        ]}
+        isRequired={false}
+        showSearchBarDropDown={DepartmentDropDown}
+        setShowSearchBarDropDown={setDepartmentDropDown}
+        handleOptionClickForCentre={handleOptionClick1}
+        setIsHovered={setDepartmentHoveIndex}
+        isHovered={DepartmentHoveIndex}
+        style={{
+          height: "1rem",
+          border: "none",
+          borderRadius: "2px",
+          margin: "0px",
+        }}
+        Inputstyle={{ borderRadius: "2px" }}
+      />
     </div>
   );
 };
@@ -269,9 +320,7 @@ export default function TATMaster() {
   const PostData = usePostData();
   const [row, setRow] = useState([]);
   useEffect(() => {
-    AllCenterData?.fetchData(
-      "/centreMaster/GetProcesiongLab"
-    );
+    AllCenterData?.fetchData("/centreMaster/GetProcesiongLab");
     DepartmentData?.fetchData(
       "/labDepartment?select=id,deptname&$orderby=printSequence"
     );
