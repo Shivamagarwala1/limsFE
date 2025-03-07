@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { privateAxios, publicAxios } from "./helper"
 
 //employee login
@@ -1054,10 +1055,17 @@ export const saveReportInResultTrackingApi = async (updatedData) => {
 //view document
 export const viewUploadResultTrackingApi = async (path) => {
 
-    const response = await privateAxios.get(`/tnx_InvestigationAttchment/ViewDocument?Documentpath=${path}`);
+    const response = await privateAxios.get(`/tnx_InvestigationAttchment/ViewDocument?Documentpath=${path}`, {
+        responseType: "blob", // To handle binary response
+        headers: {
+            Accept: "*/*",
+        },
+    })
 
-    return response?.data;
+    return response;
 }
+
+
 //=====================result tracking========================
 export const getAllResultTrackinDataApi = async (recordTrackinData) => {
 
@@ -1092,7 +1100,6 @@ export const SaveTestObservationsDataApi = async (listOfObservationData) => {
 }
 
 //get template
-
 export const getAllTemplateDataForResultTrackingApi = async (centreId, itemId) => {
 
     const response = await privateAxios.post(`/itemTemplate/GetTemplateData?CentreID=${centreId}&testid=${itemId}`);
@@ -1114,3 +1121,55 @@ export const getAllEmojiColorCodeApi = async () => {
 
     return response?.data;
 }
+
+//! ================ custome hooks with api call ===========
+
+/**
+ * Function to make a GET request with authentication
+ * @param {string} url - API endpoint (e.g., '/items')
+ * @param {object} params - Query parameters (optional)
+ * @returns {Promise} - Resolves to API response
+ */
+export const getData = async (url, params = {}) => {
+    try {
+        const response = await privateAxios.get(url, { params });
+        return response;
+    } catch (error) {
+        console.error("Error in GET request:", error);
+        throw error;
+    }
+};
+
+
+/**
+ * Custom hook to fetch data with authentication
+ * @param {string} url - API endpoint (e.g., '/items')
+ * @param {object} params - Query parameters (optional)
+ */
+
+export const useRetrieveData = (url, params = {}) => {
+    const [data, setData] = useState([]);
+    const [response, setResponse] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const fetchDataFromApi = async (url, params = {}) => {
+        setLoading(true);
+        try {
+            const result = await getData(url, params);
+
+            console.log("API Result:", result); // Check the full response here
+            setData(result?.data);
+            setResponse(result);
+            setError(null);
+        } catch (err) {
+            setError(err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+    return { fetchDataFromApi, response, data, loading, error };
+};

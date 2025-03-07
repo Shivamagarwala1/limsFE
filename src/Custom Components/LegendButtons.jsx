@@ -23,7 +23,7 @@ export const LegendButtons = ({ statuses, callBack }) => {
   return (
     <div className="flex flex-wrap items-center">
       {buttons.map((status, index) => (
-       <RiplledButton status={status} statuses={statuses} index={index} />
+        <RiplledButton status={status} statuses={statuses} index={index} key={index} />
       ))}
     </div>
   );
