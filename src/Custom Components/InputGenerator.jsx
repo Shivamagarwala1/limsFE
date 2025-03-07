@@ -5,15 +5,28 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaUser } from "react-icons/fa";
 import useRippleEffect from "../components/customehook/useRippleEffect";
 
+export function getFormattedDate() {
+  const today = new Date();
+
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = today.toLocaleString("en-US", { month: "short" });
+  const year = today.getFullYear();
+
+  return `${day}-${month}-${year}`;
+}
+
 export default function InputGenerator({ inputFields = [], setValues }) {
   const [showCalendars, setShowCalendars] = useState({});
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
-  const handleDateClick = (date, name) => {
+  const handleDateClick = (date, name,field) => {
     const formatDate = (date) => {
       const options = { day: "2-digit", month: "short", year: "numeric" };
       return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
     };
+    const formattedDate = formatDate(date);
+
+    field?.customOnChange?.(formattedDate);
 
     document.getElementsByName(name)[0].value = formatDate(date);
     setShowCalendars((prevState) => ({ ...prevState, [name]: false }));
@@ -26,15 +39,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
     }));
   };
 
-  function getFormattedDate() {
-    const today = new Date();
 
-    const day = String(today.getDate()).padStart(2, "0");
-    const month = today.toLocaleString("en-US", { month: "short" });
-    const year = today.getFullYear();
-
-    return `${day}-${month}-${year}`;
-  }
 
   const todayDate = getFormattedDate(); // Example output: 07-Feb-2025
   // console.log("input generator ", inputFields);
@@ -89,6 +94,11 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                   name={field?.name}
                   defaultValue={todayDate}
                   placeholder={""}
+                  onChange={(e) => {
+                    field?.onChange?.(e.target.value); // Calls field's internal onChange
+                    field?.customOnChange?.(e.target.value); // Calls user-defined onChange
+                  }}
+
                   className={`inputPeerField peer border-borderColor ${
                     field?.required ? "border-b-red-500" : ""
                   } focus:outline-none`}
@@ -114,7 +124,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
               {showCalendars[field?.name] && (
                 <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
                   <UserCalendar
-                    onDateClick={(date) => handleDateClick(date, field?.name)}
+                    onDateClick={(date) => handleDateClick(date, field?.name,field)}
                   />
                 </div>
               )}
@@ -188,9 +198,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                     field.onChange(e.target.value);
                 }}
                 placeholder={field?.placeholder || ""}
-                className={`inputPeerField peer border-borderColor ${
-                  field?.required ? "border-b-red-500" : ""
-                } focus:outline-none`}
+                className={`inputPeerField peer focus:outline-none`}
               />
               <label htmlFor={field?.name} className="menuPeerLevel">
                 {field?.label}
@@ -410,7 +418,7 @@ export const ButtonWithImage = ({
   );
 };
 
-export const TwoSubmitButton = ({ options = [] }) => {
+export const TwoSubmitButton = ({ options = [],NoSpace=false }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
   // Split the options into pairs
@@ -447,7 +455,7 @@ export const TwoSubmitButton = ({ options = [] }) => {
                 </div>
               ))}
               {/* If there is an odd number of buttons, fill the gap */}
-              {pair.length === 1 && <div className="flex-1"></div>}
+              {!NoSpace && pair.length === 1 && <div className="flex-1"></div>}
             </div>
           )
       )}

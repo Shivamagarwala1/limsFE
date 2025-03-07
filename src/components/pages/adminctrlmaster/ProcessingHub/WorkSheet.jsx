@@ -1,69 +1,145 @@
 import React, { useEffect, useState } from "react";
 import DynamicTable from "../../../../Custom Components/DynamicTable";
 import InputGenerator, {
+  getFormattedDate,
   SubmitButton,
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import { useGetData } from "../../../../service/apiService";
+import { useGetData, usePostData } from "../../../../service/apiService";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
+import {
+  addObjectId,
+  ViewOrDownloandPDF,
+} from "../../../../service/RedendentData";
+import { getLocal } from "usehoks";
 
-export default function ResultTrack() {
+const CheckboxInputCell = ({ params, setTestIds, TestIds, SelectAll1 }) => {
+  const [enabled, setEnabled] = useState(false);
+  // console.log(TestIds);
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      {SelectAll1 ? (
+        <input type="checkbox" checked={SelectAll1} />
+      ) : (
+        <input
+          type="checkbox"
+          onClick={() =>
+            setTestIds(
+              (prev) =>
+                prev.some((item) => item.id === params?.row.id)
+                  ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
+                  : [...prev, { ...params?.row }] // Add if not
+            )
+          }
+        />
+      )}
+    </div>
+  );
+};
+
+export default function WorkSheet() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
-  const [searchValue, setSearchValue] = useState("");
+
+  const lsData = getLocal("imarsar_laboratory");
+
+  const todayDate = getFormattedDate();
+  const [row, setRow] = useState([]);
+  const [TestIds, setTestIds] = useState([]);
+  const [fromDate, setFromDate] = useState(todayDate);
+  const [toDate, setToDate] = useState(todayDate);
+  const [searchId, setSearchId] = useState(1);
+  const [searchValue, setSearchValue] = useState(
+    "GENERIC DIAGNOSTIC PVT. LTD."
+  );
   const [showDropdown, setShowDropdown] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
+  const [ItemId, setItemId] = useState(0);
   const [searchValue1, setSearchValue1] = useState("");
   const [showDropdown1, setShowDropdown1] = useState(false);
   const [hoveredIndex1, setHoveredIndex1] = useState(null);
   const [selectedOption1, setSelectedOption1] = useState("");
-  const [searchValue2, setSearchValue2] = useState("");
+  const [Barcode, setBarcode] = useState("");
+  const [StatusId, setStatusId] = useState("");
+  const [searchValue2, setSearchValue2] = useState("Pending");
   const [showDropdown2, setShowDropdown2] = useState(false);
   const [hoveredIndex2, setHoveredIndex2] = useState(null);
   const [selectedOption2, setSelectedOption2] = useState("");
+  const [DepartmentId, setDepartmentId] = useState(0);
   const [searchValue4, setSearchValue4] = useState("");
   const [showDropdown4, setShowDropdown4] = useState(false);
   const [hoveredIndex4, setHoveredIndex4] = useState(null);
   const [selectedOption4, setSelectedOption4] = useState("");
 
+  const [SelectAll1, setSelectAll1] = useState(false);
   const [SelectAll, setSelectAll] = useState(false);
+  const GridData = usePostData();
   const AllCenterData = useGetData();
+  const DepartmentData = useGetData();
+  const TestData = useGetData();
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
     );
+    DepartmentData?.fetchData(
+      "/labDepartment?select=id,deptname&$orderby=printSequence"
+    );
+    TestData?.fetchData(
+      `/itemMaster?select=itemId,ItemName&$filter=(deptId eq ${DepartmentId})&$OrderBy=itemName`
+    );
     // console.log(AllCenterData);
   }, []);
+  useEffect(() => {
+    const row = addObjectId(GridData?.data || []);
+    setRow(row);
+  }, [GridData?.data]);
+
+  const handlePrint = async () => {
+    const allIds = await TestIds?.map((obj) => obj.testid).join(",");
+    // console.log(allIds); // Output: "59,58"
+    ViewOrDownloandPDF(`/tnx_Booking/PrintWorkSheet?TestIds=${allIds}`);
+  };
+
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
 
     {
-      field: `BookingDate`,
+      field: `bookingDate`,
       headerName: `Booking Date`,
       flex: 1,
     },
     {
-      field: `Barcode`,
-      headerName: `Barcode No.`,
+      field: `departmentName`,
+      headerName: `Department`,
       flex: 1,
     },
     {
-      field: `PatientName`,
+      field: `centreName`,
+      headerName: `Centre`,
+      flex: 1,
+    },
+    {
+      field: `patientName`,
       headerName: `Patient Name`,
       flex: 1,
     },
     {
-      field: `AgeGender`,
+      field: `barcodeNo`,
+      headerName: `Barcode No.`,
+      flex: 1,
+    },
+    {
+      field: `age`,
       headerName: `Age/Gender`,
       flex: 1,
     },
     {
-      field: `TestName`,
+      field: `investigationName`,
       headerName: `Test Name`,
       flex: 1,
       //   renderCell: (params) => {
@@ -87,55 +163,39 @@ export default function ResultTrack() {
       //   },
     },
     {
-      field: `Centre`,
-      headerName: `Centre`,
+      field: "Select All",
+      headerName: "Select All",
       flex: 1,
-    },
-    {
-      field: `Select All`,
-      renderHeaderCell: (params) => {
+      renderHeaderCell: () => {
         return (
           <div style={{ display: "flex", gap: "10px" }}>
             <input
               type="checkbox"
-              onClick={() => {
-                setSelectAll(!SelectAll);
-              }}
               checked={SelectAll}
-            />{" "}
+              onChange={() => {
+                setSelectAll(!SelectAll);
+                if (!SelectAll) {
+                  // Select all test IDs from row data
+                  setSelectAll1(true);
+                  setTestIds(row.map((r) => r));
+                } else {
+                  setTestIds([]);
+                  setSelectAll1(false);
+                }
+              }}
+            />
             Select All
           </div>
         );
       },
-      headerName: `Select All`,
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <input type="checkbox" checked={SelectAll} />
-          </div>
-        );
-      },
-    },
-  ];
-  const row = [
-    {
-      id: 1,
-      Centre: "105 - center 1",
-      Department: "Nursing",
-      PatientName: "John, 50032",
-      Barcode: "10993",
-      SampleRecDate: "10-02-2025",
-      VisitId: "302",
-      ApprovedDate: "12-Feb-25",
-      SampleType: "Blood",
-      Comments: "Lorem Ipsum",
-      TestName: "CBC",
-      AgeGender: "25/male",
-      TransferDate: "15-Feb-2025",
-      BookingDate: "11-Feb-2025",
-      ToCentre: "New-Delhi",
-      FromCentre: "Ayodhya",
+      renderCell: (params) => (
+        <CheckboxInputCell
+          params={params}
+          setTestIds={setTestIds}
+          TestIds={TestIds}
+          SelectAll1={SelectAll1}
+        />
+      ),
     },
   ];
 
@@ -148,6 +208,7 @@ export default function ResultTrack() {
   // Function to handle selection from the dropdown
   const handleOptionClick = (name, id) => {
     setSearchValue(name);
+    setSearchId(id);
     setSelectedOption(name);
     setShowDropdown(false);
   };
@@ -160,6 +221,7 @@ export default function ResultTrack() {
   // Function to handle selection from the dropdown
   const handleOptionClick1 = (name, id) => {
     setSearchValue1(name);
+    setItemId(id);
     setSelectedOption1(name);
     setShowDropdown1(false);
   };
@@ -173,6 +235,7 @@ export default function ResultTrack() {
   // Function to handle selection from the dropdown
   const handleOptionClick2 = (name, id) => {
     setSearchValue2(name);
+    setStatusId(id);
     setSelectedOption2(name);
     setShowDropdown2(false);
   };
@@ -185,21 +248,70 @@ export default function ResultTrack() {
   // Function to handle selection from the dropdown
   const handleOptionClick4 = (name, id) => {
     setSearchValue4(name);
+    setDepartmentId(id);
     setSelectedOption4(name);
     setShowDropdown4(false);
   };
+
+  const handleSearch = () => {
+    const payload = {
+      centreId: searchId,
+      fromDate: fromDate, // Dynamic current timestamp
+      toDate: toDate, // Dynamic current timestamp
+      deptId: DepartmentId,
+      itemId: ItemId,
+      barcodeNo: Barcode,
+      status: searchValue2,
+      empid: lsData?.user?.employeeId,
+    };
+    GridData?.postRequest(`/tnx_Booking/GetWorkSheetData`, payload);
+  };
+
   const handleSubmit = () => {};
 
   const statuses = [
-    "Collected",
-    "Reject",
-    "Pending",
-    "Tested",
-    "Report Hold",
-    "Approved",
-    "Report Print",
-    "Machine Data",
-    "Sample-Rerun",
+    {
+      Data: 1,
+      CallBack: () => {
+        // Sample Collected
+      },
+    },
+    {
+      Data: 3,
+      CallBack: () => {
+        // Reject-Sample
+      },
+    },
+    {
+      Data: 11,
+      CallBack: () => {
+        // Pending Report
+      },
+    },
+    {
+      Data: 5,
+      CallBack: () => {
+        // Report Hold
+      },
+    },
+    {
+      Data: 4,
+      CallBack: () => {
+        // Approved Report
+      },
+    },
+    {
+      Data: 7,
+      CallBack: () => {
+        // Report Print
+      },
+    },
+    {
+      Data: 9,
+      CallBack: () => {
+        // Sample Rerun
+      },
+    },
   ];
   return (
     <div>
@@ -209,7 +321,7 @@ export default function ResultTrack() {
           {/* Header Section */}
           <FormHeader title="Work Sheet" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 items-center  mt-2 mb-1  mx-1 lg:mx-2">
               <SearchBarDropdown
                 id="search-bar"
                 name="search"
@@ -229,8 +341,22 @@ export default function ResultTrack() {
               />
               <InputGenerator
                 inputFields={[
-                  { type: "customDateField", label: "From",name:"from" },
-                  { type: "customDateField", label: "To",name:"to" },
+                  {
+                    type: "customDateField",
+                    label: "From",
+                    name: "from",
+                    customOnChange: (e) => {
+                      setFromDate(e);
+                    },
+                  },
+                  {
+                    type: "customDateField",
+                    label: "To",
+                    name: "to",
+                    customOnChange: (e) => {
+                      setToDate(e);
+                    },
+                  },
                 ]}
               />
 
@@ -241,11 +367,7 @@ export default function ResultTrack() {
                   value={searchValue4}
                   onChange={handleSearchChange4}
                   label="Department"
-                  options={[
-                    { id: 1, status: "Department 1" },
-                    { id: 2, status: "Department 2" },
-                    { id: 3, status: "Department 3" },
-                  ]}
+                  options={DepartmentData?.data}
                   isRequired={false}
                   showSearchBarDropDown={showDropdown4}
                   setShowSearchBarDropDown={setShowDropdown4}
@@ -253,29 +375,39 @@ export default function ResultTrack() {
                   setIsHovered={setHoveredIndex4}
                   isHovered={hoveredIndex4}
                 />
-                <SearchBarDropdown
-                  id="search-bar"
-                  name="search"
-                  value={searchValue1}
-                  onChange={handleSearchChange1}
-                  label="Test"
-                  options={[
-                    { id: 1, status: "CBC" },
-                    { id: 2, status: "CT Scan" },
-                    { id: 3, status: "X ray" },
-                  ]}
-                  isRequired={false}
-                  showSearchBarDropDown={showDropdown1}
-                  setShowSearchBarDropDown={setShowDropdown1}
-                  handleOptionClickForCentre={handleOptionClick1}
-                  setIsHovered={setHoveredIndex1}
-                  isHovered={hoveredIndex1}
-                />
+                  <SearchBarDropdown
+                    id="search-bar"
+                    name="search"
+                    value={searchValue1}
+                    onChange={handleSearchChange1}
+                    label="Test"
+                    options={TestData?.data}
+                    isRequired={false}
+                    showSearchBarDropDown={showDropdown1}
+                    setShowSearchBarDropDown={setShowDropdown1}
+                    handleOptionClickForCentre={handleOptionClick1}
+                    setIsHovered={setHoveredIndex1}
+                    isHovered={hoveredIndex1}
+                  />
               </div>
-              <div className="flex flex-row gap-2">
-                <InputGenerator
-                  inputFields={[{ type: "text", label: "Barcode" }]}
-                />
+              <div
+                style={{ marginTop: "-3px" }}
+                className="flex flex-row gap-2"
+              >
+                <div style={{ marginTop: "3px" }}>
+                  {" "}
+                  <InputGenerator
+                    inputFields={[
+                      {
+                        type: "text",
+                        label: "Barcode",
+                        onChange: (e) => {
+                          setBarcode(e);
+                        },
+                      },
+                    ]}
+                  />
+                </div>
                 <SearchBarDropdown
                   id="search-bar"
                   name="search"
@@ -299,12 +431,24 @@ export default function ResultTrack() {
               </div>
               <TwoSubmitButton
                 options={[
-                  { label: "Search", submit: false },
-                  { label: "Print", submit: false },
+                  {
+                    label: "Search",
+                    submit: false,
+                    callBack: () => {
+                      handleSearch();
+                    },
+                  },
+                  {
+                    label: "Print",
+                    submit: false,
+                    callBack: () => {
+                      handlePrint();
+                    },
+                  },
                 ]}
               />
             </div>
-            <LegendButtons
+            {/* <LegendButtons
               statuses={statuses}
               callBack={(status) => {
                 if (status?.contantName === "Rejected") {
@@ -313,13 +457,12 @@ export default function ResultTrack() {
                   console.log(`You clicked on ${status?.contantName}`);
                 }
               }}
-            />
+            /> */}
           </form>
           <div style={{ maxHeight: "200px" }}>
             <DynamicTable
               rows={row}
               name="Work Sheet Details"
-              //   loading={loading}
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
               activeTheme={activeTheme}

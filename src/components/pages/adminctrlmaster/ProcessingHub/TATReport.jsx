@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import InputGenerator, {
   ClickChangeButton,
+  getFormattedDate,
   SubmitButton,
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
@@ -10,25 +11,41 @@ import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData } from "../../../../service/apiService";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
+import {
+  addObjectId,
+  downloadExcel,
+  ViewOrDownloandPDF,
+} from "../../../../service/RedendentData";
 
 export default function TATReport() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
+
+  const todayDate = getFormattedDate();
+
+  const [fromDate, setFromDate] = useState(todayDate);
+  const [toDate, setToDate] = useState(todayDate);
+
+  const [row, setRow] = useState([]);
+  const [CenterId, setCenterId] = useState(0);
   const [searchValue, setSearchValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
+  const [DepartmentId, setDepartmentId] = useState(0);
   const [DepartmentValue, setDepartmentValue] = useState("");
   const [DepartmentDropDown, setDepartmentDropDown] = useState(false);
   const [DepartmentHoveIndex, setDepartmentHoveIndex] = useState(null);
   const [DepartmentSelectedOption, setDepartmentSelectedOption] = useState("");
   // ------------------ Item -------------------------------
+  const [ItemId, setItemId] = useState(0);
   const [ItemValue, setItemValue] = useState("");
   const [ItemDropDown, setItemDropDown] = useState(false);
   const [ItemHoveIndex, setItemHoveIndex] = useState(null);
   const [ItemSelectedOption, setItemSelectedOption] = useState("");
 
   // ------------------ TatType -------------------------------
+  const [TatId, setTatId] = useState(1);
   const [TatTypeValue, setTatTypeValue] = useState("");
   const [TatTypeDropDown, setTatTypeDropDown] = useState(false);
   const [TatTypeHoveIndex, setTatTypeHoveIndex] = useState(null);
@@ -36,121 +53,113 @@ export default function TATReport() {
 
   const [SelectAll, setSelectAll] = useState(false);
   const AllCenterData = useGetData();
+  const GridData = useGetData();
+  const DepartmentData = useGetData();
+  const TestData = useGetData();
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
     );
+    DepartmentData?.fetchData(
+      "/labDepartment?select=id,deptname&$orderby=printSequence"
+    );
+    TestData?.fetchData(
+      `/itemMaster?select=itemId,ItemName&$filter=(deptId eq ${DepartmentId})&$OrderBy=itemName`
+    );
     // console.log(AllCenterData);
-  }, []);
+  }, [DepartmentId]);
+  const handleSearch = () => {
+    GridData?.fetchData(
+      `/tnx_Booking/TatReport?FromDate=${fromDate}&ToDate=${toDate}&centreId=${CenterId}&departmentId=${DepartmentId}&itemid=${ItemId}&TatType=${TatId}`
+    );
+  };
+  useEffect(() => {
+    const row = addObjectId(GridData?.data?.data || []);
+    setRow(row);
+  }, [GridData?.data]);
+
+  const ExportPdf = () => {
+    ViewOrDownloandPDF(
+      `/tnx_Booking/TatReportpdf?FromDate=${fromDate}&ToDate=${toDate}&centreId=${CenterId}&departmentId=${DepartmentId}&itemid=${ItemId}&TatType=${TatId}`
+    );
+  };
+  const ExportExcel = () => {
+    downloadExcel(
+      `/tnx_Booking/TatReportExcel?FromDate=${fromDate}&ToDate=${toDate}&centreId=${CenterId}&departmentId=${DepartmentId}&itemid=${ItemId}&TatType=${TatId}`,
+      "Tat Report"
+    );
+  };
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
     {
-      field: `BookingDate`,
+      field: `bookingDate`,
       headerName: `Booking Date`,
       flex: 1,
     },
     {
-      field: `VisitId`,
+      field: `workorderId`,
       headerName: `Visit Id`,
       flex: 1,
     },
     {
-      field: `PatientName`,
+      field: `patientName`,
       headerName: `Patient Name`,
       flex: 1,
     },
     {
-      field: `TestName`,
+      field: `testName`,
       headerName: `Test Name`,
       flex: 1,
     },
     {
-      field: `RefDoc`,
+      field: `refDoctor`,
       headerName: `Ref. Doc.`,
       flex: 1,
     },
     {
-      field: `Department`,
+      field: `department`,
       headerName: `Department`,
       flex: 1,
     },
     {
-      field: `TestName`,
-      headerName: `Test Name`,
-      flex: 1,
-    },
-    {
-      field: `FromCentre`,
+      field: `centreName`,
       headerName: `Centre`,
       flex: 1,
     },
     {
-      field: `SampleCollDate`,
+      field: `sampleCollectionDate`,
       headerName: `Sample Collection Date`,
       flex: 1,
     },
     {
-      field: `DepartmentRecieveDate`,
+      field: `sampleReceivedDate`,
       headerName: `Dep. Rec. Date`,
       flex: 1,
     },
     {
-      field: `ResultDate`,
+      field: `resultDate`,
       headerName: `Result Date`,
       flex: 1,
     },
     {
-      field: `ApproveDate`,
+      field: `approveDate`,
       headerName: `Approve Date`,
       flex: 1,
     },
     {
-      field: `BTOS`,
+      field: `btos`,
       headerName: `BTOS`,
       flex: 1,
     },
     {
-      field: `STOD`,
+      field: `stod`,
       headerName: `STOD`,
       flex: 1,
     },
     {
-      field: `DTOR`,
+      field: `dtor`,
       headerName: `DTOR`,
       flex: 1,
-    },
-  ];
-  const row = [
-    {
-      id: 1,
-      Centre: "105 - center 1",
-      Department: "Nursing",
-      PatientName: "John Snow",
-      Barcode: "10993",
-      SampleRecDate: "10-02-2025",
-      VisitId: "302",
-      ApprovedDate: "12-Feb-25",
-      Reading: "Lorem Ipsum",
-      DepartmentComment: "Lorem Ipsum",
-      Remark: "Lorem Ipsum",
-      NotApprovedBy: "Tyron",
-      Params: "Alpu",
-      RefDoc:"Tyron",
-      CollRec: "0",
-      RegColl: "0",
-      TestName: "CBC",
-      AgeGender: "25/male",
-      TransferDate: "15-Feb-2025",
-      BookingDate: "11-Feb-2025",
-      SampleCollDate: "15-Feb-2025",
-      DepartmentRecieveDate: "15-Feb-2025",
-      ApproveDate: "15-Feb-2025",
-      ResultDate: "15-Feb-2025",
-      BTOS:"0",
-      DTOR:"0",
-      STOD:"0",
-      ToCentre: "New-Delhi",
-      FromCentre: "Ayodhya",
     },
   ];
 
@@ -163,6 +172,7 @@ export default function TATReport() {
   // Function to handle selection from the dropdown
   const handleOptionClick = (name, id) => {
     setSearchValue(name);
+    setCenterId(id);
     setSelectedOption(name);
     setShowDropdown(false);
   };
@@ -176,6 +186,7 @@ export default function TATReport() {
   // Function to handle selection from the dropdown
   const handleOptionClick1 = (name, id) => {
     setDepartmentValue(name);
+    setDepartmentId(id);
     setDepartmentSelectedOption(name);
     setDepartmentDropDown(false);
   };
@@ -189,6 +200,7 @@ export default function TATReport() {
   // Function to handle selection from the dropdown
   const handleOptionClick2 = (name, id) => {
     setItemValue(name);
+    setItemId(id);
     setItemSelectedOption(name);
     setItemDropDown(false);
   };
@@ -202,6 +214,7 @@ export default function TATReport() {
   // Function to handle selection from the dropdown
   const handleOptionClick3 = (name, id) => {
     setTatTypeValue(name);
+    setTatId(id);
     setTatTypeSelectedOption(name);
     setTatTypeDropDown(false);
   };
@@ -217,6 +230,7 @@ export default function TATReport() {
           <FormHeader title="TAT Report" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+            <div className="flex flex-row gap-2">
               <SearchBarDropdown
                 id="search-bar"
                 name="Centre"
@@ -239,7 +253,7 @@ export default function TATReport() {
                 value={DepartmentValue}
                 onChange={handleSearchChange1}
                 label="Department"
-                options={[]}
+                options={DepartmentData?.data}
                 isRequired={false}
                 showSearchBarDropDown={DepartmentDropDown}
                 setShowSearchBarDropDown={setDepartmentDropDown}
@@ -247,60 +261,97 @@ export default function TATReport() {
                 setIsHovered={setDepartmentHoveIndex}
                 isHovered={DepartmentHoveIndex}
               />
-              <SearchBarDropdown
-                id="search-bar"
-                name="Item"
-                value={ItemValue}
-                onChange={handleSearchChange2}
-                label="Item"
-                options={[]}
-                isRequired={false}
-                showSearchBarDropDown={ItemDropDown}
-                setShowSearchBarDropDown={setItemDropDown}
-                handleOptionClickForCentre={handleOptionClick2}
-                setIsHovered={setItemHoveIndex}
-                isHovered={ItemHoveIndex}
-              />
-              <SearchBarDropdown
-                id="search-bar"
-                name="TatType"
-                value={TatTypeValue}
-                onChange={handleSearchChange3}
-                label="TAT Type"
+              </div>
+              <div className="flex flex-row gap-2">
+                <SearchBarDropdown
+                  id="search-bar"
+                  name="Item"
+                  value={ItemValue}
+                  onChange={handleSearchChange2}
+                  label="Item"
+                  options={TestData?.data}
+                  isRequired={false}
+                  showSearchBarDropDown={ItemDropDown}
+                  setShowSearchBarDropDown={setItemDropDown}
+                  handleOptionClickForCentre={handleOptionClick2}
+                  setIsHovered={setItemHoveIndex}
+                  isHovered={ItemHoveIndex}
+                />
+                <SearchBarDropdown
+                  id="search-bar"
+                  name="TatType"
+                  value={TatTypeValue}
+                  onChange={handleSearchChange3}
+                  label="TAT Type"
+                  options={[
+                    { id: 1, data: "Select All" },
+                    { id: 2, data: "Within TAT" },
+                    { id: 3, data: "TAT Failed" },
+                  ]}
+                  isRequired={false}
+                  showSearchBarDropDown={TatTypeDropDown}
+                  setShowSearchBarDropDown={setTatTypeDropDown}
+                  handleOptionClickForCentre={handleOptionClick3}
+                  setIsHovered={setTatTypeHoveIndex}
+                  isHovered={TatTypeHoveIndex}
+                />
+              </div>
+              {/* <div className="flex flex-row gap-2"> */}
+                <InputGenerator
+                  inputFields={[
+                    {
+                      type: "customDateField",
+                      label: "From",
+                      name: "from",
+                      customOnChange: (e) => {
+                        setFromDate(e);
+                      },
+                    },
+                    {
+                      type: "customDateField",
+                      label: "To",
+                      name: "to",
+                      customOnChange: (e) => {
+                        setToDate(e);
+                      },
+                    },
+                  ]}
+                />
+              {/* </div> */}
+              <TwoSubmitButton
                 options={[
-                  { id: 1, data: "Select All" },
-                  { id: 2, data: "Within TAT" },
-                  { id: 3, data: "TAT Failed" },
-                ]}
-                isRequired={false}
-                showSearchBarDropDown={TatTypeDropDown}
-                setShowSearchBarDropDown={setTatTypeDropDown}
-                handleOptionClickForCentre={handleOptionClick3}
-                setIsHovered={setTatTypeHoveIndex}
-                isHovered={TatTypeHoveIndex}
-              />
-               <InputGenerator
-                inputFields={[
-                  { type: "customDateField", label: "From", name: "from" },
-                  { type: "customDateField", label: "To", name: "to" },
+                  {
+                    submit: false,
+                    label: "Search",
+                    callBack: () => {
+                      handleSearch();
+                    },
+                  },
+                  {
+                    submit: false,
+                    label: "Export to Excel",
+                    callBack: () => {
+                      ExportExcel();
+                    },
+                  },
                 ]}
               />
               <TwoSubmitButton
                 options={[
-                  { submit: false, label: "Search" },
-                  { submit: false, label: "Export to Excel" },
-                ]}
-              />
-               <TwoSubmitButton
-                options={[
-                  { submit: false, label: "Export to PDF" },
+                  {
+                    submit: false,
+                    label: "Export to PDF",
+                    callBack: () => {
+                      ExportPdf();
+                    },
+                  },
                 ]}
               />
             </div>
           </form>
           <div style={{ maxHeight: "200px" }}>
             <DynamicTable
-              rows={row}
+              rows={row || []}
               name="TAT Report Details"
               //   loading={loading}
               tableStyle={{ marginBottom: "-10px" }}
