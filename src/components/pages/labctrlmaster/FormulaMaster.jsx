@@ -167,13 +167,10 @@ export default function FormulaMaster() {
             createdById: parseInt(user?.employeeId),
             createdDateTime: new Date().toISOString(),
             itemId: formulaMasterData?.itemId,
-            observationId: formulaMasterData?.itemId,
+            observationId: formulaMasterData?.observationId,
             formula: selectedId,
             formulaText: content
         }
-
-        console.log(updatedData);
-
 
         try {
             const response = await saveFormulaMasterData(updatedData);
@@ -212,12 +209,12 @@ export default function FormulaMaster() {
     }
 
     const filterAllProfileData = allProfileData?.filter((data) =>
-        (data?.itemName?.toLowerCase() || '').includes(String(formulaMasterData?.itemId || '').toLowerCase())
+        (data?.itemName?.toLowerCase() || '').includes(String(selectedFormulaMaster?.itemId || '').toLowerCase())
     );
 
 
     const filterAllObservationData = allObservationData?.filter((data) =>
-        (data?.itemName?.toLowerCase() || '').includes(String(formulaMasterData?.observationId || '').toLowerCase())
+        (data?.labObservationName?.toLowerCase() || '').includes(String(selectedFormulaMaster?.observationId || '').toLowerCase())
     );
 
 
@@ -247,11 +244,11 @@ export default function FormulaMaster() {
                                     name="itemId"
                                     value={selectedFormulaMaster?.itemId || formulaMasterData?.itemId || ''}
                                     onChange={(e) => {
-                                        handelOnChnageFormulaMasterData(e),
-                                            setSelectedFormulaMaster((preventData) => ({
-                                                ...preventData,
-                                                itemId: ''
-                                            }))
+                                        // handelOnChnageFormulaMasterData(e),
+                                        setSelectedFormulaMaster((preventData) => ({
+                                            ...preventData,
+                                            itemId: e.target.value
+                                        }))
                                     }}
                                     onClick={() => openShowSearchBarDropDown(1)}
 
@@ -314,11 +311,11 @@ export default function FormulaMaster() {
                                     name="observationId"
                                     value={selectedFormulaMaster?.observationId || formulaMasterData?.observationId || ''}
                                     onChange={(e) => {
-                                        handelOnChnageFormulaMasterData(e),
-                                            setSelectedFormulaMaster((preventData) => ({
-                                                ...preventData,
-                                                observationId: ''
-                                            }))
+                                        // handelOnChnageFormulaMasterData(e),
+                                        setSelectedFormulaMaster((preventData) => ({
+                                            ...preventData,
+                                            observationId: e.target.value
+                                        }))
                                     }}
                                     onClick={() => openShowSearchBarDropDown(2)}
 

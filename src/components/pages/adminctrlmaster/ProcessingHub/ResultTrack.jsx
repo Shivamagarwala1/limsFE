@@ -33,7 +33,7 @@ import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
 import { toast } from "react-toastify";
-import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, saveAttachementDataInResultTrackingApi, saveAttachementInResultTrackingApi, saveReportInResultTrackingApi, SaveTestObservationsDataApi, viewUploadResultTrackingApi } from "../../../../service/service";
+import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, saveAttachementDataInResultTrackingApi, saveAttachementInResultTrackingApi, saveReportInResultTrackingApi, SaveTestObservationsDataApi, useRetrieveData, viewUploadResultTrackingApi } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import { resultTrackForPatientInformation, resultTrackingForObservationHeader, resultTrackingForReRun, ResultTrackingHeader } from "../../../listData/listData";
@@ -75,6 +75,7 @@ export default function ResultTrack() {
     template: 0
   })
   const [allResultTrackingData, setAllResultTrackingData] = useState([]);
+  const [allResultTrackingForNextAndPrevious, setAllResultTrackingForNextAndPrevious] = useState([]);
   const [allObservationData, setAllObservationData] = useState([]);
   const [allDoctorData, setAllDoctorData] = useState([]);
   const [allTemplateData, setAllTemplateData] = useState([]);
@@ -93,7 +94,6 @@ export default function ResultTrack() {
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [addAttachment, setAddAttachment] = useState('');
   const [testIdForTracingAddAttachement, setTestIdForTracingAddAttachement] = useState(0);
-  const [imageLocationPath, setImageLocationPath] = useState([]);
   //!================Anil code end=======================
 
   const handleSubmit = async (event) => {
@@ -156,9 +156,11 @@ export default function ResultTrack() {
         const groupedData = Object.values(result);
 
 
-
+        //need to clear all observation data because of Main List button Click.
+        setAllObservationData([]);
 
         setAllResultTrackingData(groupedData);
+        setAllResultTrackingForNextAndPrevious(groupedData)
       } else {
         toast.error(response?.message);
       }
@@ -186,6 +188,7 @@ export default function ResultTrack() {
     const testid = matchedWorkOrder
       ? matchedWorkOrder.investigationName.map(item => item.testid).join(",")
       : "";
+
 
 
 
@@ -549,8 +552,6 @@ export default function ResultTrack() {
 
         if (response?.success) {
 
-
-
           const updatedData = {
 
             "isActive": 1,
@@ -568,7 +569,8 @@ export default function ResultTrack() {
 
             if (responseAttatchement?.success) {
               toast.success(responseAttatchement?.message);
-              setImageLocationPath([response?.data?.filePath])
+              console.log(responseAttatchement);
+
               setAddAttachment('')
             } else {
               toast.error(responseAttatchement?.message);
@@ -611,8 +613,8 @@ export default function ResultTrack() {
 
             if (responseAttatchement?.success) {
               toast.success(responseAttatchement?.message);
-              setImageLocationPath([response?.data?.filePath])
               setAddAttachment('')
+              showPopup(8);
             } else {
               toast.error(responseAttatchement?.message);
             }
@@ -641,29 +643,32 @@ export default function ResultTrack() {
 
       const response = await viewUploadResultTrackingApi(path);
 
-      // Ensure the response is valid
-      if (response && response.data) {
-        // Check if the 'content-type' header exists and is valid
-        const contentType = response.headers["content-type"];
-        if (!contentType) {
-          console.error("Content-Type header is missing");
-          return;
-        }
+      // Check the content type
+      const contentType = response.headers["content-type"];
 
-        // Create a blob with the correct content type
-        const blob = new Blob([response.data], { type: contentType });
+      console.log(contentType);
 
-        // Create a URL for the blob
-        const url = URL.createObjectURL(blob);
 
-        // Open the file in a new tab
-        window.open(url, "_blank");
-
-        // Optionally revoke the object URL after 10 seconds to free up memory
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
+      if (contentType === "application/pdf") {
+        // Handle PDF
+        const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        window.open(pdfUrl, "_blank");
+        console.log("PDF opened successfully.");
+      } else if (
+        contentType === "image"
+      ) {
+        // Handle Image
+        const imageBlob = new Blob([response.data], { type: contentType });
+        const imageUrl = URL.createObjectURL(imageBlob);
+        window.open(imageUrl, "_blank");
+        console.log("Image opened successfully.");
       } else {
-        console.error("Invalid response or missing data");
+        console.error(
+          `Unexpected content type: ${contentType}. Unable to open file.`
+        );
       }
+
 
 
     } catch (error) {
@@ -672,6 +677,62 @@ export default function ResultTrack() {
 
     }
   }
+
+  //show observation data based on nextprevious
+  const showTheDataForNextAndPrevious = (testid, trackingPreOrNxtValue) => {
+
+    const index = allResultTrackingForNextAndPrevious.findIndex(test => test.testid === testid);
+
+    if (trackingPreOrNxtValue === 1) {
+      if (index > 0) {
+        setTestIdForTracingAddAttachement(allResultTrackingForNextAndPrevious[index - 1]?.testid)
+      }
+     
+      if (index > 0) {
+        const previousTest = allResultTrackingForNextAndPrevious[index - 1];
+        setAllResultTrackingData([previousTest]);
+        return previousTest;
+      } else {
+        toast.warning('No more previous data')
+      }
+    } else {
+
+      if (index < allResultTrackingForNextAndPrevious.length - 1) {
+        setTestIdForTracingAddAttachement(allResultTrackingForNextAndPrevious[index + 1]?.testid)
+      }
+
+
+      if (index < allResultTrackingForNextAndPrevious.length - 1) {
+        const previousTest = allResultTrackingForNextAndPrevious[index + 1];
+        setAllResultTrackingData([previousTest]);
+        return previousTest;
+      } else {
+        toast.warning('No more next data')
+      }
+    }
+
+
+  }
+
+
+
+  //!============morden way code===============
+  const allFileAttachementData = useRetrieveData();
+  const allReportFileData = useRetrieveData();
+  useEffect(() => {
+
+    if (showPopup === 7) {
+      allFileAttachementData.fetchDataFromApi(`/tnx_InvestigationAttchment?$filter=(testid eq ${testIdForTracingAddAttachement} and isactive eq 1)`);
+    }
+
+    if (showPopup === 8) {
+      allReportFileData.fetchDataFromApi(`/tnx_InvestigationAddReport?$filter=(testid eq ${testIdForTracingAddAttachement} and isactive eq 1)`);
+    }
+
+
+
+  }, [showPopup])
+
 
 
   //!=========================end===============================
@@ -923,7 +984,7 @@ export default function ResultTrack() {
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                     <div className="flex gap-1 items-center">
                       <div>
-                        {index + 1}
+                        {/* {index + 1} */}{data?.testid}
                       </div>
                       {
                         data?.urgent === 1 && (
@@ -1032,6 +1093,8 @@ export default function ResultTrack() {
               <CustomLoadingPage />
             )
           }
+
+
 
           {
             allObservationData?.length !== 0 && (
@@ -1416,16 +1479,20 @@ export default function ResultTrack() {
 
                   <div className='flex gap-[0.25rem]'>
                     <div className="relative flex-1 ">
-                      <CustomeNormalButton activeTheme={activeTheme} text={'Main List'} />
+                      <CustomeNormalButton activeTheme={activeTheme} text={'Main List'} onClick={handleSubmit} />
                     </div>
                     <div className="relative flex-1">
-                      <CustomeNormalButton activeTheme={activeTheme} text={'Previous'} />
+                      <CustomeNormalButton activeTheme={activeTheme} text={'Previous'}
+                        onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 1)}
+                      />
                     </div>
                   </div>
 
                   <div className='flex gap-[0.25rem]'>
                     <div className="relative flex-1 ">
-                      <CustomeNormalButton activeTheme={activeTheme} text={'Next'} />
+                      <CustomeNormalButton activeTheme={activeTheme} text={'Next'}
+                        onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 0)}
+                      />
                     </div>
                     <div className="relative flex-1">
 
@@ -1540,18 +1607,6 @@ export default function ResultTrack() {
               />
               <div className="flex justify-between items-center gap-2 mx-2">
 
-                {/* <form autoComplete="off">
-                  <div className="realative flex-1 w-full">
-                    <CustomTextBox
-                      type="text"
-                      name="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
-                      value={reasionForHoldOrUnHoldAndApprovedOrNotApproved || ''}
-                      onChange={(e) => setReasionForHoldOrUnHoldAndApprovedOrNotApproved(e.target.value)}
-                      label="Reason"
-                      isDisabled={false}
-                      showLabel={true}
-                    />
-                  </div> */}
 
                 <input
                   type="text"
@@ -1563,9 +1618,6 @@ export default function ResultTrack() {
                   placeholder=" "
                   className={`inputPeerField peer mt-2 border-borderColor focus:outline-none`}
                 />
-
-                {/* </form> */}
-
                 <div className="w-20 md:w-20 mt-2">
                   <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Update'}
                     isButtonClick={isButtonClick}
@@ -1599,7 +1651,7 @@ export default function ResultTrack() {
                   label='Upload Document'
                   handelImageChange={handelImageChange}
                   activeTheme={activeTheme}
-                  fileType={'all'}
+                  fileType={'pdf'}
                 />
 
 
@@ -1615,47 +1667,53 @@ export default function ResultTrack() {
 
               <div className="my-1">
                 <GridDataDetails gridDataDetails={'Attachement Information'} />
-                <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
-                  <tbody>
-                    {
-                      imageLocationPath.map((data, index) => (
-                        <tr
-                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                            ? ''
-                            : index % 2 === 0
-                              ? 'bg-gray-100'
-                              : 'bg-white'
-                            }`}
-                          key={index}
-                          onMouseEnter={() => setIsHoveredTable(index)}
-                          onMouseLeave={() => setIsHoveredTable(null)}
-                          style={{
-                            background:
-                              isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                            // Hides scrollbar for IE/Edge
-                          }}
-                        >
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            {data}
-                          </td>
+                {
+                  allFileAttachementData?.loading ?
+                    <CustomLoadingPage />
+                    :
+                    <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
+                      <tbody>
+                        {
+                          allFileAttachementData?.data?.map((item, index) => (
+                            <tr
+                              className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                                ? ''
+                                : index % 2 === 0
+                                  ? 'bg-gray-100'
+                                  : 'bg-white'
+                                }`}
+                              key={index}
+                              onMouseEnter={() => setIsHoveredTable(index)}
+                              onMouseLeave={() => setIsHoveredTable(null)}
+                              style={{
+                                background:
+                                  isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                // Hides scrollbar for IE/Edge
+                              }}
+                            >
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {item?.attachment}
+                              </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            <div className="flex gap-2 items-center text-base">
-                              <div>
-                                <FaEye className="text-blue-500"
-                                  onClick={() => viewResultData(data)}
-                                />
-                              </div>
-                              <div>
-                                <MdDelete className="text-red-500" />
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    }
-                  </tbody>
-                </CustomDynamicTable>
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                <div className="flex gap-2 items-center text-base">
+                                  <div>
+                                    <FaEye className="text-blue-500"
+                                      onClick={() => viewResultData(item?.attachment)}
+                                    />
+                                  </div>
+                                  <div>
+                                    <MdDelete className="text-red-500" />
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        }
+                      </tbody>
+                    </CustomDynamicTable>
+                }
+
               </div>
 
             </CustomSmallPopup>
@@ -1697,48 +1755,54 @@ export default function ResultTrack() {
 
               <div className="my-1">
                 <GridDataDetails gridDataDetails={'Attachement Information'} />
-                <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="100px">
-                  <tbody>
-                    {
-                      imageLocationPath.map((data, index) => (
-                        <tr
-                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                            ? ''
-                            : index % 2 === 0
-                              ? 'bg-gray-100'
-                              : 'bg-white'
-                            }`}
-                          key={index}
-                          onMouseEnter={() => setIsHoveredTable(index)}
-                          onMouseLeave={() => setIsHoveredTable(null)}
-                          style={{
-                            background:
-                              isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                            // Hides scrollbar for IE/Edge
-                          }}
-                        >
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            {data}
-                          </td>
 
-                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                            <div className="flex gap-2 items-center text-base">
-                              <div>
-                                <FaEye className="text-blue-500"
-                                  onClick={() => viewResultData(data)}
-                                />
-                              </div>
-                              <div>
-                                <MdDelete className="text-red-500" />
-                              </div>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    }
-                  </tbody>
+                {
+                  allReportFileData?.loading ?
+                    <CustomLoadingPage />
+                    :
+                    <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
+                      <tbody>
+                        {
+                          allReportFileData?.data?.map((item, index) => (
+                            <tr
+                              className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                                ? ''
+                                : index % 2 === 0
+                                  ? 'bg-gray-100'
+                                  : 'bg-white'
+                                }`}
+                              key={index}
+                              onMouseEnter={() => setIsHoveredTable(index)}
+                              onMouseLeave={() => setIsHoveredTable(null)}
+                              style={{
+                                background:
+                                  isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                // Hides scrollbar for IE/Edge
+                              }}
+                            >
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                {item?.attachment}
+                              </td>
 
-                </CustomDynamicTable>
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                <div className="flex gap-2 items-center text-base">
+                                  <div>
+                                    <FaEye className="text-blue-500"
+                                      onClick={() => viewResultData(item?.attachment)}
+                                    />
+                                  </div>
+                                  <div>
+                                    <MdDelete className="text-red-500" />
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        }
+                      </tbody>
+                    </CustomDynamicTable>
+                }
+
               </div>
 
             </CustomSmallPopup>
