@@ -1036,6 +1036,7 @@ export const saveAttachementDataInResultTrackingApi = async (attachement) => {
     return response?.data;
 }
 
+
 //save attachement
 export const saveAttachementInResultTrackingApi = async (updatedData) => {
 
@@ -1065,6 +1066,25 @@ export const viewUploadResultTrackingApi = async (path) => {
     return response;
 }
 
+//print report
+///200%2C203%2C202%2C201' \
+export const viewPrintreportTrackingApi = async (testid) => {
+
+
+    console.log(testid);
+
+
+    const response = await privateAxios.get(`tnx_Observations/GetPatientReportType1?TestId=${testid}`, {
+        responseType: "blob", // To handle binary response
+        headers: {
+            "Accept": "application/pdf" // Ensure you're requesting a PDF
+        }
+    })
+
+    console.log(response);
+
+    return response;
+}
 
 //=====================result tracking========================
 export const getAllResultTrackinDataApi = async (recordTrackinData) => {
@@ -1165,11 +1185,19 @@ export const useRetrieveData = (url, params = {}) => {
         } catch (err) {
             setError(err);
         } finally {
+            console.log('finally.........');
+
             setLoading(false);
         }
     };
 
+    useEffect(() => {
+        console.log(response);
+        console.log(data);
+        console.log(loading);
 
+
+    }, [response, data])
 
     return { fetchDataFromApi, response, data, loading, error };
 };
