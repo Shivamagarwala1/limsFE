@@ -15,6 +15,7 @@ import { AiFillDelete } from "react-icons/ai";
 import DynamicTable from "../../../Custom Components/DynamicTable";
 import axios from "axios";
 import { UpdatedMultiSelectDropDown } from "../../../Custom Components/UpdatedMultiSelectDropDown";
+import { addRandomObjectId } from "../../../service/RedendentData";
 
 export default function OutHouseProcessMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -43,6 +44,7 @@ export default function OutHouseProcessMaster() {
   const [InvestigationId, setInvestigationId] = useState("");
   const [InvestigationValue, setInvestigationValue] = useState([]);
 
+  const [row, setRow] = useState([]);
   const ItemData = useGetData();
   const TestData = useGetData();
   const ProcessingData = useGetData();
@@ -118,16 +120,20 @@ export default function OutHouseProcessMaster() {
     setDepartmentDropDown(true); // Show dropdown when typing
   };
 
+  
+
   const fetchGrid = async () => {
     if (!BookingId || !ProcessingId || !DepartmentId) return;
     GridData?.fetchData(
       `/item_OutHouseMaster/GetOutHouseMapping?BookingCentre=${BookingId}&ProcessingCentre=${ProcessingId}&DeptId=${DepartmentId}`
     );
+    const grid = await addRandomObjectId(GridData?.data?.data);
+    setRow(grid); // Store API response in the state
     setShowRow(true);
   };
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "Random", headerName: "Sr. No", width: 20 },
     { field: "bookingCentre", headerName: "Centre Name", flex: 1 },
     { field: "processingCentre", headerName: "Processing Centre", flex: 1 },
     { field: "deptName", headerName: "Dept Name", flex: 1 },
@@ -179,6 +185,8 @@ export default function OutHouseProcessMaster() {
           `/item_OutHouseMaster/GetOutHouseMapping?BookingCentre=${BookingId}&ProcessingCentre=${ProcessingId}&DeptId=${DepartmentId}`
         );
         // /item_OutHouseMaster/GetOutHouseMapping?BookingCentre=1&ProcessingCentre=1&DeptId=1
+        const grid = await addRandomObjectId(GridData?.data?.data);
+        setRow(grid); // Store API response in the state
         setShowRow(true);
       } else {
         toast.error(res?.message);
@@ -323,7 +331,7 @@ export default function OutHouseProcessMaster() {
       <div>
         <DynamicTable
           name="Out House Process Master Details"
-          rows={ShowRow ? GridData?.data?.data : []}
+          rows={ShowRow ? row : []}
           columns={columns}
         />
       </div>

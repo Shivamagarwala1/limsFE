@@ -331,7 +331,7 @@ export default function TATMaster() {
   }, [DepartmentId]);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "Random", headerName: "Sr. No", width: 20 },
     {
       field: `startTime`,
       headerName: `Start Time`,
@@ -556,8 +556,8 @@ export default function TATMaster() {
       );
 
       if (response?.data) {
-        // const grid = await addRandomObjectId(response?.data?.data);
-        setRow(response?.data?.data); // Store API response in the state
+        const grid = await addRandomObjectId(response?.data?.data);
+        setRow(grid); // Store API response in the state
       } else {
         setRow([]); // Clear row if no data is returned
       }

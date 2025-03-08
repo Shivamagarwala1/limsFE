@@ -15,6 +15,7 @@ import { AiFillDelete } from "react-icons/ai";
 import DynamicTable from "../../../Custom Components/DynamicTable";
 import axios from "axios";
 import { UpdatedMultiSelectDropDown } from "../../../Custom Components/UpdatedMultiSelectDropDown";
+import { addRandomObjectId } from "../../../service/RedendentData";
 
 export default function OutSourceProcessMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -43,6 +44,7 @@ export default function OutSourceProcessMaster() {
   const [InvestigationId, setInvestigationId] = useState("");
   const [InvestigationValue, setInvestigationValue] = useState([]);
 
+  const [row, setRow] = useState([]);
   const ItemData = useGetData();
   const TestData = useGetData();
   const LabData = useGetData();
@@ -113,11 +115,13 @@ export default function OutSourceProcessMaster() {
     GridData?.fetchData(
       `/item_outsourcemaster/GetOutSourceMapping?BookingCentre=${BookingId}&OutSourceLab=${LabId}&DeptId=${DepartmentId}`
     );
+    const grid = await addRandomObjectId(GridData?.data?.data);
+    setRow(grid); // Store API response in the state
     setShowRow(true);
   };
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "Random", headerName: "Sr. No", width: 20 },
     { field: "bookingCentre", headerName: "Centre Name", flex: 1 },
     { field: "processingCentre", headerName: "Lab Centre", flex: 1 },
     { field: "deptName", headerName: "Dept Name", flex: 1 },
@@ -169,6 +173,8 @@ export default function OutSourceProcessMaster() {
           `/item_outsourcemaster/GetOutSourceMapping?BookingCentre=${BookingId}&OutSourceLab=${LabId}&DeptId=${DepartmentId}`
         );
         // /item_OutHouseMaster/GetOutHouseMapping?BookingCentre=1&LabCentre=1&DeptId=1
+        const grid = await addRandomObjectId(GridData?.data?.data);
+        setRow(grid); // Store API response in the state
         setShowRow(true);
       } else {
         toast.error(res?.message);
@@ -316,7 +322,7 @@ export default function OutSourceProcessMaster() {
       <div>
         <DynamicTable
           name="Out House Process Master Details"
-          rows={ShowRow ? GridData?.data?.data : []}
+          rows={ShowRow ? row : []}
           columns={columns}
         />
       </div>

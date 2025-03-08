@@ -150,6 +150,7 @@ export default function RateTypeWiseRateList() {
     fetchedData();
   }, [DepartmentId, DepartmentId, row]);
   useEffect(() => {
+    GridData?.resetData();
     const fetchedData = async () => {
       await GridData?.fetchData(
         `/rateTypeWiseRateList/GetRateTypeRateListData?ratetypeid=${RateTypeId}&deptId=${DepartmentId}`

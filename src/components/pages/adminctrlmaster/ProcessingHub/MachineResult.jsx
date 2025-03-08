@@ -1,22 +1,38 @@
 import React, { useEffect, useState } from "react";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
+import DynamicTable, { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
 import InputGenerator, {
+  getFormattedDate,
   SubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import { useGetData } from "../../../../service/apiService";
+import { useGetData, usePostData } from "../../../../service/apiService";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
+import { getLocal } from "usehoks";
+import toast from "react-hot-toast";
+import { addRandomObjectId } from "../../../../service/RedendentData";
 
 export default function MachineResult() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
+  const lsData = getLocal("imarsar_laboratory");
+
+  const todayDate = getFormattedDate();
+
+  const [FromDate, setFromDate] = useState(todayDate);
+  const [ToDate, setToDate] = useState(todayDate);
+  const [Barcode, setBarcode] = useState("");
+
+  const [CenterId, setCenterId] = useState(0);
   const [searchValue, setSearchValue] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
+
+  // ------------------ Machine -------------------------------
+  const [MachineId, setMachineId] = useState(0);
   const [MachineValue, setMachineValue] = useState("");
   const [MachineDropDown, setMachineDropDown] = useState(false);
   const [MachineHoveIndex, setMachineHoveIndex] = useState(null);
@@ -27,91 +43,99 @@ export default function MachineResult() {
   const [RegisterHoveIndex, setRegisterHoveIndex] = useState(null);
   const [RegisterSelectedOption, setRegisterSelectedOption] = useState("");
 
+  const [row, setRow] = useState([]);
   const [SelectAll, setSelectAll] = useState(false);
   const AllCenterData = useGetData();
+  const MachineData = useGetData();
+  const GridData = usePostData();
   useEffect(() => {
-    AllCenterData?.fetchData(
-      "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
+    const row = addRandomObjectId(GridData?.data || []);
+    setRow(row);
+  }, [GridData?.data]);
+  useEffect(() => {
+    AllCenterData?.fetchData("/centreMaster/GetProcesiongLab");
+    MachineData?.fetchData(
+      "/machineMaster?select=id,machineName&$filter=(isactive eq 1)"
     );
     // console.log(AllCenterData);
   }, []);
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "Random", headerName: "Sr. No", width: 20 },
     {
-      field: `PatientName`,
-      headerName: `Patient Name`,
-      flex: 1,
-    },
-    {
-      field: `VisitId`,
+      field: `visitId`,
       headerName: `Visit Id`,
       flex: 1,
     },
     {
-      field: `Barcode`,
+      field: `patientName`,
+      headerName: `Patient Name`,
+      flex: 1,
+    },
+    {
+      field: `barcodeNo`,
       headerName: `Barcode No.`,
       flex: 1,
     },
     {
-      field: `Machine`,
-      headerName: `Machine`,
-      flex: 1,
-    },
-    {
-      field: `TestName`,
+      field: `investigationName`,
       headerName: `Test Name`,
       flex: 1,
     },
     {
-      field: `Params`,
-      headerName: `Params`,
+      field: `labObservationName`,
+      headerName: `Lab Observation Name`,
       flex: 1,
     },
     {
-      field: `Reading`,
+      field: `machineName1`,
+      headerName: `Machine Name`,
+      flex: 1,
+    },
+    {
+      field: `reading`,
       headerName: `Reading`,
       flex: 1,
     },
     {
-      field: `MachineComment`,
+      field: `machineComments`,
       headerName: `Machine Comment`,
       flex: 1,
     },
-    {
-      field: `Remark`,
-      headerName: `Remark`,
-      flex: 1,
-    },
-    {
-      field: `Date`,
-      headerName: `Date`,
-      flex: 1,
-    },
+    // {
+    //   field: `Remark`,
+    //   headerName: `Remark`,
+    //   flex: 1,
+    // },
+    // {
+    //   field: `Date`,
+    //   headerName: `Date`,
+    //   flex: 1,
+    // },
   ];
-  const row = [
-    {
-      id: 1,
-      Centre: "105 - center 1",
-      Department: "Nursing",
-      PatientName: "John Snow",
-      Barcode: "10993",
-      SampleRecDate: "10-02-2025",
-      VisitId: "302",
-      ApprovedDate: "12-Feb-25",
-      Reading: "Lorem Ipsum",
-      MachineComment: "Lorem Ipsum",
-      Remark: "Lorem Ipsum",
-      NotApprovedBy: "Tyron",
-      Machine:"Machine 1",
-      Params:"Alpu",
-      TestName: "CBC",
-      AgeGender: "25/male",
-      TransferDate: "15-Feb-2025",
-      Date: "11-Feb-2025",
-      ToCentre: "New-Delhi",
-      FromCentre: "Ayodhya",
-    },
-  ];
+  // const row = [
+  //   {
+  //     id: 1,
+  //     Centre: "105 - center 1",
+  //     Department: "Nursing",
+  //     PatientName: "John Snow",
+  //     Barcode: "10993",
+  //     SampleRecDate: "10-02-2025",
+  //     VisitId: "302",
+  //     ApprovedDate: "12-Feb-25",
+  //     Reading: "Lorem Ipsum",
+  //     MachineComment: "Lorem Ipsum",
+  //     Remark: "Lorem Ipsum",
+  //     NotApprovedBy: "Tyron",
+  //     Machine:"Machine 1",
+  //     Params:"Alpu",
+  //     TestName: "CBC",
+  //     AgeGender: "25/male",
+  //     TransferDate: "15-Feb-2025",
+  //     Date: "11-Feb-2025",
+  //     ToCentre: "New-Delhi",
+  //     FromCentre: "Ayodhya",
+  //   },
+  // ];
 
   // Function to handle input changes
   const handleSearchChange = (e) => {
@@ -122,6 +146,7 @@ export default function MachineResult() {
   // Function to handle selection from the dropdown
   const handleOptionClick = (name, id) => {
     setSearchValue(name);
+    setCenterId(id);
     setSelectedOption(name);
     setShowDropdown(false);
   };
@@ -135,6 +160,7 @@ export default function MachineResult() {
   // Function to handle selection from the dropdown
   const handleOptionClick1 = (name, id) => {
     setMachineValue(name);
+    setMachineId(id);
     setMachineSelectedOption(name);
     setMachineDropDown(false);
   };
@@ -152,7 +178,21 @@ export default function MachineResult() {
     setRegisterDropDown(false);
   };
 
-  const handleSubmit = () => {};
+  const handleSubmit = () => {
+    if (MachineId === 0) {
+      toast.error("Machine is Required");
+      return;
+    }
+    const payload = {
+      centreId: CenterId,
+      machineId: MachineId,
+      fromDate: FromDate,
+      toDate: ToDate,
+      barcodeNo: Barcode || "",
+      empId: lsData?.user?.employeeId,
+    };
+    GridData?.postRequest("/tnx_Booking/MachineResult", payload);
+  };
 
   return (
     <div>
@@ -169,7 +209,7 @@ export default function MachineResult() {
                 value={searchValue}
                 onChange={handleSearchChange}
                 label="Centre"
-                options={AllCenterData?.data}
+                options={AllCenterData?.data?.data}
                 isRequired={false}
                 showSearchBarDropDown={showDropdown}
                 showValueField="companyName"
@@ -178,6 +218,7 @@ export default function MachineResult() {
                 handleOptionClickForCentre={handleOptionClick}
                 setIsHovered={setHoveredIndex}
                 isHovered={hoveredIndex}
+                style={{ marginTop: "2px" }}
               />
               <SearchBarDropdown
                 id="search-bar"
@@ -185,21 +226,36 @@ export default function MachineResult() {
                 value={MachineValue}
                 onChange={handleSearchChange1}
                 label="Machine"
-                options={[]}
+                options={MachineData?.data}
                 isRequired={false}
                 showSearchBarDropDown={MachineDropDown}
                 setShowSearchBarDropDown={setMachineDropDown}
                 handleOptionClickForCentre={handleOptionClick1}
                 setIsHovered={setMachineHoveIndex}
                 isHovered={MachineHoveIndex}
+                style={{ marginTop: "2px" }}
               />
               <InputGenerator
                 inputFields={[
-                  { type: "customDateField", label: "From", name: "from" },
-                  { type: "customDateField", label: "To", name: "to" },
+                  {
+                    type: "customDateField",
+                    label: "From",
+                    name: "from",
+                    customOnChange: (e) => {
+                      setFromDate(e);
+                    },
+                  },
+                  {
+                    type: "customDateField",
+                    label: "To",
+                    name: "to",
+                    customOnChange: (e) => {
+                      setToDate(e);
+                    },
+                  },
                 ]}
               />
-              <SearchBarDropdown
+              {/* <SearchBarDropdown
                 id="search-bar"
                 name="Register"
                 value={RegisterValue}
@@ -215,24 +271,35 @@ export default function MachineResult() {
                 handleOptionClickForCentre={handleOptionClick2}
                 setIsHovered={setRegisterHoveIndex}
                 isHovered={RegisterHoveIndex}
+              /> */}
+
+              <InputGenerator
+                inputFields={[
+                  {
+                    type: "text",
+                    label: "Barcode",
+                    name: "barcode",
+                    onChange: (e) => {
+                      setBarcode(e);
+                    },
+                  },
+                ]}
               />
-              <div className="flex gap-[0.25rem]">
-                <div style={{marginTop:"-5px"}} className="relative flex-1 gap-1 flex justify-start items-center">
-                  <InputGenerator
-                    inputFields={[
-                      { type: "text", label: "Barcode", name: "barcode" },
-                    ]}
-                  />
-                  <SubmitButton style={{width:"100px"}} submit={false} text={"Search"} />
-                </div>
-              </div>
+              <SubmitButton
+                style={{ width: "100px", marginTop: "-5px" }}
+                submit={false}
+                text={"Search"}
+                callBack={() => {
+                  handleSubmit();
+                }}
+              />
             </div>
           </form>
           <div style={{ maxHeight: "200px" }}>
-            <DynamicTable
+            <UpdatedDynamicTable
               rows={row}
               name="Machine Result Details"
-              //   loading={loading}
+              viewKey="Random"
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
               activeTheme={activeTheme}
