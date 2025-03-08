@@ -342,7 +342,7 @@ export const dummyDataForpatientRegistrationoldPatient = [
 export const doctorShareMasterHeaderApi = ['SR. NO.', 'Departement', 'Percentage(%)', 'Amount'];
 
 export const patientRecordHeader = [
-  "Sr. No", "Booking Date", "Visit Id", "Patient Name", "Age/Gender", "Mobile", "Ref. Doctor", "Centre", "Rate Type", "Reg. By", "Gross Amount", "Dis. Amount", "Net Amount", "Paid Amount", "Due Amount", "Info/Documents", "Settlement",'Online Payment',
+  "Sr. No", "Booking Date", "Visit Id", "Patient Name", "Age/Gender", "Mobile", "Ref. Doctor", "Centre", "Rate Type", "Reg. By", "Gross Amount", "Dis. Amount", "Net Amount", "Paid Amount", "Due Amount", "Info/Documents", "Settlement", 'Online Payment',
   "Cash Receipt", "MRP Receipt"
 ];
 
@@ -351,7 +351,7 @@ export const ResultTrackingHeader = [
   "Sr. No", "Booking Date", "Visit Id", "Sample Rec. Date", "Patient Name", "Age/Gender", "Barcode No.", "Test Name", "Approved Date", "Remark", "Info", "Comments"
 ];
 
-export const resultTrackingForObservationHeader = ['id',"Test Name", "Value", "Flag", "Machine Reading", "Machine", "Min", "Max", "Unit", "Method Name", "Display Reading", "Old Reading"];
+export const resultTrackingForObservationHeader = ["Test Name", "Value", "Flag", "Machine Reading", "Machine", "Min", "Max", "Unit", "Method Name", "Display Reading", "Old Reading"];
 
 
 export const resultTrackForPatientInformation = ['Sr. No.', 'Test Name', 'Barcode', 'Collection At', 'Collection By', 'Receive By', 'Receive At', 'Entry At', 'Entry By', 'Result At', 'Result By', 'OutSource Date', 'OutSource Lab', 'OutSource By', 'Out-House Transfer Date', 'Out-House Transfer Lab', 'Out-House Transfer By'];
