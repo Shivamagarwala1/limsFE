@@ -57,6 +57,7 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/RateListUploadByExcel")),
         exact: true,
     },
+    
     {
         path: "/LIMS/lab-test-master",
         component: React.lazy(() => import("../pages/labctrlmaster/LabTestMaster")),
@@ -356,6 +357,16 @@ export const allRoutes = [
     {
         path: "/LIMS/FeedbackDashboard",
         component: React.lazy(() => import("../pages/feedback/FeedbackDashboard")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/ChangeReportType-Method",
+        component: React.lazy(() => import("../pages/adminctrlmaster/ProcessingHub/ChangeReportTypeMethod.jsx")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/GenerateCertificate",
+        component: React.lazy(() => import("../pages/adminctrlmaster/GenerateCertificate.jsx")),
         exact: true,
     },
 

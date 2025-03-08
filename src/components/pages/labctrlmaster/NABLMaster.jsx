@@ -14,7 +14,7 @@ import { AiFillDelete } from "react-icons/ai";
 import { use } from "react";
 import { CiImageOn } from "react-icons/ci";
 import { ImagePopup } from "../../../Custom Components/PopupModal";
-import { ViewImage } from "../../../service/RedendentData";
+import { addRandomObjectId, ViewImage } from "../../../service/RedendentData";
 import { UpdatedMultiSelectDropDown } from "../../../Custom Components/UpdatedMultiSelectDropDown";
 
 export default function NABLMaster() {
@@ -62,6 +62,9 @@ export default function NABLMaster() {
   const [DefaultLogoSelectedOption, setDefaultLogoSelectedOption] =
     useState("");
 
+    
+  const [row, setRow] = useState([]);
+
   const PostData = usePostData();
   const ItemData = useGetData();
   const DepartmentData = useGetData();
@@ -88,6 +91,8 @@ export default function NABLMaster() {
     await GridData?.postRequest(
       `/itemObservation_isnabl/GetNablData?CentreId=${Booking}&itemId=${Observation}`
     );
+    const grid = await addRandomObjectId(GridData?.data);
+    setRow(grid); // Store API response in the state
     setShowRow(true);
   };
   const fetchedData = async () => {
@@ -107,7 +112,7 @@ export default function NABLMaster() {
   console.log(BookingId, ObservationId);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "Random", headerName: "Sr. No", width: 20 },
     { field: "centrename", headerName: "Centre Name", flex: 1 },
     { field: "itemid", headerName: "Item Id", flex: 1 },
     { field: "itemName", headerName: "Item Name", flex: 1 },
@@ -331,6 +336,8 @@ export default function NABLMaster() {
         GridData?.postRequest(
           `/itemObservation_isnabl/GetNablData?CentreId=${BookingId}&itemId=${ObservationId}`
         );
+        const grid = await addRandomObjectId(GridData?.data);
+        setRow(grid); // Store API response in the state
         setShowRow(true);
         sessionStorage.setItem("BookingId", JSON.stringify(BookingId));
         sessionStorage.setItem("ObservationId", JSON.stringify(ObservationId));
@@ -476,7 +483,7 @@ export default function NABLMaster() {
       </div>
 
       {/* grid data */}
-      <DynamicTable rows={ShowRow ? GridData?.data : []} columns={columns} />
+      <DynamicTable rows={ShowRow ? row : []} columns={columns} />
     </>
   );
 }

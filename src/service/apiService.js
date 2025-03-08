@@ -110,6 +110,10 @@ export const useGetData = (url, params = {}) => {
       }
     };
   
+    const resetData = ()=>{
+      setData([]);
+    }
+
     useEffect(() => {
       // Check if BASE_URL is the restricted URL
       if (BASE_URL !== "https://imarsar.com:8084/api") {
@@ -119,7 +123,7 @@ export const useGetData = (url, params = {}) => {
       }
     }, [url, JSON.stringify(params)]);
   
-    return { fetchData, response, data, loading, error };
+    return { fetchData, response, data, loading, error,resetData };
   };
 
 /**

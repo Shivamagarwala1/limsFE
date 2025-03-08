@@ -279,6 +279,7 @@ export const UpdatedDynamicTable = ({
               </tbody>
             )}
           </table>
+          <br /><br /><br /><br /><br /><br />
         </div>
       )}
       <br />

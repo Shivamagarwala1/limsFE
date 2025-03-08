@@ -2629,7 +2629,7 @@ export const ImagePopup = ({ imageView, setImageView, Img }) => {
                     {
                       label: "Close",
                       submit: false,
-                      style:{width:"60px"},
+                      style: { width: "60px" },
                       callBack: () => {
                         setImageView(false);
                       },
@@ -2644,3 +2644,5 @@ export const ImagePopup = ({ imageView, setImageView, Img }) => {
     </>
   );
 };
+
+

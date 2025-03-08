@@ -19,7 +19,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
   const [showCalendars, setShowCalendars] = useState({});
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
-  const handleDateClick = (date, name,field) => {
+  const handleDateClick = (date, name, field) => {
     const formatDate = (date) => {
       const options = { day: "2-digit", month: "short", year: "numeric" };
       return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
@@ -38,8 +38,6 @@ export default function InputGenerator({ inputFields = [], setValues }) {
       [name]: !prevState[name],
     }));
   };
-
-
 
   const todayDate = getFormattedDate(); // Example output: 07-Feb-2025
   // console.log("input generator ", inputFields);
@@ -69,7 +67,9 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 {(field?.dataOptions || []).map((option, idx) => {
                   const valueKey = field?.keyField || Object.keys(option)[0]; // First available key as value
                   const labelKey =
-                    field?.showValueField || Object.keys(option)[1] || Object.keys(option)[0]; // Second available key or fallback
+                    field?.showValueField ||
+                    Object.keys(option)[1] ||
+                    Object.keys(option)[0]; // Second available key or fallback
 
                   return (
                     <option
@@ -98,7 +98,6 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                     field?.onChange?.(e.target.value); // Calls field's internal onChange
                     field?.customOnChange?.(e.target.value); // Calls user-defined onChange
                   }}
-
                   className={`inputPeerField peer border-borderColor ${
                     field?.required ? "border-b-red-500" : ""
                   } focus:outline-none`}
@@ -124,7 +123,9 @@ export default function InputGenerator({ inputFields = [], setValues }) {
               {showCalendars[field?.name] && (
                 <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
                   <UserCalendar
-                    onDateClick={(date) => handleDateClick(date, field?.name,field)}
+                    onDateClick={(date) =>
+                      handleDateClick(date, field?.name, field)
+                    }
                   />
                 </div>
               )}
@@ -195,7 +196,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
                 readOnly={field?.readOnly}
                 required={field?.required}
                 onChange={(e) => {
-                    field.onChange(e.target.value);
+                  field.onChange(e.target.value);
                 }}
                 placeholder={field?.placeholder || ""}
                 className={`inputPeerField peer focus:outline-none`}
@@ -314,6 +315,7 @@ const SearchBarDropdown = ({
 export const SubmitButton = ({
   text,
   submit = true,
+  disabled = false,
   callBack = () => {},
   style,
 }) => {
@@ -346,11 +348,14 @@ export const SubmitButton = ({
           ref={buttonRef} // Attach ref to the button
           type={submit ? "submit" : "button"}
           data-ripple-light="true"
+          disabled={disabled}
           onClick={(e) => {
             handleClick(e); // Call the ripple effect handler
             callBack(); // Directly pass the callback
           }}
-          className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
+          className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center ${
+            disabled ? "cursor-not-allowed" : "cursor-pointer"
+          }`}
           style={{
             ...style,
             background: activeTheme?.menuColor,
@@ -418,7 +423,7 @@ export const ButtonWithImage = ({
   );
 };
 
-export const TwoSubmitButton = ({ options = [],NoSpace=false }) => {
+export const TwoSubmitButton = ({ options = [], NoSpace = false }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
   // Split the options into pairs
@@ -617,7 +622,15 @@ export const StatusSubmitButton = ({
             color: activeTheme?.iconColor,
           }}
         >
-          <span style={{backgroundColor:text?.rowcolor,padding:"2px",borderRadius:"10px"}}>{text?.investigationName}</span>
+          <span
+            style={{
+              backgroundColor: text?.rowcolor,
+              padding: "2px",
+              borderRadius: "10px",
+            }}
+          >
+            {text?.investigationName}
+          </span>
         </button>
         <style jsx>{`
           .ripple {
@@ -641,7 +654,6 @@ export const StatusSubmitButton = ({
   );
 };
 
-
 export const ClickChangeButton1 = ({ text, isActive, onToggle, style }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [isClicked, setIsClicked] = useState(isActive);
@@ -659,7 +671,7 @@ export const ClickChangeButton1 = ({ text, isActive, onToggle, style }) => {
       className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
       style={{
         ...style,
-        height:"1rem",
+        height: "1rem",
         background: isClicked ? activeTheme?.menuColor : "transparent",
         color: isClicked ? activeTheme?.iconColor : "black",
         border: isClicked ? "none" : `1px solid black`,
@@ -670,8 +682,7 @@ export const ClickChangeButton1 = ({ text, isActive, onToggle, style }) => {
   );
 };
 
-export const WeekdayToggle = ({setDays,days }) => {
-
+export const WeekdayToggle = ({ setDays, days }) => {
   const handleToggle = (day, newState) => {
     setDays((prev) => ({ ...prev, [day]: newState }));
     console.log("Updated Days:", { ...days, [day]: newState }); // Logs updated state
