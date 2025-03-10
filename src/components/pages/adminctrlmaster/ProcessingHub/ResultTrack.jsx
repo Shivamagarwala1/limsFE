@@ -33,7 +33,7 @@ import { getLocal, setLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addObjectId } from "../../../../service/RedendentData";
 import { toast } from "react-toastify";
-import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, saveAttachementDataInResultTrackingApi, saveAttachementInResultTrackingApi, saveCommentDataApi, saveRejectApi, saveReportInResultTrackingApi, SaveTestObservationsDataApi, useRetrieveData, viewPrintreportTrackingApi, viewUploadResultTrackingApi } from "../../../../service/service";
+import { convertUnApproveToApprove, convsertHoldToUnHoldOrUnHoldToHold, getAllDoctorsBasedOnCentreWise, getAllObserVationDataBasedOnTestName, getAllResultTrackinDataApi, getAllTemplateDataForResultTrackingApi, saveAttachementDataInResultTrackingApi, saveAttachementInResultTrackingApi, saveCommentDataApi, saveRejectApi, saveReportInResultTrackingApi, saveRerunDataApi, SaveTestObservationsDataApi, useRetrieveData, viewPrintreportTrackingApi, viewUploadResultTrackingApi } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import { resultTrackForPatientInformation, resultTrackingForObservationHeader, resultTrackingForReRun, ResultTrackingHeader } from "../../../listData/listData";
@@ -47,6 +47,7 @@ import { getDefaultCentreId } from "../../../../service/localstroageService";
 import CustomFormButton from "../../../global/CustomFormButton";
 import CustomSmallPopup from "../../../global/CustomSmallPopup";
 import CustomFileUpload from "../../../global/CustomFileUpload";
+import { data } from "react-router-dom";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -73,7 +74,26 @@ export default function ResultTrack() {
   const [resultTrackData, setResultTrackData] = useState({
     doctorId: 0,
     template: 0
-  })
+  });
+  const [resonForReRunData, setReasonForReRundata] = useState(
+    {
+      "id": 0,
+      "observationId": 0,
+      "testID": 0,
+      "workorderid": "string",
+      "macReading": "string", //if value is exit then value : ''
+      "macID": 0, //same : 0
+      "labObservationName": "string",
+      "investigationName": "string",
+      "rerunReason": "string",
+      "rerunbyid": [],
+      "rerunDate": "2025-03-10T16:07:02.993Z"
+    }
+  );
+
+  const [allReRunReasonData, setAllRerunReasonData] = useState([]);
+  const [allSelectedReRunReasonData, setAllSelectedRerunReasonData] = useState([]);
+
   const [allResultTrackingData, setAllResultTrackingData] = useState([]);
   const [allResultTrackingForNextAndPrevious, setAllResultTrackingForNextAndPrevious] = useState([]);
   const [allObservationData, setAllObservationData] = useState([]);
@@ -127,22 +147,18 @@ export default function ResultTrack() {
 
       const response = await getAllResultTrackinDataApi(payload);
 
-
-
-
       if (response?.success) {
-
 
         setIsButtonClick(1);
 
         // Initialize an empty object to group by workOrderId and accumulate investigation names
 
-        //!===================================================
-        // const result = {};
+        //!===================================================                                   
+        // const result = {};                                                                    
 
-        // // Loop through the data and group by workOrderId
-        // response?.data.forEach(item => {
-        //   const { workOrderId, investigationName, testid, gender, centreId, reportType, itemId } = item;
+        // // Loop through the data and group by workOrderId                                     
+        // response?.data.forEach(item => {                                                      
+        //   const { workOrderId, investigationName, testid, gender, centreId, reportType,  itemId } = item;                                                                         
 
         //   // If workOrderId exists in result, push the investigationName into the investigationName array
         //   if (result[workOrderId]) {
@@ -164,13 +180,13 @@ export default function ResultTrack() {
         //       investigationName: [{ investigationName: investigationName, testid: testid, gender: gender, fromAge: 0, toAge: 0, centreId: centreId, reportType: reportType, itemId: itemId }]  // Add the investigationName array containing the current investigationName
         //     };
         //   }
-        // });
+        // });                                                                                   
 
-        // // Convert the result object into an array if needed
-        // const groupedData = Object.values(result);
+        // // Convert the result object into an array if needed                                  
+        // const groupedData = Object.values(result);                                            
 
-        // console.log(groupedData);
-        //!===================================================
+        // console.log(groupedData);                                                             
+        //!===================================================                                   
 
 
 
@@ -836,6 +852,7 @@ export default function ResultTrack() {
   const allReportFileData = useRetrieveData();
   const allRejectionData = useRetrieveData();
   const allCommentData = useRetrieveData();
+  const allSampleRerunData = useRetrieveData();
 
 
   useEffect(() => {
@@ -851,6 +868,10 @@ export default function ResultTrack() {
 
     if (showPopup === 4) {
       allRejectionData?.fetchDataFromApi(`/sampleRejectionReason?select=id,rejectionReason&$filter=(isactive eq 1)`);
+    }
+
+    if (showPopup === 5) {
+      allSampleRerunData?.fetchDataFromApi(`/SampleRerunReason?select=id,reason&$filter=(isActive eq 1) `);
     }
 
   }, [showPopup])
@@ -1033,6 +1054,149 @@ export default function ResultTrack() {
       toast.error(error?.message)
     }
 
+    setIsButtonClick(0);
+  }
+
+
+
+  // Assuming the following function is inside your component
+  const handelOnChangeReRun = (e, index) => {
+    const newValue = e.target.value; // Get the selected value from the dropdown (rerunbyid)
+    console.log("New Value: ", newValue, "Index: ", index);
+
+    setReasonForReRundata((prevData) => {
+      // Make a shallow copy of the previous data to avoid mutating it directly
+      const updatedData = [...prevData.rerunbyid];  // Copy the current rerunbyid array
+
+      // Check if the index exists in the array, and if it does, update the rerunbyid value
+      const existingIndex = updatedData.findIndex(item => item.index === index);
+
+      if (existingIndex !== -1) {
+        // If the index is found, update the corresponding rerunbyid value
+        updatedData[existingIndex] = {
+          index,
+          rerunbyid: newValue,
+        };
+      } else {
+        // If the index is not found, add a new object with the current index and rerunbyid value
+        updatedData.push({
+          index,
+          rerunbyid: newValue,
+        });
+      }
+
+      // Return the updated state
+      return {
+        ...prevData,
+        rerunbyid: updatedData,
+      };
+    });
+
+    // setAllSelectedRerunReasonData(prevData => {
+    //   // Check if prevData contains the item with the given index
+    //   const updatedData = prevData.map(item => {
+    //     if (item.rowIndex === index) {
+    //       // If the item is found, update rerunbyid
+    //       return { ...item, rerunbyid: newValue };
+    //     }
+    //     return item; // Keep other items unchanged
+    //   });
+
+    //   console.log("Updated Data: ", updatedData); // Log to see the updated data
+    //   return updatedData; // Return updated data to set the new state
+    // });
+  };
+
+  const handelPushAllAllTestDatabasedOnTestId = (testId) => {
+    setAllRerunReasonData(allObservationData.filter((item) => item?.testId === testId))
+  }
+
+
+  const handleCheckboxChange = (index, testData) => {
+    setAllSelectedRerunReasonData(prevData => {
+      // Check if the item exists by its rowIndex (unique per row)
+      const exists = prevData.findIndex(item => item.rowIndex === index);
+
+      if (exists !== -1) {
+        // If exists, remove the item (uncheck behavior)
+        return prevData.filter(item => item.rowIndex !== index);
+      } else {
+        // If not exists, add a new entry with the rowIndex
+        return [
+          ...prevData,
+          {
+            id: 0,
+            observationId: 0,
+            testID: testData.testID, // Even though testID is the same, we use it to group data
+            workorderid: testData?.workOrderId,
+            macReading: testData?.machineReading,
+            macID: testData?.machineID,
+            labObservationName: testData?.labObservationId || '',
+            investigationName: testData?.investigationName || '',
+            rerunReason: "string",
+            rerunbyid: 0,
+            rerunDate: new Date().toISOString(),
+            rowIndex: index // Use index to store the unique reference
+          }
+        ];
+      }
+    });
+  };
+
+
+  const saveReasionRerunData = async () => {
+    setIsButtonClick(5);
+    try {
+
+      console.log(allSampleRerunData);
+
+
+      const updateData = allSelectedReRunReasonData?.map((item, index) => {
+        // Access rerunbyid from resonForReRunData and get the corresponding value from allReRunReasonData
+        const rerunbyidValue = resonForReRunData?.rerunbyid?.find(data => data.index === index)?.rerunbyid || 0;
+
+        // Find the actual rerun reason based on rerunbyidValue
+        const rerunReason = allSampleRerunData?.data?.find(option => option.id === rerunbyidValue)?.reason || '';
+
+        return {
+          "id": item?.id,
+          "observationId": item?.observationId,
+          "testID": testIdForTracingAddAttachement,
+          "workorderid": item?.workorderid,
+          "macReading": item?.macReading || '',
+          "macID": item?.macID || 0,
+          "labObservationName": item?.labObservationName,
+          "investigationName": item?.investigationName,
+          "rerunReason": rerunReason,
+          "rerunbyid": rerunbyidValue,
+          "rerunDate": new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`)
+        };
+      });
+
+      try {
+
+        const response = await saveRerunDataApi(updateData);
+
+        if (response?.success) {
+
+          toast.success(response?.message)
+        } else {
+          toast.error(response?.message)
+        }
+
+      } catch (error) {
+        toast.error(error?.message)
+        console.log(error);
+
+      }
+      console.log(updateData);
+
+
+    } catch (error) {
+      toast.error(error?.message);
+      console.log(error);
+
+    }
     setIsButtonClick(0);
   }
 
@@ -1620,7 +1784,10 @@ export default function ResultTrack() {
                                           <CustomeNormalButton activeTheme={activeTheme}
                                             text={'Re-Run'}
                                             disabled={String(data?.isapproved) !== '0'}
-                                            onClick={() => setShowPopup(5)} />
+                                            onClick={() => {
+                                              setShowPopup(5), setTestIdForTracingAddAttachement(data?.testId),
+                                                handelPushAllAllTestDatabasedOnTestId(data?.testId)
+                                            }} />
                                         </div>
                                         <div className="w-20">
                                           <CustomeNormalButton activeTheme={activeTheme}
@@ -2085,260 +2252,101 @@ export default function ResultTrack() {
 
                 </tbody>
               </CustomDynamicTable > */}
+
               {
-                allObservationData?.length !== 0 && (
+                allReRunReasonData?.length !== 0 && (
                   <>
                     <GridDataDetails
-                      gridDataDetails={'Result Entry'}
+                      gridDataDetails={'Re-run Details'}
                     />
 
-                    <CustomDynamicTable CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
-                      <tbody>
+                    <CustomDynamicTable columns={[' ', 'Test Name', 'Rerun Reason']} activeTheme={activeTheme} height={"200px"} >
+                      <tbody className="mb-1">
                         {allObservationData?.map((data, index) => {
 
-                          const isNextAvailable = index < allObservationData.length - 1;
-
                           return (
-                            data?.reportType === 1 &&
-                              data?.observationName === "" ? (
-                              <React.Fragment key={index}>
 
-                                {
-                                  index !== 0 && (
-                                    isNextAvailable && (
-                                      <tr>
-                                        <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
-                                        </td>
-                                      </tr>
-                                    )
-                                  )
-                                }
+                            data?.reportType === 1 && index !== 0 && (
 
+                              <tr
+                                className={`cursor-pointer whitespace-nowrap 
+                                  ${isHoveredTable === index ? '' : index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}  
+                                  `}
 
-                                <tr>
-                                  <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
-                                    <div className="flex items-center gap-2 w-full">
-                                      <div style={{
-                                        background: activeTheme?.menuColor,
+                                key={index}
+                                onMouseEnter={() => setIsHoveredTable(index)}
+                                onMouseLeave={() => setIsHoveredTable(null)}
+                                style={{
+                                  background:
+                                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                  // Hides scrollbar for IE/Edge
+                                }}
+                              >
+
+                                <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor">
+                                  <input
+                                    type="checkbox"
+                                    checked={allSelectedReRunReasonData.some(item => item.rowIndex === index)}
+                                    onChange={() => handleCheckboxChange(index, data)}
+                                  />
+                                </td>
+                                <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
+                                  <div className="flex items-center gap-1">
+                                    <div>
+                                      {data?.observationName}
+                                    </div>
+
+                                  </div>
+                                </td>
+
+                                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  <form autoComplete="off">
+                                    <input
+                                      type="text"
+                                      name="charNumber"
+                                      id="charNumber"
+                                      value={observationValue[data?.testId]?.[index] ?? data?.value ?? ""} // Get value for specific testId & index
+                                      maxLength={15}
+                                      readOnly={data?.value}
+                                      onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
+                                      className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  }`}
+
+                                      style={{
+                                        background: data?.value === "Header" ? activeTheme?.menuColor : "black",
                                         WebkitBackgroundClip: "text",
                                         WebkitTextFillColor: "transparent",
-                                      }}>{data?.investigationName}</div>
-                                      <div className="flex justify-center items-center">
-                                        <input
-                                          type="checkbox"
-                                          checked={observationCheckValue[data?.testId] || false}
-                                          onChange={() =>
-                                            setObservationCheckValue(prev => ({
-                                              ...prev,
-                                              [data?.testId]: !prev[data?.testId] // Toggle checkbox state
-                                            }))
-                                          }
-                                        />
-                                      </div>
-
-                                      {/* <div className="w-20">
-                                        <CustomeNormalButton
-                                          activeTheme={activeTheme}
-                                          text={'Reject'}
-                                          disabled={String(data?.isapproved) !== '0'}
-                                          onClick={() => { setShowPopup(4), setTestIdForTracingAddAttachement(data?.testId) }}
-                                        />
-                                      </div>
-                                      <div className="w-20">
-                                        <CustomeNormalButton activeTheme={activeTheme}
-                                          text={'Re-Run'}
-                                          disabled={String(data?.isapproved) !== '0'}
-                                          onClick={() => setShowPopup(5)} />
-                                      </div>
-                                      <div className="w-20">
-                                        <CustomeNormalButton activeTheme={activeTheme}
-                                          text={'Comment'}
-                                          onClick={() => {
-                                            setShowPopup(9),
-                                              // setTestIdForTracingAddAttachement(data?.testId),
-
-                                              getCommentDatabasedOnTestId(data?.testId)
-                                          }}
-                                          disabled={String(data?.isapproved) !== '0'}
-                                        />
-                                      </div> */}
-
-                                    </div>
-                                  </td>
-                                </tr>
+                                        display: "inline-block", // Ensures proper rendering of gradient
+                                      }}
+                                    />
+                                  </form>
+                                </td> */}
 
 
-                              </React.Fragment>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                  <div className="relative w-40">
+                                    <CustomDropdown
+                                      key={index}
+                                      name={`rerunbyid_${index}`}  // Unique name for each dropdown
+                                      label="Select Doctor"
+                                      value={resonForReRunData.rerunbyid.find(item => item.index === index)?.rerunbyid || 0}  // Access rerunbyid by index
+                                      options={[
+                                        { label: 'Select Rerun Reason', value: 0, disabled: true },
+                                        ...allSampleRerunData?.data?.map((option) => ({
+                                          label: option.reason,
+                                          value: parseInt(option.id),
+                                        })),
+                                      ]}
+                                      onChange={(e) => handelOnChangeReRun(e, index)}  // Pass index to handler
+                                      defaultIndex={0}
+                                      activeTheme={activeTheme}
+                                      showLabel={false}
+                                    />
+
+                                  </div>
+                                </td>
+                              </tr >
+
                             )
-                              :
-
-                              data?.reportType === 1 && (
-
-                                <tr
-                                  className={`cursor-pointer whitespace-nowrap 
-                                  ${isHoveredTable === index ? '' : index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}  
-                                  ${data?.value !== "" && data?.value !== "Header"
-                                      ? Number(data?.value) < Number(data?.minVal)
-                                        ? "bg-yellow-500"
-                                        : Number(data?.value) > Number(data?.maxVal)
-                                          ? "bg-red-500"
-                                          : "bg-green-500"
-                                      : "" // No background color if value is "Header" or ""
-                                    }`}
-
-                                  key={index}
-                                  onMouseEnter={() => setIsHoveredTable(index)}
-                                  onMouseLeave={() => setIsHoveredTable(null)}
-                                  style={{
-                                    background:
-                                      isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                                    // Hides scrollbar for IE/Edge
-                                  }}
-                                >
-
-
-                                  <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
-                                    <div className="flex items-center gap-1">
-                                      <div>
-                                        {data?.observationName}
-                                      </div>
-                                      {
-                                        data?.observationName === 'DIFFERENTIAL LEUKOCYTE COUNT(DLC)' && (
-                                          <div>
-                                            <input
-                                              type="checkbox"
-                                              checked={observationCheckValue[data?.testId] || false}
-                                              onChange={() =>
-                                                setObservationCheckValue(prev => ({
-                                                  ...prev,
-                                                  [data?.testId]: !prev[data?.testId] // Toggle checkbox state
-                                                }))
-                                              }
-                                            />
-                                          </div>
-                                        )
-                                      }
-
-                                    </div>
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                    <form autoComplete="off">
-                                      <input
-                                        type="text"
-                                        name="charNumber"
-                                        id="charNumber"
-                                        value={observationValue[data?.testId]?.[index] ?? data?.value ?? ""} // Get value for specific testId & index
-                                        maxLength={15}
-                                        readOnly={data?.value}
-                                        onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
-                                        className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  }`}
-
-                                        style={{
-                                          background: data?.value === "Header" ? activeTheme?.menuColor : "black",
-                                          WebkitBackgroundClip: "text",
-                                          WebkitTextFillColor: "transparent",
-                                          display: "inline-block", // Ensures proper rendering of gradient
-                                        }}
-                                      />
-                                    </form>
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold">
-
-                                    {data?.value !== 'Header' && data?.value ?
-                                      <div className="flex items-center justify-center gap-2">
-                                        <FaFlag
-                                          className={`text-base ${Number(data?.value) < Number(data?.minVal)
-                                            ? "text-yellow-500"
-                                            : Number(data?.value) > Number(data?.maxVal)
-                                              ? "text-red-500"
-                                              : "text-green-500"
-                                            }`}
-                                        />
-                                        <div className={`text-base font-semibold ${Number(data?.value) < Number(data?.minVal)
-                                          ? "text-yellow-500"
-                                          : Number(data?.value) > Number(data?.maxVal)
-                                            ? "text-red-500"
-                                            : "text-green-500"
-                                          }`}>
-                                          {Number(data?.value) < Number(data?.minVal)
-                                            ? "L"
-                                            : Number(data?.value) > Number(data?.maxVal)
-                                              ? "H"
-                                              : "N"}
-                                        </div>
-                                      </div>
-                                      :
-                                      observationValue[data?.testId]?.[index] && observationValue[data?.testId]?.[index] !== "" && (
-                                        <div className="flex items-center justify-center gap-2">
-                                          <FaFlag
-                                            className={`text-base ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                              ? "text-yellow-500"
-                                              : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                                ? "text-red-500"
-                                                : "text-green-500"
-                                              }`}
-                                          />
-                                          <div className={`text-base font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                            ? "text-yellow-500"
-                                            : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                              ? "text-red-500"
-                                              : "text-green-500"
-                                            }`}>
-                                            {Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                              ? "L"
-                                              : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                                ? "H"
-                                                : "N"}
-                                          </div>
-                                        </div>
-                                      )}
-                                  </td>
-
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.machineReading}>
-                                    {/* {data?.machineReading} */}
-                                    {data?.machineReading?.length > 7 ? `${data.machineReading.slice(0, 19)}...` : data?.machineReading}
-
-                                  </td>
-
-
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                    {data?.machineName}
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                    {data?.minVal}
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                    {data?.maxVal}
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                    {data?.unit}
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.method}>
-                                    {data?.method?.length > 19 ? `${data.method.slice(0, 19)}...` : data?.method}
-
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.displayReading}>
-                                    {/* {data?.displayReading} */}
-                                    {data?.displayReading?.length > 19 ? `${data.displayReading.slice(0, 19)}...` : data?.displayReading}
-
-                                  </td>
-
-                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                    {data?.oldreading}
-                                  </td>
-
-                                </tr >
-
-                              )
 
                           )
                         }
@@ -2346,130 +2354,27 @@ export default function ResultTrack() {
                       </tbody>
                     </CustomDynamicTable >
 
-                    <>
-                      <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
-
-                        <div className="relative flex-1">
-                          <CustomDropdown
-                            name="doctorId"
-                            label="Select Doctor"
-                            value={resultTrackData?.doctorId}
-                            options={[
-                              { label: 'Select Doctor Name', value: 0, disabled: true },
-                              ...allDoctorData?.map(item => ({
-                                label: item.doctorName,
-                                value: parseInt(item.doctorId),
-                              })),
-                            ]}
-                            onChange={(e) => handelOnChangeResultTrackData(e)}
-                            defaultIndex={0}
-                            activeTheme={activeTheme}
-                            isMandatory={!resultTrackData?.doctorId}
-                          />
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-                          <div className="relative flex-1 ">
-                            <CustomFormButton
-                              activeTheme={activeTheme}
-                              text="Save"
-                              icon={FaSpinner}
-                              isButtonClick={isButtonClick}
-                              loadingButtonNumber={1} // Unique number for the first button
-                              onClick={() => onSubmitObservationData('Save', 1)}
-                            />
-                          </div>
-                          <div className="relative flex-1">
-                            <CustomeNormalButton
-                              activeTheme={activeTheme}
-                              text={String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold'}
-                              onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Hold') }}
-
-                            // // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
-                            />
-                          </div>
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-                          <div className="relative flex-1 ">
-                            {
-                              String(testIsHold?.isApproved) === '1' ?
-                                <CustomeNormalButton
-                                  activeTheme={activeTheme}
-                                  text={'Un Approve'}
-
-                                  icon={FaSpinner}
-                                  isButtonClick={isButtonClick}
-                                  loadingButtonNumber={2} // Unique number for the first button
-                                  // onClick={() => onSubmitObservationData('Approve', 3)}
-                                  // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
-                                  onClick={() => { setTrackingHoldOrApproved('Approve'), onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved() }}
-                                />
-
-                                :
-                                <CustomFormButton
-                                  activeTheme={activeTheme}
-                                  text="Approve"
-                                  icon={FaSpinner}
-                                  isButtonClick={isButtonClick}
-                                  loadingButtonNumber={3} // Unique number for the first button
-
-                                  // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
-
-                                  disabled={resultTrackData?.doctorId === 0}
-                                  onClick={() => onSubmitObservationData('Approve', 3)}
-                                />
-
-                            }
-
-
-                          </div>
-                          <div className="relative flex-1">
-                            <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'}
-                              onClick={() => handelOnSubmitForPrintReport(storeWorkOrderId)}
-                            />
-                          </div>
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-                          <div className="relative flex-1 ">
-                            <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
-                              onClick={() => setShowPopup(8)}
-                            />
-                          </div>
-                          <div className="relative flex-1">
-                            <CustomeNormalButton activeTheme={activeTheme} text={'Add Attachment'} onClick={() => setShowPopup(7)} />
-                          </div>
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-                          <div className="relative flex-1 ">
-                            <CustomeNormalButton activeTheme={activeTheme} text={'Main List'} onClick={handleSubmit} />
-                          </div>
-                          <div className="relative flex-1">
-                            <CustomeNormalButton activeTheme={activeTheme} text={'Previous'}
-                              onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 1)}
-                            />
-                          </div>
-                        </div>
-
-                        <div className='flex gap-[0.25rem]'>
-                          <div className="relative flex-1 ">
-                            <CustomeNormalButton activeTheme={activeTheme} text={'Next'}
-                              onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 0)}
-                            />
-                          </div>
-                          <div className="relative flex-1">
-
-                          </div>
-                        </div>
-                      </div>
-                    </>
                   </>
                 )
               }
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+
+                <div className="flex gap-[0.25rem]">
+                  <div className="relative flex-1">
+                    <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                      isButtonClick={isButtonClick}
+                      loadingButtonNumber={5} // Unique number for the first button
+                      onClick={() => saveReasionRerunData()}
+                    />
+                  </div>
+                  <div className="relative flex-1">
+
+                  </div>
+                </div>
+
+              </div>
             </CustomPopup>
           )
         }

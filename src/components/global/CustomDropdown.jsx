@@ -36,6 +36,7 @@ function CustomDropdown({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+  
 
   return (
     <div ref={dropdownRef}>
