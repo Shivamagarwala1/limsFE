@@ -279,7 +279,12 @@ export const UpdatedDynamicTable = ({
               </tbody>
             )}
           </table>
-          <br /><br /><br /><br /><br /><br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
+          <br />
         </div>
       )}
       <br />
@@ -288,3 +293,14 @@ export const UpdatedDynamicTable = ({
   );
 };
 
+export const StyledHr = () => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  return (
+    <>
+      <div
+        className="w-full h-[0.10rem]"
+        style={{ background: activeTheme?.menuColor }}
+      ></div>
+    </>
+  );
+};

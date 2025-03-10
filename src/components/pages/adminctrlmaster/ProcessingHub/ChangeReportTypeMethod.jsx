@@ -516,6 +516,7 @@ export default function ChangeReportType() {
             ]}
           />
           <TwoSubmitButton
+          style={{marginTop:"1px"}}
             options={[
               {
                 label: "Search",

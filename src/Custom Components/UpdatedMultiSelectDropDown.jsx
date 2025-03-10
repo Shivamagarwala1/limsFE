@@ -16,6 +16,7 @@ export const UpdatedMultiSelectDropDown = ({
   setSelectedValues, // Function to update selected values
   dataDependOnOther = false,
   dataDependOnOtherLable,
+  style = {},
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   // Internal state for dropdown visibility, hover, and search query
@@ -92,7 +93,7 @@ export const UpdatedMultiSelectDropDown = ({
       : placeHolder;
 
   return (
-    <div className="relative flex-1" ref={dropdownRef}>
+    <div style={style} className="relative flex-1" ref={dropdownRef}>
       {/* Input Field */}
       <div style={{marginTop:"0.10rem"}}
         className={`flex justify-between pl-2 items-center border-[1.5px]  font-semibold rounded text-xxxs h-[1.6rem] text-[#495057] my-1 ${

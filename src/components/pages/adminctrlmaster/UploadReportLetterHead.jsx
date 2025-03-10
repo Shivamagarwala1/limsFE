@@ -4,12 +4,8 @@ import { IoMdImages, IoMdMenu } from "react-icons/io";
 import { useSelector } from "react-redux";
 import { uploadReportLetterHead } from "../../listData/listData";
 import toast from "react-hot-toast";
-import {
-  getAllUploadReportLetterHeadApi,
-  getCenterDataForUploadReportLetterHeadApi,
-  saveUploadReportLetterHeadApi,
-} from "../../../service/service";
-import { FaSpinner } from "react-icons/fa";
+import { FaRegEdit, FaSpinner } from "react-icons/fa";
+import { ImSwitch } from "react-icons/im";
 import useRippleEffect from "../../customehook/useRippleEffect";
 import { useGetData, usePostData } from "../../../service/apiService";
 import SearchBarDropdown from "../../../Custom Components/SearchBarDropdown";
@@ -21,6 +17,7 @@ import DynamicTable, {
 } from "../../../Custom Components/DynamicTable";
 import { ImagePopup } from "../../../Custom Components/PopupModal";
 import { addObjectId, addRandomObjectId } from "../../../service/RedendentData";
+import { MdDelete } from "react-icons/md";
 
 export default function UploadReportLetterHead() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -42,6 +39,7 @@ export default function UploadReportLetterHead() {
   const [uploadReportLetterHeadData, setUploadReportLetterHeadData] = useState({
     centreId: BookingId,
     reporrtHeaderHeightY: 0,
+    receiptHeaderY: 0,
     patientYHeader: 0,
     barcodeXPosition: 0,
     barcodeYPosition: 0,
@@ -66,6 +64,7 @@ export default function UploadReportLetterHead() {
   const [isHovered, setIsHovered] = useState(null);
   const [isButtonClick, setIsButtonClick] = useState(0);
   const [isHoveredTable, setIsHoveredTable] = useState(null);
+  const [flag, setFlag] = useState(false);
   const imgRef = useRef();
   const imgRefForReciptHeader = useRef();
   const imgRefForReciptFooter = useRef();
@@ -75,6 +74,7 @@ export default function UploadReportLetterHead() {
   const FillerData = useGetData();
   const GridData = useGetData();
   const PostData = usePostData();
+  const DeleteData = usePostData();
   const openShowSearchBarDropDown = (val) => {
     setShowSearchBarDropDown(val);
   };
@@ -86,7 +86,7 @@ export default function UploadReportLetterHead() {
     };
 
     getAllCentreData();
-  }, [BookingId]);
+  }, [BookingId, flag]);
 
   const handleOptionClick3 = async (name, id) => {
     setBookingValue(name);
@@ -258,6 +258,7 @@ export default function UploadReportLetterHead() {
       centreId: uploadReportLetterHeadData.centreId || 0,
       reporrtHeaderHeightY:
         parseInt(uploadReportLetterHeadData.reporrtHeaderHeightY) || 0,
+      receiptHeaderY: parseInt(uploadReportLetterHeadData.receiptHeaderY),
       patientYHeader: parseInt(uploadReportLetterHeadData.patientYHeader) || 0,
       barcodeXPosition:
         parseInt(uploadReportLetterHeadData.barcodeXPosition) || 0,
@@ -297,6 +298,7 @@ export default function UploadReportLetterHead() {
         setUploadReportLetterHeadData({
           centreId: 0,
           reporrtHeaderHeightY: 0,
+          receiptHeaderY: 0,
           patientYHeader: 0,
           barcodeXPosition: 0,
           barcodeYPosition: 0,
@@ -314,6 +316,10 @@ export default function UploadReportLetterHead() {
           reciptFooter: "",
           rWaterMark: "",
         });
+        setFlag(!flag);
+        setTimeout(() => {
+          window.location.reload();
+        }, 500);
       } else {
         toast.error(response?.message);
       }
@@ -329,6 +335,12 @@ export default function UploadReportLetterHead() {
       const res = await FillerData?.fetchData(
         `/centreMaster/GetLetterHeaddetails?CentreId=${BookingId}`
       );
+
+      const data = CenterData?.data?.find(
+        (item) => item?.centreId === BookingId
+      );
+      console.log(data);
+      setBookingValue(data?.companyName);
       await setUploadReportLetterHeadData({
         centreId: BookingId,
         reporrtHeaderHeightY: res?.data?.data[0]?.reporrtHeaderHeightY,
@@ -354,7 +366,7 @@ export default function UploadReportLetterHead() {
       setImg3(res?.data?.data[0]?.reciptFooter);
       setImg4(res?.data?.data[0]?.waterMarkImage);
       setIsBase64(true);
-      console.log(res);
+      setFlag(!flag);
     };
 
     if (BookingId !== "") {
@@ -401,7 +413,7 @@ export default function UploadReportLetterHead() {
           <>
             {params?.row?.reportHeader && params?.row?.reportHeader !== "" && (
               <div
-                className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
                 onClick={() => {
                   setImg(`data:image/png;base64,${params?.row?.reportHeader}`);
                   setImageView(true);
@@ -411,7 +423,7 @@ export default function UploadReportLetterHead() {
                   color: activeTheme?.iconColor,
                 }}
               >
-                <IoMdImages className="w-4 h-4 font-semibold" />
+                <IoMdImages style={{fontSize:"10px"}} className="w-4 h-4 font-semibold" />
               </div>
             )}
           </>
@@ -427,7 +439,7 @@ export default function UploadReportLetterHead() {
           <>
             {params?.row?.reciptHeader && params?.row?.reciptHeader !== "" && (
               <div
-                className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
                 onClick={() => {
                   setImg(`data:image/png;base64,${params?.row?.reciptHeader}`);
                   setImageView(true);
@@ -453,7 +465,7 @@ export default function UploadReportLetterHead() {
           <>
             {params?.row?.reciptFooter && params?.row?.reciptFooter !== "" && (
               <div
-                className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
                 onClick={() => {
                   setImg(`data:image/png;base64,${params?.row?.reciptFooter}`);
                   setImageView(true);
@@ -480,7 +492,7 @@ export default function UploadReportLetterHead() {
             {params?.row?.waterMarkImage &&
               params?.row?.waterMarkImage !== "" && (
                 <div
-                  className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
                   onClick={() => {
                     setImg(
                       `data:image/png;base64,${params?.row?.waterMarkImage}`
@@ -499,11 +511,58 @@ export default function UploadReportLetterHead() {
         );
       },
     },
+    {
+      field: "",
+      width: 150,
+      headerName: "Action",
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex", gap: "20px" }}>
+            <button className="w-4 h-4 flex justify-center items-center">
+              <FaRegEdit
+                className={`w-full h-full ${
+                  true
+                    ? "text-blue-500 cursor-pointer"
+                    : "text-gray-400 cursor-not-allowed"
+                }`}
+                onClick={() => {
+                  setBookingId(params?.row?.centreId);
+                }}
+              />
+            </button>
+            <button
+              className={`w-4 h-4 flex justify-center items-center ${
+                params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              <MdDelete
+                className="w-full h-full"
+                onClick={() => {
+                  handleDelete(params?.row?.centreId);
+                }}
+              />
+            </button>
+          </div>
+        );
+      },
+    },
     // { field: "nablImage", headerName: "NABL Image", flex:1 },
   ];
+
+  const handleDelete = async (id) => {
+    const res = await DeleteData?.postRequest(
+      `/centreMaster/DeleteLetterHeadDetail?CentreId=${id}`
+    );
+    if (res?.success) {
+      setFlag(!flag);
+      toast.success(res?.message);
+    } else {
+      toast.error(res?.message);
+    }
+  };
   const GridShow = addRandomObjectId(GridData?.data?.data || []);
 
-  console.log("img1 ", GridShow);
+  // console.log("img1 ", GridShow);
   return (
     <>
       <div>
@@ -517,35 +576,60 @@ export default function UploadReportLetterHead() {
         {/* form data */}
         <form autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-            {/* Centre */}
-            <SearchBarDropdown
-              id="search-bar"
-              name="BookingValue"
-              value={BookingValue}
-              onChange={handleSearchChange3}
-              placeholder="Search Center"
-              label="Booking Center"
-              options={CenterData?.data}
-              showValueField="companyName"
-              keyField="centreId"
-              isRequired={false}
-              showSearchBarDropDown={BookingDropDown}
-              setShowSearchBarDropDown={setBookingDropDown}
-              handleOptionClickForCentre={handleOptionClick3}
-              setIsHovered={setBookingHoveIndex}
-              isHovered={BookingHoveIndex}
-            />
+            <div className="flex gap-[0.25rem]">
+              {/* Centre */}
+              <SearchBarDropdown
+                id="search-bar"
+                name="BookingValue"
+                value={BookingValue}
+                onChange={handleSearchChange3}
+                placeholder="Search Center"
+                label="Booking Center"
+                options={CenterData?.data}
+                showValueField="companyName"
+                keyField="centreId"
+                isRequired={false}
+                showSearchBarDropDown={BookingDropDown}
+                setShowSearchBarDropDown={setBookingDropDown}
+                handleOptionClickForCentre={handleOptionClick3}
+                setIsHovered={setBookingHoveIndex}
+                isHovered={BookingHoveIndex}
+                style={{marginTop:"2px"}}
+              />
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  id="receiptHeaderY"
+                  name="receiptHeaderY"
+                  value={uploadReportLetterHeadData?.receiptHeaderY || ""}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
+                  }}
+                  placeholder=" "
+                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                />
+                <label htmlFor="receiptHeaderY" className="menuPeerLevel">
+                  Receipt Header Y
+                </label>
+              </div>
+            </div>
 
             <div className="flex gap-[0.25rem]">
               {/* Report HdrH. Y */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="reporrtHeaderHeightY"
                   name="reporrtHeaderHeightY"
                   value={uploadReportLetterHeadData?.reporrtHeaderHeightY || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -554,16 +638,18 @@ export default function UploadReportLetterHead() {
                   Report HdrH. Y
                 </label>
               </div>
-
               {/* Patient Y H */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="patientYHeader"
                   name="patientYHeader"
                   value={uploadReportLetterHeadData?.patientYHeader || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -578,12 +664,15 @@ export default function UploadReportLetterHead() {
               {/* Barcode X Po. */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="barcodeXPosition"
                   name="barcodeXPosition"
                   value={uploadReportLetterHeadData?.barcodeXPosition || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -596,12 +685,15 @@ export default function UploadReportLetterHead() {
               {/* Barcode Y Po. */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="barcodeYPosition"
                   name="barcodeYPosition"
                   value={uploadReportLetterHeadData?.barcodeYPosition || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -616,12 +708,15 @@ export default function UploadReportLetterHead() {
               {/* QR Code X Po. */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="qrCodeXPosition"
                   name="qrCodeXPosition"
                   value={uploadReportLetterHeadData?.qrCodeXPosition || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -634,12 +729,15 @@ export default function UploadReportLetterHead() {
               {/* QR Code Y Po. */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="qrCodeYPosition"
                   name="qrCodeYPosition"
                   value={uploadReportLetterHeadData?.qrCodeYPosition || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -654,12 +752,15 @@ export default function UploadReportLetterHead() {
               {/* QR Header */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="isQRheader"
                   name="isQRheader"
                   value={uploadReportLetterHeadData?.isQRheader || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -672,12 +773,15 @@ export default function UploadReportLetterHead() {
               {/* Barcode HY */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="isBarcodeHeader"
                   name="isBarcodeHeader"
                   value={uploadReportLetterHeadData?.isBarcodeHeader || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -692,12 +796,15 @@ export default function UploadReportLetterHead() {
               {/* Footer Height */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="footerHeight"
                   name="footerHeight"
                   value={uploadReportLetterHeadData?.footerHeight || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -710,12 +817,15 @@ export default function UploadReportLetterHead() {
               {/* Doc Sign Y Position */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="docSignYPosition"
                   name="docSignYPosition"
                   value={uploadReportLetterHeadData?.docSignYPosition || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -730,12 +840,15 @@ export default function UploadReportLetterHead() {
               {/* nabLxPosition */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="nabLxPosition"
                   name="nabLxPosition"
                   value={uploadReportLetterHeadData?.nabLxPosition || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -748,12 +861,15 @@ export default function UploadReportLetterHead() {
               {/* nabLyPosition */}
               <div className="relative flex-1">
                 <input
-                  type="number"
+                  type="text"
                   id="nabLyPosition"
                   name="nabLyPosition"
                   value={uploadReportLetterHeadData?.nabLyPosition || ""}
                   onChange={(e) => {
-                    handelOnChangeuploadReportLetterHeadData(e);
+                    const value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                    handelOnChangeuploadReportLetterHeadData({
+                      target: { name: e.target.name, value },
+                    });
                   }}
                   placeholder=" "
                   className={`inputPeerField peer border-borderColor focus:outline-none`}
@@ -992,7 +1108,12 @@ export default function UploadReportLetterHead() {
       </div>
 
       {/* grid data */}
-      <UpdatedDynamicTable viewKey="Random" rows={GridShow} columns={columns} />
+      <UpdatedDynamicTable
+        viewKey="Random"
+        loading={GridData?.loading}
+        rows={GridShow}
+        columns={columns}
+      />
     </>
   );
 }

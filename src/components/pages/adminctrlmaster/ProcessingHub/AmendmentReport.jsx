@@ -17,7 +17,7 @@ export default function AmendmentReport() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
-  
+
   const [SelectAll, setSelectAll] = useState(false);
   const AllCenterData = useGetData();
   useEffect(() => {
@@ -63,7 +63,7 @@ export default function AmendmentReport() {
       field: `NotApprovedBy`,
       headerName: `Not Approved By`,
       flex: 1,
-    }
+    },
   ];
   const row = [
     {
@@ -131,8 +131,16 @@ export default function AmendmentReport() {
               />
               <InputGenerator
                 inputFields={[
-                  { type: "customDateField", label: "From" },
-                  { type: "customDateField", label: "To" },
+                  {
+                    type: "customDateField",
+                    label: "From",
+                    style: { marginTop: "2px" },
+                  },
+                  {
+                    type: "customDateField",
+                    label: "To",
+                    style: { marginTop: "2px" },
+                  },
                 ]}
               />
               <SubmitButton submit={false} text={"Search"} />

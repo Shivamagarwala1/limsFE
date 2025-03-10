@@ -230,37 +230,37 @@ export default function TATReport() {
           <FormHeader title="TAT Report" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-            <div className="flex flex-row gap-2">
-              <SearchBarDropdown
-                id="search-bar"
-                name="Centre"
-                value={searchValue}
-                onChange={handleSearchChange}
-                label="Centre"
-                options={AllCenterData?.data}
-                isRequired={false}
-                showSearchBarDropDown={showDropdown}
-                showValueField="companyName"
-                keyField="centreId"
-                setShowSearchBarDropDown={setShowDropdown}
-                handleOptionClickForCentre={handleOptionClick}
-                setIsHovered={setHoveredIndex}
-                isHovered={hoveredIndex}
-              />
-              <SearchBarDropdown
-                id="search-bar"
-                name="Department"
-                value={DepartmentValue}
-                onChange={handleSearchChange1}
-                label="Department"
-                options={DepartmentData?.data}
-                isRequired={false}
-                showSearchBarDropDown={DepartmentDropDown}
-                setShowSearchBarDropDown={setDepartmentDropDown}
-                handleOptionClickForCentre={handleOptionClick1}
-                setIsHovered={setDepartmentHoveIndex}
-                isHovered={DepartmentHoveIndex}
-              />
+              <div className="flex flex-row gap-2">
+                <SearchBarDropdown
+                  id="search-bar"
+                  name="Centre"
+                  value={searchValue}
+                  onChange={handleSearchChange}
+                  label="Centre"
+                  options={AllCenterData?.data}
+                  isRequired={false}
+                  showSearchBarDropDown={showDropdown}
+                  showValueField="companyName"
+                  keyField="centreId"
+                  setShowSearchBarDropDown={setShowDropdown}
+                  handleOptionClickForCentre={handleOptionClick}
+                  setIsHovered={setHoveredIndex}
+                  isHovered={hoveredIndex}
+                />
+                <SearchBarDropdown
+                  id="search-bar"
+                  name="Department"
+                  value={DepartmentValue}
+                  onChange={handleSearchChange1}
+                  label="Department"
+                  options={DepartmentData?.data}
+                  isRequired={false}
+                  showSearchBarDropDown={DepartmentDropDown}
+                  setShowSearchBarDropDown={setDepartmentDropDown}
+                  handleOptionClickForCentre={handleOptionClick1}
+                  setIsHovered={setDepartmentHoveIndex}
+                  isHovered={DepartmentHoveIndex}
+                />
               </div>
               <div className="flex flex-row gap-2">
                 <SearchBarDropdown
@@ -297,28 +297,31 @@ export default function TATReport() {
                 />
               </div>
               {/* <div className="flex flex-row gap-2"> */}
-                <InputGenerator
-                  inputFields={[
-                    {
-                      type: "customDateField",
-                      label: "From",
-                      name: "from",
-                      customOnChange: (e) => {
-                        setFromDate(e);
-                      },
+              <InputGenerator
+                inputFields={[
+                  {
+                    type: "customDateField",
+                    label: "From",
+                    name: "from",
+                    customOnChange: (e) => {
+                      setFromDate(e);
                     },
-                    {
-                      type: "customDateField",
-                      label: "To",
-                      name: "to",
-                      customOnChange: (e) => {
-                        setToDate(e);
-                      },
+                    style: { marginTop: "2px" },
+                  },
+                  {
+                    type: "customDateField",
+                    label: "To",
+                    name: "to",
+                    customOnChange: (e) => {
+                      setToDate(e);
                     },
-                  ]}
-                />
+                    style: { marginTop: "2px" },
+                  },
+                ]}
+              />
               {/* </div> */}
               <TwoSubmitButton
+                style={{ marginTop: "3px" }}
                 options={[
                   {
                     submit: false,
@@ -337,6 +340,7 @@ export default function TATReport() {
                 ]}
               />
               <TwoSubmitButton
+                style={{ marginTop: "3px" }}
                 options={[
                   {
                     submit: false,

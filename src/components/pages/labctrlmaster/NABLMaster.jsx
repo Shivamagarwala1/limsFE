@@ -436,6 +436,7 @@ export default function NABLMaster() {
               optionValue={["labObservationName"]}
               selectedValues={ObservationArr}
               setSelectedValues={setObservationArr}
+              style={{marginTop:"2px"}}
             />
             {/* use default icon */}
             <SearchBarDropdown
@@ -454,7 +455,7 @@ export default function NABLMaster() {
             />
 
             <div
-              style={{ display: "flex", gap: "5px" }}
+              style={{ display: "flex", gap: "5px",marginTop:"3px" }}
               className="relative flex-1 flex-row"
             >
               {/* image */}
