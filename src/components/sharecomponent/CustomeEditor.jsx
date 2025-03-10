@@ -156,11 +156,20 @@ export default function CustomeEditor({ onContentChange, value }) {
     // Update state when content changes
     const handleInput = () => {
         if (editorRef.current) {
-            const updatedContent = editorRef.current.innerHTML;
+            const updatedContent = editorRef.current.innerHTML; // Capture plain text from the contentEditable div
             setContent(updatedContent); // Update local state
-            onContentChange(updatedContent); // Pass data to the parent// Save editor content to state
+            onContentChange(updatedContent); // Pass data to the parent
         }
     };
+
+    // Sync content and cursor position with parent component
+    useEffect(() => {
+        // Only update content if the parent value is different
+        if (editorRef.current && editorRef.current.innerHTML !== value) {
+            editorRef.current.innerHTML = value; // Update content inside contentEditable
+        }
+    }, [value]); // Update whenever the value from the parent changes
+
 
     let isPropData = true;
 
@@ -538,8 +547,10 @@ export default function CustomeEditor({ onContentChange, value }) {
                     className={`outline-none border-2 h-32 overflow-scroll relative p-1 text-left  space-y-2 ${isOrderedList ? "list-decimal" : "list-disc"
                         } list-inside`}
                     suppressContentEditableWarning
-                    dangerouslySetInnerHTML={isPropData ? { __html: value } : undefined}
-                ></div>
+                    // dangerouslySetInnerHTML={isPropData ? { __html: value } : undefined}
+                >
+
+                </div>
 
 
 
