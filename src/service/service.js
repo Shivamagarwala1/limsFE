@@ -1136,6 +1136,8 @@ export const saveCommentDataApi = async (updateData) => {
     return response?.data;
 }
 
+
+
 //================Samplecollection============
 export const printBarCodeData = async (barcodeNo) => {
 
@@ -1176,7 +1178,41 @@ export const getData = async (url, params = {}) => {
  * @param {object} params - Query parameters (optional)
  */
 
-export const useRetrieveData = (url, params = {}) => {
+// export const useRetrieveData = (url, params = {}) => {
+//     const [data, setData] = useState([]);
+//     const [response, setResponse] = useState([]);
+//     const [loading, setLoading] = useState(true);
+//     const [error, setError] = useState(null);
+
+//     const fetchDataFromApi = async (url, params = {}) => {
+//         setLoading(true);
+//         try {
+//             const result = await getData(url, params);
+
+//             setData(result?.data);
+//             setResponse(result);
+//             setError(null);
+//         } catch (err) {
+//             setError(err);
+//         } finally {
+//             setLoading(false);
+//         }
+//     };
+
+//     useEffect(() => {
+//         console.log(response);
+//         console.log(data);
+//         console.log(loading);
+
+
+//     }, [response, data])
+
+//     return { fetchDataFromApi, response, data, loading, error };
+// };
+
+
+
+export const useRetrieveData = () => {
     const [data, setData] = useState([]);
     const [response, setResponse] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -1190,20 +1226,15 @@ export const useRetrieveData = (url, params = {}) => {
             setData(result?.data);
             setResponse(result);
             setError(null);
+            return result;
         } catch (err) {
             setError(err);
+            console.error("Error fetching data:", err);
         } finally {
             setLoading(false);
         }
     };
 
-    // useEffect(() => {
-    //     console.log(response);
-    //     console.log(data);
-    //     console.log(loading);
-
-
-    // }, [response, data])
 
     return { fetchDataFromApi, response, data, loading, error };
 };

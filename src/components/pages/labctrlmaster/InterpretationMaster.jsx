@@ -6,13 +6,14 @@ import { getAllDepartmentApi, getAllTestNameUsingDeptId, getCenterDataForReferan
 import toast from 'react-hot-toast';
 import { FaSpinner } from 'react-icons/fa';
 import useRippleEffect from '../../customehook/useRippleEffect';
+import CustomeEditor from '../../sharecomponent/CustomeEditor';
 
 
 
 export default function InterpretationMaster() {
     const activeTheme = useSelector((state) => state.theme.activeTheme);
     useRippleEffect();
-    
+
     const [interpretationMasterData, setInterpretationMasterData] = useState({
         isActive: 0,
         createdById: 0,
@@ -119,6 +120,11 @@ export default function InterpretationMaster() {
     }
 
 
+    // Handle content change from the editor
+    const handleContentChange = (newContent) => {
+        setContent(newContent); // Update the state with the new content
+    };
+
     const onSubmitSaveInterpretationData = async (event) => {
         event.preventDefault();
         setIsButtonClick(1);
@@ -131,41 +137,45 @@ export default function InterpretationMaster() {
             showinPackages: 1
         }
 
-        try {
-            const response = await saveInterpreationDataApi(updatedData);
 
-            if (response?.success) {
+        console.log(updatedData);
 
-                toast.success(response?.message);
 
-                setInterpretationMasterData({
-                    isActive: 0,
-                    createdById: 0,
-                    createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
-                    updateById: 0,
-                    updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
-                    id: 0,
-                    itemId: 0,
-                    interpretation: '',
-                    centreId: 0,
-                    showInReport: 0,
-                    showinPackages: 0
-                });
+        // try {
+        //     const response = await saveInterpreationDataApi(updatedData);
 
-                setSelectInterpreationMaster({
-                    centreId: '',
-                    itemId: ''
-                });
+        //     if (response?.success) {
 
-                setContent('');
+        //         toast.success(response?.message);
 
-            } else {
-                toast.error(response?.message);
-            }
+        //         setInterpretationMasterData({
+        //             isActive: 0,
+        //             createdById: 0,
+        //             createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+        //             updateById: 0,
+        //             updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+        //             id: 0,
+        //             itemId: 0,
+        //             interpretation: '',
+        //             centreId: 0,
+        //             showInReport: 0,
+        //             showinPackages: 0
+        //         });
 
-        } catch (error) {
-            toast.error(error?.message);
-        }
+        //         setSelectInterpreationMaster({
+        //             centreId: '',
+        //             itemId: ''
+        //         });
+
+        //         setContent('');
+
+        //     } else {
+        //         toast.error(response?.message);
+        //     }
+
+        // } catch (error) {
+        //     toast.error(error?.message);
+        // }
 
         setIsButtonClick(0);
 
@@ -414,7 +424,7 @@ export default function InterpretationMaster() {
                             <select
                                 id="showInReport"
                                 name='showInReport'
-                                value={interpretationMasterData.showInReport}
+                                value={interpretationMasterData?.showInReport}
                                 onChange={handelOnChangeInterpretationMasterData}
                                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
                             >
@@ -500,14 +510,21 @@ export default function InterpretationMaster() {
                 </div>
 
 
-                <div className='mt-2 mb-1  mx-1 lg:mx-2'>
-                    <JoditEditor
+                <div className=''>
+                    {/* <JoditEditor
                         ref={editor}
                         value={content}
 
                         tabIndex={1} // tabIndex of textarea
                         onBlur={newContent => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
                         onChange={newContent => { setContent(newContent) }}
+                    /> */}
+
+                    <CustomeEditor
+                        value={content} // Controlled value for the editor
+                        // onContentChange={setContent}
+                        onContentChange={handleContentChange} // Callback to update content
+
                     />
 
                 </div>
