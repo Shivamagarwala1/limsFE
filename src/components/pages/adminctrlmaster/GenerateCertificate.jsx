@@ -28,6 +28,7 @@ export default function GenerateCertificate() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const lsData = getLocal("imarsar_laboratory");
+  const RoleData = getLocal("RoleDetails");
   const [VisitorId, setVisitorId] = useState("");
   const [UpdatedBarcode, setUpdatedBarcode] = useState([]);
 
@@ -88,14 +89,14 @@ export default function GenerateCertificate() {
         return (
           <div className="flex gap-2">
             <SubmitButton
-              style={{ width: "100px" }}
+              style={{ width: "120px", padding: "0px 5px", height: "1.05rem" }}
               text="Download Certificate"
               callBack={() => {
                 handleCertificateDownload(params?.row?.certificateID);
               }}
             />
             <SubmitButton
-              style={{ width: "100px" }}
+              style={{ width: "120px", padding: "0px 5px", height: "1.05rem" }}
               text="Download Agreement"
               callBack={() => {
                 handleAgreementDownload(params?.row?.aggrement);
@@ -140,7 +141,9 @@ export default function GenerateCertificate() {
     ViewOrDownloandPDF(`/CentreCertificate/DownloadCertificate?Id=${data}`);
   };
   const handleAgreementDownload = async (data) => {
-    ViewOrDownloandPDF(`/tnx_InvestigationAttchment/ViewDocument?Documentpath=${data}`);
+    ViewOrDownloandPDF(
+      `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${data}`
+    );
   };
 
   // Function to handle input changes
@@ -174,7 +177,7 @@ export default function GenerateCertificate() {
         />
       )}
       <div>
-        <FormHeader title="Change Barcode" />
+        <FormHeader title="Generate Certificate/Agreement" />
         <form autoComplete="off">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
             <SearchBarDropdown
@@ -193,53 +196,59 @@ export default function GenerateCertificate() {
               isHovered={CenterHoveIndex}
               style={{ marginTop: "0.1rem" }}
             />
-            <TwoSubmitButton
-              options={[
-                {
-                  label: "Upload Aggrement",
-                  submit: false,
-                  callBack: () => {
-                    if (CenterId !== null) {
-                      setShowPopup1(true);
-                    } else {
-                      toast.error("Center is Required");
-                    }
-                  },
-                },
-                {
-                  label: "Upload Certificate",
-                  submit: false,
-                  callBack: () => {
-                    if (CenterId !== null) {
-                      setShowPopup(true);
-                    } else {
-                      toast.error("Center is Required");
-                    }
-                  },
-                },
-              ]}
-            />
-            <TwoSubmitButton
-              options={[
-                {
-                  label: "Generate Certificate",
-                  submit: false,
-                  callBack: () => {
-                    if (CenterId !== null) {
-                      handleGenerateCertificate();
-                    } else {
-                      toast.error("Center is Required");
-                    }
-                  },
-                },
-              ]}
-            />
+            {(RoleData?.roleId == 1 ||
+              RoleData?.roleId == 6 ||
+              RoleData?.roleId == 7) && (
+              <>
+                <TwoSubmitButton
+                  options={[
+                    {
+                      label: "Upload Aggrement",
+                      submit: false,
+                      callBack: () => {
+                        if (CenterId !== null) {
+                          setShowPopup1(true);
+                        } else {
+                          toast.error("Center is Required");
+                        }
+                      },
+                    },
+                    {
+                      label: "Upload Certificate",
+                      submit: false,
+                      callBack: () => {
+                        if (CenterId !== null) {
+                          setShowPopup(true);
+                        } else {
+                          toast.error("Center is Required");
+                        }
+                      },
+                    },
+                  ]}
+                />
+                <TwoSubmitButton
+                  options={[
+                    {
+                      label: "Generate Certificate",
+                      submit: false,
+                      callBack: () => {
+                        if (CenterId !== null) {
+                          handleGenerateCertificate();
+                        } else {
+                          toast.error("Center is Required");
+                        }
+                      },
+                    },
+                  ]}
+                />
+              </>
+            )}
           </div>
         </form>
         <div style={{ height: "300px" }}>
           <UpdatedDynamicTable
             rows={row}
-            name="Certificate Details"
+            name="Download Certificate/Agreement"
             loading={getData?.loading}
             columns={columns}
             viewKey="Random"

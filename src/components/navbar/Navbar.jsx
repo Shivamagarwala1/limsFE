@@ -166,6 +166,11 @@ export default function Navbar({ toggleFullScreen, routes }) {
     localStorage.setItem("imarsar_laboratory", JSON.stringify(userData));
     dispatch(loginUser(userData));
 
+    const RoleDetails = {
+      roleId,
+      roleName
+    }
+    localStorage.setItem("RoleDetails", JSON.stringify(RoleDetails));
     setSelectedRole(roleName);
     setTypedValueForEmployeeRole("");
     setShowCentreDropdown(false);
@@ -193,7 +198,6 @@ export default function Navbar({ toggleFullScreen, routes }) {
       .toLowerCase()
       .includes(typedValueForEmployeeRole.toLowerCase())
   );
-
   //show the popup for change password
   const handleShowChangePassword = () => {
     if (showCloseIconInChangePassword === false) {

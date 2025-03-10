@@ -369,7 +369,11 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/GenerateCertificate.jsx")),
         exact: true,
     },
-
+    {
+        path: "/LIMS/TestEvaluate",
+        component: React.lazy(() => import("../pages/adminctrlmaster/TestEvaluate/TestEvaluate.jsx")),
+        exact: true,
+    },
 
 ];
 

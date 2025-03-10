@@ -15,7 +15,7 @@ export function getFormattedDate() {
   return `${day}-${month}-${year}`;
 }
 
-export default function InputGenerator({ inputFields = [], setValues }) {
+export default function InputGenerator({ inputFields = [], setValues,style={} }) {
   const [showCalendars, setShowCalendars] = useState({});
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
@@ -86,7 +86,7 @@ export default function InputGenerator({ inputFields = [], setValues }) {
               </label>
             </>
           ) : field?.type === "customDateField" ? (
-            <div className="relative flex-1 flex items-center gap-1 w-full justify-between">
+            <div style={field?.style} className="relative flex-1 flex items-center gap-1 w-full justify-between">
               <div className="relative flex-1">
                 <input
                   type="text"
@@ -423,7 +423,7 @@ export const ButtonWithImage = ({
   );
 };
 
-export const TwoSubmitButton = ({ options = [], NoSpace = false }) => {
+export const TwoSubmitButton = ({ options = [], NoSpace = false,style={} }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
   // Split the options into pairs
@@ -433,13 +433,13 @@ export const TwoSubmitButton = ({ options = [], NoSpace = false }) => {
   }
   useRippleEffect();
   return (
-    <div className="flex flex-col gap-2">
+    <div style={style} className="flex flex-col gap-2">
       {buttonPairs.map(
         (pair, index) =>
           pair?.label !== "" && (
-            <div key={index} className="flex gap-[0.25rem]">
+            <div key={index} className="flex gap-2">
               {pair.map((button, btnIndex) => (
-                <div
+                <div style={button?.style}
                   key={btnIndex}
                   className="relative flex-1 flex justify-start items-center"
                 >

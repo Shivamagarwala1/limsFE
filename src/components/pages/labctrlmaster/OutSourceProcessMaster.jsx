@@ -135,13 +135,13 @@ export default function OutSourceProcessMaster() {
           <div>
             <div
               onClick={() => handleDelete(params?.row?.id)}
-              className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+              className="h-[1rem] flex justify-center items-center cursor-pointer rounded font-semibold w-4"
               style={{
                 background: activeTheme?.menuColor,
                 color: activeTheme?.iconColor,
               }}
             >
-              <AiFillDelete style={{ color: "red", fontSize: "15px" }} />
+              <AiFillDelete style={{ color: "red", fontSize: "10px" }} />
             </div>
           </div>
         );
