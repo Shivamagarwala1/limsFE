@@ -15,6 +15,7 @@ export const UpdatedMultiSelectDropDown = ({
   selectedValues, // Array of selected values (e.g., ["1", "2"])
   setSelectedValues, // Function to update selected values
   dataDependOnOther = false,
+  selectAll=true,
   dataDependOnOtherLable,
   style = {},
 }) => {
@@ -125,13 +126,13 @@ export const UpdatedMultiSelectDropDown = ({
             <ul>
               {/* Search Input */}
               <li className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2 w-full">
-                <div>
+                {selectAll && <div>
                   <input
                     type="checkbox"
                     checked={selectedValues.length === options.length}
                     onChange={handleSelectAll}
                   />
-                </div>
+                </div>}
                 <div className="w-full">
                   <input
                     type="search"
