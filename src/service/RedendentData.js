@@ -208,3 +208,17 @@ export function convertToISO(dateStr, fieldId="from") {
 
   return `${formattedDate}T${time}`;
 }
+
+export function convertToCustomFormat(isoDateStr) {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  const date = new Date(isoDateStr);
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = months[date.getUTCMonth()];
+  const year = date.getUTCFullYear();
+
+  return `${day}-${month}-${year}`;
+}
