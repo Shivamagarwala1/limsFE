@@ -1223,6 +1223,7 @@ export default function PatientRegistration() {
     // };
 
     //function for det the default value of sample type
+    
     useEffect(() => {
 
         const storeSampleTypeDefaultValue = () => {
@@ -1285,7 +1286,7 @@ export default function PatientRegistration() {
 
 
     //console.log(gridDataBarCodeandSampleType?.barCode);
-    //!========================in the bello code there may be chance of getting some issue if i we provied discount for each item =====================
+    //!========================in the bellow code there may be chance of getting some issue if i we provied discount for each item =====================
     // Auto-check the checkbox if a barcode exists initially
     useEffect(() => {
         const updatedCheckedItems = {};
@@ -1588,13 +1589,12 @@ export default function PatientRegistration() {
             ]
         };
 
-        // Validate form before submitting
+        //Validate form before submitting
         if (!validateForm()) {
             toast.info("Please fill in all mandatory fields.");
             setIsButtonClick(0);
             return;
         }
-
 
         try {
             const response = await savePatientRegistrationDataApi(updatedData);
@@ -2222,6 +2222,21 @@ export default function PatientRegistration() {
 
             const response = await getSingleEditTestApi(searchData?.editTestId);
 
+
+            // const gridDataBarCodeandSampleType = {
+            //     barCode: response?.itemdetail?.map(({ itemId, barcodeNo }) => ({ itemId, barcodeNo }))
+            // };
+
+            //saign barcode number based on itemId
+            setGridDataBarCodeandSampleType(prevState => ({
+                ...prevState,
+                barCode: response?.data?.itemdetail?.map(({ itemId, barcodeNo, sampleTypeName }) => ({
+                    itemId,
+                    name: barcodeNo,
+                    sampleTypeName
+                }))
+            }));
+
             if (response?.success) {
 
                 try {
@@ -2229,7 +2244,6 @@ export default function PatientRegistration() {
                     const response2 = await getAllInvestiGationApi(response?.data?.rateId || 0);
 
                     if (response2?.success) {
-
                         setallEditTestDataForInvasticationName(response2?.data);
                     } else {
                         toast.error(response2?.message);
@@ -2330,7 +2344,6 @@ export default function PatientRegistration() {
                 editTestData?.rateId || 0,
                 editTestData?.itemId || 0
             );
-
 
             setEditTestData((prevState) => {
                 const existingTestData = prevState?.testData || [];
@@ -2672,7 +2685,12 @@ export default function PatientRegistration() {
             itemId: parseInt(data?.itemId),
             packageID: data?.itemType === 3 ? parseInt(data?.itemType) : 0,
             deptId: data?.deptId,
-            barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
+
+            // barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
+
+            barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name ||
+                gridDataBarCodeandSampleType.barCode.find(barcode => barcode.sampleTypeName === data.sampleTypeName)?.name || '',
+
             departmentName: data?.departmentName || '',
             // investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemId)?.itemName || '',
             investigationName: data?.investigationName,
@@ -2759,6 +2777,8 @@ export default function PatientRegistration() {
             holdReason: ""
 
         }))
+
+        
 
 
         try {
