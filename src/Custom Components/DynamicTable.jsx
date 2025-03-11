@@ -15,6 +15,7 @@ const DynamicTable = ({
   rowcolor = "rowcolor",
   legendColors = false,
   name = "Table Details",
+  showHr = true,
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [isHoveredTable, setIsHoveredTable] = useState(null);
@@ -38,10 +39,12 @@ const DynamicTable = ({
 
   return (
     <div className="pt-0 w-full">
-      <div
-        className="w-full h-[0.10rem]"
-        style={{ background: activeTheme?.menuColor }}
-      ></div>
+      {showHr && (
+        <div
+          className="w-full h-[0.10rem]"
+          style={{ background: activeTheme?.menuColor }}
+        ></div>
+      )}
       {showDetails && (
         <div
           className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"

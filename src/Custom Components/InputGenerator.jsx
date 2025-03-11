@@ -15,10 +15,14 @@ export function getFormattedDate() {
   return `${day}-${month}-${year}`;
 }
 
-export default function InputGenerator({ inputFields = [], setValues,style={} }) {
+export default function InputGenerator({
+  inputFields = [],
+  setValues,
+  style = {},
+}) {
   const [showCalendars, setShowCalendars] = useState({});
   const activeTheme = useSelector((state) => state.theme.activeTheme);
-
+  const [value, setValue] = useState("");
   const handleDateClick = (date, name, field) => {
     const formatDate = (date) => {
       const options = { day: "2-digit", month: "short", year: "numeric" };
@@ -26,7 +30,10 @@ export default function InputGenerator({ inputFields = [], setValues,style={} })
     };
     const formattedDate = formatDate(date);
 
+    const DateData = { formattedDate: formattedDate, date: date };
+
     field?.customOnChange?.(formattedDate);
+    field?.customDateData?.(DateData);
 
     document.getElementsByName(name)[0].value = formatDate(date);
     setShowCalendars((prevState) => ({ ...prevState, [name]: false }));
@@ -41,6 +48,18 @@ export default function InputGenerator({ inputFields = [], setValues,style={} })
 
   const todayDate = getFormattedDate(); // Example output: 07-Feb-2025
   // console.log("input generator ", inputFields);
+
+  const handleInputChange = (e, field) => {
+    let inputValue = e.target.value;
+    // let allowSpecialChars = allowSpecialChars || false;
+    const numericRegex = field?.allowSpecialChars
+      ? /[^0-9!@#$%^&*()_+=\-\[\]{};:'",.<>?/\\]/g
+      : /\D/g;
+    let targetValue = inputValue.replace(numericRegex, "");
+    field?.onChange && field.onChange(e.target.value, targetValue);
+    setValue(inputValue.replace(numericRegex, ""));
+  };
+
   return (
     <>
       {inputFields.map((field, index) => (
@@ -86,7 +105,10 @@ export default function InputGenerator({ inputFields = [], setValues,style={} })
               </label>
             </>
           ) : field?.type === "customDateField" ? (
-            <div style={field?.style} className="relative flex-1 flex items-center gap-1 w-full justify-between">
+            <div
+              style={field?.style}
+              className="relative flex-1 flex items-center gap-1 w-full justify-between"
+            >
               <div className="relative flex-1">
                 <input
                   type="text"
@@ -96,7 +118,7 @@ export default function InputGenerator({ inputFields = [], setValues,style={} })
                   placeholder={""}
                   onChange={(e) => {
                     field?.onChange?.(e.target.value); // Calls field's internal onChange
-                    field?.customOnChange?.(e.target.value); // Calls user-defined onChange
+                  alert("hiii")
                   }}
                   className={`inputPeerField peer border-borderColor ${
                     field?.required ? "border-b-red-500" : ""
@@ -185,6 +207,26 @@ export default function InputGenerator({ inputFields = [], setValues,style={} })
                 isHovered={field?.isHovered}
               />
             </>
+          ) : field?.type === "number" ? (
+            <>
+              <input
+                type="text"
+                name={field?.name}
+                value={field?.value}
+                style={field?.style}
+                maxLength={field?.maxLength}
+                readOnly={field?.readOnly}
+                required={field?.required}
+                onChange={(e) => {
+                  handleInputChange(e, field);
+                }}
+                placeholder={field?.placeholder || ""}
+                className={`inputPeerField peer focus:outline-none`}
+              />
+              <label htmlFor={field?.name} className="menuPeerLevel">
+                {field?.label}
+              </label>
+            </>
           ) : (
             <>
               <input
@@ -196,7 +238,7 @@ export default function InputGenerator({ inputFields = [], setValues,style={} })
                 readOnly={field?.readOnly}
                 required={field?.required}
                 onChange={(e) => {
-                  field.onChange(e.target.value);
+                  field?.onChange && field.onChange(e.target.value);
                 }}
                 placeholder={field?.placeholder || ""}
                 className={`inputPeerField peer focus:outline-none`}
@@ -211,6 +253,41 @@ export default function InputGenerator({ inputFields = [], setValues,style={} })
     </>
   );
 }
+
+export const NumericInput = ({
+  allowSpecialChars = false,
+  label = "",
+  name = "number",
+  onChange = () => {},
+  placeholder = "",
+}) => {
+  const [value, setValue] = useState("");
+
+  const handleChange = (e) => {
+    let inputValue = e.target.value;
+    const numericRegex = allowSpecialChars
+      ? /[^0-9!@#$%^&*()_+=\-\[\]{};:'",.<>?/\\]/g
+      : /\D/g;
+    onChange(e);
+    setValue(inputValue.replace(numericRegex, ""));
+  };
+
+  return (
+    <>
+      <input
+        type="text"
+        value={value}
+        name={name}
+        onChange={handleChange}
+        placeholder={placeholder}
+        className={`inputPeerField peer focus:outline-none`}
+      />
+      <label htmlFor={name} className="menuPeerLevel">
+        {label}
+      </label>
+    </>
+  );
+};
 
 const SearchBarDropdown = ({
   id,
@@ -423,7 +500,11 @@ export const ButtonWithImage = ({
   );
 };
 
-export const TwoSubmitButton = ({ options = [], NoSpace = false,style={} }) => {
+export const TwoSubmitButton = ({
+  options = [],
+  NoSpace = false,
+  style = {},
+}) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
   // Split the options into pairs
@@ -439,7 +520,8 @@ export const TwoSubmitButton = ({ options = [], NoSpace = false,style={} }) => {
           pair?.label !== "" && (
             <div key={index} className="flex gap-2">
               {pair.map((button, btnIndex) => (
-                <div style={button?.style}
+                <div
+                  style={button?.style}
                   key={btnIndex}
                   className="relative flex-1 flex justify-start items-center"
                 >
@@ -559,7 +641,7 @@ export const MinMaxInputGenerator = ({ inputFields }) => {
                 (!field.minChars || value.length >= field.minChars) &&
                 (!field.maxChars || value.length <= field.maxChars)
               ) {
-                field.onchange(e);
+                field?.onChange && field.onchange(e);
               }
             }}
             placeholder={field?.placeholder || ""}

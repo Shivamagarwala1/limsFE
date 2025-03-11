@@ -32,16 +32,16 @@ const MrpInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-      style={{height:"1rem"}}
+        style={{ height: "1rem" }}
         type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={mrp}
+        maxLength={8}
         name="mrp"
         onChange={(e) => {
           const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
           setMrp(newValue);
         }}
-        
       />
     </div>
   );
@@ -67,16 +67,16 @@ const RateInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-      style={{height:"1rem"}}
+        style={{ height: "1rem" }}
         type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={rate}
+        maxLength={8}
         name="rate"
         onChange={(e) => {
           const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
           setRate(newValue);
         }}
-        
       />
     </div>
   );
@@ -170,7 +170,7 @@ export default function TestWiseRateList() {
     {
       field: "mrp",
       headerName: "MRP",
-      flex: 1,
+      width: 120,
       renderCell: (params) => {
         return (
           <MrpInputCell
@@ -184,7 +184,7 @@ export default function TestWiseRateList() {
     {
       field: "rate",
       headerName: "Rate",
-      flex: 1,
+      width: 120,
       renderCell: (params) => {
         return (
           <RateInputCell
@@ -270,7 +270,7 @@ export default function TestWiseRateList() {
       transferDate: new Date().toISOString(),
     }));
     console.log(formattedData);
-   const res = await PostData?.postRequest(
+    const res = await PostData?.postRequest(
       "/rateTypeWiseRateList/SaveRateListitemWise",
       formattedData
     );

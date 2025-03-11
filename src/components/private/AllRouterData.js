@@ -374,6 +374,21 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/TestEvaluate/TestEvaluate.jsx")),
         exact: true,
     },
+    {
+        path: "/LIMS/StoreItemMaster",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Store/StoreItemMaster.jsx")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/Indent",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Store/Indent.jsx")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/ViewIndent",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Store/ViewIndent.jsx")),
+        exact: true,
+    },
 
 ];
 
