@@ -10,6 +10,7 @@ import { useGetData, usePostData } from "../../../../service/apiService";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import {
   addRandomObjectId,
+  convertToCustomFormat,
   convertToISO,
 } from "../../../../service/RedendentData";
 import toast from "react-hot-toast";
@@ -70,6 +71,19 @@ export default function ViewIndent() {
     { field: "Random", headerName: "Sr. No", width: 20 },
     { field: "roleName", headerName: " Role Name", flex: 1 },
     { field: "createdBy", headerName: " Created By", flex: 1 },
+    {
+      field: "createdDateTime",
+      headerName: " Created Date",
+      flex: 1,
+      renderCell: (params) => {
+        const date = convertToCustomFormat(params?.row?.createdDateTime);
+        return (
+          <div className="flex gap-1">
+            {date}
+          </div>
+        );
+      },
+    },
     {
       headerName: "Action",
       width: 150,
