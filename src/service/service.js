@@ -1137,6 +1137,13 @@ export const saveCommentDataApi = async (updateData) => {
 }
 
 
+//save re-run
+export const saveRerunDataApi = async (listRerunData) => {
+
+    const response = await privateAxios.post(`/machineRerunTestDetail/SaveRerun`, listRerunData);
+
+    return response?.data;
+}
 
 //================Samplecollection============
 export const printBarCodeData = async (barcodeNo) => {
