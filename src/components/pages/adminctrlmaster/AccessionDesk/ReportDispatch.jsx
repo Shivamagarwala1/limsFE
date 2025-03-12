@@ -9,15 +9,15 @@ import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
 import { useGetData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
-import { FaDownload, FaPlus } from "react-icons/fa";
+import { FaCommentDots, FaDownload, FaPlus } from "react-icons/fa";
 import "./ReportDispatch.css";
 import {
   InvestigationRemarkPopupModal,
   RejectPopupModal,
 } from "../../../../Custom Components/PopupModal";
 import { setLocal } from "usehoks";
-import { FaCircleInfo } from "react-icons/fa6";
-import { useRetrieveData } from "../../../../service/service";
+import { FaCircleInfo, FaSquareWhatsapp } from "react-icons/fa6";
+import { saveData, usePostData, useRetrieveData } from "../../../../service/service";
 import CustomDropdown from "../../../global/CustomDropdown";
 import { DatePicker } from "../../../global/DatePicker";
 import { useFormattedDate } from "../../../customehook/useDateTimeFormate";
@@ -26,9 +26,18 @@ import CustomeNormalButton from "../../../global/CustomeNormalButton";
 import CustomNormalFormButton from "../../../global/CustomNormalFormButton";
 import { toast } from "react-toastify";
 import CustomSearchInputFields from "../../../global/CustomSearchDropdown";
-
+import CustomMultiSelectDropdown from '../../../global/CustomMultiSelectDropdown';
+import FormHeader from "../../../global/FormHeader";
+import GridDataDetails from '../../../global/GridDataDetails';
+import CustomDynamicTable from '../../../global/CustomDynamicTable';
+import { reportDispatchHeaderData } from "../../../listData/listData";
+import { MdAddCircleOutline, MdOutlineMailOutline } from "react-icons/md";
+import { BiSolidLike } from 'react-icons/bi'
 export default function ReportDispatch() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const user = useSelector((state) => state.userSliceName?.user || null);
+
+
   const { formRef, getValues, setValues } = useFormHandler();
   const [RejectPopup, setRejectPopup] = useState(false);
   const [RemarkPopup, setRemarkPopup] = useState(false);
@@ -158,6 +167,7 @@ export default function ReportDispatch() {
       },
     },
   ];
+
   const row = [
     {
       id: 1,
@@ -190,8 +200,8 @@ export default function ReportDispatch() {
     toDate: useFormattedDate(),
     searchType: '',
     barcodeNo: '',
-    department: '',
-    test: '',
+    department: [],
+    test: [],
     user: '',
     header: 0
   })
@@ -199,6 +209,9 @@ export default function ReportDispatch() {
   const allDepartementData = useRetrieveData();
   const allTestData = useRetrieveData();
   const allUserData = useRetrieveData();
+  const [isHoveredTable, setIsHoveredTable] = useState(null);
+
+  const searchReportDispatch = usePostData();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -228,12 +241,59 @@ export default function ReportDispatch() {
     }))
   }
 
-  console.log(allTestData);
+  const handelOnChangedepartment = (updatedSelectedItems) => {
+    setRecordDispatchData((preventData) => ({
+      ...preventData,
+      department: updatedSelectedItems
+    }));
+  };
 
-  const searchReportDispatchData = (e) => {
+
+  const handelOnChangetest = (updatedSelectedItems) => {
+    setRecordDispatchData((preventData) => ({
+      ...preventData,
+      test: updatedSelectedItems
+    }));
+  };
+
+  const searchReportDispatchData = async (e) => {
     e.preventDefault();
 
-    console.log('Search data.......');
+    const itemData = reportDispatchData?.department?.length
+      ? reportDispatchData.department.map((item) => item?.id)
+      : [];
+
+    const testData = reportDispatchData?.test?.length
+      ? reportDispatchData.test.map((item) => item?.itemId)
+      : [];
+
+    const updateData = {
+      "centreId": reportDispatchData?.centreId,
+      "fromDate": reportDispatchData?.fromDate || "2025-03-12T16:39:45.806Z",
+      "toDate": reportDispatchData?.toDate || "2025-03-12T16:39:45.806Z",
+      "datetype": reportDispatchData?.searchType || "",
+      "searchvalue": reportDispatchData?.barcodeNo || "",
+      "itemIds": testData,  // Ensures an array, not a string inside an array
+      "departmentIds": itemData, // Ensures an array, not a string inside an array
+      "empid": parseInt(user?.employeeId)
+    };
+
+
+
+
+    console.log(updateData);
+
+
+    try {
+      const response = await searchReportDispatch.postRequestData(`/tnx_Booking/GetDispatchData`, updateData);
+
+      console.log(response);
+      // const resp = await saveData(updateData);
+      // console.log(resp);
+
+    } catch (error) {
+      toast.error(error?.message)
+    }
 
   }
 
@@ -245,15 +305,7 @@ export default function ReportDispatch() {
         showPopup={RemarkPopup}
       />
       <RejectPopupModal setShowPopup={setRejectPopup} showPopup={RejectPopup} />
-      <div
-        className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-        style={{ background: activeTheme?.blockColor }}
-      >
-        <div>
-          <FontAwesomeIcon icon="fa-solid fa-house" />
-        </div>
-        <div>Report Dispatch</div>
-      </div>
+      <FormHeader headerData={'Report Dispatch'} />
 
       <form autoComplete="off" onSubmit={searchReportDispatchData}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
@@ -308,7 +360,7 @@ export default function ReportDispatch() {
 
 
           <div className="relative flex-1">
-            <CustomSearchInputFields
+            {/* <CustomSearchInputFields
               id="centreId"
               name="centreId"
               label="Search Type"
@@ -319,6 +371,21 @@ export default function ReportDispatch() {
               placeholder=" "
               searchWithName="companyName"
               uniqueKey="centreId"
+              activeTheme={activeTheme}
+            /> */}
+            <CustomDropdown
+              name="searchType"
+              label="Search Type"
+              value={reportDispatchData?.searchType}
+              options={[
+                { label: 'Select Search Type ', value: 0, disabled: true },
+                { label: 'Sample Recived Date', value: 'tbi.sampleReceiveDate' },
+                { label: 'Sample Collection Date', value: 'tbi.sampleCollectionDate' },
+                { label: 'Booking Date', value: 'tb.bookingDate' },
+                { label: 'Dalivery Date', value: 'tbi.deliveryDate' },
+              ]}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              defaultIndex={0}
               activeTheme={activeTheme}
             />
           </div>
@@ -337,35 +404,36 @@ export default function ReportDispatch() {
 
 
           <div className="relative flex-1">
-            <CustomSearchInputFields
+
+
+            <CustomMultiSelectDropdown
               id="department"
               name="department"
-              label="Search Departement"
-              value={reportDispatchData?.department}
+              label="Select Departement"
               options={allDepartementData?.data}
-              onChange={(e) => handelOnChangeForReportDispatch(e)}
-              filterText="No records found"
+              selectedItems={reportDispatchData?.department}
+              onSelectionChange={handelOnChangedepartment}
               placeholder=" "
-              searchWithName="deptName"
-              uniqueKey="id"
               activeTheme={activeTheme}
+              uniqueId={'id'}
+              searchWithName={'deptName'}
             />
           </div>
 
 
           <div className="relative flex-1">
-            <CustomSearchInputFields
+
+            <CustomMultiSelectDropdown
               id="test"
               name="test"
-              label="Search Departement"
-              value={reportDispatchData?.test}
+              label="Select Test"
               options={allTestData?.data}
-              onChange={(e) => handelOnChangeForReportDispatch(e)}
-              filterText="No records found"
+              selectedItems={reportDispatchData?.test}
+              onSelectionChange={handelOnChangetest}
               placeholder=" "
-              searchWithName="itemName"
-              uniqueKey="itemId"
               activeTheme={activeTheme}
+              uniqueId={'itemId'}
+              searchWithName={'itemName'}
             />
           </div>
 
@@ -438,7 +506,214 @@ export default function ReportDispatch() {
         </div>
       </form>
 
-      <div style={{ height: "100px" }}>
+
+
+      <GridDataDetails gridDataDetails={'Dispatch Details'} />
+
+      <CustomDynamicTable activeTheme={activeTheme} columns={reportDispatchHeaderData} height="300px">
+
+        <tbody>
+          {searchReportDispatch?.data?.map((data, index) => (
+
+            <tr
+              className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                ? ''
+                : index % 2 === 0
+                  ? 'bg-gray-100'
+                  : 'bg-white'
+                }`}
+              key={index}
+              onMouseEnter={() => setIsHoveredTable(index)}
+              onMouseLeave={() => setIsHoveredTable(null)}
+              style={{
+                background:
+                  isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                // Hides scrollbar for IE/Edge
+              }}
+            >
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                <div className="flex gap-3 items-center">
+                  <div>
+                    {index + 1}
+                  </div>
+                  {
+                    data?.urgent === 1 && (
+                      <div>
+                        <img src={UrgentGif} alt="path not found" />
+                      </div>
+                    )
+                  }
+                </div>
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.bookingDate}
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.workOrderId}
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.barcodeNo}
+              </td>
+
+              {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.sampleReceiveDate}
+              </td> */}
+
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.patientName}
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.age}
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.barcodeNo}
+              </td>
+
+              {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    <div className="flex gap-1">
+                      {data?.investigationName?.map((item, index) => (
+                        <CustomeNormalButton
+                          key={index}
+                          activeTheme={activeTheme}
+                          text={item?.investigationName}
+                          onClick={() => handelObservationData(data?.totalAge, item, data?.workOrderId, item?.reportType, item?.itemId, data?.testid, data?.deptId)}
+                        />
+                      ))}
+                    </div>
+
+                  </td> */}
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                <div className="flex flex-wrap gap-1">
+                  {data?.referDoctor}
+
+                </div>
+              </td>
+
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.centreName}
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.investigationName}
+                {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                  // onClick={() => setShowPopup(1)}
+                >
+                  <MdAddCircleOutline className="text-base" />
+                </div> */}
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                // onClick={() => setShowPopup(2)}
+                >
+                  <FaCircleInfo />
+                </div> */}
+                {
+                  data?.sampleRecievedDate
+                }
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                {data?.comment.length >= 9 ? (
+                  <div className="flex justify-center items-center gap-1" title={data?.comment}>
+                    {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
+                    {/* <div
+                      className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                      onClick={() => setShowPopup(3)}
+                    >
+                      <FaCommentDots />
+                    </div> */}
+                  </div>
+                ) : (
+                  data?.comment
+                )}
+              </td>
+
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                {data?.createdBy}
+              </td>
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                <input type="checkbox" name="" id="" className="flex items-center justify-center" />
+              </td>
+
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                <div className="flex justify-between items-center">
+
+                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                  // onClick={() => setShowPopup(2)}
+                  >
+                    <FaSquareWhatsapp className="w-4 h-4 " />
+                  </div>
+
+
+                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                  // onClick={() => setShowPopup(2)}
+                  >
+                    <BiSolidLike className="w-4 h-4" />
+                  </div>
+
+
+                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                  // onClick={() => setShowPopup(2)}
+                  >
+                    <MdOutlineMailOutline
+                      className="w-4 h-4" />
+                  </div>
+
+                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                  // onClick={() => setShowPopup(2)}
+                  >
+                    <BiSolidLike className="w-4 h-4" />
+                  </div>
+                </div>
+              </td>
+
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                // onClick={() => setShowPopup(2)}
+                >
+                  <FaCircleInfo />
+                </div>
+
+              </td>
+
+
+
+              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                // onClick={() => setShowPopup(1)}
+                >
+                  <MdAddCircleOutline className="text-base" />
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+
+      </CustomDynamicTable>
+
+
+      {/* <div style={{ height: "100px" }}>
         <DynamicTable
           rows={row}
           name="Dispatch Details"
@@ -446,15 +721,7 @@ export default function ReportDispatch() {
           columns={columns}
           activeTheme={activeTheme}
         />
-      </div>
-
-
-
-
-
-
-
-
+      </div> */}
 
     </div>
   );
