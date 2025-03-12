@@ -99,6 +99,7 @@ export default function ResultTrack() {
   const [allObservationData, setAllObservationData] = useState([]);
   const [allDoctorData, setAllDoctorData] = useState([]);
   const [allTemplateData, setAllTemplateData] = useState([]);
+  const [summedValuesForFormuladata, setSummedValuesForFormuladata] = useState([]);
   const [isButtonClick, setIsButtonClick] = useState(0);
   const [observationValue, setObservationValue] = useState({});
   const [observationCheckValue, setObservationCheckValue] = useState({});
@@ -122,7 +123,7 @@ export default function ResultTrack() {
     commentDataExit: false,
     id: 0
   });
-  const [editorContent1, setEditorContent1] = useState("");
+
 
   //!================Anil code end=======================
 
@@ -288,9 +289,12 @@ export default function ResultTrack() {
       centreId
     }))(data);
 
+    //console.log(allResultTrackingData);
+
 
     try {
       const response = await getAllObserVationDataBasedOnTestName(updatedData);
+
 
       if (response?.success) {
 
@@ -387,24 +391,224 @@ export default function ResultTrack() {
 
   // }
 
+  useEffect(() => {
+    if (allObservationData && Array.isArray(allObservationData)) {
+      // Filter allObservationData where formula is available
+      const filteredallObservationData = allObservationData
+        .filter((item) => item.formula) // Check if formula exists
+        .map((item) => ({
+          formula: item.formula,
+          labObservationId: item.labObservationId
+        }));
+
+      // Update state
+      setSummedValuesForFormuladata(filteredallObservationData);
+
+      // **Step 2: Compute formula results and store by testId**
+      const computedValues = {};
+
+      filteredallObservationData.forEach(({ formula, labObservationId }, index) => {
+        // Extract numbers from formula (e.g., "357+708" → [357, 708])
+        const observationIds = formula.match(/\d+/g)?.map(Number) || [];
+
+        // Find corresponding values from `allObservationData`
+        const values = observationIds.map((obsId) => {
+          const obsData = allObservationData.find((item) => item.labObservationId === obsId);
+          return obsData ? Number(obsData.value) : 0; // Convert to number, default to 0 if missing
+        });
+
+        // **Evaluate the formula**
+        let computedValue = 0;
+        try {
+          computedValue = eval(formula); // Execute mathematical operation
+        } catch (error) {
+          console.error("Error evaluating formula:", formula);
+        }
+
+        // **Find the corresponding testId for the labObservationId**
+        const testObj = allObservationData.find((item) => item.labObservationId === labObservationId);
+        if (!testObj || !testObj.testId) return; // Skip if no testId found
+
+        const testId = testObj.testId;
+
+        // **Store computed value under testId**
+        if (!computedValues[testId]) {
+          computedValues[testId] = {}; // Initialize if testId doesn't exist
+        }
+        computedValues[testId][index] = String(computedValue); // Store as string
+      });
+
+      setObservationValue(computedValues);
+
+    }
+  }, [allObservationData]); // Run when `data` updates
+
+
+  console.log(observationValue);
+
+
+
+  // useEffect(() => {
+  //   // Step 1: Filter `reportType === 1`
+  //   const filteredData = allObservationData?.filter(item => item?.reportType === 1);
+
+  //   let calculatedValues = {};
+
+  //   // Step 2: Process formulas
+  //   filteredData.forEach((formulaEntry) => {
+  //     if (formulaEntry.formula) {
+  //       const formula = formulaEntry.formula; // e.g. "357+708"
+  //       const observationIds = formula.match(/\d+/g)?.map(Number) || []; // Extract numbers
+
+  //       // Find values of matching observations
+  //       const matchedObservations = filteredData.filter(item =>
+  //         observationIds.includes(item.labObservationId)
+  //       );
+
+  //       // Sum their values
+  //       const totalSum = matchedObservations.reduce((sum, obs) => {
+  //         return sum + (parseFloat(obs.value) || 0);
+  //       }, 0);
+
+  //       // Store summed value
+  //       calculatedValues[formulaEntry.testId] = { ...calculatedValues[formulaEntry.testId], sum: totalSum };
+  //     }
+  //   });
+
+  //   setSummedValuesForFormuladata(calculatedValues); // Store calculated values
+  // }, [allObservationData]);
+
+  // const handleInputChangeForObserVtionValue = (testId, index, value) => {
+
+  //   const allowedPattern = /^[a-z0-9. -]*$/i; // Allows a-z, 0-9, dot (.), space (' '), and single quote (')
+
+
+  //   if (allowedPattern.test(value)) {
+  //     setObservationValue(prev => ({
+  //       ...prev,
+  //       [testId]: {
+  //         ...prev[testId],
+  //         [index]: value
+  //       }
+  //     }));
+
+  //     // Step 1: Filter `reportType === 1`
+  //     const filteredData = allObservationData?.filter(item => item?.reportType === 1);
+
+  //     console.log(filteredData);
+
+
+  //     let calculatedValues = {};
+
+  //     // Step 2: Process formulas
+  //     filteredData.forEach((formulaEntry) => {
+  //       if (formulaEntry.formula) {
+  //         const formula = formulaEntry.formula; // e.g. "357+708"
+  //         const observationIds = formula.match(/\d+/g)?.map(Number) || []; // Extract numbers
+
+  //         // Find values of matching observations
+  //         const matchedObservations = filteredData.filter(item =>
+  //           observationIds.includes(item.labObservationId)
+  //         );
+
+  //         console.log(matchedObservations);
+
+
+  //         // Sum their values
+  //         const totalSum = matchedObservations.reduce((sum, obs) => {
+  //           return sum + (parseFloat(obs.value) || 0);
+  //         }, 0);
+
+  //         // Store summed value
+  //         calculatedValues[formulaEntry.testId] = { ...calculatedValues[formulaEntry.testId], sum: totalSum };
+  //       }
+  //     });
+
+  //     setSummedValuesForFormuladata(calculatedValues); // Store calculated values
+
+  //     console.log(summedValuesForFormuladata);
+
+
+  //   } else {
+  //     toast.error("Invalid character! Only a-z, 0-9, spaces and dots (.), are allowed.");
+  //   }
+  // };
+
 
   const handleInputChangeForObserVtionValue = (testId, index, value) => {
+    const allowedPattern = /^[a-z0-9. -]*$/i; // Allows a-z, 0-9, dot (.), space (' '), and hyphen (-)
 
-    const allowedPattern = /^[a-z0-9. -]*$/i; // Allows a-z, 0-9, dot (.), space (' '), and single quote (')
+    if (!allowedPattern.test(value)) {
+      toast.error("Invalid character! Only a-z, 0-9, spaces, dots (.), and hyphens (-) are allowed.");
+      return;
+    }
 
-
-    if (allowedPattern.test(value)) {
-      setObservationValue(prev => ({
+    setObservationValue((prev) => {
+      const updatedValues = {
         ...prev,
         [testId]: {
           ...prev[testId],
           [index]: value
         }
-      }));
-    } else {
-      toast.error("Invalid character! Only a-z, 0-9, spaces and dots (.), are allowed.");
-    }
+      };
+
+      // Step 1: Check if value is empty, then set it based on labObservationId
+      if (value === "") {
+        const observationItem = allObservationData.find(
+          (item) => item.testId === testId
+        );
+
+        if (observationItem) {
+          updatedValues[testId][index] = String(observationItem.labObservationId);
+        }
+      }
+
+      // Step 2: Find affected formulas and recalculate values
+      const updatedFormulaValues = { ...updatedValues };
+
+      summedValuesForFormuladata.forEach(({ formula, labObservationId }) => {
+        const observationIds = formula.match(/\d+/g)?.map(Number) || [];
+
+        // Find corresponding values for the formula
+        const values = observationIds.map((obsId) => {
+          for (const testKey in updatedValues) {
+            for (const idx in updatedValues[testKey]) {
+              if (allObservationData.find((item) => item.labObservationId === obsId)) {
+                return Number(updatedValues[testKey][idx]) || 0;
+              }
+            }
+          }
+          return 0;
+        });
+
+        let computedValue = 0;
+        try {
+          computedValue = eval(formula);
+        } catch (error) {
+          console.error("Error evaluating formula:", formula);
+        }
+
+        // Find testId for the formula's labObservationId
+        const testObj = allObservationData.find((item) => item.labObservationId === labObservationId);
+        if (!testObj || !testObj.testId) return;
+
+        const formulaTestId = testObj.testId;
+
+        // Store computed formula value
+        if (!updatedFormulaValues[formulaTestId]) {
+          updatedFormulaValues[formulaTestId] = {};
+        }
+        const formulaIndex = Object.keys(updatedFormulaValues[formulaTestId]).length;
+        updatedFormulaValues[formulaTestId][formulaIndex] = String(computedValue);
+      });
+
+      return updatedFormulaValues;
+    });
   };
+
+
+  console.log(observationValue);
+
 
 
   const handelOnChangeResultTrackData = (e) => {
@@ -1144,12 +1348,10 @@ export default function ResultTrack() {
   };
 
 
+
   const saveReasionRerunData = async () => {
     setIsButtonClick(5);
     try {
-
-      console.log(allSampleRerunData);
-
 
       const updateData = allSelectedReRunReasonData?.map((item, index) => {
         // Access rerunbyid from resonForReRunData and get the corresponding value from allReRunReasonData
@@ -1729,6 +1931,10 @@ export default function ResultTrack() {
                       />
 
                       <CustomDynamicTable CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
+
+                        {
+                          console.log(allObservationData)
+                        }
                         <tbody>
                           {allObservationData?.map((data, index) => {
 
@@ -1862,7 +2068,7 @@ export default function ResultTrack() {
 
                                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                       <form autoComplete="off">
-                                        <input
+                                        {/* <input
                                           type="text"
                                           name="charNumber"
                                           id="charNumber"
@@ -1878,7 +2084,28 @@ export default function ResultTrack() {
                                             WebkitTextFillColor: "transparent",
                                             display: "inline-block", // Ensures proper rendering of gradient
                                           }}
+                                        /> */}
+                                        <input
+                                          type="text"
+                                          name="charNumber"
+                                          id="charNumber"
+                                          value={
+                                            data?.formula
+                                              ? observationValue?.totalSum ?? "" // Use calculated totalSum if formula exists
+                                              : observationValue[data?.testId]?.[index] ?? data?.value ?? ""
+                                          }
+                                          maxLength={15}
+                                          readOnly={data?.value}
+                                          onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
+                                          className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  }`}
+                                          style={{
+                                            background: data?.value === "Header" ? activeTheme?.menuColor : "black",
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
+                                            display: "inline-block", // Ensures proper rendering of gradient
+                                          }}
                                         />
+
                                       </form>
                                     </td>
 

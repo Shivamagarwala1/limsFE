@@ -137,7 +137,7 @@ export default function Login() {
                     <img src={logo} alt="path not found" className='w-32 h-10' />
                 </div> */}
 
-                <div className=" border-2 w-80 sm:w-96 h-auto shadow-xl rounded-lg bg-white/60 z-40 pt-2">
+                <div className=" border-2 w-80 sm:w-96 h-auto shadow-xl rounded-lg bg-white/60 z-40 pt-2 2xl:mt-20">
 
                     {/* <div className='flex flex-col justify-center items-center mt-6'>
                         <img src={clientLogo} alt="path not found" className='w-10 h-10 sm:w-16 sm:h-16 ' />
