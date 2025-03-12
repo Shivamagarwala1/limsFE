@@ -393,55 +393,55 @@ export default function ResultTrack() {
 
   useEffect(() => {
     if (allObservationData && Array.isArray(allObservationData)) {
-      // Filter allObservationData where formula is available
-      const filteredallObservationData = allObservationData
-        .filter((item) => item.formula) // Check if formula exists
+      // Step 1: Filter out observations that have a formula
+      const filteredObservationData = allObservationData
+        .filter((item) => item.formula)
         .map((item) => ({
           formula: item.formula,
           labObservationId: item.labObservationId
         }));
 
-      // Update state
-      setSummedValuesForFormuladata(filteredallObservationData);
+      setSummedValuesForFormuladata(filteredObservationData);
 
-      // **Step 2: Compute formula results and store by testId**
+      // Step 2: Compute formula results and store them by testId
       const computedValues = {};
 
-      filteredallObservationData.forEach(({ formula, labObservationId }, index) => {
-        // Extract numbers from formula (e.g., "357+708" → [357, 708])
+      filteredObservationData.forEach(({ formula, labObservationId }, index) => {
+        // Extract labObservationIds from formula (e.g., "357+708" → [357, 708])
         const observationIds = formula.match(/\d+/g)?.map(Number) || [];
 
-        // Find corresponding values from `allObservationData`
-        const values = observationIds.map((obsId) => {
+        // Replace observation IDs with actual values from allObservationData
+        let evaluatedFormula = formula;
+        observationIds.forEach((obsId) => {
           const obsData = allObservationData.find((item) => item.labObservationId === obsId);
-          return obsData ? Number(obsData.value) : 0; // Convert to number, default to 0 if missing
+          const value = obsData ? Number(obsData.value) : 0; // Default to 0 if missing
+          evaluatedFormula = evaluatedFormula.replace(obsId, value);
         });
 
-        // **Evaluate the formula**
+        // Compute the final result
         let computedValue = 0;
         try {
-          computedValue = eval(formula); // Execute mathematical operation
+          computedValue = eval(evaluatedFormula); // Safely evaluate the formula
         } catch (error) {
-          console.error("Error evaluating formula:", formula);
+          console.error("Error evaluating formula:", evaluatedFormula);
         }
 
-        // **Find the corresponding testId for the labObservationId**
+        // Find the corresponding testId for the labObservationId
         const testObj = allObservationData.find((item) => item.labObservationId === labObservationId);
         if (!testObj || !testObj.testId) return; // Skip if no testId found
 
         const testId = testObj.testId;
 
-        // **Store computed value under testId**
+        // Store computed value under testId
         if (!computedValues[testId]) {
-          computedValues[testId] = {}; // Initialize if testId doesn't exist
+          computedValues[testId] = {}; // Initialize testId object
         }
         computedValues[testId][index] = String(computedValue); // Store as string
       });
 
       setObservationValue(computedValues);
-
     }
-  }, [allObservationData]); // Run when `data` updates
+  }, [allObservationData]);
 
 
   console.log(observationValue);
@@ -536,7 +536,7 @@ export default function ResultTrack() {
 
 
   const handleInputChangeForObserVtionValue = (testId, index, value) => {
-    const allowedPattern = /^[a-z0-9. -]*$/i; // Allows a-z, 0-9, dot (.), space (' '), and hyphen (-)
+    const allowedPattern = /^[a-z0-9. -]*$/i; // Allow a-z, 0-9, dot (.), space (' '), and hyphen (-)
 
     if (!allowedPattern.test(value)) {
       toast.error("Invalid character! Only a-z, 0-9, spaces, dots (.), and hyphens (-) are allowed.");
@@ -544,32 +544,27 @@ export default function ResultTrack() {
     }
 
     setObservationValue((prev) => {
-      const updatedValues = {
+      let updatedValues = {
         ...prev,
         [testId]: {
           ...prev[testId],
-          [index]: value
-        }
+          [index]: value, // Update entered value
+        },
       };
 
-      // Step 1: Check if value is empty, then set it based on labObservationId
-      if (value === "") {
-        const observationItem = allObservationData.find(
-          (item) => item.testId === testId
-        );
-
+      // Restore default value if input is cleared
+      if (value.trim() === "") {
+        const observationItem = allObservationData.find((item) => item.testId === testId);
         if (observationItem) {
           updatedValues[testId][index] = String(observationItem.labObservationId);
         }
       }
 
-      // Step 2: Find affected formulas and recalculate values
-      const updatedFormulaValues = { ...updatedValues };
-
+      // Compute values based on formulas
       summedValuesForFormuladata.forEach(({ formula, labObservationId }) => {
         const observationIds = formula.match(/\d+/g)?.map(Number) || [];
 
-        // Find corresponding values for the formula
+        // Fetch corresponding values from updated state
         const values = observationIds.map((obsId) => {
           for (const testKey in updatedValues) {
             for (const idx in updatedValues[testKey]) {
@@ -583,31 +578,32 @@ export default function ResultTrack() {
 
         let computedValue = 0;
         try {
-          computedValue = eval(formula);
+          computedValue = eval(formula); // Compute formula result
         } catch (error) {
           console.error("Error evaluating formula:", formula);
         }
 
-        // Find testId for the formula's labObservationId
+        // Identify testId for this formula-based observation
         const testObj = allObservationData.find((item) => item.labObservationId === labObservationId);
         if (!testObj || !testObj.testId) return;
 
         const formulaTestId = testObj.testId;
 
-        // Store computed formula value
-        if (!updatedFormulaValues[formulaTestId]) {
-          updatedFormulaValues[formulaTestId] = {};
-        }
-        const formulaIndex = Object.keys(updatedFormulaValues[formulaTestId]).length;
-        updatedFormulaValues[formulaTestId][formulaIndex] = String(computedValue);
+        // Ensure computed value is stored correctly
+        updatedValues = {
+          ...updatedValues,
+          [formulaTestId]: {
+            ...updatedValues[formulaTestId],
+            [`formula_${labObservationId}`]: String(computedValue), // Store computed formula result
+          },
+        };
       });
 
-      return updatedFormulaValues;
+      return updatedValues; // Update state
     });
   };
 
 
-  console.log(observationValue);
 
 
 
@@ -1051,12 +1047,12 @@ export default function ResultTrack() {
 
 
 
-  //!============morden way code===============
-  const allFileAttachementData = useRetrieveData();
-  const allReportFileData = useRetrieveData();
-  const allRejectionData = useRetrieveData();
-  const allCommentData = useRetrieveData();
-  const allSampleRerunData = useRetrieveData();
+  //!============morden way code===============                                                  
+  const allFileAttachementData = useRetrieveData();                                              
+  const allReportFileData = useRetrieveData();                                                   
+  const allRejectionData = useRetrieveData();                                                    
+  const allCommentData = useRetrieveData();                                                      
+  const allSampleRerunData = useRetrieveData();                                                  
 
 
   useEffect(() => {
@@ -1688,7 +1684,7 @@ export default function ResultTrack() {
                     {data?.barcodeNo}
                   </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="flex gap-1">
                       {data?.investigationName?.map((item, index) => (
                         <CustomeNormalButton
@@ -1700,7 +1696,32 @@ export default function ResultTrack() {
                       ))}
                     </div>
 
+                  </td> */}
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                    <div className="flex flex-wrap gap-1">
+                      {data?.investigationName?.map((item, index) => (
+                        <CustomeNormalButton
+                          key={index}
+                          activeTheme={activeTheme}
+                          text={item?.investigationName}
+                          onClick={() =>
+                            handelObservationData(
+                              data?.totalAge,
+                              item,
+                              data?.workOrderId,
+                              item?.reportType,
+                              item?.itemId,
+                              data?.testid,
+                              data?.deptId
+                            )
+                          }
+                          className="w-auto" // Optional: Adjust button width if needed
+                        />
+                      ))}
+
+                    </div>
                   </td>
+
 
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     {data?.approvedDate}
@@ -1958,7 +1979,7 @@ export default function ResultTrack() {
 
 
                                   <tr>
-                                    <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
+                                    <td colSpan="12" className="border-b px-4 h-6 text-xs font-extrabold text-gridTextColor w-full">
                                       <div className="flex items-center gap-2 w-full">
                                         <div style={{
                                           background: activeTheme?.menuColor,

@@ -301,7 +301,7 @@ export const CustomTextBox = ({
                 !showLabel && (
                     <label
                         htmlFor={name}
-                        className={`menuPeerLevel
+                        className={`menuPeerLevel 
                  ${isDisabled
                                 ? "bg-gray-100 text-gray-500 cursor-not-allowed"
                                 : "bg-white"
