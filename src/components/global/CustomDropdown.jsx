@@ -53,7 +53,7 @@ function CustomDropdown({
 
       {/* Dropdown box */}
       <div
-        className={`inputPeerField  mt-[1.9px] peer focus:outline-none flex items-center 
+        className={`inputPeerField  mt-[1.5px] peer focus:outline-none flex items-center 
           
           ${isMandatory ? "border-b-red-500" : "border-borderColor"
           }  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer bg-white'} pl-2`}

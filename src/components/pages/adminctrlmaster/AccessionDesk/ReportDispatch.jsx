@@ -17,6 +17,15 @@ import {
 } from "../../../../Custom Components/PopupModal";
 import { setLocal } from "usehoks";
 import { FaCircleInfo } from "react-icons/fa6";
+import { useRetrieveData } from "../../../../service/service";
+import CustomDropdown from "../../../global/CustomDropdown";
+import { DatePicker } from "../../../global/DatePicker";
+import { useFormattedDate } from "../../../customehook/useDateTimeFormate";
+import { CustomTextBox } from "../../../global/CustomTextBox";
+import CustomeNormalButton from "../../../global/CustomeNormalButton";
+import CustomNormalFormButton from "../../../global/CustomNormalFormButton";
+import { toast } from "react-toastify";
+import CustomSearchInputFields from "../../../global/CustomSearchDropdown";
 
 export default function ReportDispatch() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -173,7 +182,60 @@ export default function ReportDispatch() {
     },
   ];
 
-  const handleSubmit = () => {};
+  const handleSubmit = () => { };
+  // !===============anil code=====================
+  const [reportDispatchData, setRecordDispatchData] = useState({
+    centreId: 0,
+    fromDate: useFormattedDate(),
+    toDate: useFormattedDate(),
+    searchType: '',
+    barcodeNo: '',
+    department: '',
+    test: '',
+    user: '',
+    header: 0
+  })
+  const allCentreData = useRetrieveData();
+  const allDepartementData = useRetrieveData();
+  const allTestData = useRetrieveData();
+  const allUserData = useRetrieveData();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await allCentreData.fetchDataFromApi(`/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)`);
+        //console.log(response);
+
+        await allDepartementData.fetchDataFromApi(`/labDepartment?select=id,deptname&$filter=(isactive eq 1)`);
+
+        await allTestData.fetchDataFromApi(`/itemMaster?select= itemId,ItemName&$filter=(deptId eq 2 and isactive eq 1)`);
+
+        await allUserData.fetchDataFromApi(`/empMaster?select=empid,fName,lName&$filter=(isactive eq 1)`)
+
+      } catch (error) {
+        toast.error(error?.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+  const handelOnChangeForReportDispatch = (e) => {
+    setRecordDispatchData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  console.log(allTestData);
+
+  const searchReportDispatchData = (e) => {
+    e.preventDefault();
+
+    console.log('Search data.......');
+
+  }
 
   return (
     <div>
@@ -193,148 +255,190 @@ export default function ReportDispatch() {
         <div>Report Dispatch</div>
       </div>
 
-      <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-          <InputGenerator
-            inputFields={[
-              {
-                label: "Centre",
-                type: "select",
-                name: "centre",
-                dataOptions: AllCenterData?.data,
-              },
-              {
-                label: "From Date",
-                type: "customDateField",
-                name: "FromDate",
-              },
-              {
-                label: "To Date",
-                type: "customDateField",
-                name: "ToDate",
-              },
-              {
-                label: "Search",
-                type: "select",
-                name: "Search",
-                dataOptions: [
-                  { id: 1, option: "Sample Recived Date" },
-                  { id: 2, option: "Sample Collection Date" },
-                  { id: 1, option: "Booked Date" },
-                  { id: 1, option: "Delivery Date" },
-                ],
-              },
-              {
-                label: "Barcode No.",
-                type: "text",
-                name: "Barcode",
-              },
-              {
-                label: "Department",
-                type: "select",
-                name: "Department",
-                dataOptions: [],
-              },
-              {
-                label: "Test",
-                type: "select",
-                name: "Test",
-                dataOptions: [],
-              },
-              {
-                label: "User",
-                type: "select",
-                name: "User",
-                dataOptions: [],
-              },
-              {
-                label: "Header",
-                type: "select",
-                name: "Header",
-                dataOptions: [
-                  { id: 1, key: "Yes" },
-                  { id: 2, key: "No" },
-                ],
-              },
-            ]}
-          />
-          <SubmitButton text={"Search"} />
-          <SubmitButton submit={false} text={"Print"} />
-        </div>
-        <div className="flex flex-wrap items-center">
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#d7cdc6" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Not Coll.
+      <form autoComplete="off" onSubmit={searchReportDispatchData}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
+
+          <div className="relative flex-1">
+
+            <CustomSearchInputFields
+              id="centreId"
+              name="centreId"
+              label="Centre"
+              value={reportDispatchData?.centreId}
+              options={allCentreData?.data}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              filterText="No records found"
+              placeholder=" "
+              searchWithName="companyName"
+              uniqueKey="centreId"
+              activeTheme={activeTheme}
+            />
+
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#6595ed" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Collected
+
+          <div className='relative flex-1'>
+            <DatePicker
+              id="fromDate"
+              name="fromDate"
+              value={reportDispatchData?.fromDate || ''}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              placeholder=" "
+              label="From Date"
+              activeTheme={activeTheme}
+              currentDate={new Date()} // Current date: today
+              maxDate={new Date(2025, 11, 31)}
+
+            />
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#ff6349" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Rejected
+
+          <div className='relative flex-1'>
+            <DatePicker
+              id="toDate"
+              name="toDate"
+              value={reportDispatchData?.toDate || ''}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              placeholder=" "
+              label="To Date"
+              activeTheme={activeTheme}
+              currentDate={new Date()} // Current date: today
+              maxDate={new Date(2025, 11, 31)}
+
+            />
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#fea501" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Sample Run
+
+
+          <div className="relative flex-1">
+            <CustomSearchInputFields
+              id="centreId"
+              name="centreId"
+              label="Search Type"
+              value={reportDispatchData?.centreId}
+              options={allCentreData?.data}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              filterText="No records found"
+              placeholder=" "
+              searchWithName="companyName"
+              uniqueKey="centreId"
+              activeTheme={activeTheme}
+            />
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "rgb(74 74 74)" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Pending
+
+          <div className="relative flex-1">
+            <CustomTextBox
+              type="charNumberWithSpace"
+              name="barcodeNo"
+              value={reportDispatchData?.barcodeNo || ''}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              label="Barcode No."
+            // showLabel={true}
+            />
+
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#ffb6c1" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Tested
+
+
+          <div className="relative flex-1">
+            <CustomSearchInputFields
+              id="department"
+              name="department"
+              label="Search Departement"
+              value={reportDispatchData?.department}
+              options={allDepartementData?.data}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              filterText="No records found"
+              placeholder=" "
+              searchWithName="deptName"
+              uniqueKey="id"
+              activeTheme={activeTheme}
+            />
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#ffff01" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Hold
+
+
+          <div className="relative flex-1">
+            <CustomSearchInputFields
+              id="test"
+              name="test"
+              label="Search Departement"
+              value={reportDispatchData?.test}
+              options={allTestData?.data}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              filterText="No records found"
+              placeholder=" "
+              searchWithName="itemName"
+              uniqueKey="itemId"
+              activeTheme={activeTheme}
+            />
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#05ca67" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Approved
+
+
+          <div className="relative flex-1">
+
+            <CustomSearchInputFields
+              id="user"
+              name="user"
+              label="Search User"
+              value={reportDispatchData?.user}
+              options={allUserData?.data}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              filterText="No records found"
+              placeholder=" "
+              searchWithName="fName"
+              uniqueKey="empid"
+              activeTheme={activeTheme}
+            />
+
+            {/* <CustomDropdown
+              name="user"
+              label="Select User"
+              value={reportDispatchData?.user}
+              options={[
+                { label: 'Select User ', value: 0, disabled: true },
+                ...allUserData?.data?.map(item => ({
+                  label: `${item?.fName} ${item?.lName}`,
+                  value: parseInt(item.empid),
+                })),
+              ]}
+              onChange={(e) => handelOnChangeForReportDispatch(e)}
+              defaultIndex={0}
+              activeTheme={activeTheme}
+            /> */}
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#bbf1f3" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Printed
+
+          <div className="flex gap-[0.25rem]">
+            <div className="relative flex-1">
+              <CustomDropdown
+                name="header"
+                label="Select Header"
+                value={reportDispatchData?.header}
+                options={[
+                  // { label: 'Select Header ', value: 0, disabled: true },
+                  { label: 'Yes ', value: 1 },
+                  { label: 'No', value: 0 },
+
+                ]}
+                onChange={(e) => handelOnChangeForReportDispatch(e)}
+                defaultIndex={0}
+                activeTheme={activeTheme}
+              />
+            </div>
+
+            <div className="relative flex-1">
+              <CustomNormalFormButton activeTheme={activeTheme} text={'Search'} />
+            </div>
           </div>
-          <div className="relative flex-1 gap-1 m-2 flex justify-center items-center text-xs">
-            <div
-              style={{ backgroundColor: "#a56abe" }}
-              className="w-7 h-7 bg-grey-300 rounded-full "
-            ></div>
-            Out Source
+
+          <div className="flex gap-[0.25rem]">
+
+            <div className="relative flex-1">
+              <CustomeNormalButton activeTheme={activeTheme} text={'Print'} />
+            </div>
+
+            <div className="relative flex-1">
+            </div>
           </div>
         </div>
       </form>
-      <div style={{ height: "300px" }}>
+
+      <div style={{ height: "100px" }}>
         <DynamicTable
           rows={row}
           name="Dispatch Details"
@@ -343,6 +447,15 @@ export default function ReportDispatch() {
           activeTheme={activeTheme}
         />
       </div>
+
+
+
+
+
+
+
+
+
     </div>
   );
 }
