@@ -1,6 +1,6 @@
 import React, { useRef } from "react";
 
-const CustomDynamicTable = ({ columns, activeTheme, children,height='300px' }) => {
+const CustomDynamicTable = ({ columns, activeTheme, children, height = '300px' }) => {
 
   const tableRef = useRef(null);
 
@@ -35,7 +35,7 @@ const CustomDynamicTable = ({ columns, activeTheme, children,height='300px' }) =
         msOverflowStyle: "none",
         whiteSpace: "nowrap",
         cursor: "grab", // Shows a grab cursor
-        maxHeight:height
+        maxHeight: height
       }}
 
       className=" overflow-y-auto mb-2"
