@@ -222,3 +222,12 @@ export function convertToCustomFormat(isoDateStr) {
 
   return `${day}-${month}-${year}`;
 }
+
+export const adjustStringLength = (input,targetLength) => {
+
+  if (input.length > targetLength) {
+    return input.slice(0, targetLength - 3) + "..."; // Trim and add "..."
+  } else {
+    return input.padEnd(targetLength, " "); // Add spaces to match length
+  }
+};

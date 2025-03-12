@@ -389,6 +389,16 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/Store/ViewIndent.jsx")),
         exact: true,
     },
+    {
+        path: "/LIMS/MarketingDashboardMaster",
+        component: React.lazy(() => import("../pages/adminctrlmaster/MarketingDashboardMaster.jsx")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/MarketingDashboard",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Dashboard/MarketingDashboard.jsx")),
+        exact: true,
+    },
 
 ];
 

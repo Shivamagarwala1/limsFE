@@ -16,6 +16,10 @@ import {
 import toast from "react-hot-toast";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { getLocal } from "usehoks";
+import {
+  IndentIssuePopupModal,
+  RejectPopupModal,
+} from "../../../../Custom Components/NewPopups";
 
 // Main Component
 export default function ViewIndent() {
@@ -26,7 +30,9 @@ export default function ViewIndent() {
 
   const [FromDate, setFromDate] = useState(todayDate);
   const [ToDate, setToDate] = useState(todayDate);
-  const [UpdatedBarcode, setUpdatedBarcode] = useState([]);
+  const [Params, setParams] = useState({});
+  const [ShowPopup, setShowPopup] = useState(false);
+  const [ShowPopup1, setShowPopup1] = useState(false);
   // ------------------ User -------------------------------
   const [UserId, setUserId] = useState(0);
   const [UserValue, setUserValue] = useState("");
@@ -64,7 +70,7 @@ export default function ViewIndent() {
   useEffect(() => {
     if (!GridData?.data?.data?.length) return; // Ensure data exists
     setRow(addRandomObjectId(GridData?.data?.data)); // Ensure unique IDs are set
-  }, [SelectedItem, GridData?.data?.data]);
+  }, [SelectedItem, GridData?.data?.data, ShowPopup]);
 
   console.log(row, SelectedItem);
   const columns = [
@@ -77,11 +83,7 @@ export default function ViewIndent() {
       flex: 1,
       renderCell: (params) => {
         const date = convertToCustomFormat(params?.row?.createdDateTime);
-        return (
-          <div className="flex gap-1">
-            {date}
-          </div>
-        );
+        return <div className="flex gap-1">{date}</div>;
       },
     },
     {
@@ -89,37 +91,47 @@ export default function ViewIndent() {
       width: 150,
       renderCell: (params) => {
         return (
-          <div className="flex gap-1">
-            <div
-              onClick={() => {}}
-              className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-              style={{
-                background: activeTheme?.menuColor,
-                color: activeTheme?.iconColor,
-              }}
-            >
-              <svg
-                fill="#fff"
-                width="800px"
-                height="1.05rem"
-                viewBox="-1 0 19 19"
-                xmlns="http://www.w3.org/2000/svg"
-                class="cf-icon-svg"
-              >
-                <path d="M16.417 9.583A7.917 7.917 0 1 1 8.5 1.666a7.917 7.917 0 0 1 7.917 7.917zM5.85 3.309a6.833 6.833 0 1 0 2.65-.534 6.787 6.787 0 0 0-2.65.534zm2.654 1.336A1.136 1.136 0 1 1 7.37 5.78a1.136 1.136 0 0 1 1.135-1.136zm.792 9.223V8.665a.792.792 0 1 0-1.583 0v5.203a.792.792 0 0 0 1.583 0z" />
-              </svg>
-            </div>
-            <div
-              onClick={() => {}}
-              className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-              style={{
-                background: activeTheme?.menuColor,
-                color: activeTheme?.iconColor,
-              }}
-            >
-              R
-            </div>
-          </div>
+          <>
+            {params?.row?.rejected === 0 && (
+              <div className="flex gap-1">
+                <div
+                  onClick={() => {
+                    setParams(params?.row);
+                    setShowPopup1(true);
+                  }}
+                  className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <svg
+                    fill="#fff"
+                    width="800px"
+                    height="1.05rem"
+                    viewBox="-1 0 19 19"
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="cf-icon-svg"
+                  >
+                    <path d="M16.417 9.583A7.917 7.917 0 1 1 8.5 1.666a7.917 7.917 0 0 1 7.917 7.917zM5.85 3.309a6.833 6.833 0 1 0 2.65-.534 6.787 6.787 0 0 0-2.65.534zm2.654 1.336A1.136 1.136 0 1 1 7.37 5.78a1.136 1.136 0 0 1 1.135-1.136zm.792 9.223V8.665a.792.792 0 1 0-1.583 0v5.203a.792.792 0 0 0 1.583 0z" />
+                  </svg>
+                </div>
+                <div
+                  onClick={() => {
+                    setParams(params?.row);
+                    setShowPopup(true);
+                  }}
+                  className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  R
+                </div>
+              </div>
+            )}
+          </>
         );
       },
     },
@@ -157,16 +169,17 @@ export default function ViewIndent() {
     const values = getValues();
     console.log(values);
 
-    if (!FromDate) {
+    if (!values?.FromDate) {
       toast.error("From Date is required");
       return;
     }
-    if (!ToDate) {
+    if (!values?.ToDate) {
       toast.error("To Date is required");
       return;
     }
-    const from = await convertToISO(FromDate, "from");
-    const to = await convertToISO(ToDate, "to");
+    const from = await convertToISO(values?.FromDate, "from");
+    const to = await convertToISO(values?.ToDate, "to");
+    console.log(from, " ", FromDate);
     try {
       const res = await GridData?.fetchData(
         `/Indent/GetIndentDetails?roleId=${RoleId}&empId=${UserId}&fromDate=${from}&todate=${to}`
@@ -182,83 +195,97 @@ export default function ViewIndent() {
   };
 
   return (
-    <div>
-      <FormHeader title="View Indent" />
-      <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
-          <SearchBarDropdown
-            id="search-bar"
-            name="Role"
-            value={RoleValue}
-            onChange={handleSearchChange3}
-            label="Role"
-            placeholder="Serch Role"
-            options={RoleData?.data}
-            isRequired={false}
-            showSearchBarDropDown={RoleDropDown}
-            setShowSearchBarDropDown={setRoleDropDown}
-            handleOptionClickForCentre={handleOptionClick3}
-            setIsHovered={setRoleHoveIndex}
-            isHovered={RoleHoveIndex}
-            style={{ marginTop: "0.1rem" }}
-          />
-          <SearchBarDropdown
-            id="search-bar"
-            name="User"
-            value={UserValue}
-            onChange={handleSearchChange2}
-            label="User"
-            placeholder="Serch User"
-            options={UserData?.data}
-            isRequired={false}
-            showSearchBarDropDown={UserDropDown}
-            setShowSearchBarDropDown={setUserDropDown}
-            handleOptionClickForCentre={handleOptionClick2}
-            setIsHovered={setUserHoveIndex}
-            isHovered={UserHoveIndex}
-            style={{ marginTop: "0.1rem" }}
-          />
-          <InputGenerator
-            inputFields={[
-              {
-                label: "From Date",
-                type: "customDateField",
-                name: "FromDate",
-                onChange: (e) => {
-                  console.log(e);
-                  setFromDate(e);
+    <>
+      <RejectPopupModal
+        Params={Params}
+        setShowPopup={setShowPopup}
+        showPopup={ShowPopup}
+        UserId={UserId}
+      />
+      <IndentIssuePopupModal
+        Params={Params}
+        setShowPopup={setShowPopup1}
+        showPopup={ShowPopup1}
+        UserId={UserId}
+      />
+      <div>
+        <FormHeader title="View Indent" />
+        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
+            <SearchBarDropdown
+              id="search-bar"
+              name="Role"
+              value={RoleValue}
+              onChange={handleSearchChange3}
+              label="Role"
+              placeholder="Serch Role"
+              options={RoleData?.data}
+              isRequired={false}
+              showSearchBarDropDown={RoleDropDown}
+              setShowSearchBarDropDown={setRoleDropDown}
+              handleOptionClickForCentre={handleOptionClick3}
+              setIsHovered={setRoleHoveIndex}
+              isHovered={RoleHoveIndex}
+              style={{ marginTop: "0.1rem" }}
+            />
+            <SearchBarDropdown
+              id="search-bar"
+              name="User"
+              value={UserValue}
+              onChange={handleSearchChange2}
+              label="User"
+              placeholder="Serch User"
+              options={UserData?.data}
+              isRequired={false}
+              showSearchBarDropDown={UserDropDown}
+              setShowSearchBarDropDown={setUserDropDown}
+              handleOptionClickForCentre={handleOptionClick2}
+              setIsHovered={setUserHoveIndex}
+              isHovered={UserHoveIndex}
+              style={{ marginTop: "0.1rem" }}
+            />
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "From Date",
+                  type: "customDateField",
+                  name: "FromDate",
+                  onChange: (e) => {
+                    console.log(e);
+                    setFromDate(e);
+                  },
                 },
-              },
-              {
-                label: "To Date",
-                type: "customDateField",
-                name: "ToDate",
-                onChange: (e) => {
-                  setToDate(e);
+                {
+                  label: "To Date",
+                  type: "customDateField",
+                  name: "ToDate",
+                  onChange: (e) => {
+                    setToDate(e);
+                  },
                 },
-              },
-            ]}
-          />
+              ]}
+            />
 
-          <TwoSubmitButton
-            options={[
-              {
-                label: "Save",
-                submit: true,
-              },
-            ]}
+            <TwoSubmitButton
+              options={[
+                {
+                  label: "Search",
+                  submit: true,
+                },
+              ]}
+            />
+          </div>
+        </form>
+        <div className="h-[300px] w-full">
+          <UpdatedDynamicTable
+            rows={row}
+            name="View Indent Details"
+            loading={GridData?.loading}
+            columns={columns}
+            viewKey="Random"
           />
         </div>
-      </form>
-      <div className="h-[300px] w-full">
-        <UpdatedDynamicTable
-          rows={row}
-          name="View Indent Details"
-          loading={GridData?.loading}
-          columns={columns}
-          viewKey="Random"
-        />
       </div>
-    </div>
+    </>
   );
 }

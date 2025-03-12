@@ -63,7 +63,11 @@ export default function InputGenerator({
   return (
     <>
       {inputFields.map((field, index) => (
-        <div key={index} className="relative flex-1">
+        <div
+          key={index}
+          style={{ height: "1.6rem" }}
+          className="relative flex-1"
+        >
           {field?.type === "select" ? (
             <>
               <select
@@ -118,7 +122,7 @@ export default function InputGenerator({
                   placeholder={""}
                   onChange={(e) => {
                     field?.onChange?.(e.target.value); // Calls field's internal onChange
-                  alert("hiii")
+                    alert("hiii");
                   }}
                   className={`inputPeerField peer border-borderColor ${
                     field?.required ? "border-b-red-500" : ""
