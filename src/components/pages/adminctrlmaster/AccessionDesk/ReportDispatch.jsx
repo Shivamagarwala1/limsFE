@@ -4,12 +4,10 @@ import InputGenerator, {
   SubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
 import { useGetData } from "../../../../service/apiService";
-import { ImCross } from "react-icons/im";
-import { FaCommentDots, FaDownload, FaPlus } from "react-icons/fa";
+
+import { FaArrowRight, FaCommentDots, FaDownload, FaPlus, FaSpinner } from "react-icons/fa";
 import "./ReportDispatch.css";
 import {
   InvestigationRemarkPopupModal,
@@ -33,6 +31,9 @@ import CustomDynamicTable from '../../../global/CustomDynamicTable';
 import { reportDispatchHeaderData } from "../../../listData/listData";
 import { MdAddCircleOutline, MdOutlineMailOutline } from "react-icons/md";
 import { BiSolidLike } from 'react-icons/bi'
+import CustomLoadingPage from '../../../global/CustomLoadingPage'
+import { IoAlertCircleOutline } from "react-icons/io5";
+import CustomFormButton from "../../../global/CustomFormButton";
 export default function ReportDispatch() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const user = useSelector((state) => state.userSliceName?.user || null);
@@ -210,7 +211,13 @@ export default function ReportDispatch() {
   const allTestData = useRetrieveData();
   const allUserData = useRetrieveData();
   const [isHoveredTable, setIsHoveredTable] = useState(null);
-
+  const [showPopup, setShowPopup] = useState(0);
+  const [storeStatusData, setShowStatusData] = useState({
+    workOrderId: '',
+    nameOfUpdateStatus: ''
+  })
+  const [isButtonClick, setIsButtonClick] = useState(0);
+  const postData = usePostData();
   const searchReportDispatch = usePostData();
 
   useEffect(() => {
@@ -256,8 +263,10 @@ export default function ReportDispatch() {
     }));
   };
 
-  const searchReportDispatchData = async (e) => {
-    e.preventDefault();
+  const searchReportDispatchData = async (e = null) => {
+
+    if (e) e.preventDefault(); // Prevent default only if event exists
+
 
     const itemData = reportDispatchData?.department?.length
       ? reportDispatchData.department.map((item) => item?.id)
@@ -288,13 +297,48 @@ export default function ReportDispatch() {
       const response = await searchReportDispatch.postRequestData(`/tnx_Booking/GetDispatchData`, updateData);
 
       console.log(response);
-      // const resp = await saveData(updateData);
-      // console.log(resp);
+
 
     } catch (error) {
       toast.error(error?.message)
     }
 
+  }
+
+  //update the whatsapp and email status
+  const updateStatusForWhatsappAndEmail = async () => {
+
+    setIsButtonClick(3);
+    if (storeStatusData?.updateStatusName === 'whatsapp') {
+
+      try {
+
+        const response = await postData.postRequestData(`/tnx_Booking/SendWhatsapp?workOrderId=${storeStatusData?.workOrderId}&Userid=${parseInt(user?.employeeId)}`);
+
+        if (response?.message) {
+          toast.success(response?.message);
+
+          //call the method to get updated data
+          await searchReportDispatchData();
+
+          setShowPopup(0);
+          setShowStatusData({
+            workOrderId: '',
+            nameOfUpdateStatus: ''
+          })
+        } else {
+          toast.error(response?.message);
+        }
+        console.log(response);
+      } catch (error) {
+        toast(error?.message);
+      }
+
+    } else {
+      console.log('email');
+
+    }
+    setIsButtonClick(0);
   }
 
   return (
@@ -304,7 +348,10 @@ export default function ReportDispatch() {
         setShowPopup={setRemarkPopup}
         showPopup={RemarkPopup}
       />
+
       <RejectPopupModal setShowPopup={setRejectPopup} showPopup={RejectPopup} />
+
+
       <FormHeader headerData={'Report Dispatch'} />
 
       <form autoComplete="off" onSubmit={searchReportDispatchData}>
@@ -506,76 +553,79 @@ export default function ReportDispatch() {
         </div>
       </form>
 
-
-
       <GridDataDetails gridDataDetails={'Dispatch Details'} />
+      {
+        searchReportDispatch?.loading ?
+          <div className="flex items-center justify-center w-full">
+            <CustomLoadingPage />
+          </div>
+          :
+          <CustomDynamicTable activeTheme={activeTheme} columns={reportDispatchHeaderData} height="300px">
 
-      <CustomDynamicTable activeTheme={activeTheme} columns={reportDispatchHeaderData} height="300px">
+            <tbody >
+              {searchReportDispatch?.data?.map((data, index) => (
 
-        <tbody>
-          {searchReportDispatch?.data?.map((data, index) => (
-
-            <tr
-              className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                ? ''
-                : index % 2 === 0
-                  ? 'bg-gray-100'
-                  : 'bg-white'
-                }`}
-              key={index}
-              onMouseEnter={() => setIsHoveredTable(index)}
-              onMouseLeave={() => setIsHoveredTable(null)}
-              style={{
-                background:
-                  isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                // Hides scrollbar for IE/Edge
-              }}
-            >
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                <div className="flex gap-3 items-center">
-                  <div>
-                    {index + 1}
-                  </div>
-                  {
-                    data?.urgent === 1 && (
+                <tr
+                  className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                    ? ''
+                    : index % 2 === 0
+                      ? 'bg-gray-100'
+                      : 'bg-white'
+                    }`}
+                  key={index}
+                  onMouseEnter={() => setIsHoveredTable(index)}
+                  onMouseLeave={() => setIsHoveredTable(null)}
+                  style={{
+                    background:
+                      isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                    // Hides scrollbar for IE/Edge
+                  }}
+                >
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                    <div className="flex gap-3 items-center">
                       <div>
-                        <img src={UrgentGif} alt="path not found" />
+                        {index + 1}
                       </div>
-                    )
-                  }
-                </div>
-              </td>
+                      {
+                        data?.urgent === 1 && (
+                          <div>
+                            <img src={UrgentGif} alt="path not found" />
+                          </div>
+                        )
+                      }
+                    </div>
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.bookingDate}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.bookingDate}
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.workOrderId}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.workOrderId}
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.barcodeNo}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.barcodeNo}
+                  </td>
 
-              {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                 {data?.sampleReceiveDate}
               </td> */}
 
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.patientName}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.patientName}
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.age}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.age}
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.barcodeNo}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.barcodeNo}
+                  </td>
 
-              {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="flex gap-1">
                       {data?.investigationName?.map((item, index) => (
                         <CustomeNormalButton
@@ -588,129 +638,220 @@ export default function ReportDispatch() {
                     </div>
 
                   </td> */}
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                <div className="flex flex-wrap gap-1">
-                  {data?.referDoctor}
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                    <div className="flex flex-wrap gap-1">
+                      {data?.referDoctor}
 
-                </div>
-              </td>
+                    </div>
+                  </td>
 
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.centreName}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.centreName}
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.investigationName}
-                {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.investigationName}
+                    {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                   style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                   // onClick={() => setShowPopup(1)}
                 >
                   <MdAddCircleOutline className="text-base" />
                 </div> */}
-              </td>
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                   style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                 // onClick={() => setShowPopup(2)}
                 >
                   <FaCircleInfo />
                 </div> */}
-                {
-                  data?.sampleRecievedDate
-                }
-              </td>
+                    {
+                      data?.sampleRecievedDate
+                    }
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                {data?.comment.length >= 9 ? (
-                  <div className="flex justify-center items-center gap-1" title={data?.comment}>
-                    {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
-                    {/* <div
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                    {data?.comment.length >= 9 ? (
+                      <div className="flex justify-center items-center gap-1" title={data?.comment}>
+                        {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
+                        {/* <div
                       className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                       onClick={() => setShowPopup(3)}
                     >
                       <FaCommentDots />
                     </div> */}
-                  </div>
-                ) : (
-                  data?.comment
-                )}
-              </td>
+                      </div>
+                    ) : (
+                      data?.comment
+                    )}
+                  </td>
 
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.createdBy}
-              </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.createdBy}
+                  </td>
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                <input type="checkbox" name="" id="" className="flex items-center justify-center" />
-              </td>
-
-
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                <div className="flex justify-between items-center">
-
-                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                  // onClick={() => setShowPopup(2)}
-                  >
-                    <FaSquareWhatsapp className="w-4 h-4 " />
-                  </div>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    <input type="checkbox" name="" id="" className="flex items-center justify-center" />
+                  </td>
 
 
-                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                  // onClick={() => setShowPopup(2)}
-                  >
-                    <BiSolidLike className="w-4 h-4" />
-                  </div>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                    <div className="flex justify-between items-center">
+
+                      {
+                        data?.whatsapp === null ?
+                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          // onClick={() => setShowPopup(2)}
+                          >
+                            <FaSquareWhatsapp className="w-4 h-4 "
+                              onClick={() => {
+                                setShowPopup(3), setShowStatusData({
+                                  workOrderId: data?.workOrderId,
+                                  updateStatusName: 'whatsapp'
+                                })
+                              }}
+                            />
+                          </div>
+                          :
+                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          // onClick={() => setShowPopup(2)}
+                          >
+                            <BiSolidLike className="w-4 h-4" />
+                          </div>
+                      }
 
 
-                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                  // onClick={() => setShowPopup(2)}
-                  >
-                    <MdOutlineMailOutline
-                      className="w-4 h-4" />
-                  </div>
+                      {
+                        data?.email === 0 ?
+                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          // onClick={() => setShowPopup(2)}
+                          >
+                            <MdOutlineMailOutline className="w-4 h-4"
+                              // onClick={() => updateStatusForWhatsappAndEmail(data?.workOrderId, 'email')}
+                              onClick={() => {
+                                setShowPopup(3), setShowStatusData({
+                                  workOrderId: data?.workOrderId,
+                                  updateStatusName: 'email'
+                                })
+                              }}
+                            />
+                          </div>
+                          :
+                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          // onClick={() => setShowPopup(2)}
+                          >
+                            <BiSolidLike className="w-4 h-4" />
+                          </div>
+                      }
 
-                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                  // onClick={() => setShowPopup(2)}
-                  >
-                    <BiSolidLike className="w-4 h-4" />
-                  </div>
-                </div>
-              </td>
 
 
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                // onClick={() => setShowPopup(2)}
+
+                    </div>
+                  </td>
+
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                    // onClick={() => setShowPopup(2)}
+                    >
+                      <FaCircleInfo />
+                    </div>
+
+                  </td>
+
+
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                    // onClick={() => setShowPopup(1)}
+                    >
+                      <MdAddCircleOutline className="text-base" />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+
+          </CustomDynamicTable>
+
+      }
+
+
+      {showPopup === 3 && (
+        <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
+          <div className="border-[1px] w-60 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
+            <div className="flex mt-3 items-center">
+              <IoAlertCircleOutline
+                className="w-8 h-8"
+                style={{ color: activeTheme?.menuColor }}
+              />
+            </div>
+
+            {/* <div className="text-xs text-center font-semibold text-textColor/70">
+              Are you leaving ?
+            </div> */}
+
+            <div className="text-xs font-semibold text-textColor/50">
+              Are you sure want to Request ?
+            </div>
+
+            <div className="flex items-end gap-5 my-5">
+              <div className="w-20">
+                {/* <button
+                  className="border-[1.5px] w-16 h-8 rounded-md font-semibold text-textColor transition-all duration-300 text-sm "
+                  style={{
+                    borderImageSource: activeTheme?.menuColor,
+                    borderImageSlice: 1,
+                  }}
+                  onClick={() => setShowPopup(0)}
                 >
-                  <FaCircleInfo />
+                  Cancel
+                </button> */}
+                <CustomeNormalButton activeTheme={activeTheme} onClick={setShowPopup} text={'Cencle'} />
+              </div>
+
+              {/* <div
+                className=" w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+                onClick={updateStatusForWhatsappAndEmail}
+              >
+                <div>Yes </div>
+
+                <div>
+                  <FaArrowRight />
                 </div>
+              </div> */}
 
-              </td>
+              <div className="w-20">
+                <CustomFormButton
+                  activeTheme={activeTheme}
+                  text="Request"
+                  icon={FaSpinner}
+                  isButtonClick={isButtonClick}
+                  loadingButtonNumber={3} // Unique number for the first button
+                  onClick={updateStatusForWhatsappAndEmail}
+                />
+              </div>
 
+            </div>
+          </div>
+        </div>
+      )}
 
-
-              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                // onClick={() => setShowPopup(1)}
-                >
-                  <MdAddCircleOutline className="text-base" />
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-
-      </CustomDynamicTable>
 
 
       {/* <div style={{ height: "100px" }}>
