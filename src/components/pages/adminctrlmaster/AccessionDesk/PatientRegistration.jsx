@@ -3100,7 +3100,6 @@ export default function PatientRegistration() {
                                         maxLength={15}
                                         allowSpecialChars={false}
                                         isMandatory={false}
-
                                     />
 
                                 </div>

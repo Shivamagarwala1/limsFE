@@ -8,7 +8,7 @@ export default function CustomPopup({ children, headerData, activeTheme, setShow
                 <div className='border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md'
                     style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
                 >
-                    <div className="font-semibold" style={{ color: activeTheme?.iconColor }}>
+                    <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
                         {headerData}
                     </div>
 
