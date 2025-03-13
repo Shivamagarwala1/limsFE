@@ -18,6 +18,8 @@ export default function CustomeEditor({ onContentChange, value }) {
     const [content, setContent] = useState(""); // Maintain content in state
     const [openPreview, setOpenPreview] = useState(false);
     const [isListening, setIsListening] = useState(false); // Track listening state
+    const [showInText, setShowInText] = useState(false);
+    const [originalHtml, setOriginalHtml] = useState(""); // Store original HTML content
 
     const [isOrderedList, setIsOrderedList] = useState(false);
     const [showListDropDown, setShowListDropDown] = useState(0);
@@ -68,8 +70,6 @@ export default function CustomeEditor({ onContentChange, value }) {
     };
 
     const applyFont = (fontName) => {
-        console.log(fontName);
-
         if (editorRef.current) {
             editorRef.current.focus(); // Ensure editor is focused
             document.execCommand("fontName", false, fontName); // Apply font
@@ -163,12 +163,26 @@ export default function CustomeEditor({ onContentChange, value }) {
     };
 
     // Sync content and cursor position with parent component
+    // useEffect(() => {
+    //     // Only update content if the parent value is different
+    //     if (editorRef.current && editorRef.current.innerHTML !== value) {
+    //         editorRef.current.innerHTML = value; // Update content inside contentEditable
+    //     }
+    // }, [value]); // Update whenever the value from the parent changes
+
     useEffect(() => {
-        // Only update content if the parent value is different
-        if (editorRef.current && editorRef.current.innerHTML !== value) {
-            editorRef.current.innerHTML = value; // Update content inside contentEditable
+        if (editorRef.current) {
+            if (showInText) {
+                // Store HTML content before switching to text
+                setOriginalHtml(editorRef.current.innerHTML);
+                editorRef.current.innerText = editorRef.current.innerHTML; // Convert to plain text
+            } else {
+                // Restore original HTML content
+                editorRef.current.innerHTML = originalHtml || "";
+            }
         }
-    }, [value]); // Update whenever the value from the parent changes
+    }, [showInText]);
+
 
 
     let isPropData = true;
@@ -179,9 +193,9 @@ export default function CustomeEditor({ onContentChange, value }) {
             <div className='mx-1 lg:mx-2 border-2 border-t-4 rounded-md  border-borderColor'
                 onClick={handleOuterClick}
             >
-                <div className='grid grid-cols-12 m-2 gap-2'>
+                <div className='flex flex-wrap m-2 gap-2'>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='Bold'
@@ -211,7 +225,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='Clear Format'
@@ -240,7 +254,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs relative">
+                    <div className="flex  gap-2 text-xs relative">
                         <button
                             type='button'
                             onClick={() => setShowListDropDown(1)}
@@ -320,7 +334,7 @@ export default function CustomeEditor({ onContentChange, value }) {
 
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='Line Height'
@@ -348,7 +362,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='File Insert'
@@ -378,7 +392,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='Speak Something'
@@ -405,7 +419,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='Paste'
@@ -432,7 +446,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='Insert Link'
@@ -463,7 +477,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
                         <button
                             type='button'
                             title='Align Center'
@@ -490,7 +504,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
 
                         <button
                             type='button'
@@ -521,7 +535,18 @@ export default function CustomeEditor({ onContentChange, value }) {
 
                     </div>
 
-                    <div className="flex justify-between gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs">
+
+                        <button
+                            type='button'
+                            title='Code'
+                            onClick={() => setShowInText((prev) => !prev)}
+                            className="cursor-pointer border-[1px] w-6 h-6 flex justify-center items-center rounded-md"
+                        >
+                            <FaCode />
+                        </button>
+
+                     
 
                         <button
                             type='button'
@@ -547,7 +572,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                     className={`outline-none border-2 h-32 overflow-scroll relative p-1 text-left  space-y-2 ${isOrderedList ? "list-decimal" : "list-disc"
                         } list-inside`}
                     suppressContentEditableWarning
-                    // dangerouslySetInnerHTML={isPropData ? { __html: value } : undefined}
+                // dangerouslySetInnerHTML={isPropData ? { __html: value } : undefined}
                 >
 
                 </div>
@@ -562,7 +587,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                     <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
                         <div className="w-full mx-10 h-auto z-50 shadow-2xl bg-white rounded-lg    animate-slideDown pb-3">
 
-                            <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
+                            <div className='border-b-[1px]  flex  items-center px-2 py-1 rounded-t-md'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
                             >
                                 <div className=" font-semibold"
