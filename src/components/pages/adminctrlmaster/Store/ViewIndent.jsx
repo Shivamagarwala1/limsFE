@@ -15,8 +15,9 @@ import {
 } from "../../../../service/RedendentData";
 import toast from "react-hot-toast";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
-import { getLocal } from "usehoks";
+import { getLocal, getSession, setSession } from "usehoks";
 import {
+  IndentApprovePopupModal,
   IndentIssuePopupModal,
   RejectPopupModal,
 } from "../../../../Custom Components/NewPopups";
@@ -33,6 +34,7 @@ export default function ViewIndent() {
   const [Params, setParams] = useState({});
   const [ShowPopup, setShowPopup] = useState(false);
   const [ShowPopup1, setShowPopup1] = useState(false);
+  const [ShowPopup2, setShowPopup2] = useState(false);
   // ------------------ User -------------------------------
   const [UserId, setUserId] = useState(0);
   const [UserValue, setUserValue] = useState("");
@@ -63,14 +65,25 @@ export default function ViewIndent() {
     UserData?.fetchData(
       `/empMaster?select=empid,fName,lName&$filter=(isActive eq 1)`
     );
-  }, []);
+    getGridData();
+  }, [ShowPopup, ShowPopup2, ShowPopup1]);
 
+  const getGridData = async () => {
+    const key = "indentItem";
+    const value = getSession(key);
+    if (!value) {
+      return;
+    }
+    await GridData?.fetchData(
+      `/Indent/GetIndentDetails?roleId=${value?.RoleId}&empId=${value?.UserId}&fromDate=${value?.from}&todate=${value?.to}`
+    );
+  };
   // console.log(getData?.data)
   // Columns for the table
   useEffect(() => {
     if (!GridData?.data?.data?.length) return; // Ensure data exists
     setRow(addRandomObjectId(GridData?.data?.data)); // Ensure unique IDs are set
-  }, [SelectedItem, GridData?.data?.data, ShowPopup]);
+  }, [SelectedItem, GridData?.data?.data, ShowPopup, ShowPopup2, ShowPopup1]);
 
   console.log(row, SelectedItem);
   const columns = [
@@ -92,44 +105,85 @@ export default function ViewIndent() {
       renderCell: (params) => {
         return (
           <>
-            {params?.row?.rejected === 0 && (
-              <div className="flex gap-1">
-                <div
-                  onClick={() => {
-                    setParams(params?.row);
-                    setShowPopup1(true);
-                  }}
-                  className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                  style={{
-                    background: activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
-                  }}
-                >
-                  <svg
-                    fill="#fff"
-                    width="800px"
-                    height="1.05rem"
-                    viewBox="-1 0 19 19"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="cf-icon-svg"
+            {params?.row?.status != -1 && (
+              <>
+                <div className="flex gap-1">
+                  {params?.row?.status === 1 ? (
+                    <div
+                      onClick={() => {
+                        setParams(params?.row);
+                        setShowPopup1(true);
+                      }}
+                      className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                      style={{
+                        background: activeTheme?.menuColor,
+                        color: activeTheme?.iconColor,
+                      }}
+                    >
+                      <svg
+                        fill="#fff"
+                        width="800px"
+                        height="1.05rem"
+                        viewBox="-1 0 19 19"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="cf-icon-svg"
+                      >
+                        <path d="M16.417 9.583A7.917 7.917 0 1 1 8.5 1.666a7.917 7.917 0 0 1 7.917 7.917zM5.85 3.309a6.833 6.833 0 1 0 2.65-.534 6.787 6.787 0 0 0-2.65.534zm2.654 1.336A1.136 1.136 0 1 1 7.37 5.78a1.136 1.136 0 0 1 1.135-1.136zm.792 9.223V8.665a.792.792 0 1 0-1.583 0v5.203a.792.792 0 0 0 1.583 0z" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div
+                      onClick={() => {
+                        setParams(params?.row);
+                        setShowPopup2(true);
+                      }}
+                      className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                      style={{
+                        background: activeTheme?.menuColor,
+                        color: activeTheme?.iconColor,
+                      }}
+                    >
+                      <svg
+                        width="14px"
+                        height="1.05rem"
+                        viewBox="0 0 48 48"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <rect
+                          width="48"
+                          height="48"
+                          fill="white"
+                          fill-opacity="0.01"
+                        />
+                        <path
+                          fill-rule="evenodd"
+                          clip-rule="evenodd"
+                          d="M4 24L9 19L19 29L39 9L44 14L19 39L4 24Z"
+                          fill="#fff"
+                          stroke="#fff"
+                          stroke-width="1"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                  <div
+                    onClick={() => {
+                      setParams(params?.row);
+                      setShowPopup(true);
+                    }}
+                    className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                    style={{
+                      background: activeTheme?.menuColor,
+                      color: activeTheme?.iconColor,
+                    }}
                   >
-                    <path d="M16.417 9.583A7.917 7.917 0 1 1 8.5 1.666a7.917 7.917 0 0 1 7.917 7.917zM5.85 3.309a6.833 6.833 0 1 0 2.65-.534 6.787 6.787 0 0 0-2.65.534zm2.654 1.336A1.136 1.136 0 1 1 7.37 5.78a1.136 1.136 0 0 1 1.135-1.136zm.792 9.223V8.665a.792.792 0 1 0-1.583 0v5.203a.792.792 0 0 0 1.583 0z" />
-                  </svg>
+                    R
+                  </div>
                 </div>
-                <div
-                  onClick={() => {
-                    setParams(params?.row);
-                    setShowPopup(true);
-                  }}
-                  className="h-[1.05rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                  style={{
-                    background: activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
-                  }}
-                >
-                  R
-                </div>
-              </div>
+              </>
             )}
           </>
         );
@@ -186,6 +240,9 @@ export default function ViewIndent() {
       );
       if (res?.data?.success) {
         // toast?.success(res?.data?.message);
+        const key = "indentItem";
+        const value = { from: from, to: to, RoleId: RoleId, UserId: UserId };
+        setSession(key, value);
       } else {
         toast?.error(res?.data?.message);
       }
@@ -208,10 +265,38 @@ export default function ViewIndent() {
         showPopup={ShowPopup1}
         UserId={UserId}
       />
+      <IndentApprovePopupModal
+        Params={Params}
+        setShowPopup={setShowPopup2}
+        showPopup={ShowPopup2}
+        UserId={UserId}
+      />
       <div>
         <FormHeader title="View Indent" />
         <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "From Date",
+                  type: "customDateField",
+                  name: "FromDate",
+                  onChange: (e) => {
+                    console.log(e);
+                    setFromDate(e);
+                  },
+                },
+                {
+                  label: "To Date",
+                  type: "customDateField",
+                  name: "ToDate",
+                  onChange: (e) => {
+                    setToDate(e);
+                  },
+                },
+              ]}
+            />
+
             <SearchBarDropdown
               id="search-bar"
               name="Role"
@@ -243,27 +328,6 @@ export default function ViewIndent() {
               setIsHovered={setUserHoveIndex}
               isHovered={UserHoveIndex}
               style={{ marginTop: "0.1rem" }}
-            />
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "From Date",
-                  type: "customDateField",
-                  name: "FromDate",
-                  onChange: (e) => {
-                    console.log(e);
-                    setFromDate(e);
-                  },
-                },
-                {
-                  label: "To Date",
-                  type: "customDateField",
-                  name: "ToDate",
-                  onChange: (e) => {
-                    setToDate(e);
-                  },
-                },
-              ]}
             />
 
             <TwoSubmitButton

@@ -14,6 +14,7 @@ export default function MarketingDashboard() {
 
   const [row, setRow] = useState([]);
   const getData = useGetData();
+  const spotLightData = useGetData();
   const PostData = usePostData();
   const DocumentData = usePostData();
   const UpdateData = usePostData();
@@ -23,13 +24,16 @@ export default function MarketingDashboard() {
         `/MarketingDashBoard/GetDashBoardData?type=${MarketingValue}`
       );
     }
+    spotLightData?.fetchData(
+      `/MarketingDashBoard/GetDashBoardData?type=Packages%20in%20Spotlight`
+    );
   }, [MarketingValue, UpdateData?.loading, PostData?.loading]);
   console.log(getData?.data?.data);
   return (
     <>
       <div>
         <UpdatesCarousel updates={getData?.data?.data || []} />
-        <PackagesSpotlight />
+        <PackagesSpotlight packages={spotLightData?.data?.data || []} />
       </div>
     </>
   );

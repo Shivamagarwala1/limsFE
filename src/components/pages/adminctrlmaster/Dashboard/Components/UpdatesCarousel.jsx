@@ -148,8 +148,8 @@ const Card = ({ index, update }) => {
         className="w-20 h-20 object-cover rounded-md"
       />
       <div className="flex flex-col items-start">
-        <h3 className="font-bold text-sm">{update.subject}</h3>
-        <p className="text-sm text-gray-700 text-[12px]">{str}</p>
+        <h3 className="font-bold text-[12px]">{update.subject}</h3>
+        <p className="text-sm text-gray-700 text-[10px]">{str}</p>
         <span
           onClick={() => {
             ViewOrDownloandPDF(

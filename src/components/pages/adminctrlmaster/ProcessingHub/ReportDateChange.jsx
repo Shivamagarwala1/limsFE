@@ -7,7 +7,7 @@ import InputGenerator, {
 import { useSelector } from "react-redux";
 import DynamicTable from "../../../../Custom Components/DynamicTable";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import { useGetData } from "../../../../service/apiService";
+import { useGetData, usePostData } from "../../../../service/apiService";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 // import CustomHandsontable from "../../../../Custom Components/CustomHandsontable";
@@ -36,6 +36,9 @@ export default function ReportDateChange() {
   const [TatTypeSelectedOption, setTatTypeSelectedOption] = useState("");
 
   const [SelectAll, setSelectAll] = useState(false);
+  const [row, setRow] = useState([]);
+  const getData = useGetData();
+  const PostData = usePostData();
   const AllCenterData = useGetData();
   useEffect(() => {
     AllCenterData?.fetchData(
@@ -43,6 +46,7 @@ export default function ReportDateChange() {
     );
     // console.log(AllCenterData);
   }, []);
+
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
     {
@@ -121,91 +125,8 @@ export default function ReportDateChange() {
       flex: 1,
     },
   ];
-  const row = [
-    {
-      id: 1,
-      Centre: "105 - center 1",
-      Department: "Nursing",
-      PatientName: "John Snow",
-      Barcode: "10993",
-      SampleRecDate: "10-02-2025",
-      VisitId: "302",
-      ApprovedDate: "12-Feb-25",
-      Reading: "Lorem Ipsum",
-      DepartmentComment: "Lorem Ipsum",
-      Remark: "Lorem Ipsum",
-      NotApprovedBy: "Tyron",
-      Params: "Alpu",
-      RefDoc: "Tyron",
-      CollRec: "0",
-      RegColl: "0",
-      TestName: "CBC",
-      AgeGender: "25/male",
-      TransferDate: "15-Feb-2025",
-      BookingDate: "11-Feb-2025",
-      SampleCollDate: "15-Feb-2025",
-      DepartmentRecieveDate: "15-Feb-2025",
-      ApproveDate: "15-Feb-2025",
-      ResultDate: "15-Feb-2025",
-      BTOS: "0",
-      DTOR: "0",
-      STOD: "0",
-      ToCentre: "New-Delhi",
-      FromCentre: "Ayodhya",
-    },
-  ];
 
-  // Function to handle input changes
-  const handleSearchChange = (e) => {
-    setSearchValue(e.target.value);
-    setShowDropdown(true); // Show dropdown when typing
-  };
 
-  // Function to handle selection from the dropdown
-  const handleOptionClick = (name, id) => {
-    setSearchValue(name);
-    setSelectedOption(name);
-    setShowDropdown(false);
-  };
-
-  // Function to handle input changes
-  const handleSearchChange1 = (e) => {
-    setDepartmentValue(e.target.value);
-    setDepartmentDropDown(true); // Show dropdown when typing
-  };
-
-  // Function to handle selection from the dropdown
-  const handleOptionClick1 = (name, id) => {
-    setDepartmentValue(name);
-    setDepartmentSelectedOption(name);
-    setDepartmentDropDown(false);
-  };
-
-  // Function to handle input changes
-  const handleSearchChange2 = (e) => {
-    setItemValue(e.target.value);
-    setItemDropDown(true); // Show dropdown when typing
-  };
-
-  // Function to handle selection from the dropdown
-  const handleOptionClick2 = (name, id) => {
-    setItemValue(name);
-    setItemSelectedOption(name);
-    setItemDropDown(false);
-  };
-
-  // Function to handle input changes
-  const handleSearchChange3 = (e) => {
-    setTatTypeValue(e.target.value);
-    setTatTypeDropDown(true); // Show dropdown when typing
-  };
-
-  // Function to handle selection from the dropdown
-  const handleOptionClick3 = (name, id) => {
-    setTatTypeValue(name);
-    setTatTypeSelectedOption(name);
-    setTatTypeDropDown(false);
-  };
 
   const handleSubmit = () => {};
 
@@ -310,7 +231,10 @@ export default function ReportDateChange() {
       field: "actions",
       headerName: "Actions",
       renderCell: ({ row }) => (
-        <button className="bg-red-500 text-white px-2 py-1 rounded" onClick={() => handleDelete(row.id)}>
+        <button
+          className="bg-red-500 text-white px-2 py-1 rounded"
+          onClick={() => handleDelete(row.id)}
+        >
           Delete
         </button>
       ),
@@ -328,104 +252,55 @@ export default function ReportDateChange() {
 
   return (
     <div>
-      {true ? (
+      {false ? (
         <div>
           <h2>Coming Soon</h2>
-         {/* <CustomHandsontable columns={columns1} rows={tableData} onEdit={handleEdit} /> */}
+          {/* <CustomHandsontable columns={columns1} rows={tableData} onEdit={handleEdit} /> */}
         </div>
       ) : (
         <>
           {/* <div style={{ position: "fixed", top: "100px", maxHeight: "200px", overflowY: "auto", width: "100%",backgroundColor:"white" }}> */}
           <div>
-            {/* Header Section */}
-            <FormHeader title="TAT Report" />
-            <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-                <SearchBarDropdown
-                  id="search-bar"
-                  name="Centre"
-                  value={searchValue}
-                  onChange={handleSearchChange}
-                  label="Centre"
-                  options={AllCenterData?.data}
-                  isRequired={false}
-                  showSearchBarDropDown={showDropdown}
-                  showValueField="companyName"
-                  keyField="centreId"
-                  setShowSearchBarDropDown={setShowDropdown}
-                  handleOptionClickForCentre={handleOptionClick}
-                  setIsHovered={setHoveredIndex}
-                  isHovered={hoveredIndex}
-                />
-                <SearchBarDropdown
-                  id="search-bar"
-                  name="Department"
-                  value={DepartmentValue}
-                  onChange={handleSearchChange1}
-                  label="Department"
-                  options={[]}
-                  isRequired={false}
-                  showSearchBarDropDown={DepartmentDropDown}
-                  setShowSearchBarDropDown={setDepartmentDropDown}
-                  handleOptionClickForCentre={handleOptionClick1}
-                  setIsHovered={setDepartmentHoveIndex}
-                  isHovered={DepartmentHoveIndex}
-                />
-                <SearchBarDropdown
-                  id="search-bar"
-                  name="Item"
-                  value={ItemValue}
-                  onChange={handleSearchChange2}
-                  label="Item"
-                  options={[]}
-                  isRequired={false}
-                  showSearchBarDropDown={ItemDropDown}
-                  setShowSearchBarDropDown={setItemDropDown}
-                  handleOptionClickForCentre={handleOptionClick2}
-                  setIsHovered={setItemHoveIndex}
-                  isHovered={ItemHoveIndex}
-                />
-                <SearchBarDropdown
-                  id="search-bar"
-                  name="TatType"
-                  value={TatTypeValue}
-                  onChange={handleSearchChange3}
-                  label="TAT Type"
-                  options={[
-                    { id: 1, data: "Select All" },
-                    { id: 2, data: "Within TAT" },
-                    { id: 3, data: "TAT Failed" },
-                  ]}
-                  isRequired={false}
-                  showSearchBarDropDown={TatTypeDropDown}
-                  setShowSearchBarDropDown={setTatTypeDropDown}
-                  handleOptionClickForCentre={handleOptionClick3}
-                  setIsHovered={setTatTypeHoveIndex}
-                  isHovered={TatTypeHoveIndex}
-                />
+            <FormHeader title="Change Barcode" />
+            <form autoComplete="off">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
                 <InputGenerator
                   inputFields={[
-                    { type: "customDateField", label: "From", name: "from" },
-                    { type: "customDateField", label: "To", name: "to" },
+                    {
+                      label: "Visit Id",
+                      type: "text",
+                      name: "VisitId",
+                      onChange: (e) => {
+                        setVisitorId(e);
+                      },
+                    },
                   ]}
                 />
                 <TwoSubmitButton
                   options={[
-                    { submit: false, label: "Search" },
-                    { submit: false, label: "Export to Excel" },
+                    {
+                      label: "Search",
+                      submit: false,
+                      callBack: () => {
+                        handleSubmit();
+                      },
+                    },
+                    {
+                      label: "Save",
+                      submit: false,
+                      callBack: () => {
+                        handleSave();
+                      },
+                    },
                   ]}
-                />
-                <TwoSubmitButton
-                  options={[{ submit: false, label: "Export to PDF" }]}
                 />
               </div>
             </form>
-            <div style={{ maxHeight: "200px" }}>
+            <div style={{ height: "300px" }}>
               <DynamicTable
                 rows={row}
-                name="TAT Report Details"
-                //   loading={loading}
-                tableStyle={{ marginBottom: "-10px" }}
+                name="Barcode Details"
+                loading={getData?.loading}
                 columns={columns}
                 activeTheme={activeTheme}
               />

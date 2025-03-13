@@ -58,6 +58,7 @@ const QuantityInputCell = ({ params, initialQuantity = "", setRow }) => {
 export default function Indent() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const lsData = getLocal("imarsar_laboratory");
+  const RoleDetails = getLocal("RoleDetails");
   const { formRef, getValues, setValues } = useFormHandler();
   const [VisitorId, setVisitorId] = useState("");
   const [UpdatedBarcode, setUpdatedBarcode] = useState([]);
@@ -170,14 +171,14 @@ export default function Indent() {
     e.preventDefault();
     const values = getValues();
     console.log(values);
-    if (!RoleId) {
-      toast.error("Role is required");
-      return;
-    }
-    if (!UserId) {
-      toast.error("User is required");
-      return;
-    }
+    // if (!RoleId) {
+    //   toast.error("Role is required");
+    //   return;
+    // }
+    // if (!UserId) {
+    //   toast.error("User is required");
+    //   return;
+    // }
     if (row?.length == 0) {
       toast.error("No Item Selected");
       return;
@@ -187,9 +188,9 @@ export default function Indent() {
       createdById: parseInt(lsData?.user?.employeeId),
       createdDateTime: new Date().toISOString(),
       indentId: 0,
-      roleId: RoleId,
-      indentBy: UserValue,
-      indentById: UserId,
+      roleId: RoleDetails?.roleId,
+      indentBy: lsData?.user?.name,
+      indentById: lsData?.user?.employeeId,
       indentStatus: 0,
       isrejected: 0,
       rejectedBy: 0,
@@ -214,7 +215,7 @@ export default function Indent() {
       <FormHeader title="Indent" />
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
-          <SearchBarDropdown
+          {/* <SearchBarDropdown
             id="search-bar"
             name="Role"
             value={RoleValue}
@@ -245,7 +246,7 @@ export default function Indent() {
             setIsHovered={setUserHoveIndex}
             isHovered={UserHoveIndex}
             style={{ marginTop: "0.1rem" }}
-          />
+          /> */}
           <UpdatedMultiSelectDropDown
             id="ItemMode"
             name="serachItemMode"

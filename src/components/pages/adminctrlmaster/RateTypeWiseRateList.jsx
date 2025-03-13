@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import FormHeader from "../../../components/global/FormHeader";
 import { useSelector } from "react-redux";
@@ -30,10 +29,11 @@ const MrpInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-      style={{height:"1rem"}}
+        style={{ height: "1rem" }}
         type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={mrp}
+        maxLength={8}
         name="mrp"
         onChange={(e) => {
           const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
@@ -64,10 +64,11 @@ const RateInputCell = ({ params, initialTime, setRow }) => {
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
-      style={{height:"1rem"}}
+        style={{ height: "1rem" }}
         type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
         value={rate}
+        maxLength={8}
         name="rate"
         onChange={(e) => {
           const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
@@ -148,16 +149,16 @@ export default function RateTypeWiseRateList() {
       await DepartmentData?.fetchData(`/labDepartment?select=id,deptname`);
     };
     fetchedData();
-  }, [DepartmentId, DepartmentId, row]);
+  }, [DepartmentId, DepartmentId, InvestigationId, row]);
   useEffect(() => {
     GridData?.resetData();
     const fetchedData = async () => {
       await GridData?.fetchData(
-        `/rateTypeWiseRateList/GetRateTypeRateListData?ratetypeid=${RateTypeId}&deptId=${DepartmentId}`
+        `/rateTypeWiseRateList/GetRateTypeRateListData?ratetypeid=${RateTypeId}&deptId=${DepartmentId}&itemid=${InvestigationId}`
       );
     };
     fetchedData();
-  }, [DepartmentId]);
+  }, [DepartmentId,InvestigationId,RateTypeId]);
   useEffect(() => {
     const rows = addObjectId(GridData?.data?.data || []);
     setRow(rows);
@@ -170,7 +171,7 @@ export default function RateTypeWiseRateList() {
     {
       field: "mrp",
       headerName: "MRP",
-      flex: 1,
+      width: 120,
       renderCell: (params) => {
         return (
           <MrpInputCell
@@ -184,7 +185,7 @@ export default function RateTypeWiseRateList() {
     {
       field: "rate",
       headerName: "Rate",
-      flex: 1,
+      width: 120,
       renderCell: (params) => {
         return (
           <RateInputCell
@@ -198,7 +199,7 @@ export default function RateTypeWiseRateList() {
     {
       field: `select`,
       headerName: `Select`,
-      flex: 1,
+      width: 120,
       renderCell: (params) => {
         return (
           <CheckboxInputCell

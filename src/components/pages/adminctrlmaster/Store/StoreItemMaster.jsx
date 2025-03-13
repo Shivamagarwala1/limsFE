@@ -50,9 +50,16 @@ export default function StoreItemMaster() {
   // Columns for the table
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 20 },
+    {
+      field: "category",
+      headerName: "Category",
+      flex: 1,
+      renderCell: (params) => {
+        return <>{params?.row?.category === 1 ? "Medical" : "General"}</>;
+      },
+    },
     { field: "itemName", headerName: "Item Name", flex: 1 },
-    { field: "minQuantity", headerName: "Min Quantity", flex: 1 },
-    { field: "maxQuantity", headerName: "Max Quantity", flex: 1 },
+    { field: "quantity", headerName: "Quantity", flex: 1 },
     {
       field: "",
       width: 200,
@@ -73,8 +80,7 @@ export default function StoreItemMaster() {
                   setIsEdit(false);
                   setCategoryValue(category === 1 ? "Medical" : "General");
                   setCategoryId(category || 0);
-                  setMin(params?.row?.minQuantity);
-                  setMax(params?.row?.maxQuantity);
+                  setMin(params?.row?.quantity);
                   setValues([
                     {
                       ItemName: params?.row?.itemName,
@@ -130,8 +136,7 @@ export default function StoreItemMaster() {
           itemId: 0,
           itemName: values?.ItemName,
           category: CategoryId,
-          minQuantity: values?.minQuantity,
-          maxQuantity: values?.maxQuantity,
+          quantity: values?.minQuantity,
         }
       : {
           isActive: ClickedRow?.isActive,
@@ -140,8 +145,7 @@ export default function StoreItemMaster() {
           itemId: ClickedRow?.itemId,
           itemName: values?.ItemName,
           category: CategoryId,
-          minQuantity: values?.minQuantity,
-          maxQuantity: values?.maxQuantity,
+          quantity: values?.minQuantity,
         };
 
     try {
@@ -196,15 +200,6 @@ export default function StoreItemMaster() {
         <FormHeader title="Store Item Master" />
         <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "Item Name",
-                  type: "text",
-                  name: "ItemName",
-                },
-              ]}
-            />
             <SearchBarDropdown
               id="search-bar"
               name="Category"
@@ -222,12 +217,17 @@ export default function StoreItemMaster() {
               handleOptionClickForCentre={handleOptionClick2}
               setIsHovered={setCategoryHoveIndex}
               isHovered={CategoryHoveIndex}
-              style={{ marginTop: "0.1rem" }}
+              style={{ marginTop: "0.15rem" }}
             />
             <InputGenerator
               inputFields={[
                 {
-                  label: "Min",
+                  label: "Item Name",
+                  type: "text",
+                  name: "ItemName",
+                },
+                {
+                  label: "Quantity",
                   value: Min,
                   type: "number",
                   onChange: (e, numericRegex) => {
@@ -237,7 +237,7 @@ export default function StoreItemMaster() {
                 },
               ]}
             />
-            <InputGenerator
+            {/* <InputGenerator
               inputFields={[
                 {
                   label: "Max",
@@ -249,12 +249,12 @@ export default function StoreItemMaster() {
                   name: "maxQuantity",
                 },
               ]}
-            />
+            /> */}
 
             <TwoSubmitButton
               options={[
                 {
-                  label: "Save",
+                  label: IsEdit ? "Save" : "Update",
                   submit: true,
                 },
               ]}

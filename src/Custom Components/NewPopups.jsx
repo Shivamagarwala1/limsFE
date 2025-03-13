@@ -246,7 +246,7 @@ export const RejectPopupModal = ({
       return;
     }
     try {
-      const res = await axios.get(
+      const res = await axios.post(
         `${BASE_URL}/Indent/RejectIndent?indentId=${Params?.indentId}&UserId=${lsData?.user?.employeeId}&rejectionReason=${values?.RejectionReason}`
       );
       if (res?.data?.success) {
@@ -311,7 +311,44 @@ export const RejectPopupModal = ({
     </div>
   );
 };
-const InputCell = ({ params, initialQuantity = "", setRow }) => {
+const ApproveInputCell = ({ params, initialQuantity = "", setRow }) => {
+  const [Quantity, setQuantity] = useState(params?.row?.approvedQuantity);
+  const lsData = getLocal("imarsar_laboratory");
+  useEffect(() => {
+    setRow((prev) =>
+      prev.map((item) =>
+        item.itemId === params?.row.itemId
+          ? {
+              ...item,
+              createdById: parseInt(lsData?.user?.employeeId),
+              approvedQuantity: parseInt(Quantity) || 0,
+              issueDateTime: new Date().toISOString(),
+            }
+          : item
+      )
+    );
+  }, [Quantity, setRow]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={Quantity}
+        maxLength={8}
+        name="Quantity"
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+          if (newValue <= initialQuantity) {
+            setQuantity(newValue);
+          }
+        }}
+      />
+    </div>
+  );
+};
+const IssueInputCell = ({ params, initialQuantity = "", setRow }) => {
   const [Quantity, setQuantity] = useState(initialQuantity);
   const lsData = getLocal("imarsar_laboratory");
   useEffect(() => {
@@ -340,7 +377,9 @@ const InputCell = ({ params, initialQuantity = "", setRow }) => {
         name="Quantity"
         onChange={(e) => {
           const newValue = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
-          setQuantity(newValue);
+          if (newValue <= params?.row?.pendingissue) {
+            setQuantity(newValue);
+          }
         }}
       />
     </div>
@@ -376,6 +415,7 @@ export const IndentIssuePopupModal = ({ showPopup, setShowPopup, Params }) => {
     { field: "Random", headerName: "Sr. No", width: 20 },
     { field: "itemName", headerName: "Item Name", flex: 1 },
     { field: "quantity", headerName: "Requested Quantity", flex: 1 },
+    { field: "approvedQuantity", headerName: "Approved Quantity", flex: 1 },
     // { field: "roleName", headerName: "Role Name", flex: 1 },
     { field: "createdBy", headerName: "Created By", flex: 1 },
     { field: "createdDateTime", headerName: "Created Date", flex: 1 },
@@ -385,7 +425,7 @@ export const IndentIssuePopupModal = ({ showPopup, setShowPopup, Params }) => {
       flex: 1,
       renderCell: (params) => {
         return (
-          <InputCell
+          <IssueInputCell
             params={params}
             initialQuantity={params?.row?.issuedQuantity}
             setRow={setRow}
@@ -398,12 +438,12 @@ export const IndentIssuePopupModal = ({ showPopup, setShowPopup, Params }) => {
   const handleSubmit = async () => {
     const payload = row.map((item) => ({
       id: 0,
-      indentId: item.indentId,
-      itemId: item.itemId,
-      requestedQuantity: item.quantity,
-      issuedQuantity: item.issuedQuantity,
-      issueById: 0,
-      issueDateTime: item.issueDateTime,
+      indentId: item?.indentId,
+      itemId: item?.itemId,
+      requestedQuantity: item?.quantity,
+      issuedQuantity: item?.issuedQuantity,
+      issueById: item?.createdById,
+      issueDateTime: item?.issueDateTime,
     }));
     try {
       const res = await axios.post(
@@ -414,6 +454,7 @@ export const IndentIssuePopupModal = ({ showPopup, setShowPopup, Params }) => {
       if (res?.data?.success) {
         toast.success(res?.data?.message);
         setShowPopup(false);
+        window?.location?.reload();
       }
     } catch (error) {
       console.error("Error rejecting indent:", error);
@@ -421,6 +462,202 @@ export const IndentIssuePopupModal = ({ showPopup, setShowPopup, Params }) => {
   };
 
   console.log(row);
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 md:w-[45rem] bg-white rounded-md">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1"
+        >
+          <span className="text-sm font-semibold">Issue Indent</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <TableHeader title={"Indent Details"} />
+        <div
+          style={{
+            overflowY: "auto",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+          className="overflow-x-auto w-full"
+        >
+          <table className="table-auto border-collapse w-full text-xxs text-left min-w-max">
+            <thead
+              style={{
+                background: activeTheme?.menuColor,
+                color: activeTheme?.iconColor,
+              }}
+            >
+              <tr>
+                {columns?.map((col, index) => (
+                  <th
+                    key={index}
+                    className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+                    style={{
+                      width: col?.width ? `${col?.width}px` : "",
+                      flex: col?.flex || "",
+                    }}
+                  >
+                    {col?.renderHeaderCell
+                      ? col?.renderHeaderCell({ row: {} })
+                      : col?.headerName}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+
+            {row?.length !== 0 ? (
+              <tbody>
+                {row?.map((row, index) => (
+                  <tr
+                    key={row?.[viewKey] || index} // Ensure a valid key
+                    className={`cursor-pointer ${
+                      isHoveredTable === row?.[viewKey]
+                        ? ""
+                        : index % 2 === 0
+                        ? "bg-gray-100"
+                        : "bg-white"
+                    }`}
+                    onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
+                    onMouseLeave={() => setIsHoveredTable(null)}
+                    style={{
+                      background:
+                        isHoveredTable === row?.[viewKey]
+                          ? activeTheme?.subMenuColor
+                          : "",
+                    }}
+                  >
+                    {columns?.map((col, idx) => (
+                      <td
+                        key={idx}
+                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
+                      >
+                        {col?.renderCell
+                          ? col?.renderCell({ row })
+                          : row[col?.field]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            ) : (
+              <tbody>
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="text-center py-4"
+                  ></td>
+                </tr>
+              </tbody>
+            )}
+          </table>
+        </div>
+        <div className="flex items-end float-end">
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Save",
+                style: {
+                  width: "100px",
+                  paddingTop: "3px",
+                  paddingBottom: "3px",
+                },
+                callBack: () => {
+                  handleSubmit();
+                },
+              },
+            ]}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+export const IndentApprovePopupModal = ({
+  showPopup,
+  setShowPopup,
+  Params,
+  UserId,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const [isHoveredTable, setIsHoveredTable] = useState(null);
+  const [row, setRow] = useState([]);
+  const viewKey = "Random";
+  useEffect(() => {
+    if (showPopup) {
+      handleGet();
+    }
+  }, [showPopup]);
+
+  const handleGet = async () => {
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/Indent/GetDetail?indentId=${Params?.indentId}`
+      );
+      if (res?.data?.success) {
+        setRow(addRandomObjectId(res?.data?.data)); // Ensure unique IDs are set
+      }
+    } catch (error) {
+      console.error("Error rejecting indent:", error);
+    }
+  };
+
+  if (!showPopup) return null;
+
+  const columns = [
+    { field: "Random", headerName: "Sr. No", width: 20 },
+    { field: "itemName", headerName: "Item Name", flex: 1 },
+    { field: "quantity", headerName: "Requested Quantity", flex: 1 },
+    // { field: "roleName", headerName: "Role Name", flex: 1 },
+    { field: "createdBy", headerName: "Created By", flex: 1 },
+    { field: "createdDateTime", headerName: "Created Date", flex: 1 },
+    {
+      field: "createdDateTime",
+      headerName: "Approved Quantity",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <ApproveInputCell
+            params={params}
+            initialQuantity={params?.row?.quantity}
+            setRow={setRow}
+          />
+        );
+      },
+    },
+  ];
+
+  const handleSubmit = async () => {
+    const payload = row.map((item) => ({
+      indentId: item.indentId,
+      itemid: item.itemId,
+      approvedQuantity: item?.approvedQuantity,
+      userid: UserId,
+    }));
+    try {
+      const res = await axios.post(`${BASE_URL}/Indent/Approveindent`, payload);
+      console.error("res ", res);
+      if (res?.data?.success) {
+        toast.success(res?.data?.message);
+        setShowPopup(false);
+        window?.location?.reload();
+      }
+    } catch (error) {
+      console.error("Error rejecting indent:", error);
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
       <div className="w-96 md:w-[45rem] bg-white rounded-md">
