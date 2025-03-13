@@ -23,6 +23,7 @@ export default function UploadReportLetterHead() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   useRippleEffect();
 
+  const [isEdit, setIsEdit] = useState(false);
   const [Img, setImg] = useState("");
   const [Img1, setImg1] = useState("");
   const [Img2, setImg2] = useState("");
@@ -91,7 +92,7 @@ export default function UploadReportLetterHead() {
   const handleOptionClick3 = async (name, id) => {
     setBookingValue(name);
     setBookingId(id);
-    // await fetchGrid();
+    setIsEdit(true);
     await sessionStorage.setItem("BookingId", JSON.stringify(id));
     setBookingSelectedOption(name);
     setBookingDropDown(false);
@@ -332,15 +333,25 @@ export default function UploadReportLetterHead() {
 
   useEffect(() => {
     const getAllData = async () => {
-      const res = await FillerData?.fetchData(
+      let res = await FillerData?.fetchData(
         `/centreMaster/GetLetterHeaddetails?CentreId=${BookingId}`
       );
-
-      const data = CenterData?.data?.find(
-        (item) => item?.centreId === BookingId
-      );
+      
+      if (!CenterData?.data) {
+        console.error("CenterData is undefined or empty.");
+        return;
+      }
+      
+      if (res?.data?.data.length === 0) {
+        res = await FillerData?.fetchData(
+          `/centreMaster/GetLetterHeaddetails?CentreId=1`
+        );
+      }
+            
+      const data = CenterData.data.find((item) => item?.centreId === BookingId);
       console.log(data);
-      setBookingValue(data?.companyName);
+      setBookingValue(data?.companyName || "");
+      
       await setUploadReportLetterHeadData({
         centreId: BookingId,
         reporrtHeaderHeightY: res?.data?.data[0]?.reporrtHeaderHeightY,
@@ -387,6 +398,49 @@ export default function UploadReportLetterHead() {
       headerName: "Sr. No.",
       flex: 1,
     },
+
+    {
+      field: "",
+      width: 100,
+      headerName: "Action",
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex", gap: "20px" }}>
+            <button className="w-4 h-4 flex justify-center items-center">
+              <FaRegEdit
+                className={`w-full h-full ${
+                  true
+                    ? "text-blue-500 cursor-pointer"
+                    : "text-gray-400 cursor-not-allowed"
+                }`}
+                onClick={() => {
+                  setBookingId(params?.row?.centreId);
+                  // setBookingId(11);
+                  setIsEdit(true);
+                }}
+              />
+            </button>
+            <button
+              className={`w-4 h-4 flex justify-center items-center ${
+                params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              <MdDelete
+                className="w-full h-full"
+                onClick={() => {
+                  handleDelete(params?.row?.centreId);
+                }}
+              />
+            </button>
+          </div>
+        );
+      },
+    },
+    {
+      field: "companyName",
+      headerName: "Center Name",
+      flex: 1,
+    },
     {
       field: "reporrtHeaderHeightY",
       headerName: "Report Header Height Y",
@@ -423,7 +477,10 @@ export default function UploadReportLetterHead() {
                   color: activeTheme?.iconColor,
                 }}
               >
-                <IoMdImages style={{fontSize:"10px"}} className="w-4 h-4 font-semibold" />
+                <IoMdImages
+                  style={{ fontSize: "10px" }}
+                  className="w-4 h-4 font-semibold"
+                />
               </div>
             )}
           </>
@@ -511,41 +568,6 @@ export default function UploadReportLetterHead() {
         );
       },
     },
-    {
-      field: "",
-      width: 150,
-      headerName: "Action",
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px" }}>
-            <button className="w-4 h-4 flex justify-center items-center">
-              <FaRegEdit
-                className={`w-full h-full ${
-                  true
-                    ? "text-blue-500 cursor-pointer"
-                    : "text-gray-400 cursor-not-allowed"
-                }`}
-                onClick={() => {
-                  setBookingId(params?.row?.centreId);
-                }}
-              />
-            </button>
-            <button
-              className={`w-4 h-4 flex justify-center items-center ${
-                params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              <MdDelete
-                className="w-full h-full"
-                onClick={() => {
-                  handleDelete(params?.row?.centreId);
-                }}
-              />
-            </button>
-          </div>
-        );
-      },
-    },
     // { field: "nablImage", headerName: "NABL Image", flex:1 },
   ];
 
@@ -594,7 +616,7 @@ export default function UploadReportLetterHead() {
                 handleOptionClickForCentre={handleOptionClick3}
                 setIsHovered={setBookingHoveIndex}
                 isHovered={BookingHoveIndex}
-                style={{marginTop:"2px"}}
+                style={{ marginTop: "2px" }}
               />
               <div className="relative flex-1">
                 <input
@@ -1095,7 +1117,7 @@ export default function UploadReportLetterHead() {
             <TwoSubmitButton
               options={[
                 {
-                  label: "Save",
+                  label: isEdit ? "Update" : "Save",
                   submit: false,
                   callBack: () => {
                     onSubmitUploadReportLetterHead();

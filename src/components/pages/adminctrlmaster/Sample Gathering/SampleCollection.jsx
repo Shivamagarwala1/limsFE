@@ -83,7 +83,7 @@ export default function SampleCollection() {
       flex: 1,
     },
     {
-      field: `patientId`,
+      field: `workOrderId`,
       headerName: `Visit Id`,
       flex: 1,
     },

@@ -6,11 +6,16 @@ import InputGenerator, {
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../../Custom Components/DynamicTable";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData } from "../../../../service/apiService";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
-import { addObjectId } from "../../../../service/RedendentData";
+import {
+  addObjectId,
+  addRandomObjectId,
+} from "../../../../service/RedendentData";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { getLocal } from "usehoks";
 import axios from "axios";
@@ -32,9 +37,9 @@ const SelectInputCell = ({ initialTime, setRow, params, DepartmentData }) => {
       DepartmentValue !== params?.row?.outsourceLabName;
 
     setRow((prev) =>
-      prev.some((item) => item.id === params?.row.id)
+      prev.some((item) => item.Random === params?.row.Random)
         ? prev.map((item) =>
-            item.id === params?.row.id
+            item.Random === params?.row.Random
               ? {
                   ...item,
                   outSourceLab: { Id: DepartmentId, Name: DepartmentValue },
@@ -107,11 +112,45 @@ const CheckboxInputCell = ({ params, setSelectedData }) => {
         onClick={() =>
           setSelectedData(
             (prev) =>
-              prev.some((item) => item.id === params?.row.id)
-                ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
+              prev.some((item) => item.Random === params?.row.Random)
+                ? prev.filter((item) => item.Random !== params?.row.Random) // Remove if exists
                 : [...prev, { ...params?.row }] // Add if not
           )
         }
+      />
+    </div>
+  );
+};
+const RateInputCell = ({ params, initialQuantity = "", setRow }) => {
+  const [Quantity, setQuantity] = useState(initialQuantity);
+  useEffect(() => {
+    const isEdited = Quantity !== params?.row?.outSourceRate;
+    setRow((prev) =>
+      prev.map((item) =>
+        item.Random === params?.row.Random
+          ? {
+              ...item,
+              outSourceRate: parseInt(Quantity),
+              edited: isEdited,
+            }
+          : item
+      )
+    );
+  }, [Quantity, setRow]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={Quantity}
+        maxLength={8}
+        name="Quantity"
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+          setQuantity(newValue);
+        }}
       />
     </div>
   );
@@ -140,7 +179,7 @@ export default function TransferOutSource() {
     // console.log(AllCenterData);
   }, []);
   useEffect(() => {
-    const row = addObjectId(GridData?.data?.data || []);
+    const row = addRandomObjectId(GridData?.data?.data || []);
     setRow(row);
   }, [GridData?.data]);
   const handleSearch = () => {
@@ -161,7 +200,7 @@ export default function TransferOutSource() {
     );
   };
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
+    { field: "Random", headerName: "Sr. No", width: 20 },
     {
       field: `workOrderId`,
       headerName: `Visit Id`,
@@ -193,6 +232,21 @@ export default function TransferOutSource() {
       flex: 1,
     },
     {
+      field: `outSourceRate`,
+      headerName: `Out Source Rate`,
+      flex: 1,
+      renderCell: (params) => {
+        // console.log(params?.row?.id," ",params?.row)
+        return (
+          <RateInputCell
+            params={params}
+            initialQuantity={params?.row?.outSourceRate}
+            setRow={setRow}
+          />
+        );
+      },
+    },
+    {
       field: `outSourcelabs`,
       headerName: `Out Source Lab`,
       flex: 1,
@@ -208,7 +262,8 @@ export default function TransferOutSource() {
                 DepartmentData={DepartmentData}
               />
             ) : (
-              <input style={{borderRadius:"3px"}}
+              <input
+                style={{ borderRadius: "3px" }}
                 value={params?.row?.outsourceLabName}
                 className="w-full  border-0 text-xxxs font-semibold px-2 pt-1 focus:outline-none"
               />
@@ -235,7 +290,7 @@ export default function TransferOutSource() {
       },
     },
   ];
-
+  console.log(row);
   const handleSubmit = async () => {
     if (SelectedData?.length === 0) {
       toast.error("Add Some Data to Update");
@@ -254,9 +309,9 @@ export default function TransferOutSource() {
       transactionId: item?.transactionId || 0,
       workOrderId: item?.workOrderId || "string",
       bookingRate: item?.rate || 0,
-      outSourceRate: item?.rate || 0,
       outSourceLabID: item?.outSourceLab?.Id || 0,
       outSourceLabName: item?.outSourceLab?.Name || "string",
+      outSourceRate: item?.outSourceRate,
       remarks: "string",
     }));
     // console.log(formattedData,);
@@ -345,13 +400,13 @@ export default function TransferOutSource() {
             </div>
           </form>
           <div style={{ maxHeight: "200px" }}>
-            <DynamicTable
+            <UpdatedDynamicTable
               rows={row}
               name="Transfer Out Source Details"
               //   loading={loading}
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
-              activeTheme={activeTheme}
+              viewKey="Random"
             />
           </div>
         </div>
