@@ -1261,7 +1261,7 @@ export const useRetrieveData = () => {
  * @param {object} body - Request payload
  * @returns {Promise} - Resolves to API response
  */
-export const saveDataFromApi = async (url, body) => {
+export const saveDataFromApi = async (url, body = {}) => {
     try {
         const response = await privateAxios.post(url, body);
         return response.data;

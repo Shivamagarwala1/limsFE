@@ -8,12 +8,10 @@ import InputGenerator, {
 } from "../../../../Custom Components/InputGenerator";
 import { useSelector } from "react-redux";
 import UrgentGif from "../../../../assets/UrgentGif.gif";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { ImCross } from "react-icons/im";
-import { FaCommentDots, FaComments, FaEye, FaPlus, FaPrint, FaSpinner } from "react-icons/fa";
+import { FaCommentDots, FaEye, FaSpinner } from "react-icons/fa";
 import { FaFlag } from "react-icons/fa";
 import CustomeEditor from '../../../sharecomponent/CustomeEditor'
 import {
@@ -138,11 +136,7 @@ export default function ResultTrack() {
       itemIds: selectedTest,
       reporttype: 2,
     };
-    //setLocal("payload", payload);
 
-    //console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
-    // PostData?.postRequest("/tnx_BookingItem/GetResultEntryAllData", payload);
-    // console.log(PostData?.data);
 
     try {
 
@@ -186,7 +180,6 @@ export default function ResultTrack() {
         // // Convert the result object into an array if needed                                  
         // const groupedData = Object.values(result);                                            
 
-        // console.log(groupedData);                                                             
         //!===================================================                                   
 
 
@@ -393,58 +386,79 @@ export default function ResultTrack() {
 
   useEffect(() => {
     if (allObservationData && Array.isArray(allObservationData)) {
-      // Step 1: Filter out observations that have a formula
+      const formulaIndexMap = []; // Stores index positions where formula exists
+
+      allObservationData.forEach((item, index) => {
+        if (item.formula) {
+          formulaIndexMap.push(index);
+        }
+      });
+
+
       const filteredObservationData = allObservationData
         .filter((item) => item.formula)
         .map((item) => ({
           formula: item.formula,
-          labObservationId: item.labObservationId
+          labObservationId: item.labObservationId,
+          index: allObservationData.indexOf(item), // Store the index
         }));
 
       setSummedValuesForFormuladata(filteredObservationData);
 
-      // Step 2: Compute formula results and store them by testId
       const computedValues = {};
 
-      filteredObservationData.forEach(({ formula, labObservationId }, index) => {
-        // Extract labObservationIds from formula (e.g., "357+708" → [357, 708])
+      filteredObservationData.forEach(({ formula, labObservationId, index }) => {
         const observationIds = formula.match(/\d+/g)?.map(Number) || [];
 
-        // Replace observation IDs with actual values from allObservationData
         let evaluatedFormula = formula;
+        let containsHeader = false;
+        let hasValue = false;
+
         observationIds.forEach((obsId) => {
           const obsData = allObservationData.find((item) => item.labObservationId === obsId);
-          const value = obsData ? Number(obsData.value) : 0; // Default to 0 if missing
+
+          if (obsData?.value === "Header") {
+            containsHeader = true;
+          }
+
+          if (obsData?.value !== undefined && obsData?.value !== null) {
+            hasValue = true;
+          }
+
+          const value = obsData ? (obsData.value === "Header" ? "Header" : Number(obsData.value)) : 0;
           evaluatedFormula = evaluatedFormula.replace(obsId, value);
         });
 
-        // Compute the final result
-        let computedValue = 0;
-        try {
-          computedValue = eval(evaluatedFormula); // Safely evaluate the formula
-        } catch (error) {
-          console.error("Error evaluating formula:", evaluatedFormula);
+        let computedValue;
+        if (containsHeader) {
+          computedValue = "Header";
+        } else {
+          try {
+            computedValue = hasValue ? eval(evaluatedFormula) : 0;
+          } catch (error) {
+            console.error("Error evaluating formula:", evaluatedFormula);
+            computedValue = 0;
+          }
         }
 
-        // Find the corresponding testId for the labObservationId
         const testObj = allObservationData.find((item) => item.labObservationId === labObservationId);
-        if (!testObj || !testObj.testId) return; // Skip if no testId found
+        if (!testObj || !testObj.testId) return;
 
         const testId = testObj.testId;
 
-        // Store computed value under testId
         if (!computedValues[testId]) {
-          computedValues[testId] = {}; // Initialize testId object
+          computedValues[testId] = {};
         }
-        computedValues[testId][index] = String(computedValue); // Store as string
+
+        // Use the actual index instead of sequential numbers (0, 1, etc.)
+        computedValues[testId][index] = String(computedValue);
       });
+
 
       setObservationValue(computedValues);
     }
   }, [allObservationData]);
 
-
-  console.log(observationValue);
 
 
 
@@ -548,21 +562,35 @@ export default function ResultTrack() {
         ...prev,
         [testId]: {
           ...prev[testId],
-          [index]: value, // Update entered value
+          [index]: value, // ✅ Allow user to type freely
         },
       };
 
-      // Restore default value if input is cleared
+
+      // Delay restoring default value only if input is completely empty
       if (value.trim() === "") {
-        const observationItem = allObservationData.find((item) => item.testId === testId);
-        if (observationItem) {
-          updatedValues[testId][index] = String(observationItem.labObservationId);
-        }
+        setTimeout(() => {
+          setObservationValue((prev) => {
+            const observationItem = allObservationData.find((item) => item.testId === testId);
+
+            if (observationItem) {
+              return {
+                ...prev,
+                [testId]: {
+                  ...prev[testId],
+                  [index]: String(observationItem.labObservationId), // Restore only if still empty
+                },
+              };
+            }
+            return prev;
+          });
+        }, 500); // Wait before restoring to allow user typing
       }
 
       // Compute values based on formulas
       summedValuesForFormuladata.forEach(({ formula, labObservationId }) => {
         const observationIds = formula.match(/\d+/g)?.map(Number) || [];
+
 
         // Fetch corresponding values from updated state
         const values = observationIds.map((obsId) => {
@@ -575,6 +603,7 @@ export default function ResultTrack() {
           }
           return 0;
         });
+
 
         let computedValue = 0;
         try {
@@ -1048,11 +1077,11 @@ export default function ResultTrack() {
 
 
   //!============morden way code===============                                                  
-  const allFileAttachementData = useRetrieveData();                                              
-  const allReportFileData = useRetrieveData();                                                   
-  const allRejectionData = useRetrieveData();                                                    
-  const allCommentData = useRetrieveData();                                                      
-  const allSampleRerunData = useRetrieveData();                                                  
+  const allFileAttachementData = useRetrieveData();
+  const allReportFileData = useRetrieveData();
+  const allRejectionData = useRetrieveData();
+  const allCommentData = useRetrieveData();
+  const allSampleRerunData = useRetrieveData();
 
 
   useEffect(() => {
@@ -1167,14 +1196,10 @@ export default function ResultTrack() {
     }
 
 
-    console.log(updatedData);
-
-
     try {
 
       const response = await saveCommentDataApi(updatedData);
 
-      console.log(response);
       if (response?.success) {
         toast.success(response?.message);
         setShowPopup(9);
@@ -1262,7 +1287,6 @@ export default function ResultTrack() {
   // Assuming the following function is inside your component
   const handelOnChangeReRun = (e, index) => {
     const newValue = e.target.value; // Get the selected value from the dropdown (rerunbyid)
-    console.log("New Value: ", newValue, "Index: ", index);
 
     setReasonForReRundata((prevData) => {
       // Make a shallow copy of the previous data to avoid mutating it directly
@@ -1952,10 +1976,6 @@ export default function ResultTrack() {
                       />
 
                       <CustomDynamicTable CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
-
-                        {
-                          console.log(allObservationData)
-                        }
                         <tbody>
                           {allObservationData?.map((data, index) => {
 
@@ -2106,15 +2126,21 @@ export default function ResultTrack() {
                                             display: "inline-block", // Ensures proper rendering of gradient
                                           }}
                                         /> */}
+
                                         <input
                                           type="text"
                                           name="charNumber"
                                           id="charNumber"
                                           value={
-                                            data?.formula
-                                              ? observationValue?.totalSum ?? "" // Use calculated totalSum if formula exists
-                                              : observationValue[data?.testId]?.[index] ?? data?.value ?? ""
+                                            data?.value === 'Header'
+                                              ? data?.value
+                                              : data?.formula
+                                                ? (observationValue[data?.testId]?.[index] !== undefined
+                                                  ? observationValue[data?.testId]?.[index]  // Use computed value if index exists
+                                                  : data?.value) // Otherwise, keep original value
+                                                : observationValue[data?.testId]?.[index] ?? ""
                                           }
+
                                           maxLength={15}
                                           readOnly={data?.value}
                                           onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
@@ -2602,27 +2628,27 @@ export default function ResultTrack() {
                       </tbody>
                     </CustomDynamicTable >
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
 
+                      <div className="flex gap-[0.25rem]">
+                        <div className="relative flex-1">
+                          <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                            isButtonClick={isButtonClick}
+                            loadingButtonNumber={5} // Unique number for the first button
+                            onClick={() => saveReasionRerunData()}
+                          />
+                        </div>
+                        <div className="relative flex-1">
+
+                        </div>
+                      </div>
+
+                    </div>
                   </>
                 )
               }
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
 
-                <div className="flex gap-[0.25rem]">
-                  <div className="relative flex-1">
-                    <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
-                      isButtonClick={isButtonClick}
-                      loadingButtonNumber={5} // Unique number for the first button
-                      onClick={() => saveReasionRerunData()}
-                    />
-                  </div>
-                  <div className="relative flex-1">
-
-                  </div>
-                </div>
-
-              </div>
             </CustomPopup>
           )
         }
