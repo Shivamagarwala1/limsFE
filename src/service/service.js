@@ -1145,6 +1145,12 @@ export const saveRerunDataApi = async (listRerunData) => {
     return response?.data;
 }
 
+//save report dispatch
+export const saveData = async (data) => {
+    const response = await privateAxios.post(`/tnx_Booking/GetDispatchData`, data);
+
+    return response?.data;
+}
 //================Samplecollection============
 export const printBarCodeData = async (barcodeNo) => {
 
@@ -1244,4 +1250,53 @@ export const useRetrieveData = () => {
 
 
     return { fetchDataFromApi, response, data, loading, error };
+};
+
+
+//!==========================post data============
+
+/**
+ * Function to make a POST request with authentication
+ * @param {string} url - API endpoint (e.g., '/items')
+ * @param {object} body - Request payload
+ * @returns {Promise} - Resolves to API response
+ */
+export const saveDataFromApi = async (url, body) => {
+    try {
+        const response = await privateAxios.post(url, body);
+        return response.data;
+    } catch (error) {
+        console.error("Error in POST request:", error);
+        throw error;
+    }
+};
+
+
+/**
+* Custom hook to send a POST request with authentication
+* @returns { function} postRequest - Function to trigger POST request
+*/
+export const usePostData = () => {
+    const [data, setData] = useState([]);
+    const [response, setResponse] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const postRequestData = async (url, body) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const result = await saveDataFromApi(url, body);
+            setData(result?.data);
+            setResponse(result);
+            return result;
+        } catch (err) {
+            setError(err);
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return { postRequestData, response, data, loading, error };
 };

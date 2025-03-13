@@ -1223,7 +1223,7 @@ export default function PatientRegistration() {
     // };
 
     //function for det the default value of sample type
-    
+
     useEffect(() => {
 
         const storeSampleTypeDefaultValue = () => {
@@ -2778,7 +2778,7 @@ export default function PatientRegistration() {
 
         }))
 
-        
+
 
 
         try {
@@ -2906,6 +2906,7 @@ export default function PatientRegistration() {
                                     { label: 'DPS-Walking', value: 2 },
                                     { label: 'Camp', value: 3 },
                                     { label: 'DSA Agent', value: 4 },
+                                    { label: 'Corporate coll.', value: 5 },
                                 ]}
                                 onChange={(e) => handelOnChangePatientRegistration(e)}
                                 defaultIndex={0}
