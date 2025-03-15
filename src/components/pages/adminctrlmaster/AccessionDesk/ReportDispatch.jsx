@@ -15,7 +15,7 @@ import {
 } from "../../../../Custom Components/PopupModal";
 import { setLocal } from "usehoks";
 import { FaCircleInfo, FaSquareWhatsapp } from "react-icons/fa6";
-import { saveData, usePostData, useRetrieveData } from "../../../../service/service";
+import { saveData, usePostData, useRetrieveData, viewPrintreportTrackingApi } from "../../../../service/service";
 import CustomDropdown from "../../../global/CustomDropdown";
 import { DatePicker } from "../../../global/DatePicker";
 import { useFormattedDate } from "../../../customehook/useDateTimeFormate";
@@ -34,6 +34,8 @@ import { BiSolidLike } from 'react-icons/bi'
 import CustomLoadingPage from '../../../global/CustomLoadingPage'
 import { IoAlertCircleOutline } from "react-icons/io5";
 import CustomFormButton from "../../../global/CustomFormButton";
+import CustomPopup from "../../../global/CustomPopup";
+import { IoMdCloseCircleOutline } from "react-icons/io";
 export default function ReportDispatch() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const user = useSelector((state) => state.userSliceName?.user || null);
@@ -210,6 +212,7 @@ export default function ReportDispatch() {
   const allDepartementData = useRetrieveData();
   const allTestData = useRetrieveData();
   const allUserData = useRetrieveData();
+  const allSampleRejection = useRetrieveData();
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   const [showPopup, setShowPopup] = useState(0);
   const [storeStatusData, setShowStatusData] = useState({
@@ -219,6 +222,12 @@ export default function ReportDispatch() {
   const [isButtonClick, setIsButtonClick] = useState(0);
   const postData = usePostData();
   const searchReportDispatch = usePostData();
+  const [selectedTestId, setSelectedTestId] = useState(null);
+  const [singleRemarkData, setSingleRemarkData] = useState({
+    investigationName: '',
+    rejectionReason: 0,
+    showInHouse: 0
+  })
 
   useEffect(() => {
     const fetchData = async () => {
@@ -318,14 +327,15 @@ export default function ReportDispatch() {
         if (response?.message) {
           toast.success(response?.message);
 
-          //call the method to get updated data
-          await searchReportDispatchData();
-
           setShowPopup(0);
           setShowStatusData({
             workOrderId: '',
             nameOfUpdateStatus: ''
           })
+
+          //call the method to get updated data
+          await searchReportDispatchData();
+
         } else {
           toast.error(response?.message);
         }
@@ -335,11 +345,91 @@ export default function ReportDispatch() {
       }
 
     } else {
-      console.log('email');
+
+      try {
+
+        const response = await postData.postRequestData(`/tnx_Booking/SendEmail?workOrderId=${storeStatusData?.workOrderId}&Userid=${parseInt(user?.employeeId)}`);
+
+        if (response?.message) {
+          toast.success(response?.message);
+
+          setShowPopup(0);
+          setShowStatusData({
+            workOrderId: '',
+            nameOfUpdateStatus: ''
+          })
+
+          //call the method to get updated data
+          await searchReportDispatchData();
+
+        } else {
+          toast.error(response?.message);
+        }
+        console.log(response);
+      } catch (error) {
+        toast(error?.message);
+      }
 
     }
     setIsButtonClick(0);
   }
+
+
+  const handleCheckboxChange = (event, testId) => {
+    if (event.target.checked) {
+      setSelectedTestId(testId); // Set your desired test ID
+    } else {
+      setSelectedTestId(null); // Reset when unchecked
+    }
+  };
+
+
+  const printData = async () => {
+    try {
+
+      const response = await viewPrintreportTrackingApi(selectedTestId, reportDispatchData?.header)
+
+      // console.log(response);
+
+      // Create a Blob URL
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
+
+      // Open in new tab
+      window.open(url, "_blank");
+
+    } catch (error) {
+      toast.error(error?.message)
+    }
+
+
+  }
+
+
+  //test remark
+  const handelOnChangetestRemark = (e) => {
+    setSingleRemarkData((preventData) => ({
+      ...preventData,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  useEffect(() => {
+
+    const getAllData = async () => {
+      try {
+        await allSampleRejection.fetchDataFromApi(`/sampleRejectionReason?select=id,rejectionReason&$filter=(isactive eq 1)
+        `)
+      } catch (error) {
+        toast.error(error?.message)
+      }
+    }
+
+    if (showPopup === 2) {
+      getAllData();
+    }
+
+  }, [showPopup])
 
   return (
     <div>
@@ -544,7 +634,18 @@ export default function ReportDispatch() {
           <div className="flex gap-[0.25rem]">
 
             <div className="relative flex-1">
-              <CustomeNormalButton activeTheme={activeTheme} text={'Print'} />
+              {/* <CustomeNormalButton activeTheme={activeTheme} text={'Print'}
+              
+              /> */}
+
+              <CustomFormButton
+                activeTheme={activeTheme}
+                text="Print"
+                icon={FaSpinner}
+                isButtonClick={isButtonClick}
+                loadingButtonNumber={4} // Unique number for the first button
+                onClick={printData}
+              />
             </div>
 
             <div className="relative flex-1">
@@ -695,7 +796,11 @@ export default function ReportDispatch() {
                   </td>
 
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    <input type="checkbox" name="" id="" className="flex items-center justify-center" />
+                    <input
+                      type="checkbox"
+                      className="flex items-center justify-center"
+                      onChange={(e) => handleCheckboxChange(e, data?.testId)}
+                    />
                   </td>
 
 
@@ -752,9 +857,6 @@ export default function ReportDispatch() {
                           </div>
                       }
 
-
-
-
                     </div>
                   </td>
 
@@ -774,7 +876,7 @@ export default function ReportDispatch() {
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                    // onClick={() => setShowPopup(1)}
+                      onClick={() => setShowPopup(2)}
                     >
                       <MdAddCircleOutline className="text-base" />
                     </div>
@@ -808,33 +910,9 @@ export default function ReportDispatch() {
 
             <div className="flex items-end gap-5 my-5">
               <div className="w-20">
-                {/* <button
-                  className="border-[1.5px] w-16 h-8 rounded-md font-semibold text-textColor transition-all duration-300 text-sm "
-                  style={{
-                    borderImageSource: activeTheme?.menuColor,
-                    borderImageSlice: 1,
-                  }}
-                  onClick={() => setShowPopup(0)}
-                >
-                  Cancel
-                </button> */}
                 <CustomeNormalButton activeTheme={activeTheme} onClick={setShowPopup} text={'Cencle'} />
               </div>
 
-              {/* <div
-                className=" w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-                onClick={updateStatusForWhatsappAndEmail}
-              >
-                <div>Yes </div>
-
-                <div>
-                  <FaArrowRight />
-                </div>
-              </div> */}
 
               <div className="w-20">
                 <CustomFormButton
@@ -852,9 +930,179 @@ export default function ReportDispatch() {
         </div>
       )}
 
+      {
+        showPopup === 2 && (
+          <>
+            {/* <CustomPopup activeTheme={activeTheme} headerData={'Test Remark'} Test Remark
+              setShowPopup={setShowPopup} >
+              <>
+                <FormHeader headerData={'Test Remark Data'} />
+                <form autoComplete="off" onSubmit={searchReportDispatchData}>
+                  <div className="absolute">
 
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  my-2  mx-1 lg:mx-2 items-center">
+                      <div className="relative flex-1">
+                        <input
+                          type="search"
+                          id="testName"
+                          name="testName"
+                          value={singleRemarkData.investigationName || ''}
+                          // onChange={(e) => {
+                          //   handelOnChangeTestMappingData(e),
+                          //     setSeleDropDown((preventData) => ({
+                          //       ...preventData,
+                          //       testName: e.target.value
+                          //     }))
+                          // }}
+                          readOnly
+                          placeholder=" "
+                          className={`inputPeerField peer border-borderColor focus:outline-none`}
+                        />
+                        <label htmlFor="testName" className="menuPeerLevel">
+                          Test Name
+                        </label>
 
-      {/* <div style={{ height: "100px" }}>
+                      </div>
+                      {
+                        console.log(allSampleRejection)
+
+                      }
+                      <div className="relative flex-1">
+                        <CustomDropdown
+                          name="rejectionReason"
+                          label="Select Rejection Reason"
+                          value={singleRemarkData?.rejectionReason}
+                          options={[
+                            { label: 'Select Rejection Reason', value: 0, disabled: true },
+                            ...allSampleRejection?.data?.map(item => ({
+                              label: item?.rejectionReason,
+                              value: parseInt(item?.id),
+                            })),
+                          ]}
+                          onChange={(e) => handelOnChangetestRemark(e)}
+                          defaultIndex={0}
+                          activeTheme={activeTheme}
+                        />
+                      </div>
+
+                      <div className="relative flex-1">
+                        <CustomDropdown
+                          name="showInHouse"
+                          label="Select Show In House"
+                          value={singleRemarkData?.showInHouse}
+                          options={[
+                            { label: 'Select Show In House', value: 0, disabled: true },
+                            // ...allUserData?.data?.map(item => ({
+                            //   label: `${item?.fName} ${item?.lName}`,
+                            //   value: parseInt(item.empid),
+                            // })),
+                          ]}
+                          onChange={(e) => handelOnChangetestRemark(e)}
+                          defaultIndex={0}
+                          activeTheme={activeTheme}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </>
+            </CustomPopup> */}
+
+            <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+
+              <div className="w-64 md:w-[500px] overflow-scroll z-50 shadow-2xl bg-white rounded-lg animate-slideDown pb-3 " style={{maxHeight:'10rem'}}>
+                <div className='border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md'
+                  style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
+                >
+                  <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                    {'Test Remark Data'}
+                  </div>
+
+                  <IoMdCloseCircleOutline
+                    className='text-xl cursor-pointer'
+                    style={{ color: activeTheme?.iconColor }}
+                    onClick={() => setShowPopup(0)}
+                  />
+                </div>
+
+                <FormHeader headerData={'Test Remark Data'} />
+                <form autoComplete="off" onSubmit={searchReportDispatchData}>
+                  <div className="absolute">
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  my-2  mx-1 lg:mx-2 items-center">
+                      <div className="relative flex-1">
+                        <input
+                          type="search"
+                          id="testName"
+                          name="testName"
+                          value={singleRemarkData.investigationName || ''}
+                          // onChange={(e) => {
+                          //   handelOnChangeTestMappingData(e),
+                          //     setSeleDropDown((preventData) => ({
+                          //       ...preventData,
+                          //       testName: e.target.value
+                          //     }))
+                          // }}
+                          readOnly
+                          placeholder=" "
+                          className={`inputPeerField peer border-borderColor focus:outline-none`}
+                        />
+                        <label htmlFor="testName" className="menuPeerLevel">
+                          Test Name
+                        </label>
+
+                      </div>
+                      {
+                        console.log(allSampleRejection)
+
+                      }
+                      <div className="relative flex-1">
+                        <CustomDropdown
+                          name="rejectionReason"
+                          label="Select Rejection Reason"
+                          value={singleRemarkData?.rejectionReason}
+                          options={[
+                            { label: 'Select Rejection Reason', value: 0, disabled: true },
+                            ...allSampleRejection?.data?.map(item => ({
+                              label: item?.rejectionReason,
+                              value: parseInt(item?.id),
+                            })),
+                          ]}
+                          onChange={(e) => handelOnChangetestRemark(e)}
+                          defaultIndex={0}
+                          activeTheme={activeTheme}
+                        />
+                      </div>
+
+                      <div className="relative flex-1">
+                        <CustomDropdown
+                          name="showInHouse"
+                          label="Select Show In House"
+                          value={singleRemarkData?.showInHouse}
+                          options={[
+                            { label: 'Select Show In House', value: 0, disabled: true },
+                            // ...allUserData?.data?.map(item => ({
+                            //   label: `${item?.fName} ${item?.lName}`,
+                            //   value: parseInt(item.empid),
+                            // })),
+                          ]}
+                          onChange={(e) => handelOnChangetestRemark(e)}
+                          defaultIndex={0}
+                          activeTheme={activeTheme}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eveniet possimus modi illo maiores soluta hic pariatur facere porro nihil nulla. Consequatur, id? Dolorum obcaecati aut placeat voluptates consectetur illum? Dolor quam ex libero asperiores ullam nobis possimus cum, beatae facere, iure veritatis non tempora nam impedit sapiente suscipit optio consequuntur praesentium ipsam porro. Adipisci eligendi sapiente omnis tenetur sit libero enim obcaecati ullam rem vero iusto, earum nulla harum blanditiis atque exercitationem excepturi laudantium aliquam aut quisquam rerum alias temporibus? A, hic. Illum voluptatem quasi aperiam, dicta corrupti reprehenderit autem quos quae libero illo cum suscipit iure rem tempora minima? Aspernatur fuga esse possimus eos cum fugiat suscipit excepturi harum quaerat rem facilis tempore numquam magnam vero dolorem optio perferendis voluptates, mollitia blanditiis, libero architecto? Explicabo harum iure natus rem doloribus dolor commodi repudiandae reprehenderit, ab quos, dolorum animi quam! Quis vitae dignissimos accusantium unde dolorem ducimus minus at enim, quia praesentium repellendus, vero atque blanditiis quaerat mollitia maxime nulla quasi quas qui. Laboriosam placeat quaerat quis possimus dolorem maxime mollitia asperiores hic, nihil exercitationem deleniti recusandae eius ad ratione, veniam impedit ea vitae itaque aspernatur vero natus ipsam iure magnam quibusdam. Ratione nesciunt officiis maxime inventore distinctio temporibus, accusamus nulla molestias quis qui suscipit laboriosam quasi laborum voluptatibus placeat quia magni unde soluta ut. Facilis beatae placeat ipsam cumque voluptatibus asperiores culpa ab sed aliquid molestiae quasi nihil, tempore magni nisi quam! Quibusdam ab alias perferendis illum veniam delectus, fuga ipsam! Rem tempora voluptates nobis nulla quibusdam error cupiditate aliquam et ratione eveniet, cumque nam delectus autem facere vero accusantium. Quis accusamus quaerat adipisci pariatur odit sit quia minima recusandae exercitationem consectetur totam beatae corporis corrupti, nisi repellat quam reiciendis voluptatibus impedit nesciunt fuga repudiandae suscipit rem facilis sint. Esse suscipit odit optio deserunt hic modi placeat sit, ab dolore ipsum? Voluptate atque provident illum, sapiente aperiam ratione molestiae sunt modi facere quidem, perspiciatis dolorem, dignissimos quasi officia dolores sequi nisi. Nemo nihil rem sint, blanditiis non voluptate, voluptatibus mollitia ipsum sed, possimus praesentium. Cupiditate in quidem quia mollitia doloremque? Beatae ad eius harum accusamus laboriosam quis. Deserunt velit quo suscipit laudantium quisquam officia corporis incidunt. Expedita illum autem, natus sunt vel quasi id sint distinctio ducimus quia a est porro necessitatibus quibusdam perferendis? Vero suscipit saepe ducimus maxime dignissimos inventore cum debitis quaerat dolorem corporis minima, praesentium temporibus veritatis obcaecati amet. Ipsam laborum, dolorem sequi distinctio obcaecati placeat unde. Tenetur voluptate at vero necessitatibus repudiandae sequi perspiciatis nulla totam animi dolorem enim tempore explicabo maiores nihil, rem aliquam! Odio consectetur illo quis provident natus quia unde? Impedit accusantium aut nobis suscipit, ea quod. Asperiores saepe delectus quas eum sint pariatur ullam eligendi corporis, sed nisi culpa dolore velit ex eos fugiat ipsa totam, tenetur sunt veritatis esse provident. Facilis modi eaque totam exercitationem eveniet, ab quod, sed deleniti suscipit eum temporibus officia quia qui corporis, consectetur ipsum! Fuga ut quas itaque eos in? Libero sed natus, perferendis, voluptates corrupti recusandae sunt a id aliquam hic maxime quas rem.
+            </div>
+          </>
+        )
+      }
+
+      <div style={{ height: "100px" }}>
         <DynamicTable
           rows={row}
           name="Dispatch Details"
@@ -862,7 +1110,7 @@ export default function ReportDispatch() {
           columns={columns}
           activeTheme={activeTheme}
         />
-      </div> */}
+      </div>
 
     </div>
   );
