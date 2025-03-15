@@ -3117,9 +3117,6 @@ export default function PatientRegistration() {
                                     </button>
                                 </div>
 
-
-
-
                             </div>
 
                             {/* Edit Test */}

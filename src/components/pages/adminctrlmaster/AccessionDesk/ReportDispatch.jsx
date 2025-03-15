@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData } from "../../../../service/apiService";
 
-import { FaArrowRight, FaCommentDots, FaDownload, FaPlus, FaSpinner } from "react-icons/fa";
+import { FaDownload, FaSpinner } from "react-icons/fa";
 import "./ReportDispatch.css";
 import {
   InvestigationRemarkPopupModal,
@@ -15,10 +15,10 @@ import {
 } from "../../../../Custom Components/PopupModal";
 import { setLocal } from "usehoks";
 import { FaCircleInfo, FaSquareWhatsapp } from "react-icons/fa6";
-import { saveData, usePostData, useRetrieveData, viewPrintreportTrackingApi } from "../../../../service/service";
+import { usePostData, useRetrieveData, viewPrintreportTrackingApi } from "../../../../service/service";
 import CustomDropdown from "../../../global/CustomDropdown";
 import { DatePicker } from "../../../global/DatePicker";
-import { useFormattedDate } from "../../../customehook/useDateTimeFormate";
+import { useFormattedDate, useFormattedDateTime } from "../../../customehook/useDateTimeFormate";
 import { CustomTextBox } from "../../../global/CustomTextBox";
 import CustomeNormalButton from "../../../global/CustomeNormalButton";
 import CustomNormalFormButton from "../../../global/CustomNormalFormButton";
@@ -28,174 +28,174 @@ import CustomMultiSelectDropdown from '../../../global/CustomMultiSelectDropdown
 import FormHeader from "../../../global/FormHeader";
 import GridDataDetails from '../../../global/GridDataDetails';
 import CustomDynamicTable from '../../../global/CustomDynamicTable';
-import { reportDispatchHeaderData } from "../../../listData/listData";
+import { reportDispatchHeaderData, resultTrackForPatientInformation } from "../../../listData/listData";
 import { MdAddCircleOutline, MdOutlineMailOutline } from "react-icons/md";
 import { BiSolidLike } from 'react-icons/bi'
 import CustomLoadingPage from '../../../global/CustomLoadingPage'
 import { IoAlertCircleOutline } from "react-icons/io5";
 import CustomFormButton from "../../../global/CustomFormButton";
-import CustomPopup from "../../../global/CustomPopup";
 import { IoMdCloseCircleOutline } from "react-icons/io";
+import CustomFormButtonWithLoading from "../../../global/CustomFormButtonWithLoading";
+import { RiDeleteBin5Fill } from "react-icons/ri";
 export default function ReportDispatch() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const user = useSelector((state) => state.userSliceName?.user || null);
 
 
-  const { formRef, getValues, setValues } = useFormHandler();
-  const [RejectPopup, setRejectPopup] = useState(false);
-  const [RemarkPopup, setRemarkPopup] = useState(false);
-  const [selectedCenter, setSelectedCenter] = useState([]);
-  const AllCenterData = useGetData();
-  useEffect(() => {
-    AllCenterData?.fetchData(
-      "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
-    );
-    // console.log(AllCenterData);
-  }, []);
-  const columns = [
-    { field: "id", headerName: "Sr. No", width: 20 },
-    {
-      field: `BookingDate`,
-      headerName: `Booking Date`,
-      flex: 1,
-    },
-    {
-      field: `VisiotId`,
-      headerName: `Visiter Id`,
-      flex: 1,
-    },
-    {
-      field: `Barcode`,
-      headerName: `Barcode`,
-      flex: 1,
-    },
-    {
-      field: `VisitorName`,
-      headerName: `Visitor Name`,
-      flex: 1,
-    },
-    {
-      field: `AgeGender`,
-      headerName: `Age/Gender`,
-      flex: 1,
-    },
-    {
-      field: `Mobile`,
-      headerName: `Mobile`,
-      flex: 1,
-    },
-    {
-      field: `RefDoctor`,
-      headerName: `Ref. Doctor`,
-      flex: 1,
-    },
-    {
-      field: `RefLab`,
-      headerName: `Ref. Lab`,
-      flex: 1,
-    },
-    {
-      field: `Centre`,
-      headerName: `Centre`,
-      flex: 1,
-    },
-    {
-      field: `TestName`,
-      headerName: `Test Name`,
-      flex: 1,
-    },
-    {
-      field: `RecDate`,
-      headerName: `Rec. Date`,
-      flex: 1,
-    },
-    {
-      field: `Comments`,
-      headerName: `Comments`,
-      flex: 1,
-    },
-    {
-      field: `CreatedBy`,
-      headerName: `Created By`,
-      flex: 1,
-    },
-    {
-      headerName: `Print`,
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px" }}>
-            <input type="checkbox" />
-          </div>
-        );
-      },
-    },
-    {
-      field: `Documents`,
-      headerName: `Info/Documents`,
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "10px" }}>
-            <FaCircleInfo />
-            <FaDownload />
-          </div>
-        );
-      },
-    },
-    {
-      field: `OutSourceLab`,
-      headerName: `Out Source Lab`,
-      flex: 1,
-    },
-    {
-      field: `Remark`,
-      headerName: `Remark`,
-      flex: 1,
-      renderCell: (params) => {
-        // console.log(params.row)
-        return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <SubmitButton
-              submit={false}
-              text={"+"}
-              callBack={() => {
-                setLocal("testName", params?.row?.TestName);
-                setRemarkPopup(true);
-              }}
-              style={{ width: "30px", fontSize: "15px" }}
-            />
-          </div>
-        );
-      },
-    },
-  ];
+  // const { formRef, getValues, setValues } = useFormHandler();
+  // const [RejectPopup, setRejectPopup] = useState(false);
+  // const [RemarkPopup, setRemarkPopup] = useState(false);
+  // const [selectedCenter, setSelectedCenter] = useState([]);
+  // const AllCenterData = useGetData();
+  // useEffect(() => {
+  //   AllCenterData?.fetchData(
+  //     "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
+  //   );
+  //   // console.log(AllCenterData);
+  // }, []);
+  // const columns = [
+  //   { field: "id", headerName: "Sr. No", width: 20 },
+  //   {
+  //     field: `BookingDate`,
+  //     headerName: `Booking Date`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `VisiotId`,
+  //     headerName: `Visiter Id`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `Barcode`,
+  //     headerName: `Barcode`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `VisitorName`,
+  //     headerName: `Visitor Name`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `AgeGender`,
+  //     headerName: `Age/Gender`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `Mobile`,
+  //     headerName: `Mobile`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `RefDoctor`,
+  //     headerName: `Ref. Doctor`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `RefLab`,
+  //     headerName: `Ref. Lab`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `Centre`,
+  //     headerName: `Centre`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `TestName`,
+  //     headerName: `Test Name`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `RecDate`,
+  //     headerName: `Rec. Date`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `Comments`,
+  //     headerName: `Comments`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `CreatedBy`,
+  //     headerName: `Created By`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     headerName: `Print`,
+  //     flex: 1,
+  //     renderCell: (params) => {
+  //       return (
+  //         <div style={{ display: "flex", gap: "20px" }}>
+  //           <input type="checkbox" />
+  //         </div>
+  //       );
+  //     },
+  //   },
+  //   {
+  //     field: `Documents`,
+  //     headerName: `Info/Documents`,
+  //     flex: 1,
+  //     renderCell: (params) => {
+  //       return (
+  //         <div style={{ display: "flex", gap: "10px" }}>
+  //           <FaCircleInfo />
+  //           <FaDownload />
+  //         </div>
+  //       );
+  //     },
+  //   },
+  //   {
+  //     field: `OutSourceLab`,
+  //     headerName: `Out Source Lab`,
+  //     flex: 1,
+  //   },
+  //   {
+  //     field: `Remark`,
+  //     headerName: `Remark`,
+  //     flex: 1,
+  //     renderCell: (params) => {
+  //       // console.log(params.row)
+  //       return (
+  //         <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+  //           <SubmitButton
+  //             submit={false}
+  //             text={"+"}
+  //             callBack={() => {
+  //               setLocal("testName", params?.row?.TestName);
+  //               setRemarkPopup(true);
+  //             }}
+  //             style={{ width: "30px", fontSize: "15px" }}
+  //           />
+  //         </div>
+  //       );
+  //     },
+  //   },
+  // ];
 
-  const row = [
-    {
-      id: 1,
-      Centre: "105 - center 1",
-      Department: "Nursing",
-      RegId: "10993",
-      VisiotId: "302",
-      RateType: "Type 1",
-      VisitorName: "John Doe",
-      AgeGender: "25,Male",
-      TestName: "CBC",
-      Comments: "lorem ipsum",
-      BookingDate: "11-Feb-2025",
-      Barcode: "123456",
-      Mobile: "9876543210",
-      RefDoctor: "Dr. Smith",
-      RefLab: "Lab A",
-      RecDate: "10-Feb-2025",
-      CreatedBy: "Admin",
-      OutSourceLab: "Lab B",
-      Remark: "No remarks",
-    },
-  ];
+  // const row = [
+  //   {
+  //     id: 1,
+  //     Centre: "105 - center 1",
+  //     Department: "Nursing",
+  //     RegId: "10993",
+  //     VisiotId: "302",
+  //     RateType: "Type 1",
+  //     VisitorName: "John Doe",
+  //     AgeGender: "25,Male",
+  //     TestName: "CBC",
+  //     Comments: "lorem ipsum",
+  //     BookingDate: "11-Feb-2025",
+  //     Barcode: "123456",
+  //     Mobile: "9876543210",
+  //     RefDoctor: "Dr. Smith",
+  //     RefLab: "Lab A",
+  //     RecDate: "10-Feb-2025",
+  //     CreatedBy: "Admin",
+  //     OutSourceLab: "Lab B",
+  //     Remark: "No remarks",
+  //   },
+  // ];
 
-  const handleSubmit = () => { };
   // !===============anil code=====================
   const [reportDispatchData, setRecordDispatchData] = useState({
     centreId: 0,
@@ -212,8 +212,11 @@ export default function ReportDispatch() {
   const allDepartementData = useRetrieveData();
   const allTestData = useRetrieveData();
   const allUserData = useRetrieveData();
-  const allSampleRejection = useRetrieveData();
+  const allSampleRemark = useRetrieveData();
+  const allInfoDocument = useRetrieveData();
+  const allRemarkTestData = useRetrieveData();
   const [isHoveredTable, setIsHoveredTable] = useState(null);
+  const [isHoveredPopupTable, setIsHoveredPopupTable] = useState(null);
   const [showPopup, setShowPopup] = useState(0);
   const [storeStatusData, setShowStatusData] = useState({
     workOrderId: '',
@@ -225,8 +228,13 @@ export default function ReportDispatch() {
   const [selectedTestId, setSelectedTestId] = useState(null);
   const [singleRemarkData, setSingleRemarkData] = useState({
     investigationName: '',
-    rejectionReason: 0,
-    showInHouse: 0
+    sampleRemark: 0,
+    showInHouse: 0,
+    transactionId: 0,
+    workOrderId: '',
+    itemId: 0,
+    itemName: '',
+    createdDateTime: useFormattedDateTime()
   })
 
   useEffect(() => {
@@ -296,18 +304,8 @@ export default function ReportDispatch() {
       "empid": parseInt(user?.employeeId)
     };
 
-
-
-
-    console.log(updateData);
-
-
     try {
-      const response = await searchReportDispatch.postRequestData(`/tnx_Booking/GetDispatchData`, updateData);
-
-      console.log(response);
-
-
+      await searchReportDispatch.postRequestData(`/tnx_Booking/GetDispatchData`, updateData);
     } catch (error) {
       toast.error(error?.message)
     }
@@ -339,7 +337,6 @@ export default function ReportDispatch() {
         } else {
           toast.error(response?.message);
         }
-        console.log(response);
       } catch (error) {
         toast(error?.message);
       }
@@ -365,7 +362,6 @@ export default function ReportDispatch() {
         } else {
           toast.error(response?.message);
         }
-        console.log(response);
       } catch (error) {
         toast(error?.message);
       }
@@ -418,10 +414,12 @@ export default function ReportDispatch() {
 
     const getAllData = async () => {
       try {
-        await allSampleRejection.fetchDataFromApi(`/sampleRejectionReason?select=id,rejectionReason&$filter=(isactive eq 1)
-        `)
+        await allSampleRemark.fetchDataFromApi(`/SampleremarkMaster?select=id,remark&$filter=(isactive eq 1)`);
+
+        await allRemarkTestData.fetchDataFromApi(`/tnx_InvestigationRemarks/GetSampleremark?transacctionId=${singleRemarkData?.transactionId}&WorkOrderId=${singleRemarkData?.workOrderId}&itemId=${singleRemarkData?.itemId}`);
+
       } catch (error) {
-        toast.error(error?.message)
+        toast.error(error?.message);
       }
     }
 
@@ -429,17 +427,71 @@ export default function ReportDispatch() {
       getAllData();
     }
 
-  }, [showPopup])
+  }, [showPopup, isButtonClick])
+
+
+  const handelOnSubmitTestRemarkData = async (e) => {
+    e.preventDefault();
+    setIsButtonClick(1);
+
+    const updateData = {
+      "isActive": 1,
+      "createdById": parseInt(user?.employeeId),
+      "createdDateTime": singleRemarkData?.createdDateTime,
+      "updateById": 0,
+      "updateDateTime": new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+      "id": 0,
+      "invRemarks": allSampleRemark?.data?.find((data) => data?.id === singleRemarkData?.sampleRemark).remark,
+      "transactionId": singleRemarkData?.transactionId,
+      "workOrderId": singleRemarkData?.workOrderId,
+      "itemId": singleRemarkData?.itemId,
+      "itemName": singleRemarkData?.investigationName,
+      "isInternal": singleRemarkData?.showInHouse,
+    }
+
+
+    try {
+
+      const response = await postData.postRequestData(`/tnx_InvestigationRemarks/AddSampleremark`, [updateData])
+
+      if (response?.success) {
+        toast.success(response?.message);
+      } else {
+        toast.error(response?.message)
+      }
+
+    } catch (error) {
+      toast.error(error?.message)
+    }
+
+    setIsButtonClick(0);
+
+  }
+
+
+
+  const getAllInfoDocumentData = async (testId) => {
+
+    try {
+      await allInfoDocument.fetchDataFromApi(`/tnx_Booking/GetTestInfo?TestId=${testId}`);
+
+    } catch (error) {
+      toast.error(error?.message);
+    }
+  }
+
+
+
 
   return (
     <div>
       {/* Header Section */}
-      <InvestigationRemarkPopupModal
+      {/* <InvestigationRemarkPopupModal
         setShowPopup={setRemarkPopup}
         showPopup={RemarkPopup}
       />
 
-      <RejectPopupModal setShowPopup={setRejectPopup} showPopup={RejectPopup} />
+      <RejectPopupModal setShowPopup={setRejectPopup} showPopup={RejectPopup} /> */}
 
 
       <FormHeader headerData={'Report Dispatch'} />
@@ -665,7 +717,6 @@ export default function ReportDispatch() {
 
             <tbody >
               {searchReportDispatch?.data?.map((data, index) => (
-
                 <tr
                   className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
                     ? ''
@@ -864,7 +915,7 @@ export default function ReportDispatch() {
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                    // onClick={() => setShowPopup(2)}
+                      onClick={() => { setShowPopup(4), getAllInfoDocumentData(data?.itemId) }}
                     >
                       <FaCircleInfo />
                     </div>
@@ -876,7 +927,12 @@ export default function ReportDispatch() {
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => setShowPopup(2)}
+                      onClick={() => {
+                        setShowPopup(2), setSingleRemarkData((preventData) => ({
+                          ...preventData,
+                          transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName,
+                        }))
+                      }}
                     >
                       <MdAddCircleOutline className="text-base" />
                     </div>
@@ -933,176 +989,292 @@ export default function ReportDispatch() {
       {
         showPopup === 2 && (
           <>
-            {/* <CustomPopup activeTheme={activeTheme} headerData={'Test Remark'} Test Remark
-              setShowPopup={setShowPopup} >
-              <>
-                <FormHeader headerData={'Test Remark Data'} />
-                <form autoComplete="off" onSubmit={searchReportDispatchData}>
-                  <div className="absolute">
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  my-2  mx-1 lg:mx-2 items-center">
-                      <div className="relative flex-1">
-                        <input
-                          type="search"
-                          id="testName"
-                          name="testName"
-                          value={singleRemarkData.investigationName || ''}
-                          // onChange={(e) => {
-                          //   handelOnChangeTestMappingData(e),
-                          //     setSeleDropDown((preventData) => ({
-                          //       ...preventData,
-                          //       testName: e.target.value
-                          //     }))
-                          // }}
-                          readOnly
-                          placeholder=" "
-                          className={`inputPeerField peer border-borderColor focus:outline-none`}
-                        />
-                        <label htmlFor="testName" className="menuPeerLevel">
-                          Test Name
-                        </label>
-
-                      </div>
-                      {
-                        console.log(allSampleRejection)
-
-                      }
-                      <div className="relative flex-1">
-                        <CustomDropdown
-                          name="rejectionReason"
-                          label="Select Rejection Reason"
-                          value={singleRemarkData?.rejectionReason}
-                          options={[
-                            { label: 'Select Rejection Reason', value: 0, disabled: true },
-                            ...allSampleRejection?.data?.map(item => ({
-                              label: item?.rejectionReason,
-                              value: parseInt(item?.id),
-                            })),
-                          ]}
-                          onChange={(e) => handelOnChangetestRemark(e)}
-                          defaultIndex={0}
-                          activeTheme={activeTheme}
-                        />
-                      </div>
-
-                      <div className="relative flex-1">
-                        <CustomDropdown
-                          name="showInHouse"
-                          label="Select Show In House"
-                          value={singleRemarkData?.showInHouse}
-                          options={[
-                            { label: 'Select Show In House', value: 0, disabled: true },
-                            // ...allUserData?.data?.map(item => ({
-                            //   label: `${item?.fName} ${item?.lName}`,
-                            //   value: parseInt(item.empid),
-                            // })),
-                          ]}
-                          onChange={(e) => handelOnChangetestRemark(e)}
-                          defaultIndex={0}
-                          activeTheme={activeTheme}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </form>
-              </>
-            </CustomPopup> */}
-
             <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+              <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
 
-              <div className="w-64 md:w-[500px] overflow-scroll z-50 shadow-2xl bg-white rounded-lg animate-slideDown pb-3 " style={{maxHeight:'10rem'}}>
-                <div className='border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md'
-                  style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
-                >
+                {/* Header */}
+                <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                  style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
                   <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
                     {'Test Remark Data'}
                   </div>
-
                   <IoMdCloseCircleOutline
-                    className='text-xl cursor-pointer'
+                    className="text-xl cursor-pointer"
                     style={{ color: activeTheme?.iconColor }}
                     onClick={() => setShowPopup(0)}
                   />
                 </div>
 
                 <FormHeader headerData={'Test Remark Data'} />
-                <form autoComplete="off" onSubmit={searchReportDispatchData}>
-                  <div className="absolute">
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2  my-2  mx-1 lg:mx-2 items-center">
-                      <div className="relative flex-1">
-                        <input
-                          type="search"
-                          id="testName"
-                          name="testName"
-                          value={singleRemarkData.investigationName || ''}
-                          // onChange={(e) => {
-                          //   handelOnChangeTestMappingData(e),
-                          //     setSeleDropDown((preventData) => ({
-                          //       ...preventData,
-                          //       testName: e.target.value
-                          //     }))
-                          // }}
-                          readOnly
-                          placeholder=" "
-                          className={`inputPeerField peer border-borderColor focus:outline-none`}
-                        />
-                        <label htmlFor="testName" className="menuPeerLevel">
-                          Test Name
-                        </label>
+                {/* Form */}
+                <form autoComplete="off" onSubmit={handelOnSubmitTestRemarkData} >
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-14 mx-1 lg:mx-2 items-center relative my-2">
 
-                      </div>
-                      {
-                        console.log(allSampleRejection)
+                    <div className="relative w-full md:w-32">
+                      <input
+                        type="search"
+                        id="investigationName"
+                        name="investigationName"
+                        value={singleRemarkData.investigationName || ''}
+                        // onChange={(e) => {
+                        //   handelOnChangeTestMappingData(e),
+                        //     setSeleDropDown((preventData) => ({
+                        //       ...preventData,
+                        //       testName: e.target.value
+                        //     }))
+                        // }}
+                        readOnly
+                        placeholder=" "
+                        className={`inputPeerField peer border-borderColor focus:outline-none`}
+                      />
+                      <label htmlFor="testName" className="menuPeerLevel">
+                        Test Name
+                      </label>
 
-                      }
-                      <div className="relative flex-1">
-                        <CustomDropdown
-                          name="rejectionReason"
-                          label="Select Rejection Reason"
-                          value={singleRemarkData?.rejectionReason}
-                          options={[
-                            { label: 'Select Rejection Reason', value: 0, disabled: true },
-                            ...allSampleRejection?.data?.map(item => ({
-                              label: item?.rejectionReason,
-                              value: parseInt(item?.id),
-                            })),
-                          ]}
-                          onChange={(e) => handelOnChangetestRemark(e)}
-                          defaultIndex={0}
-                          activeTheme={activeTheme}
-                        />
-                      </div>
+                    </div>
 
-                      <div className="relative flex-1">
-                        <CustomDropdown
-                          name="showInHouse"
-                          label="Select Show In House"
-                          value={singleRemarkData?.showInHouse}
-                          options={[
-                            { label: 'Select Show In House', value: 0, disabled: true },
-                            // ...allUserData?.data?.map(item => ({
-                            //   label: `${item?.fName} ${item?.lName}`,
-                            //   value: parseInt(item.empid),
-                            // })),
-                          ]}
-                          onChange={(e) => handelOnChangetestRemark(e)}
-                          defaultIndex={0}
-                          activeTheme={activeTheme}
-                        />
-                      </div>
+                    {/* Rejection Reason Dropdown */}
+                    <div className="relative w-full md:w-32">
+                      <CustomDropdown
+                        name="sampleRemark"
+                        label="Select Sample Remark"
+                        value={singleRemarkData?.sampleRemark}
+                        options={[
+                          { label: 'Select Sample Remark', value: 0, disabled: true },
+                          ...allSampleRemark?.data?.map(item => ({
+                            label: item?.remark,
+                            value: parseInt(item?.id),
+                          })),
+                        ]}
+                        onChange={(e) => handelOnChangetestRemark(e)}
+                        defaultIndex={0}
+                        activeTheme={activeTheme}
+                      />
+                    </div>
+
+                    <div className="relative w-full md:w-32">
+                      <CustomDropdown
+                        name="showInHouse"
+                        label="Select Show In House"
+                        value={singleRemarkData?.showInHouse}
+                        options={[
+                          { label: 'Yes', value: 1 },
+                          { label: 'No', value: 0 },
+
+                        ]}
+                        onChange={(e) => handelOnChangetestRemark(e)}
+                        defaultIndex={0}
+                        activeTheme={activeTheme}
+                      />
+                    </div>
+
+                    <div className="relative w-full">
+                      <CustomFormButtonWithLoading
+                        activeTheme={activeTheme}
+                        text="Save"
+                        icon={FaSpinner}
+                        isButtonClick={isButtonClick}
+                        loadingButtonNumber={1} // Unique number for the first button
+                      />
                     </div>
                   </div>
                 </form>
+
+                {/* Scrollable Content */}
+
+                <GridDataDetails gridDataDetails={'Test Remark Details'} />
+
+                {allRemarkTestData?.loading ?
+                  <CustomLoadingPage />
+                  :
+                  <CustomDynamicTable activeTheme={activeTheme} columns={['Sr. No', 'Test Name', 'Remark', 'Remark Date', 'Added By', 'In-House', 'Action']} height="30vh">
+                    <tbody >
+                      {
+                        allRemarkTestData?.data?.data?.map((data, index) => (
+                          <tr
+                            className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                              ? ''
+                              : index % 2 === 0
+                                ? 'bg-gray-100'
+                                : 'bg-white'
+                              }`}
+                            key={index}
+                            onMouseEnter={() => setIsHoveredPopupTable(index)}
+                            onMouseLeave={() => setIsHoveredPopupTable(null)}
+                            style={{
+                              background:
+                                isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                              // Hides scrollbar for IE/Edge
+                            }}
+                          >
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {index + 1}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.itemName}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.invRemarks}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.remardkDate}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.remarkAdBy}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.isInternal === 1 ? 'Yes' : 'No'}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
+                            </td>
+                          </tr>
+                        ))
+
+                      }
+                    </tbody>
+                  </CustomDynamicTable>
+                }
               </div>
 
-Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eveniet possimus modi illo maiores soluta hic pariatur facere porro nihil nulla. Consequatur, id? Dolorum obcaecati aut placeat voluptates consectetur illum? Dolor quam ex libero asperiores ullam nobis possimus cum, beatae facere, iure veritatis non tempora nam impedit sapiente suscipit optio consequuntur praesentium ipsam porro. Adipisci eligendi sapiente omnis tenetur sit libero enim obcaecati ullam rem vero iusto, earum nulla harum blanditiis atque exercitationem excepturi laudantium aliquam aut quisquam rerum alias temporibus? A, hic. Illum voluptatem quasi aperiam, dicta corrupti reprehenderit autem quos quae libero illo cum suscipit iure rem tempora minima? Aspernatur fuga esse possimus eos cum fugiat suscipit excepturi harum quaerat rem facilis tempore numquam magnam vero dolorem optio perferendis voluptates, mollitia blanditiis, libero architecto? Explicabo harum iure natus rem doloribus dolor commodi repudiandae reprehenderit, ab quos, dolorum animi quam! Quis vitae dignissimos accusantium unde dolorem ducimus minus at enim, quia praesentium repellendus, vero atque blanditiis quaerat mollitia maxime nulla quasi quas qui. Laboriosam placeat quaerat quis possimus dolorem maxime mollitia asperiores hic, nihil exercitationem deleniti recusandae eius ad ratione, veniam impedit ea vitae itaque aspernatur vero natus ipsam iure magnam quibusdam. Ratione nesciunt officiis maxime inventore distinctio temporibus, accusamus nulla molestias quis qui suscipit laboriosam quasi laborum voluptatibus placeat quia magni unde soluta ut. Facilis beatae placeat ipsam cumque voluptatibus asperiores culpa ab sed aliquid molestiae quasi nihil, tempore magni nisi quam! Quibusdam ab alias perferendis illum veniam delectus, fuga ipsam! Rem tempora voluptates nobis nulla quibusdam error cupiditate aliquam et ratione eveniet, cumque nam delectus autem facere vero accusantium. Quis accusamus quaerat adipisci pariatur odit sit quia minima recusandae exercitationem consectetur totam beatae corporis corrupti, nisi repellat quam reiciendis voluptatibus impedit nesciunt fuga repudiandae suscipit rem facilis sint. Esse suscipit odit optio deserunt hic modi placeat sit, ab dolore ipsum? Voluptate atque provident illum, sapiente aperiam ratione molestiae sunt modi facere quidem, perspiciatis dolorem, dignissimos quasi officia dolores sequi nisi. Nemo nihil rem sint, blanditiis non voluptate, voluptatibus mollitia ipsum sed, possimus praesentium. Cupiditate in quidem quia mollitia doloremque? Beatae ad eius harum accusamus laboriosam quis. Deserunt velit quo suscipit laudantium quisquam officia corporis incidunt. Expedita illum autem, natus sunt vel quasi id sint distinctio ducimus quia a est porro necessitatibus quibusdam perferendis? Vero suscipit saepe ducimus maxime dignissimos inventore cum debitis quaerat dolorem corporis minima, praesentium temporibus veritatis obcaecati amet. Ipsam laborum, dolorem sequi distinctio obcaecati placeat unde. Tenetur voluptate at vero necessitatibus repudiandae sequi perspiciatis nulla totam animi dolorem enim tempore explicabo maiores nihil, rem aliquam! Odio consectetur illo quis provident natus quia unde? Impedit accusantium aut nobis suscipit, ea quod. Asperiores saepe delectus quas eum sint pariatur ullam eligendi corporis, sed nisi culpa dolore velit ex eos fugiat ipsa totam, tenetur sunt veritatis esse provident. Facilis modi eaque totam exercitationem eveniet, ab quod, sed deleniti suscipit eum temporibus officia quia qui corporis, consectetur ipsum! Fuga ut quas itaque eos in? Libero sed natus, perferendis, voluptates corrupti recusandae sunt a id aliquam hic maxime quas rem.
             </div>
           </>
         )
       }
 
-      <div style={{ height: "100px" }}>
+      {
+        showPopup === 4 && (
+          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+            <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+
+              {/* Header */}
+              <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                  {'Test Remark Data'}
+                </div>
+                <IoMdCloseCircleOutline
+                  className="text-xl cursor-pointer"
+                  style={{ color: activeTheme?.iconColor }}
+                  onClick={() => setShowPopup(0)}
+                />
+              </div>
+
+              {/* Scrollable Content */}
+              <GridDataDetails gridDataDetails={'Test Remark Details'} />
+
+              {allInfoDocument?.loading ?
+                <CustomLoadingPage />
+                :
+                <CustomDynamicTable columns={resultTrackForPatientInformation} activeTheme={activeTheme} height="15vh">
+                  <tbody>
+                    {
+                      allInfoDocument?.data?.data?.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredPopupTable(index)}
+                          onMouseLeave={() => setIsHoveredPopupTable(null)}
+                          style={{
+                            background:
+                              isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {index + 1}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.investigationName}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.barcodeNo}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleCollectedby}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceivedBY}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registrationDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registerBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resultDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resutDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneOn}
+                          </td>
+
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSourceDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSouceLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSource}
+                          </td>
+                        </tr>
+                      ))
+
+                    }
+                  </tbody>
+                </CustomDynamicTable >
+              }
+            </div>
+
+          </div>
+        )
+      }
+
+      {/* <div style={{ height: "100px" }}>
         <DynamicTable
           rows={row}
           name="Dispatch Details"
@@ -1110,7 +1282,7 @@ Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eveniet possimus modi 
           columns={columns}
           activeTheme={activeTheme}
         />
-      </div>
+      </div> */}
 
     </div>
   );

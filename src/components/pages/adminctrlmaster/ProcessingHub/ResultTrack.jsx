@@ -9,7 +9,8 @@ import InputGenerator, {
 import { useSelector } from "react-redux";
 import UrgentGif from "../../../../assets/UrgentGif.gif";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import { useGetData, usePostData } from "../../../../service/apiService";
+import { useGetData } from "../../../../service/apiService";
+import { usePostData } from "../../../../service/service";
 import { ImCross } from "react-icons/im";
 import { FaCommentDots, FaEye, FaSpinner } from "react-icons/fa";
 import { FaFlag } from "react-icons/fa";
@@ -46,6 +47,10 @@ import CustomFormButton from "../../../global/CustomFormButton";
 import CustomSmallPopup from "../../../global/CustomSmallPopup";
 import CustomFileUpload from "../../../global/CustomFileUpload";
 import { data } from "react-router-dom";
+import { useFormattedDateTime } from "../../../customehook/useDateTimeFormate";
+import { IoMdCloseCircleOutline } from "react-icons/io";
+import CustomFormButtonWithLoading from "../../../global/CustomFormButtonWithLoading";
+import { RiDeleteBin5Fill } from "react-icons/ri";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -64,7 +69,7 @@ export default function ResultTrack() {
   const AllCenterData = useGetData();
   const TestData = useGetData();
   const DepartmentData = useGetData();
-  const PostData = usePostData();
+
   const lsData = getLocal("imarsar_laboratory");
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   //!================Anil code=======================
@@ -73,6 +78,8 @@ export default function ResultTrack() {
     doctorId: 0,
     template: 0
   });
+  const [isHoveredPopupTable, setIsHoveredPopupTable] = useState(null);
+
   const [resonForReRunData, setReasonForReRundata] = useState(
     {
       "id": 0,
@@ -121,8 +128,87 @@ export default function ResultTrack() {
     commentDataExit: false,
     id: 0
   });
+  const postData = usePostData();
+  const [singleRemarkData, setSingleRemarkData] = useState({
+    investigationName: '',
+    rejectionReason: 0,
+    showInHouse: 0,
+    transactionId: 0,
+    workOrderId: '',
+    itemId: 0,
+    itemName: '',
+    createdDateTime: useFormattedDateTime()
+  })
+  const allRemarkTestData = useRetrieveData();
+  const allSampleRejection = useRetrieveData();
+
+  //test remark
+  const handelOnChangetestRemark = (e) => {
+    setSingleRemarkData((preventData) => ({
+      ...preventData,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  useEffect(() => {
+
+    const getAllData = async () => {
+      try {
+        await allSampleRejection.fetchDataFromApi(`/SampleremarkMaster?select=id,remark&$filter=(isactive eq 1)`);
+
+        await allRemarkTestData.fetchDataFromApi(`/tnx_InvestigationRemarks/GetSampleremark?transacctionId=${singleRemarkData?.transactionId}&WorkOrderId=${singleRemarkData?.workOrderId}&itemId=${singleRemarkData?.itemId}`);
+
+      } catch (error) {
+        toast.error(error?.message)
+      }
+    }
+
+    if (showPopup === 1) {
+      getAllData();
+    }
+
+  }, [showPopup, isButtonClick])
 
 
+  const handelOnSubmitTestRemarkData = async (e) => {
+    e.preventDefault();
+    setIsButtonClick(6);
+
+
+    const updateData = {
+      "isActive": 1,
+      "createdById": parseInt(user?.employeeId),
+      "createdDateTime": singleRemarkData?.createdDateTime,
+      "updateById": 0,
+      "updateDateTime": new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+      "id": 0,
+      "invRemarks": allSampleRejection?.data?.find((data) => data?.id === singleRemarkData?.rejectionReason).remark,
+      "transactionId": singleRemarkData?.transactionId,
+      "workOrderId": singleRemarkData?.workOrderId,
+      "itemId": singleRemarkData?.itemId,
+      "itemName": singleRemarkData?.investigationName,
+      "isInternal": singleRemarkData?.showInHouse,
+    }
+
+    try {
+
+      const response = await postData.postRequestData(`/tnx_InvestigationRemarks/AddSampleremark`, [updateData])
+
+      if (response?.success) {
+        toast.success(response?.message);
+      } else {
+        toast.error(response?.message)
+      }
+
+    } catch (error) {
+      toast.error(error?.message)
+      console.log(error);
+
+    }
+
+    setIsButtonClick(0);
+
+  }
   //!================Anil code end=======================
 
   const handleSubmit = async (event) => {
@@ -1082,6 +1168,7 @@ export default function ResultTrack() {
   const allRejectionData = useRetrieveData();
   const allCommentData = useRetrieveData();
   const allSampleRerunData = useRetrieveData();
+  const allInfoDocument = useRetrieveData();
 
 
   useEffect(() => {
@@ -1135,8 +1222,6 @@ export default function ResultTrack() {
         const itemCommentResponse = await allCommentData.fetchDataFromApi(
           `/itemCommentMaster?select=templateName,template&$filter=(type eq 'Item Wise' and isActive eq 1 and itemId eq 1 and centreId eq 1)`
         );
-
-        console.log(itemCommentResponse);
 
       }
 
@@ -1423,6 +1508,18 @@ export default function ResultTrack() {
   }
 
 
+  //info/ document
+  const getAllInfoDocumentData = async (testId) => {
+   console.log(testId);
+   
+    try {
+      await allInfoDocument.fetchDataFromApi(`/tnx_Booking/GetTestInfo?TestId=${testId}`);
+
+    } catch (error) {
+      toast.error(error?.message);
+    }
+  }
+
   //!=========================end===============================
   // const updatedArray = addObjectId(PostData?.data);
 
@@ -1646,7 +1743,6 @@ export default function ResultTrack() {
           />
 
           {/* <div className="max-h-80 overflow-y-auto"> */}
-
           <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme} height=
             {"300px"}>
             <tbody>
@@ -1755,7 +1851,12 @@ export default function ResultTrack() {
 
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => setShowPopup(1)}
+                      onClick={() => {
+                        setShowPopup(1), setSingleRemarkData((preventData) => ({
+                          ...preventData,
+                          transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName[index]?.investigationName,
+                        }))
+                      }}
                     >
                       <MdAddCircleOutline className="text-base" />
                     </div>
@@ -1764,7 +1865,7 @@ export default function ResultTrack() {
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => setShowPopup(2)}
+                      onClick={() => {setShowPopup(2),getAllInfoDocumentData(data?.itemId)}}
                     >
                       <FaCircleInfo />
                     </div>
@@ -2394,40 +2495,287 @@ export default function ResultTrack() {
 
         {
           showPopup === 1 && (
-            <CustomPopup
-              headerData={'Test Remark'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
+            <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+              <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
 
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Nulla at tempora perspiciatis nostrum tempore in ducimus nam omnis sint dicta, repellat qui impedit numquam ipsam cupiditate dolorum quae sit atque! Consectetur veritatis magnam vel! Aspernatur eligendi placeat nam enim atque eaque nobis, suscipit quam exercitationem voluptate blanditiis quos accusantium architecto rerum sapiente consequuntur quo. Officia obcaecati nihil ipsam, porro neque magnam vel sequi corrupti molestias ut necessitatibus nisi sed, consequuntur amet, possimus repudiandae optio cumque. Blanditiis deleniti aperiam quo exercitationem labore quae fugiat eligendi cum, vero, dicta dignissimos aliquid amet a quos consequatur voluptatem? Alias fugit debitis autem repudiandae rem? Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatem quae amet aperiam, fuga sint quam ipsam soluta numquam temporibus voluptas ut? Iste culpa laudantium excepturi vel impedit nam atque nulla quae quis! Sit enim doloremque tenetur obcaecati numquam laudantium, aperiam reiciendis ipsa natus neque temporibus ipsam, corrupti quis iste necessitatibus. Dolorem harum maxime ducimus veniam iusto autem sed nam voluptas. Nemo ipsa quidem totam quis ratione eaque tenetur necessitatibus ea excepturi autem? Odit ratione ex aut fugiat voluptate error vel, aspernatur exercitationem iusto nisi repellendus magni nulla aliquid odio corporis perferendis assumenda deserunt quidem aperiam? Laboriosam voluptatem autem reiciendis explicabo. Lorem ipsum dolor sit amet consectetur adipisicing elit. Ad quis optio provident adipisci cumque! Voluptatum enim non, dicta ullam illum eveniet? Labore dolores beatae facilis voluptatum molestias placeat corrupti, iure nostrum laborum doloribus tempora velit aliquam minima vero atque delectus a ad aliquid cupiditate quaerat nemo necessitatibus iusto deleniti? Quos sapiente dolorum maiores magnam animi aspernatur. Molestiae accusamus quia eaque eius ratione veniam, sapiente, commodi excepturi quos culpa quidem officiis sint quibusdam? Sunt accusantium, veritatis ex possimus modi provident, quisquam a amet voluptatum architecto eaque. Labore voluptates esse porro dolorum consectetur beatae id voluptas aut? Ab beatae, perspiciatis distinctio culpa nobis fuga eaque molestiae aperiam consectetur ipsum soluta est magni maxime quidem quae quod modi rerum deleniti deserunt iusto officia nam. Asperiores recusandae voluptate sequi doloremque laboriosam, similique consectetur ipsam, maiores voluptatum veritatis commodi ex libero soluta veniam blanditiis. Maxime nostrum explicabo ipsa non sunt voluptatibus aliquam! Recusandae ea animi fugiat et modi amet eaque ullam, dicta architecto necessitatibus velit voluptas? Iusto soluta placeat ab. Obcaecati aut eos, sunt incidunt architecto consequatur corrupti, dolorum nisi recusandae saepe mollitia eligendi nam non. Mollitia quod similique facilis hic molestiae, sed dolore enim inventore. Perferendis a, recusandae dicta porro quidem itaque quasi ipsam ex delectus voluptatem quibusdam ratione aliquid aliquam iusto? Sequi delectus nisi cum? Reiciendis cupiditate obcaecati repudiandae deserunt sapiente, molestiae perspiciatis, nostrum minima earum, soluta repellat! Repudiandae excepturi quidem, sint provident numquam eos vitae, dicta quibusdam minima explicabo voluptatibus! Vel repudiandae excepturi blanditiis inventore fuga molestias accusamus unde architecto? Maxime et veritatis repudiandae tempora, id, officiis illum dolorem animi corporis quasi praesentium. Unde neque, blanditiis nemo veniam quis dolorem iusto id illo ut sed debitis aut minus dicta ad. Aliquid consequuntur mollitia omnis ducimus fugit quam, quibusdam explicabo sit unde eum numquam qui maxime est delectus ullam cum corrupti voluptas distinctio?
+                {/* Header */}
+                <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                  style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                  <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                    {'Test Remark Data'}
+                  </div>
+                  <IoMdCloseCircleOutline
+                    className="text-xl cursor-pointer"
+                    style={{ color: activeTheme?.iconColor }}
+                    onClick={() => setShowPopup(0)}
+                  />
+                </div>
 
-            </CustomPopup>
+                <FormHeader headerData={'Test Remark Data'} />
 
+                {/* Form */}
+                <form autoComplete="off" onSubmit={handelOnSubmitTestRemarkData} >
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-14 mx-1 lg:mx-2 items-center relative my-2">
+
+                    <div className="relative w-full md:w-32">
+                      <input
+                        type="search"
+                        id="investigationName"
+                        name="investigationName"
+                        value={singleRemarkData.investigationName || ''}
+                        // onChange={(e) => {
+                        //   handelOnChangeTestMappingData(e),
+                        //     setSeleDropDown((preventData) => ({
+                        //       ...preventData,
+                        //       testName: e.target.value
+                        //     }))
+                        // }}
+                        readOnly
+                        placeholder=" "
+                        className={`inputPeerField peer border-borderColor focus:outline-none`}
+                      />
+                      <label htmlFor="testName" className="menuPeerLevel">
+                        Test Name
+                      </label>
+
+                    </div>
+
+                    {/* Rejection Reason Dropdown */}
+                    <div className="relative w-full md:w-32">
+                      <CustomDropdown
+                        name="rejectionReason"
+                        label="Select Remark Reason"
+                        value={singleRemarkData?.rejectionReason}
+                        options={[
+                          { label: 'Select Remark Reason', value: 0, disabled: true },
+                          ...allSampleRejection?.data?.map(item => ({
+                            label: item?.remark,
+                            value: parseInt(item?.id),
+                          })),
+                        ]}
+                        onChange={(e) => handelOnChangetestRemark(e)}
+                        defaultIndex={0}
+                        activeTheme={activeTheme}
+                      />
+                    </div>
+
+                    <div className="relative w-full md:w-32">
+                      <CustomDropdown
+                        name="showInHouse"
+                        label="Select Show In House"
+                        value={singleRemarkData?.showInHouse}
+                        options={[
+                          { label: 'Yes', value: 1 },
+                          { label: 'No', value: 0 },
+
+                        ]}
+                        onChange={(e) => handelOnChangetestRemark(e)}
+                        defaultIndex={0}
+                        activeTheme={activeTheme}
+                      />
+                    </div>
+
+                    <div className="relative w-full">
+                      <CustomFormButtonWithLoading
+                        activeTheme={activeTheme}
+                        text="Save"
+                        icon={FaSpinner}
+                        isButtonClick={isButtonClick}
+                        loadingButtonNumber={6} // Unique number for the first button
+                      />
+                    </div>
+                  </div>
+                </form>
+
+                {/* Scrollable Content */}
+
+                <GridDataDetails gridDataDetails={'Test Remark Details'} />
+
+                {allRemarkTestData?.loading ?
+                  <CustomLoadingPage />
+                  :
+                  <CustomDynamicTable activeTheme={activeTheme} columns={['Sr. No', 'Test Name', 'Remark', 'Remark Date', 'Added By', 'In-House', 'Action']} height="30vh">
+                    <tbody >
+                      {
+                        allRemarkTestData?.data?.data?.map((data, index) => (
+                          <tr
+                            className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                              ? ''
+                              : index % 2 === 0
+                                ? 'bg-gray-100'
+                                : 'bg-white'
+                              }`}
+                            key={index}
+                            onMouseEnter={() => setIsHoveredPopupTable(index)}
+                            onMouseLeave={() => setIsHoveredPopupTable(null)}
+                            style={{
+                              background:
+                                isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                              // Hides scrollbar for IE/Edge
+                            }}
+                          >
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {index + 1}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.itemName}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.invRemarks}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.remardkDate}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.remarkAdBy}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              {data?.isInternal === 1 ? 'Yes' : 'No'}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                              <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
+                            </td>
+                          </tr>
+                        ))
+
+                      }
+                    </tbody>
+                  </CustomDynamicTable>
+                }
+              </div>
+
+            </div>
           )
         }
 
         {
           showPopup === 2 && (
-            <CustomPopup
-              headerData={'Patient Information'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
+            <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+              <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
 
-              <GridDataDetails
-                gridDataDetails={'Patient Details'}
-              />
+                {/* Header */}
+                <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                  style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                  <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                    {'Test Remark Data'}
+                  </div>
+                  <IoMdCloseCircleOutline
+                    className="text-xl cursor-pointer"
+                    style={{ color: activeTheme?.iconColor }}
+                    onClick={() => setShowPopup(0)}
+                  />
+                </div>
+              
+                {/* Scrollable Content */}
+                <GridDataDetails gridDataDetails={'Test Remark Details'} />
 
-              <CustomDynamicTable columns={resultTrackForPatientInformation} activeTheme={activeTheme} height=
-                {"300px"}>
-                <tbody>
+                {allInfoDocument?.loading ?
+                  <CustomLoadingPage />
+                  :
+                  <CustomDynamicTable columns={resultTrackForPatientInformation} activeTheme={activeTheme} height="15vh">
+                    <tbody>
+                    {
+                      allInfoDocument?.data?.data?.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredPopupTable(index)}
+                          onMouseLeave={() => setIsHoveredPopupTable(null)}
+                          style={{
+                            background:
+                              isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {index + 1}
+                          </td>
 
-                </tbody>
-              </CustomDynamicTable >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.investigationName}
+                          </td>
 
-            </CustomPopup>
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.barcodeNo}
+                          </td>
 
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleCollectedby}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceivedBY}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registrationDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registerBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resultDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resutDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneOn}
+                          </td>
+
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSourceDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSouceLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSource}
+                          </td>
+                        </tr>
+                      ))
+
+                    }
+                    </tbody>
+                  </CustomDynamicTable >
+                }
+              </div>
+
+            </div>
           )
         }
 
@@ -2467,8 +2815,6 @@ export default function ResultTrack() {
                       :
                       <>
                         <div className="absolute w-72 mt-1">
-
-
                           <CustomDropdown
                             name="billingType"
                             label="Select Billing Type"
