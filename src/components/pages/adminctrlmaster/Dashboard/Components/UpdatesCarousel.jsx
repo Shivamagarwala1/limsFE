@@ -7,43 +7,16 @@ import {
   ViewOrDownloandPDF,
 } from "../../../../../service/RedendentData";
 
-// const updates = [
-//   {
-//     title: "...for Viral Markers",
-//     description:
-//       "HBSAG, HCVAB, HIVAB are selling super fast. Promote newly launched VIRAL MARKERS (VIM) profile containing these top-growing tests.",
-//     imgSrc: "/images/viral-markers.png",
-//   },
-//   {
-//     title: "...for HOMO and HSCRP",
-//     description:
-//       "Promote these trending heart risk markers now & encourage your customers for a heart-healthy lifestyle.",
-//     imgSrc: "/images/homo-hscrp.png",
-//   },
-//   {
-//     title: "...for KIDPWSEEL",
-//     description:
-//       "Kidney Profile With Electrolytes is a full comprehensive package and is new in demand.",
-//     imgSrc: "/images/kidney-profile.png",
-//   },
-//   {
-//     title: "...in RIANA samples!",
-//     description:
-//       "RIANA is a fast-selling test that accurately detects autoimmune disorders.",
-//     imgSrc: "/images/riana-samples.png",
-//   },
-// ];
-
 const UpdatesCarousel = ({ updates }) => {
   const carouselRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [data,setData] = useState([]);
+  const [data, setData] = useState([]);
 
-  useEffect(()=>{
-    const filteredArr = updates?.filter((item)=>item?.isActive === 1);
+  useEffect(() => {
+    const filteredArr = updates?.filter((item) => item?.isActive === 1);
     setData(filteredArr);
-  },[updates])
+  }, [updates]);
 
   const updateScrollButtons = () => {
     if (carouselRef.current) {
@@ -143,13 +116,14 @@ const Card = ({ index, update }) => {
       className="min-w-[300px] bg-green-100 p-4 rounded-md gap-2 shadow-md snap-center flex items-start"
     >
       <img
+        style={{ height: "80px" }}
         src={imageSrc}
         alt={update.subject}
         className="w-20 h-20 object-cover rounded-md"
       />
       <div className="flex flex-col items-start">
         <h3 className="font-bold text-[12px]">{update.subject}</h3>
-        <p className="text-sm text-gray-700 text-[10px]">{str}</p>
+        <p className=" text-gray-700 text-[10px]">{str}</p>
         <span
           onClick={() => {
             ViewOrDownloandPDF(

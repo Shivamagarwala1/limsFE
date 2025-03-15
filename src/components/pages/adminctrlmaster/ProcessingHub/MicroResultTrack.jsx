@@ -27,6 +27,7 @@ import {
   HistoFileUploadPopupModal,
   HistoHoldUnholdPopupModal,
   HistoResultTrackRemarkPopupModal,
+  InfoPopup,
   SampleCollectionCommentPopupModal,
 } from "../../../../Custom Components/PopupModal";
 import AntibioticTable from "../../../../Custom Components/AntibioticTable";
@@ -63,6 +64,7 @@ export default function MicroResultTrack() {
   const [RemarkPopup, setRemarkPopup] = useState(false);
   const [HoldUnHold, setHoldUnHold] = useState(false);
   const [Flag, setFlag] = useState(false);
+  const [Info, setInfo] = useState(null);
   const [FileUploadPopupModal, setFileUploadPopupModal] = useState(false);
   const [AddAttachmentPopupModal, setAddAttachmentPopupModal] = useState(false);
   const [HoldUnHoldDetails, setHoldUnHoldDetails] = useState({});
@@ -626,6 +628,13 @@ export default function MicroResultTrack() {
   return (
     <div>
       <>
+      {/* <InfoPopup
+        heading="Patient Information"
+        setShowPopup={setInfo}
+        // rows={row}
+        // columns={InfoColumns}
+        showPopup={Info}
+      /> */}
         <HistoResultTrackRemarkPopupModal
           setShowPopup={setRemarkPopup}
           showPopup={RemarkPopup}

@@ -16,9 +16,9 @@ import { useFormHandler } from "./useFormHandler";
 import { MdDelete } from "react-icons/md";
 import { NewPopupTable } from "./NewPopupTable";
 import { useGetData, usePostData } from "../service/apiService";
-import { toast } from "react-toastify";
 import FileUpload from "./FileUpload";
 import { ViewOrDownloandPDF } from "../service/RedendentData";
+import toast from "react-hot-toast";
 
 const PopupModal = ({
   showPopup,
@@ -679,7 +679,7 @@ export const ResultTrackRejectPopupModal = ({
       toast.success(PostData?.response?.message);
       setReason(null);
     } else {
-      toast.info(PostData?.response?.message);
+      toast.error(PostData?.response?.message);
     }
   };
 
@@ -860,7 +860,7 @@ export const HistoApprovedPopupModal = ({
       retreveTestData(rowData?.testId);
       hide();
     } else {
-      toast.info(PostData?.response?.message || "An error occurred.");
+      toast.error(PostData?.response?.message || "An error occurred.");
     }
   };
   const hide = () => {
@@ -1233,7 +1233,39 @@ export const HistoFileUploadPopupModal = ({
       toggleShow(); // Trigger re-fetch after deleting
     }, 10);
   };
-
+  console.log(rowData);
+  const Buttons = [
+    {
+      callBack: () => {
+        ViewOrDownloandPDF(
+          `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+        );
+      },
+      submit: false,
+      label: "View",
+      style: { width: "50px" },
+    },
+    {
+      callBack: () => {
+        HandleDelete(params?.row);
+      },
+      submit: false,
+      label: "Delete",
+      style: { width: "50px" },
+    },
+  ];
+  const Buttons1 = [
+    {
+      callBack: () => {
+        ViewOrDownloandPDF(
+          `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+        );
+      },
+      submit: false,
+      label: "View",
+      style: { width: "50px" },
+    },
+  ];
   return (
     <>
       {showPopup && (
@@ -1312,26 +1344,7 @@ export const HistoFileUploadPopupModal = ({
                   renderCell: (params) => (
                     <div className="flex justify-center items-center">
                       <TwoSubmitButton
-                        options={[
-                          {
-                            callBack: () => {
-                              ViewOrDownloandPDF(
-                                `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
-                              );
-                            },
-                            submit: false,
-                            label: "View",
-                            style: { width: "50px" },
-                          },
-                          {
-                            callBack: () => {
-                              HandleDelete(params?.row);
-                            },
-                            submit: false,
-                            label: "Delete",
-                            style: { width: "50px" },
-                          },
-                        ]}
+                        options={rowData?.isApproved ? Buttons1 : Buttons}
                       />
                     </div>
                   ),
@@ -1445,6 +1458,38 @@ export const HistoAddAttachmentPopupModal = ({
     }, 10);
   };
 
+ const Buttons = [
+    {
+      callBack: () => {
+        ViewOrDownloandPDF(
+          `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+        );
+      },
+      submit: false,
+      label: "View",
+      style: { width: "50px" },
+    },
+    {
+      callBack: () => {
+        HandleDelete(params?.row);
+      },
+      submit: false,
+      label: "Delete",
+      style: { width: "50px" },
+    },
+  ];
+  const Buttons1 = [
+    {
+      callBack: () => {
+        ViewOrDownloandPDF(
+          `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
+        );
+      },
+      submit: false,
+      label: "View",
+      style: { width: "50px" },
+    }
+  ];
   const columns = [
     {
       field: `attachment`,
@@ -1468,28 +1513,7 @@ export const HistoAddAttachmentPopupModal = ({
       flex: 1,
       renderCell: (params) => (
         <div className="flex justify-center items-center">
-          <TwoSubmitButton
-            options={[
-              {
-                callBack: () => {
-                  ViewOrDownloandPDF(
-                    `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.attachment}`
-                  );
-                },
-                submit: false,
-                label: "View",
-                style: { width: "50px" },
-              },
-              {
-                callBack: () => {
-                  HandleDelete(params?.row);
-                },
-                submit: false,
-                label: "Delete",
-                style: { width: "50px" },
-              },
-            ]}
-          />
+          <TwoSubmitButton options={rowData?.isApproved ? Buttons1 : Buttons} />
         </div>
       ),
     },
@@ -1808,7 +1832,7 @@ export const SampleCollectionRejectPopupModal = ({
       // alert(values?.RejectionReason)
       setReason(null);
     } else {
-      toast.info(PostData?.response?.message);
+      toast.error(PostData?.response?.message);
     }
   };
 
@@ -2086,7 +2110,7 @@ export const SampleCollectionRemarkPopupModal = ({
       toast.success(PostData?.response?.message);
       setRefreshData((prev) => !prev); // Trigger re-fetching of data
     } else {
-      toast.info(PostData?.response?.message);
+      toast.error(PostData?.response?.message);
     }
   };
 
@@ -2228,7 +2252,7 @@ export const ResultTrackRemarkPopupModal = ({
       toast.success(response?.message);
       setRefreshData((prev) => !prev);
     } else {
-      toast.info(response?.message);
+      toast.error(response?.message);
     }
   };
 
@@ -2373,7 +2397,7 @@ export const HistoResultTrackRemarkPopupModal = ({
       setRefreshData((prev) => !prev);
       setFlag(!Flag);
     } else {
-      toast.info(response?.message);
+      toast.error(response?.message);
     }
   };
 
@@ -2644,5 +2668,3 @@ export const ImagePopup = ({ imageView, setImageView, Img }) => {
     </>
   );
 };
-
-
