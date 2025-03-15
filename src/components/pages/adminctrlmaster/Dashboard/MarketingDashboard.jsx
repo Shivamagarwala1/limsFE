@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import UpdatesCarousel from "./Components/UpdatesCarousel";
 import PackagesSpotlight from "./Components/PackagesSpotlight";
+import { StyledHr } from "../../../../Custom Components/DynamicTable";
 
 // Main Component
 export default function MarketingDashboard() {
@@ -33,7 +34,9 @@ export default function MarketingDashboard() {
     <>
       <div>
         <UpdatesCarousel updates={getData?.data?.data || []} />
+        <StyledHr style={{marginTop:"1px"}} />
         <PackagesSpotlight packages={spotLightData?.data?.data || []} />
+        <StyledHr style={{marginTop:"30px"}} />
       </div>
     </>
   );

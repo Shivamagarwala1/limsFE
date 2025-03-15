@@ -75,8 +75,9 @@ export default function ViewIndent() {
       return;
     }
     await GridData?.fetchData(
-      `/Indent/GetIndentDetails?roleId=${value?.RoleId}&empId=${value?.UserId}&fromDate=${value?.from}&todate=${value?.to}`
+      `/Indent/GetIndentDetails?roleId=${value?.RoleId}&empId=${value?.UserId}&fromDate=${value?.from}&todate=${value?.to}&UserId=${lsData?.user?.employeeId}`
     );
+    // `/Indent/GetIndentDetails?roleId=1&empId=2&fromDate=3&todate=4&UserId=5`
   };
   // console.log(getData?.data)
   // Columns for the table
@@ -88,6 +89,7 @@ export default function ViewIndent() {
   console.log(row, SelectedItem);
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 20 },
+    { field: "centrename", headerName: "Centre Name", flex: 1 },
     { field: "roleName", headerName: " Role Name", flex: 1 },
     { field: "createdBy", headerName: " Created By", flex: 1 },
     {
@@ -99,6 +101,19 @@ export default function ViewIndent() {
         return <div className="flex gap-1">{date}</div>;
       },
     },
+    { field: "itemName", headerName: "Item Name", flex: 1 },
+    { field: "quantity", headerName: "Quantity", flex: 1 },
+    {
+      field: "approvedQuantity",
+      headerName: "Approved Quantity",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div className="flex gap-1">{params?.row?.approvedQuantity || 0}</div>
+        );
+      },
+    },
+    { field: "issuedQuantity", headerName: "Issued Quantity", flex: 1 },
     {
       headerName: "Action",
       width: 150,

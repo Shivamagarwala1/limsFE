@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import UserCalendar from "../components/public/UserCalendar";
 import React, { useEffect, useRef, useState } from "react";
 import { FaUser } from "react-icons/fa";
+import DatePicker from "react-datepicker"; // Add react-datepicker for date-time selection
 import useRippleEffect from "../components/customehook/useRippleEffect";
 
 export function getFormattedDate() {
@@ -63,200 +64,375 @@ export default function InputGenerator({
   return (
     <>
       {inputFields.map((field, index) => (
-        <div
-          key={index}
-          style={{ height: "1.6rem" }}
-          className="relative flex-1"
-        >
-          {field?.type === "select" ? (
-            <>
-              <select
-                style={field?.style}
-                name={field?.name}
-                required={field?.required}
-                onChange={field?.callBack}
-                value={field?.value}
-                className={`inputPeerField cursor-pointer ${
-                  field?.required ? "border-b-red-500" : ""
-                } peer border-borderColor focus:outline-none`}
-              >
-                {field?.defaultView ? (
-                  ""
-                ) : (
-                  <option value="" hidden>
-                    Select Option
-                  </option>
-                )}
-                {(field?.dataOptions || []).map((option, idx) => {
-                  const valueKey = field?.keyField || Object.keys(option)[0]; // First available key as value
-                  const labelKey =
-                    field?.showValueField ||
-                    Object.keys(option)[1] ||
-                    Object.keys(option)[0]; // Second available key or fallback
-
-                  return (
-                    <option
-                      key={option[valueKey] || idx}
-                      value={option[valueKey]}
-                    >
-                      {option[labelKey]}
+        <>
+          {/* {showCalendars[field?.name] && (
+            <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
+              <UserCalendar
+                onDateClick={(date) =>
+                  handleDateClick(date, field?.name, field)
+                }
+              />
+            </div>
+          )} */}
+          <div
+            key={index}
+            style={field?.mainStyle ? field?.mainStyle : { height: "1.6rem" }}
+            className="relative flex-1"
+          >
+            {field?.type === "select" ? (
+              <>
+                <select
+                  style={field?.style}
+                  name={field?.name}
+                  required={field?.required}
+                  onChange={field?.callBack}
+                  value={field?.value}
+                  className={`inputPeerField cursor-pointer ${
+                    field?.required ? "border-b-red-500" : ""
+                  } peer border-borderColor focus:outline-none`}
+                >
+                  {field?.defaultView ? (
+                    ""
+                  ) : (
+                    <option value="" hidden>
+                      Select Option
                     </option>
-                  );
-                })}
-              </select>
-              <label htmlFor={field?.name} className="menuPeerLevel">
-                {field?.label}
-              </label>
-            </>
-          ) : field?.type === "customDateField" ? (
-            <div
-              style={field?.style}
-              className="relative flex-1 flex items-center gap-1 w-full justify-between"
-            >
-              <div className="relative flex-1">
+                  )}
+                  {(field?.dataOptions || []).map((option, idx) => {
+                    const valueKey = field?.keyField || Object.keys(option)[0]; // First available key as value
+                    const labelKey =
+                      field?.showValueField ||
+                      Object.keys(option)[1] ||
+                      Object.keys(option)[0]; // Second available key or fallback
+
+                    return (
+                      <option
+                        key={option[valueKey] || idx}
+                        value={option[valueKey]}
+                      >
+                        {option[labelKey]}
+                      </option>
+                    );
+                  })}
+                </select>
+                <label htmlFor={field?.name} className="menuPeerLevel">
+                  {field?.label}
+                </label>
+              </>
+            ) : field?.type === "customDateField" ? (
+              <div
+                style={field?.style}
+                className="relative flex-1 flex items-center gap-1 w-full justify-between"
+              >
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    style={field?.inputStyle}
+                    id={field?.name}
+                    name={field?.name}
+                    defaultValue={todayDate}
+                    placeholder={""}
+                    onChange={(e) => {
+                      field?.onChange?.(e.target.value); // Calls field's internal onChange
+                    }}
+                    className={`inputPeerField peer border-borderColor ${
+                      field?.required ? "border-b-red-500" : ""
+                    } focus:outline-none`}
+                  />
+                  <label htmlFor={field?.name} className="menuPeerLevel">
+                    {field?.label}
+                  </label>
+                </div>
+
+                <div style={{}}>
+                  <div
+                    className="h-6 flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                    onClick={() => toggleCalendar(field?.name)}
+                    style={{
+                      ...field?.iconStyle,
+                      background: activeTheme?.menuColor,
+                      color: activeTheme?.iconColor,
+                    }}
+                  >
+                    <CiCalendarDate className="w-5 h-5 font-semibold" />
+                  </div>
+                </div>
+
+                {showCalendars[field?.name] && (
+                  <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
+                    <UserCalendar
+                      onDateClick={(date) =>
+                        handleDateClick(date, field?.name, field)
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            ) : field?.type === "checkbox" ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name={field?.name}
+                  style={{ marginTop: "8px" }}
+                  checked={field?.value}
+                  onChange={(e) =>
+                    field?.onChange && field.onChange(e.target.checked)
+                  }
+                  className="cursor-pointer"
+                />
+                <div
+                  style={{ marginTop: "10px", marginLeft: "10px" }}
+                  htmlFor={field?.name}
+                  className="menuPeerLevel"
+                >
+                  {field?.label}
+                </div>
+              </div>
+            ) : field?.type === "newSelect" ? (
+              <>
+                <SearchBarDropdown
+                  id={field?.id}
+                  name={field?.name}
+                  onChange={field?.callBack}
+                  label={field?.label}
+                  options={[
+                    // Change this from dataOption to dataOptions
+                    {
+                      centreId: 1,
+                      companyName: "GENERIC DIAGNOSTIC PVT. LTD.",
+                    },
+                    {
+                      centreId: 2,
+                      companyName: "iMS",
+                    },
+                    {
+                      centreId: 3,
+                      companyName: "imarsar satelite",
+                    },
+                    {
+                      centreId: 4,
+                      companyName: "imarsar subfranch",
+                    },
+                  ]}
+                  activeTheme={activeTheme}
+                  isValid={field?.required}
+                  showSearchBarDropDown={field?.showSearchBarDropDown}
+                  setShowSearchBarDropDown={field?.setShowSearchBarDropDown}
+                  handleOptionClickForCentre={field?.handleOptionClickForCentre}
+                  setIsHovered={field?.setIsHovered}
+                  isHovered={field?.isHovered}
+                />
+              </>
+            ) : field?.type === "number" ? (
+              <>
                 <input
                   type="text"
-                  id={field?.name}
                   name={field?.name}
-                  defaultValue={todayDate}
-                  placeholder={""}
+                  value={field?.value}
+                  style={field?.style}
+                  maxLength={field?.maxLength}
+                  readOnly={field?.readOnly}
+                  required={field?.required}
                   onChange={(e) => {
-                    field?.onChange?.(e.target.value); // Calls field's internal onChange
-                    alert("hiii");
+                    handleInputChange(e, field);
                   }}
-                  className={`inputPeerField peer border-borderColor ${
-                    field?.required ? "border-b-red-500" : ""
-                  } focus:outline-none`}
+                  placeholder={field?.placeholder || ""}
+                  className={`inputPeerField peer focus:outline-none`}
                 />
                 <label htmlFor={field?.name} className="menuPeerLevel">
                   {field?.label}
                 </label>
-              </div>
-
-              <div>
-                <div
-                  className="h-6 flex justify-center items-center cursor-pointer rounded font-semibold w-6"
-                  onClick={() => toggleCalendar(field?.name)}
-                  style={{
-                    background: activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
+              </>
+            ) : (
+              <>
+                <input
+                  type={field?.type}
+                  name={field?.name}
+                  style={field?.style}
+                  maxLength={field?.maxLength}
+                  value={field?.value} // Ensure the value is correctly assigned
+                  readOnly={field?.readOnly}
+                  required={field?.required}
+                  onChange={(e) => {
+                    field?.onChange && field.onChange(e.target.value);
                   }}
-                >
-                  <CiCalendarDate className="w-5 h-5 font-semibold" />
-                </div>
-              </div>
-
-              {showCalendars[field?.name] && (
-                <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
-                  <UserCalendar
-                    onDateClick={(date) =>
-                      handleDateClick(date, field?.name, field)
-                    }
-                  />
-                </div>
-              )}
-            </div>
-          ) : field?.type === "checkbox" ? (
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                name={field?.name}
-                style={{ marginTop: "8px" }}
-                checked={field?.value}
-                onChange={(e) =>
-                  field?.onChange && field.onChange(e.target.checked)
-                }
-                className="cursor-pointer"
-              />
-              <div
-                style={{ marginTop: "10px", marginLeft: "10px" }}
-                htmlFor={field?.name}
-                className="menuPeerLevel"
-              >
-                {field?.label}
-              </div>
-            </div>
-          ) : field?.type === "newSelect" ? (
-            <>
-              <SearchBarDropdown
-                id={field?.id}
-                name={field?.name}
-                onChange={field?.callBack}
-                label={field?.label}
-                options={[
-                  // Change this from dataOption to dataOptions
-                  {
-                    centreId: 1,
-                    companyName: "GENERIC DIAGNOSTIC PVT. LTD.",
-                  },
-                  {
-                    centreId: 2,
-                    companyName: "iMS",
-                  },
-                  {
-                    centreId: 3,
-                    companyName: "imarsar satelite",
-                  },
-                  {
-                    centreId: 4,
-                    companyName: "imarsar subfranch",
-                  },
-                ]}
-                activeTheme={activeTheme}
-                isValid={field?.required}
-                showSearchBarDropDown={field?.showSearchBarDropDown}
-                setShowSearchBarDropDown={field?.setShowSearchBarDropDown}
-                handleOptionClickForCentre={field?.handleOptionClickForCentre}
-                setIsHovered={field?.setIsHovered}
-                isHovered={field?.isHovered}
-              />
-            </>
-          ) : field?.type === "number" ? (
-            <>
-              <input
-                type="text"
-                name={field?.name}
-                value={field?.value}
-                style={field?.style}
-                maxLength={field?.maxLength}
-                readOnly={field?.readOnly}
-                required={field?.required}
-                onChange={(e) => {
-                  handleInputChange(e, field);
-                }}
-                placeholder={field?.placeholder || ""}
-                className={`inputPeerField peer focus:outline-none`}
-              />
-              <label htmlFor={field?.name} className="menuPeerLevel">
-                {field?.label}
-              </label>
-            </>
-          ) : (
-            <>
-              <input
-                type={field?.type}
-                name={field?.name}
-                style={field?.style}
-                maxLength={field?.maxLength}
-                value={field?.value} // Ensure the value is correctly assigned
-                readOnly={field?.readOnly}
-                required={field?.required}
-                onChange={(e) => {
-                  field?.onChange && field.onChange(e.target.value);
-                }}
-                placeholder={field?.placeholder || ""}
-                className={`inputPeerField peer focus:outline-none`}
-              />
-              <label htmlFor={field?.name} className="menuPeerLevel">
-                {field?.label}
-              </label>
-            </>
-          )}
-        </div>
+                  placeholder={field?.placeholder || ""}
+                  className={`inputPeerField peer focus:outline-none`}
+                />
+                <label htmlFor={field?.name} className="menuPeerLevel">
+                  {field?.label}
+                </label>
+              </>
+            )}
+          </div>
+        </>
       ))}
     </>
   );
 }
+
+export const DateInputWithTime = ({ field = {} }) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const [selectedDate, setSelectedDate] = useState(
+    field?.value ? new Date(field.value) : null
+  );
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  // Format Date & Time (e.g., "2-Mar-2025 14:30")
+  const formatDateTime = (date) => {
+    if (!date) return "";
+    const options = { day: "numeric", month: "short", year: "numeric" };
+    const formattedDate = date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
+    const formattedTime = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    return `${formattedDate} ${formattedTime}`;
+  };
+
+  const handleDateTimeChange = (date) => {
+    setSelectedDate(date);
+    const formattedDateTime = formatDateTime(date);
+    
+    // Call external handlers if provided
+    field?.customOnChange?.(formattedDateTime);
+    field?.customDateData?.({ formattedDate: formattedDateTime, date });
+
+    setShowCalendar(false);
+  };
+
+  return (
+    <div style={field?.style} className="relative flex-1 flex items-center gap-1 w-full justify-between">
+      {/* Input Field */}
+      <div className="relative flex-1">
+        <input
+          type="text"
+          style={field?.inputStyle}
+          id={field?.name}
+          name={field?.name}
+          value={selectedDate ? formatDateTime(selectedDate) : ""}
+          placeholder="Select Date & Time"
+          readOnly
+          className={`inputPeerField peer border-borderColor ${field?.required ? "border-b-red-500" : ""} focus:outline-none`}
+        />
+        <label htmlFor={field?.name} className="menuPeerLevel">
+          {field?.label}
+        </label>
+      </div>
+
+      {/* Calendar Icon */}
+      <div className="h-6 flex justify-center items-center cursor-pointer rounded font-semibold w-6">
+        {field?.editable && (
+          <CiCalendarDate
+            className="w-5 h-5 font-semibold"
+            onClick={() => setShowCalendar(!showCalendar)}
+            style={{
+              ...field?.iconStyle,
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+            }}
+          />
+        )}
+      </div>
+
+      {/* Date & Time Picker Popup */}
+      {showCalendar && (
+        <div style={{ position: "absolute", top: "100%", left: "0", zIndex: 50 }}>
+          <DatePicker
+            selected={selectedDate}
+            onChange={handleDateTimeChange}
+            showTimeSelect
+            timeFormat="HH:mm"
+            timeIntervals={15}
+            dateFormat="d-MMM-yyyy HH:mm"
+            className="bg-white shadow-lg rounded p-2"
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export const DateInput = ({ field = {} }) => {
+  // Helper function to format date
+  const formatDate = (date) => {
+    const options = { day: "2-digit", month: "short", year: "numeric" };
+    return date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
+  };
+  const [showCalendars, setShowCalendars] = useState({});
+  const [selectedDate, setSelectedDate] = useState(field?.value); // Store selected date
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+console.log(field?.value)
+  const handleDateClick = (date, name) => {
+    const formattedDate = formatDate(date);
+    setSelectedDate(formattedDate); // Update state
+    const DateData = { formattedDate, date };
+
+    // Call external handlers if provided
+    field?.customOnChange?.(formattedDate);
+    field?.customDateData?.(DateData);
+
+    // Close the calendar popup for this input
+    setShowCalendars((prevState) => ({ ...prevState, [name]: false }));
+  };
+
+  const toggleCalendar = (name) => {
+    setShowCalendars((prevState) => ({
+      ...prevState,
+      [name]: !prevState[name],
+    }));
+  };
+
+  return (
+    <div
+      style={field?.style}
+      className="relative flex-1 flex items-center gap-1 w-full justify-between"
+    >
+      {/* Input Field */}
+      <div className="relative flex-1">
+        <input
+          type="text"
+          style={field?.inputStyle}
+          id={field?.name}
+          name={field?.name}
+          value={selectedDate} // Now updates dynamically
+          placeholder=""
+          readOnly // Prevent manual typing if using a calendar picker
+          className={`inputPeerField peer border-borderColor ${
+            field?.required ? "border-b-red-500" : ""
+          } focus:outline-none`}
+        />
+        <label htmlFor={field?.name} className="menuPeerLevel">
+          {field?.label}
+        </label>
+      </div>
+
+      {/* Calendar Icon */}
+      <div className="h-6 flex justify-center items-center cursor-pointer rounded font-semibold w-6">
+        {field?.editable && (
+          <CiCalendarDate
+            className="w-5 h-5 font-semibold"
+            onClick={() => toggleCalendar(field?.name)}
+            style={{
+              ...field?.iconStyle,
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+            }}
+          />
+        )}
+      </div>
+
+      {/* Calendar Popup */}
+      {showCalendars[field?.name] && (
+        <div
+          style={{ width: "250px", marginLeft: "-125px" }}
+          className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50"
+        >
+          <UserCalendar
+            onDateClick={(date) => handleDateClick(date, field?.name)}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const NumericInput = ({
   allowSpecialChars = false,
@@ -788,3 +964,6 @@ export const WeekdayToggle = ({ setDays, days }) => {
     </div>
   );
 };
+
+
+

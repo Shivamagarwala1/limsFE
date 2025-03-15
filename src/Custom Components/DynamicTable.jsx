@@ -296,13 +296,13 @@ export const UpdatedDynamicTable = ({
   );
 };
 
-export const StyledHr = () => {
+export const StyledHr = ({ style = {} }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   return (
     <>
       <div
         className="w-full h-[0.10rem]"
-        style={{ background: activeTheme?.menuColor }}
+        style={{ ...style, background: activeTheme?.menuColor }}
       ></div>
     </>
   );

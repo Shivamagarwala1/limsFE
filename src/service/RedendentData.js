@@ -117,7 +117,6 @@ export function mergeArrays(arrayOne, arrayTwo) {
   });
 }
 
-
 export const ViewImage = async (api) => {
   const lsData = getLocal("imarsar_laboratory");
 
@@ -140,7 +139,9 @@ export const ViewImage = async (api) => {
     });
 
     // Convert the response into a Blob URL
-    const imageBlob = new Blob([response.data], { type: response.headers["content-type"] });
+    const imageBlob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
     const imageUrl = URL.createObjectURL(imageBlob);
 
     console.log(imageBlob);
@@ -151,7 +152,10 @@ export const ViewImage = async (api) => {
     if (error.response?.status === 401) {
       console.error("Unauthorized. Token might be invalid or expired.");
     } else if (error.response) {
-      console.error("Unexpected response from server:", error.response.data || error.response.statusText);
+      console.error(
+        "Unexpected response from server:",
+        error.response.data || error.response.statusText
+      );
     } else {
       console.error("Unexpected error:", error.message);
     }
@@ -160,20 +164,15 @@ export const ViewImage = async (api) => {
   }
 };
 
-
-export const downloadExcel = async (api,name="RateList.xlsx") => {
-
+export const downloadExcel = async (api, name = "RateList.xlsx") => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}${api}`,
-      {
-        responseType: "blob", // Ensure binary data is handled correctly
-        headers: {
-          Accept:
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        },
-      }
-    );
+    const response = await axios.get(`${BASE_URL}${api}`, {
+      responseType: "blob", // Ensure binary data is handled correctly
+      headers: {
+        Accept:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    });
 
     // Create a blob from the response
     const blob = new Blob([response.data], {
@@ -194,11 +193,20 @@ export const downloadExcel = async (api,name="RateList.xlsx") => {
   }
 };
 
-export function convertToISO(dateStr, fieldId="from") {
+export function convertToISO(dateStr, fieldId = "from") {
   const months = {
-    Jan: "01", Feb: "02", Mar: "03", Apr: "04",
-    May: "05", Jun: "06", Jul: "07", Aug: "08",
-    Sep: "09", Oct: "10", Nov: "11", Dec: "12"
+    Jan: "01",
+    Feb: "02",
+    Mar: "03",
+    Apr: "04",
+    May: "05",
+    Jun: "06",
+    Jul: "07",
+    Aug: "08",
+    Sep: "09",
+    Oct: "10",
+    Nov: "11",
+    Dec: "12",
   };
 
   const [day, month, year] = dateStr.split("-");
@@ -211,8 +219,18 @@ export function convertToISO(dateStr, fieldId="from") {
 
 export function convertToCustomFormat(isoDateStr) {
   const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun", 
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   const date = new Date(isoDateStr);
@@ -223,11 +241,56 @@ export function convertToCustomFormat(isoDateStr) {
   return `${day}-${month}-${year}`;
 }
 
-export const adjustStringLength = (input,targetLength) => {
-
+export const adjustStringLength = (input, targetLength) => {
   if (input.length > targetLength) {
     return input.slice(0, targetLength - 3) + "..."; // Trim and add "..."
   } else {
     return input.padEnd(targetLength, " "); // Add spaces to match length
   }
 };
+
+export const convertDateTimeFormat = (dateTimeStr) => {
+  if (!dateTimeStr) return "";
+
+  // Check if the format is already "YYYY-MMM-DD HH:mm AM/PM"
+  const regexPattern = /^\d{4}-[A-Za-z]{3}-\d{2} \d{2}:\d{2} (AM|PM)$/;
+  if (regexPattern.test(dateTimeStr)) {
+    return dateTimeStr; // Return as is if already in the correct format
+  }
+
+  // Convert "YYYY-MM-DD HH:mm:ss" format
+  const dateObj = new Date(dateTimeStr.replace(" ", "T"));
+
+  if (isNaN(dateObj)) return "Invalid Date";
+
+  // Format day, month, and year
+  const day = dateObj.getDate().toString().padStart(2, "0");
+  const month = dateObj.toLocaleString("en-GB", { month: "short" });
+  const year = dateObj.getFullYear();
+
+  // Format hours and minutes
+  const hours = dateObj.getHours().toString().padStart(2, "0");
+  const minutes = dateObj.getMinutes().toString().padStart(2, "0");
+
+  return `${day}-${month}-${year} ${hours}:${minutes}`;
+};
+
+// export const convertDateTimeFormat = (dateTimeStr) => {
+//   if (!dateTimeStr) return "";
+
+//   // Parse the input date string into a Date object
+//   const dateObj = new Date(dateTimeStr.replace(" ", "T"));
+
+//   if (isNaN(dateObj)) return "Invalid Date";
+
+//   // Format day, month, and year
+//   const day = dateObj.getDate().toString().padStart(2, "0");
+//   const month = dateObj.toLocaleString("en-GB", { month: "short" });
+//   const year = dateObj.getFullYear();
+
+//   // Format hours and minutes
+//   const hours = dateObj.getHours().toString().padStart(2, "0");
+//   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
+
+//   return `${day}-${month}-${year} ${hours}:${minutes}`;
+// };
