@@ -1068,7 +1068,7 @@ export const viewUploadResultTrackingApi = async (path) => {
 
 //print report
 export const viewPrintreportTrackingApi = async (testid, headers = {}) => {
-    const response = await privateAxios.get(`tnx_Observations/GetPatientReportType1?TestId=${testid}&header=${headers}`, {
+    const response = await privateAxios.get(`/tnx_Observations/GetPatientReportType1?TestId=${testid}&header=${headers}`, {
         responseType: "blob", // To handle binary response
         headers: {
             "Accept": "application/pdf" // Ensure you're requesting a PDF
