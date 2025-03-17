@@ -170,18 +170,22 @@ export default function CustomeEditor({ onContentChange, value }) {
     //     }
     // }, [value]); // Update whenever the value from the parent changes
 
+
+
+
     useEffect(() => {
         if (editorRef.current) {
             if (showInText) {
-                // Store HTML content before switching to text
+                // Store HTML content before switching to text mode
                 setOriginalHtml(editorRef.current.innerHTML);
                 editorRef.current.innerText = editorRef.current.innerHTML; // Convert to plain text
             } else {
-                // Restore original HTML content
-                editorRef.current.innerHTML = originalHtml || "";
+                // Restore original HTML content or set value from props
+                editorRef.current.innerHTML = originalHtml || value || "";
             }
         }
-    }, [showInText]);
+    }, [showInText, value]); // Re-run effect when showInText or value changes
+
 
 
 
@@ -546,7 +550,7 @@ export default function CustomeEditor({ onContentChange, value }) {
                             <FaCode />
                         </button>
 
-                     
+
 
                         <button
                             type='button'

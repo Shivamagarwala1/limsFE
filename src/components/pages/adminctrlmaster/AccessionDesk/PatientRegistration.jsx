@@ -849,8 +849,6 @@ export default function PatientRegistration() {
     //
     const deleteinvestigationGridDataByForEditTestDataUsingItemId = (indexToDelete) => {
 
-
-
         const updatedData = [...editTestData?.testData]; // Create a copy of the array to avoid mutating the original
         //updatedData.splice(indexToDelete, 1); // Remove the item at the specified index
 
@@ -1088,9 +1086,6 @@ export default function PatientRegistration() {
         });
     };
 
-
-
-
     //validations
     const validateForm = () => {
 
@@ -1165,8 +1160,6 @@ export default function PatientRegistration() {
         // Return true if no errors exist
         return Object.keys(errors).length === 0;
     };
-
-
 
     useEffect(() => {
 
