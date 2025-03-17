@@ -37,6 +37,7 @@ import CustomFormButton from "../../../global/CustomFormButton";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import CustomFormButtonWithLoading from "../../../global/CustomFormButtonWithLoading";
 import { RiDeleteBin5Fill } from "react-icons/ri";
+import LegandaryButton from "../../../global/LegendButtonsForFilter";
 export default function ReportDispatch() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const user = useSelector((state) => state.userSliceName?.user || null);
@@ -201,12 +202,13 @@ export default function ReportDispatch() {
     centreId: 0,
     fromDate: useFormattedDate(),
     toDate: useFormattedDate(),
-    searchType: '',
+    searchType: 'tbi.sampleReceiveDate',
     barcodeNo: '',
     department: [],
     test: [],
     user: '',
-    header: 0
+    header: 0,
+    status: ''
   })
   const allCentreData = useRetrieveData();
   const allDepartementData = useRetrieveData();
@@ -219,6 +221,13 @@ export default function ReportDispatch() {
   const [isHoveredPopupTable, setIsHoveredPopupTable] = useState(null);
   const [showPopup, setShowPopup] = useState(0);
   const [storeStatusData, setShowStatusData] = useState({
+
+    //!====add new fileds=======
+    dropDownData: '',
+    email: '',
+    phNo: '',
+    //!====end add new fileds=======
+
     workOrderId: '',
     nameOfUpdateStatus: ''
   })
@@ -236,6 +245,24 @@ export default function ReportDispatch() {
     itemName: '',
     createdDateTime: useFormattedDateTime()
   })
+  // const [selectFilterData, setSelectFilterData] = useState('');
+
+  const allFilterData = useRetrieveData();
+
+  useEffect(() => {
+
+    const getAllData = async () => {
+      try {
+        await allFilterData.fetchDataFromApi(`/LegendColorMaster?select=id,colourCode,colourName,contantName`);
+
+      } catch (error) {
+        toast.error(error.message)
+      }
+    }
+
+    getAllData();
+  }, [])
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -257,6 +284,14 @@ export default function ReportDispatch() {
     fetchData();
   }, []);
 
+
+  //get the filter data in child component
+  const handleFilterSelection = (selectedItem) => {
+    setRecordDispatchData((preventData) => ({
+      ...preventData,
+      status: selectedItem
+    }));
+  };
 
   const handelOnChangeForReportDispatch = (e) => {
     setRecordDispatchData((prevData) => ({
@@ -301,7 +336,8 @@ export default function ReportDispatch() {
       "searchvalue": reportDispatchData?.barcodeNo || "",
       "itemIds": testData,  // Ensures an array, not a string inside an array
       "departmentIds": itemData, // Ensures an array, not a string inside an array
-      "empid": parseInt(user?.employeeId)
+      "empid": parseInt(user?.employeeId),
+      status: reportDispatchData?.status
     };
 
     try {
@@ -311,6 +347,7 @@ export default function ReportDispatch() {
     }
 
   }
+
 
   //update the whatsapp and email status
   const updateStatusForWhatsappAndEmail = async () => {
@@ -469,6 +506,32 @@ export default function ReportDispatch() {
   }
 
 
+  const handelDeleteSingleRemarkTestData = async (data) => {
+
+    try {
+
+      const updateData = {
+        ...data,
+        "isActive": 0,
+        "createdDateTime": singleRemarkData?.createdDateTime,
+        "updateById": parseInt(user?.employeeId),
+        "updateDateTime": singleRemarkData?.createdDateTime,
+        "id": data?.id,
+      }
+
+      const response = await postData.postRequestData(`/tnx_InvestigationRemarks/AddSampleremark`, [updateData])
+
+      if (response?.success) {
+        toast.success(response?.message);
+      } else {
+        toast.error(response?.message)
+      }
+
+    } catch (error) {
+      toast.error(error?.message)
+    }
+  }
+
 
   const getAllInfoDocumentData = async (testId) => {
 
@@ -479,9 +542,6 @@ export default function ReportDispatch() {
       toast.error(error?.message);
     }
   }
-
-
-
 
   return (
     <div>
@@ -497,6 +557,7 @@ export default function ReportDispatch() {
       <FormHeader headerData={'Report Dispatch'} />
 
       <form autoComplete="off" onSubmit={searchReportDispatchData}>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
 
           <div className="relative flex-1">
@@ -567,7 +628,7 @@ export default function ReportDispatch() {
               label="Search Type"
               value={reportDispatchData?.searchType}
               options={[
-                { label: 'Select Search Type ', value: 0, disabled: true },
+                // { label: 'Select Search Type ', value: 0, disabled: true },
                 { label: 'Sample Recived Date', value: 'tbi.sampleReceiveDate' },
                 { label: 'Sample Collection Date', value: 'tbi.sampleCollectionDate' },
                 { label: 'Booking Date', value: 'tb.bookingDate' },
@@ -704,7 +765,11 @@ export default function ReportDispatch() {
             </div>
           </div>
         </div>
+
+        <LegandaryButton allFilterData={allFilterData} onFilterSelect={handleFilterSelection} />
       </form>
+
+
 
       <GridDataDetails gridDataDetails={'Dispatch Details'} />
       {
@@ -713,71 +778,73 @@ export default function ReportDispatch() {
             <CustomLoadingPage />
           </div>
           :
-          <CustomDynamicTable activeTheme={activeTheme} columns={reportDispatchHeaderData} height="300px">
+          <CustomDynamicTable activeTheme={activeTheme} columns={reportDispatchHeaderData} >
 
             <tbody >
-              {searchReportDispatch?.data?.map((data, index) => (
-                <tr
-                  className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                    ? ''
-                    : index % 2 === 0
-                      ? 'bg-gray-100'
-                      : 'bg-white'
-                    }`}
-                  key={index}
-                  onMouseEnter={() => setIsHoveredTable(index)}
-                  onMouseLeave={() => setIsHoveredTable(null)}
-                  style={{
-                    background:
-                      isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                    // Hides scrollbar for IE/Edge
-                  }}
-                >
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                    <div className="flex gap-3 items-center">
-                      <div>
-                        {index + 1}
+              {
+                searchReportDispatch?.data?.map((data, index) => (
+                  <tr
+                    className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                      ? ''
+                      : index % 2 === 0
+                        ? 'bg-gray-100'
+                        : 'bg-white'
+                      }`}
+                    key={index}
+                    onMouseEnter={() => setIsHoveredTable(index)}
+                    onMouseLeave={() => setIsHoveredTable(null)}
+                    style={{
+                      background:
+                        isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                      // Hides scrollbar for IE/Edge
+                    }}
+                  >
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                      <div className="flex gap-3 items-center">
+                        <div>
+                          {index + 1}
+                        </div>
+                        {
+                          data?.urgent === 1 && (
+                            <div>
+                              <img src={UrgentGif} alt="path not found" />
+                            </div>
+                          )
+                        }
                       </div>
-                      {
-                        data?.urgent === 1 && (
-                          <div>
-                            <img src={UrgentGif} alt="path not found" />
-                          </div>
-                        )
-                      }
-                    </div>
-                  </td>
+                    </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.bookingDate}
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.bookingDate}
+                    </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.workOrderId}
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.workOrderId}
+                    </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.barcodeNo}
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.barcodeNo}
+                    </td>
 
-                  {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                {data?.sampleReceiveDate}
-              </td> */}
+                    {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.sampleReceiveDate}
+                  </td> */}
 
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.patientName}
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.patientName}
+                    </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.age}
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.age}
+                    </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.barcodeNo}
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.barcodeNo}
+                    </td>
 
-                  {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+
+                    {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="flex gap-1">
                       {data?.investigationName?.map((item, index) => (
                         <CustomeNormalButton
@@ -790,155 +857,141 @@ export default function ReportDispatch() {
                     </div>
 
                   </td> */}
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                    <div className="flex flex-wrap gap-1">
-                      {data?.referDoctor}
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                      <div className="flex flex-wrap gap-1">
+                        {data?.referDoctor}
 
-                    </div>
-                  </td>
-
-
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.centreName}
-                  </td>
-
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.investigationName}
-                    {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                  // onClick={() => setShowPopup(1)}
-                >
-                  <MdAddCircleOutline className="text-base" />
-                </div> */}
-                  </td>
-
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {/* <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                  style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                // onClick={() => setShowPopup(2)}
-                >
-                  <FaCircleInfo />
-                </div> */}
-                    {
-                      data?.sampleRecievedDate
-                    }
-                  </td>
-
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                    {data?.comment.length >= 9 ? (
-                      <div className="flex justify-center items-center gap-1" title={data?.comment}>
-                        {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
-                        {/* <div
-                      className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => setShowPopup(3)}
-                    >
-                      <FaCommentDots />
-                    </div> */}
                       </div>
-                    ) : (
-                      data?.comment
-                    )}
-                  </td>
+                    </td>
 
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.createdBy}
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.centreName}
+                    </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    <input
-                      type="checkbox"
-                      className="flex items-center justify-center"
-                      onChange={(e) => handleCheckboxChange(e, data?.testId)}
-                    />
-                  </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.investigationName}
+                    </td>
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.sampleRecievedDate}
+                    </td>
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                      {data?.comment.length >= 9 ? (
+                        <div className="flex justify-center items-center gap-1" title={data?.comment}>
+                          {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
+                        </div>
+                      ) : (
+                        data?.comment
+                      )}
+                    </td>
 
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                    <div className="flex justify-between items-center">
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.createdBy}
+                    </td>
 
-                      {
-                        data?.whatsapp === null ?
-                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                          // onClick={() => setShowPopup(2)}
-                          >
-                            <FaSquareWhatsapp className="w-4 h-4 "
-                              onClick={() => {
-                                setShowPopup(3), setShowStatusData({
-                                  workOrderId: data?.workOrderId,
-                                  updateStatusName: 'whatsapp'
-                                })
-                              }}
-                            />
-                          </div>
-                          :
-                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                          // onClick={() => setShowPopup(2)}
-                          >
-                            <BiSolidLike className="w-4 h-4" />
-                          </div>
-                      }
-
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
 
                       {
-                        data?.email === 0 ?
-                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                          // onClick={() => setShowPopup(2)}
-                          >
-                            <MdOutlineMailOutline className="w-4 h-4"
-                              // onClick={() => updateStatusForWhatsappAndEmail(data?.workOrderId, 'email')}
-                              onClick={() => {
-                                setShowPopup(3), setShowStatusData({
-                                  workOrderId: data?.workOrderId,
-                                  updateStatusName: 'email'
-                                })
-                              }}
-                            />
-                          </div>
-                          :
-                          <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                          // onClick={() => setShowPopup(2)}
-                          >
-                            <BiSolidLike className="w-4 h-4" />
-                          </div>
+                        data?.approved === 1 && reportDispatchData?.header === 1 && (
+                          <input
+                            type="checkbox"
+                            className="flex items-center justify-center"
+                            onChange={(e) => handleCheckboxChange(e, data?.testId)}
+                          />
+                        )
                       }
 
-                    </div>
-                  </td>
+                    </td>
 
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => { setShowPopup(4), getAllInfoDocumentData(data?.itemId) }}
-                    >
-                      <FaCircleInfo />
-                    </div>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                      <div className="flex justify-between items-center">
 
-                  </td>
+                        {
+                          data?.whatsapp === null ?
+                            <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                              style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                            >
+                              <FaSquareWhatsapp className="w-4 h-4 "
+                                onClick={() => {
+                                  setShowPopup(3), setShowStatusData((preData) => ({
+                                    ...preData,
+                                    phNo: data?.barcodeNo,
+                                    workOrderId: data?.workOrderId,
+                                    updateStatusName: 'whatsapp'
+                                  }))
+                                }}
+                              />
+                            </div>
+                            :
+                            <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                              style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                            >
+                              <BiSolidLike className="w-4 h-4" />
+                            </div>
+                        }
+
+
+                        {
+                          data?.email === 0 ?
+                            <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                              style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                            // onClick={() => setShowPopup(2)}
+                            >
+                              <MdOutlineMailOutline className="w-4 h-4"
+                                // onClick={() => updateStatusForWhatsappAndEmail(data?.workOrderId, 'email')}
+                                onClick={() => {
+                                  setShowPopup(3), setShowStatusData({
+                                    workOrderId: data?.workOrderId,
+                                    updateStatusName: 'email'
+                                  })
+                                }}
+                              />
+                            </div>
+                            :
+                            <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                              style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                            // onClick={() => setShowPopup(2)}
+                            >
+                              <BiSolidLike className="w-4 h-4" />
+                            </div>
+                        }
+
+                      </div>
+                    </td>
+
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                        onClick={() => { setShowPopup(4), getAllInfoDocumentData(data?.itemId) }}
+                      >
+                        <FaCircleInfo />
+                      </div>
+
+                    </td>
 
 
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => {
-                        setShowPopup(2), setSingleRemarkData((preventData) => ({
-                          ...preventData,
-                          transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName,
-                        }))
-                      }}
-                    >
-                      <MdAddCircleOutline className="text-base" />
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                        onClick={() => {
+                          setShowPopup(2), setSingleRemarkData((preventData) => ({
+                            ...preventData,
+                            transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName,
+                          }))
+                        }}
+                      >
+                        <MdAddCircleOutline className="text-base" />
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              }
             </tbody>
 
           </CustomDynamicTable>
@@ -946,45 +999,243 @@ export default function ReportDispatch() {
       }
 
 
-      {showPopup === 3 && (
-        <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-          <div className="border-[1px] w-60 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
-            <div className="flex mt-3 items-center">
-              <IoAlertCircleOutline
-                className="w-8 h-8"
-                style={{ color: activeTheme?.menuColor }}
-              />
-            </div>
+      {
+        showPopup === 3 && (
+          // <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
+          //   <div className="border-[1px] w-60 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
+          //     <div className="flex mt-3 items-center">
+          //       <IoAlertCircleOutline
+          //         className="w-8 h-8"
+          //         style={{ color: activeTheme?.menuColor }}
+          //       />
+          //     </div>
 
-            {/* <div className="text-xs text-center font-semibold text-textColor/70">
-              Are you leaving ?
-            </div> */}
+          //     {/* <div className="text-xs text-center font-semibold text-textColor/70">
+          //     Are you leaving ?
+          //   </div> */}
 
-            <div className="text-xs font-semibold text-textColor/50">
-              Are you sure want to Request ?
-            </div>
+          //     <div className="text-xs font-semibold text-textColor/50">
+          //       Are you sure want to Request ?
+          //     </div>
 
-            <div className="flex items-end gap-5 my-5">
-              <div className="w-20">
-                <CustomeNormalButton activeTheme={activeTheme} onClick={setShowPopup} text={'Cencle'} />
-              </div>
+          //     <div className="flex items-end gap-5 my-5">
+          //       <div className="w-20">
+          //         <CustomeNormalButton activeTheme={activeTheme} onClick={setShowPopup} text={'Cencle'} />
+          //       </div>
 
 
-              <div className="w-20">
-                <CustomFormButton
-                  activeTheme={activeTheme}
-                  text="Request"
-                  icon={FaSpinner}
-                  isButtonClick={isButtonClick}
-                  loadingButtonNumber={3} // Unique number for the first button
-                  onClick={updateStatusForWhatsappAndEmail}
+          //       <div className="w-20">
+          //         <CustomFormButton
+          //           activeTheme={activeTheme}
+          //           text="Request"
+          //           icon={FaSpinner}
+          //           isButtonClick={isButtonClick}
+          //           loadingButtonNumber={3} // Unique number for the first button
+          //           onClick={updateStatusForWhatsappAndEmail}
+          //         />
+          //       </div>
+
+          //     </div>
+
+
+
+          //   </div>
+          // </div>
+
+          // !========new code=================
+
+          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+            <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+
+              {/* Header */}
+              <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                  {'Digital Report'}
+                </div>
+                <IoMdCloseCircleOutline
+                  className="text-xl cursor-pointer"
+                  style={{ color: activeTheme?.iconColor }}
+                  onClick={() => setShowPopup(0)}
                 />
               </div>
 
+              <FormHeader headerData={'Digital Report'} />
+
+              {/* Form */}
+              <form autoComplete="off" onSubmit={handelOnSubmitTestRemarkData} >
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-14 mx-1 lg:mx-2 items-center relative my-2">
+
+                  <div className="relative w-full md:w-32">
+                    {
+                      storeStatusData?.nameOfUpdateStatus === 'whatsapp' ? (
+                        <>
+                          <input
+                            type="search"
+                            id="phNo"
+                            name="phNo"
+                            value={storeStatusData.phNo || ''}
+                            // onChange={(e) => {
+                            //   handelOnChangeTestMappingData(e),
+                            //     setSeleDropDown((preventData) => ({
+                            //       ...preventData,
+                            //       testName: e.target.value
+                            //     }))
+                            // }}
+                            readOnly
+                            placeholder=" "
+                            className={`inputPeerField peer border-borderColor focus:outline-none`}
+                          />
+                          <label htmlFor="testName" className="menuPeerLevel">
+                            Mobile Number
+                          </label>
+                        </>
+                      )
+                        :
+                        (
+                          <>
+                            <input
+                              type="search"
+                              id="email"
+                              name="email"
+                              value={storeStatusData.email || ''}
+                              // onChange={(e) => {
+                              //   handelOnChangeTestMappingData(e),
+                              //     setSeleDropDown((preventData) => ({
+                              //       ...preventData,
+                              //       testName: e.target.value
+                              //     }))
+                              // }}
+                              readOnly
+                              placeholder=" "
+                              className={`inputPeerField peer border-borderColor focus:outline-none`}
+                            />
+                            <label htmlFor="testName" className="menuPeerLevel">
+                              Email Id
+                            </label>
+                          </>
+                        )
+                    }
+
+
+                  </div>
+
+                  {/* Rejection Reason Dropdown */}
+                  <div className="relative w-full md:w-32">
+                    <CustomDropdown
+                      name="sampleRemark"
+                      label="Digital Report"
+                      value={singleRemarkData?.sampleRemark}
+                      options={[
+                        { label: 'Select Digital Report', value: 0, disabled: true },
+                        { label: 'Patient', value: 'Patient' },
+                        { label: 'Client', value: 'Client' },
+                        // ...allSampleRemark?.data?.map(item => ({
+                        //   label: item?.remark,
+                        //   value: parseInt(item?.id),
+                        // })),
+                      ]}
+                      onChange={(e) => handelOnChangetestRemark(e)}
+                      defaultIndex={0}
+                      activeTheme={activeTheme}
+                    />
+                  </div>
+
+                  {/* <div className="relative w-full md:w-32">
+                    <CustomDropdown
+                      name="showInHouse"
+                      label="Select Show In House"
+                      value={singleRemarkData?.showInHouse}
+                      options={[
+                        { label: 'Yes', value: 1 },
+                        { label: 'No', value: 0 },
+
+                      ]}
+                      onChange={(e) => handelOnChangetestRemark(e)}
+                      defaultIndex={0}
+                      activeTheme={activeTheme}
+                    />
+                  </div> */}
+
+                  <div className="relative w-full">
+                    <CustomFormButtonWithLoading
+                      activeTheme={activeTheme}
+                      text="Save"
+                      icon={FaSpinner}
+                      isButtonClick={isButtonClick}
+                      loadingButtonNumber={1} // Unique number for the first button
+                    />
+                  </div>
+                </div>
+              </form>
+
+              {/* Scrollable Content */}
+
+              {/* <GridDataDetails gridDataDetails={'Test Remark Details'} />
+
+              {allRemarkTestData?.loading ?
+                <CustomLoadingPage />
+                :
+                <CustomDynamicTable activeTheme={activeTheme} columns={['Sr. No', 'Test Name', 'Remark', 'Remark Date', 'Added By', 'In-House', 'Action']} height="30vh">
+                  <tbody >
+                    {
+                      allRemarkTestData?.data?.data?.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredPopupTable(index)}
+                          onMouseLeave={() => setIsHoveredPopupTable(null)}
+                          style={{
+                            background:
+                              isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {index + 1}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.itemName}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.invRemarks}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.remardkDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.remarkAdBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.isInternal === 1 ? 'Yes' : 'No'}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
+                          </td>
+                        </tr>
+                      ))
+
+                    }
+                  </tbody>
+                </CustomDynamicTable>
+              } */}
             </div>
+
           </div>
-        </div>
-      )}
+
+        )
+      }
 
       {
         showPopup === 2 && (
@@ -1081,6 +1332,10 @@ export default function ReportDispatch() {
                   </div>
                 </form>
 
+                {
+                  console.log(allRemarkTestData)
+
+                }
                 {/* Scrollable Content */}
 
                 <GridDataDetails gridDataDetails={'Test Remark Details'} />
@@ -1133,7 +1388,9 @@ export default function ReportDispatch() {
                             </td>
 
                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
+                              <RiDeleteBin5Fill className="text-red-500 w-4 h-4"
+                                onClick={() => handelDeleteSingleRemarkTestData(data)}
+                              />
                             </td>
                           </tr>
                         ))
@@ -1274,14 +1531,14 @@ export default function ReportDispatch() {
         )
       }
 
-      {/* <div style={{ height: "100px" }}>
-        <DynamicTable
-          rows={row}
-          name="Dispatch Details"
-          //   loading={loading}
-          columns={columns}
-          activeTheme={activeTheme}
-        />
+      {/* <div style={{ height: "100px" }}>                                                      
+        <DynamicTable                                                                            
+          rows={row}                                                                             
+          name="Dispatch Details"                                                                
+          //   loading={loading}                                                                 
+          columns={columns}                                                                      
+          activeTheme={activeTheme}                                                              
+        />                                                                                       
       </div> */}
 
     </div>

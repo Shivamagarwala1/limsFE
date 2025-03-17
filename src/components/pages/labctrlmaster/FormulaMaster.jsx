@@ -507,8 +507,6 @@ export default function FormulaMaster() {
                     </div>
                 </div>
             </div >
-
-
         </>
     )
 }

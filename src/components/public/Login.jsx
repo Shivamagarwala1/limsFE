@@ -75,28 +75,26 @@ export default function Login() {
                         }
                     });
 
-                    // Fetch the navigation URL based on employee data
-                    const menuData = await getMenuDataBasedOnEmpIdAndRoleIdAndCentreId(
-                        resp?.data?.employeeId,
-                        resp?.data?.defaultRole,
-                        resp?.data?.defaultCenter
-                    );
+                    // Fetch the navigation URL based on employee data                            
+                    const menuData = await getMenuDataBasedOnEmpIdAndRoleIdAndCentreId(           
+                        resp?.data?.employeeId,                                                   
+                        resp?.data?.defaultRole,                                                  
+                        resp?.data?.defaultCenter                                                 
+                    );                                                                            
 
 
 
                     if (menuData?.data?.length > 0 && menuData.data[0]?.children?.length > 0) {
                         const navigationURL = menuData?.data[0]?.children[0]?.navigationURL;
                         if (navigationURL) {
-                            toast.success(resp?.message?.slice(0, -2));
-                            navigation(navigationURL);
+                            toast.success(resp?.message?.slice(0, -2));                          
+                            navigation(navigationURL);                                            
                         } else {
                             toast.error(resp?.message);
                         }
                     } else {
                         toast.error('Invalid menu data structure!');
                     }
-
-
 
                 } else {
                     toast.error(resp.message);
@@ -123,15 +121,12 @@ export default function Login() {
     return (
 
 
-        <div
-            className="bg-cover bg-center w-full h-screen sm:h-full md:h-screen overflow-hidden"
-            style={{ backgroundImage: `url(${loginImage})` }}
-        >
+        <div className="bg-cover bg-center w-full h-screen sm:h-full md:h-screen overflow-hidden"
+            style={{ backgroundImage: `url(${loginImage})` }}>
 
             <div className='absolute inset-0 bg-transparent '></div>
 
-
-            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch   mx-20 pt-60 lg:pt-[20.5rem] '>
+            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch mx-20 pt-96 sm:pt-60 lg:pt-[20.5rem] 2xl:pt-[43rem]'>
 
                 {/* <div className='py-1 lg:py-0'>
                     <img src={logo} alt="path not found" className='w-32 h-10' />
@@ -149,11 +144,10 @@ export default function Login() {
                         forgotPassord === false ?
                             <div>
 
-                                {/* <div className='flex flex-col justify-center items-center my-6'>
-
-                                    <div className='font-bold text-sm text-center sm:text-nowrap text-black'>Sign in to manage and track your lab information</div>
-                                    <p className='text-xs font-semibold text-black'>Laboratory Information Management System</p>
-                                </div> */}
+                                {/* <div className='flex flex-col justify-center items-center my-6'>                                                            
+                                    <div className='font-bold text-sm text-center sm:text-nowrap text-black'>Sign in to manage and track your lab information</div>                                                          
+                                    <p className='text-xs font-semibold text-black'>Laboratory  Information Management System</p>                             
+                                </div> */}                                                        
 
                                 <form onSubmit={userLoginSubmit} autoComplete='off'>
 
@@ -172,8 +166,6 @@ export default function Login() {
                                             />
                                         </div>
                                     </div>
-
-
 
                                     <div className='mt-2'>
 
