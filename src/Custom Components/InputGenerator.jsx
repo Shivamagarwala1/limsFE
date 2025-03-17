@@ -282,15 +282,20 @@ export const DateInputWithTime = ({ field = {} }) => {
   const formatDateTime = (date) => {
     if (!date) return "";
     const options = { day: "numeric", month: "short", year: "numeric" };
-    const formattedDate = date.toLocaleDateString("en-GB", options).replace(/ /g, "-");
-    const formattedTime = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+    const formattedDate = date
+      .toLocaleDateString("en-GB", options)
+      .replace(/ /g, "-");
+    const formattedTime = date.toLocaleTimeString("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
     return `${formattedDate} ${formattedTime}`;
   };
 
   const handleDateTimeChange = (date) => {
     setSelectedDate(date);
     const formattedDateTime = formatDateTime(date);
-    
+
     // Call external handlers if provided
     field?.customOnChange?.(formattedDateTime);
     field?.customDateData?.({ formattedDate: formattedDateTime, date });
@@ -299,7 +304,10 @@ export const DateInputWithTime = ({ field = {} }) => {
   };
 
   return (
-    <div style={field?.style} className="relative flex-1 flex items-center gap-1 w-full justify-between">
+    <div
+      style={field?.style}
+      className="relative flex-1 flex items-center gap-1 w-full justify-between"
+    >
       {/* Input Field */}
       <div className="relative flex-1">
         <input
@@ -310,7 +318,9 @@ export const DateInputWithTime = ({ field = {} }) => {
           value={selectedDate ? formatDateTime(selectedDate) : ""}
           placeholder="Select Date & Time"
           readOnly
-          className={`inputPeerField peer border-borderColor ${field?.required ? "border-b-red-500" : ""} focus:outline-none`}
+          className={`inputPeerField peer border-borderColor ${
+            field?.required ? "border-b-red-500" : ""
+          } focus:outline-none`}
         />
         <label htmlFor={field?.name} className="menuPeerLevel">
           {field?.label}
@@ -334,7 +344,9 @@ export const DateInputWithTime = ({ field = {} }) => {
 
       {/* Date & Time Picker Popup */}
       {showCalendar && (
-        <div style={{ position: "absolute", top: "100%", left: "0", zIndex: 50 }}>
+        <div
+          style={{ position: "absolute", top: "100%", left: "0", zIndex: 50 }}
+        >
           <DatePicker
             selected={selectedDate}
             onChange={handleDateTimeChange}
@@ -359,7 +371,7 @@ export const DateInput = ({ field = {} }) => {
   const [showCalendars, setShowCalendars] = useState({});
   const [selectedDate, setSelectedDate] = useState(field?.value); // Store selected date
   const activeTheme = useSelector((state) => state.theme.activeTheme);
-console.log(field?.value)
+  console.log(field?.value);
   const handleDateClick = (date, name) => {
     const formattedDate = formatDate(date);
     setSelectedDate(formattedDate); // Update state
@@ -615,7 +627,9 @@ export const SubmitButton = ({
           }`}
           style={{
             ...style,
-            background: activeTheme?.menuColor,
+            background: disabled
+              ? activeTheme?.subMenuColor
+              : activeTheme?.menuColor,
             color: activeTheme?.iconColor,
           }}
         >
@@ -709,6 +723,7 @@ export const TwoSubmitButton = ({
                     type={button.submit ? "submit" : "button"}
                     data-ripple-light="true"
                     onClick={button.callBack}
+                    disabled={button.disabled}
                     className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
                     style={{
                       background: activeTheme?.menuColor,
@@ -964,6 +979,3 @@ export const WeekdayToggle = ({ setDays, days }) => {
     </div>
   );
 };
-
-
-

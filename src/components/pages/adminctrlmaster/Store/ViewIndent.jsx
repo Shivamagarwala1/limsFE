@@ -49,6 +49,13 @@ export default function ViewIndent() {
   const [RoleHoveIndex, setRoleHoveIndex] = useState(null);
   const [RoleSelectedOption, setRoleSelectedOption] = useState("");
 
+  // ------------------ Item -------------------------------
+  const [ItemId, setItemId] = useState(0);
+  const [ItemValue, setItemValue] = useState("");
+  const [ItemDropDown, setItemDropDown] = useState(false);
+  const [ItemHoveIndex, setItemHoveIndex] = useState(null);
+  const [ItemSelectedOption, setItemSelectedOption] = useState("");
+
   const [SelectedItem, setSelectedItem] = useState([]);
 
   const [row, setRow] = useState([]);
@@ -75,7 +82,7 @@ export default function ViewIndent() {
       return;
     }
     await GridData?.fetchData(
-      `/Indent/GetIndentDetails?roleId=${value?.RoleId}&empId=${value?.UserId}&fromDate=${value?.from}&todate=${value?.to}&UserId=${lsData?.user?.employeeId}`
+      `/Indent/GetIndentDetails?roleId=${RoleId}&empId=${UserId}&fromDate=${value?.from}&todate=${value?.to}&UserId=${UserId}&itemId=${ItemId}`
     );
     // `/Indent/GetIndentDetails?roleId=1&empId=2&fromDate=3&todate=4&UserId=5`
   };
@@ -232,6 +239,20 @@ export default function ViewIndent() {
     setRoleSelectedOption(name);
     setRoleDropDown(false);
   };
+
+  // Function to handle input changes
+  const handleSearchChange4 = (e) => {
+    setItemValue(e.target.value);
+    setItemDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick4 = (name, id) => {
+    setItemValue(name);
+    setItemId(id);
+    setItemSelectedOption(name);
+    setItemDropDown(false);
+  };
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -251,12 +272,13 @@ export default function ViewIndent() {
     console.log(from, " ", FromDate);
     try {
       const res = await GridData?.fetchData(
-        `/Indent/GetIndentDetails?roleId=${RoleId}&empId=${UserId}&fromDate=${from}&todate=${to}`
+        `/Indent/GetIndentDetails?roleId=${RoleId}&empId=${UserId}&fromDate=${from}&todate=${to}&UserId=${UserId}&itemId=${ItemId}`
       );
+      // ?roleId=1&empId=2&fromDate=3&todate=4&UserId=5&itemId=6
       if (res?.data?.success) {
         // toast?.success(res?.data?.message);
         const key = "indentItem";
-        const value = { from: from, to: to, RoleId: RoleId, UserId: UserId };
+        const value = { from: from, to: to, };
         setSession(key, value);
       } else {
         toast?.error(res?.data?.message);
@@ -342,6 +364,22 @@ export default function ViewIndent() {
               handleOptionClickForCentre={handleOptionClick2}
               setIsHovered={setUserHoveIndex}
               isHovered={UserHoveIndex}
+              style={{ marginTop: "0.1rem" }}
+            />
+            <SearchBarDropdown
+              id="search-bar"
+              name="Item"
+              value={ItemValue}
+              onChange={handleSearchChange4}
+              label="Item"
+              placeholder="Serch Item"
+              options={getData?.data}
+              isRequired={false}
+              showSearchBarDropDown={ItemDropDown}
+              setShowSearchBarDropDown={setItemDropDown}
+              handleOptionClickForCentre={handleOptionClick4}
+              setIsHovered={setItemHoveIndex}
+              isHovered={ItemHoveIndex}
               style={{ marginTop: "0.1rem" }}
             />
 

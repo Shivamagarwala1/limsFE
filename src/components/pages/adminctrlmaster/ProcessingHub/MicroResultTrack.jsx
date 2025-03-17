@@ -108,7 +108,7 @@ export default function MicroResultTrack() {
     if (Row?.testid) {
       retreveTestData(Row?.testid);
     }
-  }, [HoldUnHold,Intrim]);
+  }, [HoldUnHold, Intrim]);
 
   let PayloadData = getLocal("HistoPayload");
   const updatedArray = addObjectId(PostData?.data);
@@ -142,7 +142,7 @@ export default function MicroResultTrack() {
       flex: 1,
     },
     {
-      field: `patientId`,
+      field: `workOrderId`,
       headerName: `Visit Id`,
       flex: 1,
     },
@@ -315,7 +315,7 @@ export default function MicroResultTrack() {
 
     return row;
   };
-
+  console.log("HistoObservation ", HistoObservation?.isApproved);
   const handleSubmit = (event) => {
     event.preventDefault();
     const values = getValues();
@@ -338,7 +338,7 @@ export default function MicroResultTrack() {
     try {
       const res = await retreveTest?.fetchData(
         `/tnx_Booking/GetMicroresult?testid=${id}&reportStatus=${Intrim}`
-      ); // /tnx_Booking/GetMicroresult?testid=23&reportStatus=0
+      );
       console.log(res);
 
       if (res?.data?.data) {
@@ -493,6 +493,11 @@ export default function MicroResultTrack() {
     event.preventDefault();
     console.log(UserObj, " mm ", OrganismPostObj);
     const values = SaveForm?.getValues();
+
+    if (HistoObservation?.isApproved == 1) {
+      toast.error("Report Is Already Approved And Not Editable.");
+      return;
+    }
     const payload = {
       ...values,
       id: 0,
@@ -558,6 +563,10 @@ export default function MicroResultTrack() {
       return;
     }
 
+    if (HistoObservation?.isApproved == 1) {
+      toast.error("Report Is Already Approved And Not Editable.");
+      return;
+    }
     try {
       const payload = {
         isApproved: 1,
@@ -628,7 +637,7 @@ export default function MicroResultTrack() {
   return (
     <div>
       <>
-      {/* <InfoPopup
+        {/* <InfoPopup
         heading="Patient Information"
         setShowPopup={setInfo}
         // rows={row}

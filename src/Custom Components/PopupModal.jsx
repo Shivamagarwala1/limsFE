@@ -1306,6 +1306,7 @@ export const HistoFileUploadPopupModal = ({
                 <SubmitButton
                   submit={true}
                   text={"Save"}
+                  disabled={rowData?.isApproved == 1 ? true : false}
                   style={{
                     width: "80px",
                     fontSize: "0.75rem",
@@ -1344,7 +1345,7 @@ export const HistoFileUploadPopupModal = ({
                   renderCell: (params) => (
                     <div className="flex justify-center items-center">
                       <TwoSubmitButton
-                        options={rowData?.isApproved ? Buttons1 : Buttons}
+                        options={rowData?.isApproved == 1 ? Buttons1 : Buttons}
                       />
                     </div>
                   ),
@@ -1458,7 +1459,7 @@ export const HistoAddAttachmentPopupModal = ({
     }, 10);
   };
 
- const Buttons = [
+  const Buttons = [
     {
       callBack: () => {
         ViewOrDownloandPDF(
@@ -1488,7 +1489,7 @@ export const HistoAddAttachmentPopupModal = ({
       submit: false,
       label: "View",
       style: { width: "50px" },
-    }
+    },
   ];
   const columns = [
     {
@@ -1557,6 +1558,7 @@ export const HistoAddAttachmentPopupModal = ({
             <SubmitButton
               submit={true}
               text={"Save"}
+              disabled={rowData?.isApproved == 1 ? true : false}
               style={{
                 width: "80px",
                 fontSize: "0.75rem",

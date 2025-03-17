@@ -162,6 +162,7 @@ export const UpdatedDynamicTable = ({
   rowcolor = "rowcolor",
   legendColors = false,
   name = "Table Details",
+  extraRow = [],
   viewKey = "id", // Default key field
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -257,6 +258,38 @@ export const UpdatedDynamicTable = ({
                         isHoveredTable === row?.[viewKey]
                           ? activeTheme?.subMenuColor
                           : "",
+                    }}
+                  >
+                    {columns?.map((col, idx) => (
+                      <td
+                        key={idx}
+                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
+                      >
+                        {col?.renderCell
+                          ? col?.renderCell({ row })
+                          : row[col?.field]}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                {extraRow?.map((row, index) => (
+                  <tr
+                    key={row?.[viewKey] || index} // Ensure a valid key
+                    className={`cursor-pointer ${
+                      isHoveredTable === row?.[viewKey]
+                        ? ""
+                        : index % 2 === 0
+                        ? "bg-gray-100"
+                        : "bg-white"
+                    }`}
+                    onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
+                    onMouseLeave={() => setIsHoveredTable(null)}
+                    style={{
+                      ...trstyle,
+                      background:
+                        isHoveredTable === row?.[viewKey]
+                          ? activeTheme?.subMenuColor
+                          : "yellow",
                     }}
                   >
                     {columns?.map((col, idx) => (
