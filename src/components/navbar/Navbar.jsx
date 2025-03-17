@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import logo from "../../assets/clientlogonav.png";
+// import clientlogo from "../../assets/clientlogonav.png";
+import logo from "../../assets/logo.png";
 import {
   IoIosColorPalette,
   IoMdNotifications,
