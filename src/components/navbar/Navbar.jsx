@@ -144,6 +144,8 @@ export default function Navbar({ toggleFullScreen, routes }) {
         (data) => data?.roleId === parseInt(user?.defaultRole)
       );
       setSelectedRole(selectedValue[0]?.roleName);
+      console.log("filteredDataForRole => ", selectedValue[0]);
+      localStorage.setItem("RoleDetails", JSON.stringify(selectedValue[0]));
     } else {
       setSelectedRole("Role Data Not Found");
     }
@@ -169,8 +171,8 @@ export default function Navbar({ toggleFullScreen, routes }) {
 
     const RoleDetails = {
       roleId,
-      roleName
-    }
+      roleName,
+    };
     localStorage.setItem("RoleDetails", JSON.stringify(RoleDetails));
     setSelectedRole(roleName);
     setTypedValueForEmployeeRole("");

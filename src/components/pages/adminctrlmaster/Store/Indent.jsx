@@ -183,10 +183,12 @@ export default function Indent() {
       toast.error("No Item Selected");
       return;
     }
+    console.log(RoleDetails?.roleId)
     const payload = {
       isActive: 1,
       createdById: parseInt(lsData?.user?.employeeId),
       createdDateTime: new Date().toISOString(),
+      centreId: parseInt(lsData?.user?.defaultCenter),
       indentId: 0,
       roleId: RoleDetails?.roleId,
       indentBy: lsData?.user?.name,

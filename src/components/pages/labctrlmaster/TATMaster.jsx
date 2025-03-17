@@ -383,7 +383,7 @@ export default function TATMaster() {
     {
       field: `TatType`,
       headerName: `Mins/Date`,
-      flex: 1,
+      width: 100,
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
@@ -399,7 +399,7 @@ export default function TATMaster() {
     {
       field: `mins`,
       headerName: `Mins`,
-      flex: 1,
+      width: 100,
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
@@ -415,7 +415,7 @@ export default function TATMaster() {
     {
       field: `Days`,
       headerName: `Days`,
-      flex: 1,
+      width: 100,
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>

@@ -399,6 +399,16 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/Dashboard/MarketingDashboard.jsx")),
         exact: true,
     },
+    {
+        path: "/LIMS/UserCollectionReport",
+        component: React.lazy(() => import("../pages/adminctrlmaster/MIS Report/UserCollectionReport.jsx")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/DiscountReport",
+        component: React.lazy(() => import("../pages/adminctrlmaster/MIS Report/DiscountReport.jsx")),
+        exact: true,
+    },
 
 ];
 

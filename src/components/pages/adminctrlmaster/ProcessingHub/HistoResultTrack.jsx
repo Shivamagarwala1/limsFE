@@ -107,7 +107,7 @@ export default function HistoResultTrack() {
     return row;
   };
 
-  console.log(UserObj);
+  console.log("Content => ",editorContent2);
   const columns = [
     {
       field: "id",
@@ -310,6 +310,7 @@ export default function HistoResultTrack() {
     };
     setLocal("HistoPayload", payload);
     console.log(selectedDepartment, " ", selectedTest, " ", selectedCenter);
+    // PostData?.postRequest("/tnx_BookingItem/GetResultEntryAllData", payload);
     PostData?.postRequest("/tnx_BookingItem/GetResultEntryAllData", payload);
     console.log(PostData?.data);
   };
@@ -415,6 +416,10 @@ export default function HistoResultTrack() {
   const handleSave = async (event) => {
     event.preventDefault();
     const values = SaveForm?.getValues();
+    if (HistoObservation?.isApproved == 1) {
+      toast.error("Report Is Already Approved And Not Editable.");
+      return;
+    }
     const payload = {
       ...values,
       ...UserObj,
@@ -507,6 +512,10 @@ export default function HistoResultTrack() {
   const ApproveCase = async () => {
     if (!ApprovedDocId) {
       toast.error("Please select Doctor Signature");
+      return;
+    }
+    if (HistoObservation?.isApproved == 1) {
+      toast.error("Report Is Already Approved And Not Editable.");
       return;
     }
     const payload = {
@@ -602,7 +611,7 @@ export default function HistoResultTrack() {
       }
       console.log(ApprovedPostData.response);
     } else {
-     await ApproveCase();
+      await ApproveCase();
     }
     await retreveTestData(Row?.testid);
   };
@@ -924,10 +933,7 @@ export default function HistoResultTrack() {
                         callBack: () => console.log("Save clicked"),
                       },
                       {
-                        label:
-                        ApproveBtn
-                            ? "Not Approved"
-                            : "Approved",
+                        label: ApproveBtn ? "Not Approved" : "Approved",
                         submit: false,
                         callBack: () => {
                           ApproveCallback();

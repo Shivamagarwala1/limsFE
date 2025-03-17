@@ -104,6 +104,57 @@ export const ViewOrDownloandPDF = async (api) => {
     }
   }
 };
+export const ViewOrDownloadPostPDF = async (api, payload) => {
+  const lsData = getLocal("imarsar_laboratory");
+
+  try {
+    // Retrieve the token from localStorage
+    const token = lsData?.token;
+    if (!token) {
+      console.error("Token not found. Please log in.");
+      return;
+    }
+
+    // Perform the POST request to download the PDF
+    const response = await axios.post(`${BASE_URL}${api}`, payload, {
+      responseType: "blob", // To handle binary response
+      headers: {
+        Accept: "application/pdf",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Add the token to Authorization header
+      },
+    });
+
+    // Check if the response contains a PDF file
+    const contentType = response.headers["content-type"];
+    if (contentType === "application/pdf") {
+      const pdfBlob = new Blob([response.data], { type: "application/pdf" });
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+
+      // Open the PDF in a new tab
+      window.open(pdfUrl, "_blank");
+      console.log("PDF downloaded successfully.");
+    } else {
+      console.error(
+        `Unexpected content type: ${contentType}. Unable to download PDF.`
+      );
+    }
+    return response;
+  } catch (error) {
+    console.error("Error downloading PDF:", error);
+
+    if (error.response?.status === 401) {
+      console.error("Unauthorized. Token might be invalid or expired.");
+    } else if (error.response) {
+      console.error(
+        "Unexpected response from server:",
+        error.response.data || error.response.statusText
+      );
+    } else {
+      console.error("Unexpected error:", error.message);
+    }
+  }
+};
 
 export function mergeArrays(arrayOne, arrayTwo) {
   return arrayTwo.map((item) => {
