@@ -223,11 +223,11 @@ export default function ReportDispatch() {
   const [storeStatusData, setShowStatusData] = useState({
 
     //!====add new fileds=======
-    dropDownData: '',
-    email: '',
-    phNo: '',
-    //!====end add new fileds=======
+    header: 1,
 
+    //!====end add new fileds=======
+    phNo: '',
+    emailId: '',
     workOrderId: '',
     nameOfUpdateStatus: ''
   })
@@ -248,13 +248,13 @@ export default function ReportDispatch() {
   // const [selectFilterData, setSelectFilterData] = useState('');
 
   const allFilterData = useRetrieveData();
+  const emptyCallApiData = useRetrieveData();
 
   useEffect(() => {
 
     const getAllData = async () => {
       try {
-        await allFilterData.fetchDataFromApi(`/LegendColorMaster?select=id,colourCode,colourName,contantName`);
-
+        await allFilterData.fetchDataFromApi(`/LegendColorMaster?select=id,colourCode,colourName,contantName&$filter=(isactive eq 1 and (id gt 0 and id lt 13 or id eq 24 or id eq 25))`);
       } catch (error) {
         toast.error(error.message)
       }
@@ -350,14 +350,77 @@ export default function ReportDispatch() {
 
 
   //update the whatsapp and email status
-  const updateStatusForWhatsappAndEmail = async () => {
 
+  const handelOnChangeForReportDispatchInRemark = (e) => {
+    if (!e.target || !e.target.name) {
+      console.error("Event target or name is missing");
+      return;
+    }
+
+    console.log(e.target.name, e.target.value);
+
+    setShowStatusData((preventData) => ({
+      ...preventData,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+
+
+  const handelRemarDataGetEmailMobileNo = async (workOrderId, status) => {
+    console.log(workOrderId);
+
+    if (status === 'whatsapp') {
+      try {
+        const response = await emptyCallApiData.fetchDataFromApi(
+          `/tnx_Booking/WhatsappNo?workOrderId=${workOrderId}`
+        );
+
+        if (!emptyCallApiData?.loading) {
+          setShowStatusData((preData) => ({
+            ...preData,
+            phNo: response?.data?.message,
+          }));
+        }
+
+        // Log after the state is updated using useEffect
+      } catch (error) {
+        toast.error(error?.message);
+      }
+    } else {
+
+      console.log(status);
+
+
+      try {
+        const response = await emptyCallApiData.fetchDataFromApi(
+          `/tnx_Booking/SendEmailId?workOrderId=${workOrderId}`
+        );
+
+        if (!emptyCallApiData?.loading) {
+          setShowStatusData((preData) => ({
+            ...preData,
+            emailId: response?.data?.message,
+          }));
+        }
+
+        // Log after the state is updated using useEffect
+      } catch (error) {
+        toast.error(error?.message);
+      }
+    }
+  };
+
+
+  const updateStatusForWhatsappAndEmail = async (e) => {
+    e.preventDefault();
     setIsButtonClick(3);
     if (storeStatusData?.updateStatusName === 'whatsapp') {
 
       try {
+        // const response = await postData.postRequestData(`/tnx_Booking/SendWhatsapp?workOrderId=${storeStatusData?.workOrderId}&Userid=${parseInt(user?.employeeId)}`);
 
-        const response = await postData.postRequestData(`/tnx_Booking/SendWhatsapp?workOrderId=${storeStatusData?.workOrderId}&Userid=${parseInt(user?.employeeId)}`);
+        const response = await postData.postRequestData(`/tnx_Booking/SendWhatsapp?workOrderId=${storeStatusData?.workOrderId}&Userid=${parseInt(user?.employeeId)}&Mobileno=${storeStatusData?.phNo}&header=${storeStatusData?.header}`);
 
         if (response?.message) {
           toast.success(response?.message);
@@ -388,10 +451,6 @@ export default function ReportDispatch() {
           toast.success(response?.message);
 
           setShowPopup(0);
-          setShowStatusData({
-            workOrderId: '',
-            nameOfUpdateStatus: ''
-          })
 
           //call the method to get updated data
           await searchReportDispatchData();
@@ -542,6 +601,8 @@ export default function ReportDispatch() {
       toast.error(error?.message);
     }
   }
+
+
 
   return (
     <div>
@@ -769,8 +830,6 @@ export default function ReportDispatch() {
         <LegandaryButton allFilterData={allFilterData} onFilterSelect={handleFilterSelection} />
       </form>
 
-
-
       <GridDataDetails gridDataDetails={'Dispatch Details'} />
       {
         searchReportDispatch?.loading ?
@@ -814,17 +873,15 @@ export default function ReportDispatch() {
                       </div>
                     </td>
 
-                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                       {data?.bookingDate}
-                    </td>
+                    </td> */}
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                       {data?.workOrderId}
                     </td>
 
-                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.barcodeNo}
-                    </td>
+
 
                     {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     {data?.sampleReceiveDate}
@@ -832,7 +889,7 @@ export default function ReportDispatch() {
 
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.patientName}
+                      {data?.patientName} <br /> {data?.bookingDate}
                     </td>
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
@@ -840,9 +897,13 @@ export default function ReportDispatch() {
                     </td>
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.barcodeNo}
+                      {data?.mobileNo}
                     </td>
 
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.barcodeNo}
+                    </td>
 
                     {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="flex gap-1">
@@ -866,31 +927,13 @@ export default function ReportDispatch() {
 
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.centreName}
+                      {data?.centrecode}
                     </td>
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                       {data?.investigationName}
                     </td>
 
-                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.sampleRecievedDate}
-                    </td>
-
-                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                      {data?.comment.length >= 9 ? (
-                        <div className="flex justify-center items-center gap-1" title={data?.comment}>
-                          {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
-                        </div>
-                      ) : (
-                        data?.comment
-                      )}
-                    </td>
-
-
-                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.createdBy}
-                    </td>
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
 
@@ -906,7 +949,6 @@ export default function ReportDispatch() {
 
                     </td>
 
-
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                       <div className="flex justify-between items-center">
 
@@ -917,12 +959,14 @@ export default function ReportDispatch() {
                             >
                               <FaSquareWhatsapp className="w-4 h-4 "
                                 onClick={() => {
-                                  setShowPopup(3), setShowStatusData((preData) => ({
+                                  setShowStatusData((preData) => ({
                                     ...preData,
-                                    phNo: data?.barcodeNo,
+                                    // phNo: data?.barcodeNo,
                                     workOrderId: data?.workOrderId,
                                     updateStatusName: 'whatsapp'
-                                  }))
+                                  })),
+                                    handelRemarDataGetEmailMobileNo(data?.workOrderId, 'whatsapp')
+                                  setShowPopup(3)
                                 }}
                               />
                             </div>
@@ -944,10 +988,13 @@ export default function ReportDispatch() {
                               <MdOutlineMailOutline className="w-4 h-4"
                                 // onClick={() => updateStatusForWhatsappAndEmail(data?.workOrderId, 'email')}
                                 onClick={() => {
-                                  setShowPopup(3), setShowStatusData({
+                                  setShowStatusData({
                                     workOrderId: data?.workOrderId,
                                     updateStatusName: 'email'
                                   })
+                                  handelRemarDataGetEmailMobileNo(data?.workOrderId)
+                                  setShowPopup(3)
+
                                 }}
                               />
                             </div>
@@ -962,6 +1009,26 @@ export default function ReportDispatch() {
 
                       </div>
                     </td>
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.sampleRecievedDate}
+                    </td>
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                      {data?.comment.length >= 9 ? (
+                        <div className="flex justify-center items-center gap-1" title={data?.comment}>
+                          {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
+                        </div>
+                      ) : (
+                        data?.comment
+                      )}
+                    </td>
+
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.createdBy}
+                    </td>
+
 
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
@@ -1051,7 +1118,7 @@ export default function ReportDispatch() {
               <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
                 <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
-                  {'Digital Report'}
+                  {storeStatusData?.updateStatusName}
                 </div>
                 <IoMdCloseCircleOutline
                   className="text-xl cursor-pointer"
@@ -1060,88 +1127,96 @@ export default function ReportDispatch() {
                 />
               </div>
 
-              <FormHeader headerData={'Digital Report'} />
+              <FormHeader headerData={'Send Report'} />
+              {
+                console.log(storeStatusData)
 
+              }
               {/* Form */}
-              <form autoComplete="off" onSubmit={handelOnSubmitTestRemarkData} >
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-14 mx-1 lg:mx-2 items-center relative my-2">
+              {
+                emptyCallApiData?.loading ?
+                  <div className="w-full flex justify-center items-center">
+                    <CustomLoadingPage />
+                  </div>
+                  :
+                  <form autoComplete="off" onSubmit={updateStatusForWhatsappAndEmail} >
+                    <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-2 mx-1 lg:mx-2 items-center relative my-2">
 
-                  <div className="relative w-full md:w-32">
-                    {
-                      storeStatusData?.nameOfUpdateStatus === 'whatsapp' ? (
-                        <>
-                          <input
-                            type="search"
-                            id="phNo"
-                            name="phNo"
-                            value={storeStatusData.phNo || ''}
-                            // onChange={(e) => {
-                            //   handelOnChangeTestMappingData(e),
-                            //     setSeleDropDown((preventData) => ({
-                            //       ...preventData,
-                            //       testName: e.target.value
-                            //     }))
-                            // }}
-                            readOnly
-                            placeholder=" "
-                            className={`inputPeerField peer border-borderColor focus:outline-none`}
+                      <div className="relative flex-1">
+                        {
+                          storeStatusData?.updateStatusName === 'whatsapp' ? (
+                            <>
+                              <input
+                                type="search"
+                                id="phNo"
+                                name="phNo"
+                                value={storeStatusData?.phNo || ''}
+                                // onChange={(e) => {
+                                //   handelOnChangeTestMappingData(e),
+                                //     setSeleDropDown((preventData) => ({
+                                //       ...preventData,
+                                //       testName: e.target.value
+                                //     }))
+                                // }}
+                                readOnly
+                                placeholder=" "
+                                className={`inputPeerField peer border-borderColor focus:outline-none`}
+                              />
+                              <label htmlFor="testName" className="menuPeerLevel">
+                                Mobile Number
+                              </label>
+                            </>
+                          )
+                            :
+                            (
+                              <>
+                                <input
+                                  type="search"
+                                  id="emailId"
+                                  name="emailId"
+                                  value={storeStatusData.emailId || ''}
+                                  // onChange={(e) => {
+                                  //   handelOnChangeTestMappingData(e),
+                                  //     setSeleDropDown((preventData) => ({
+                                  //       ...preventData,
+                                  //       testName: e.target.value
+                                  //     }))
+                                  // }}
+                                  readOnly
+                                  placeholder=" "
+                                  className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                />
+                                <label htmlFor="testName" className="menuPeerLevel">
+                                  Email Id
+                                </label>
+                              </>
+                            )
+                        }
+
+
+                      </div>
+
+
+                      <div className="flex gap-[0.25rem]">
+                        {/* Rejection Reason Dropdown */}
+                        <div className="relative flex-1">
+                          <CustomDropdown
+                            name="header"
+                            label="Select Header"
+                            value={storeStatusData.header}
+                            options={[
+                              // { label: 'Select Header ', value: '', disabled: true },
+                              { label: 'Yes ', value: 1 },
+                              { label: 'No', value: 0 },
+
+                            ]}
+                            onChange={(e) => handelOnChangeForReportDispatchInRemark(e)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
                           />
-                          <label htmlFor="testName" className="menuPeerLevel">
-                            Mobile Number
-                          </label>
-                        </>
-                      )
-                        :
-                        (
-                          <>
-                            <input
-                              type="search"
-                              id="email"
-                              name="email"
-                              value={storeStatusData.email || ''}
-                              // onChange={(e) => {
-                              //   handelOnChangeTestMappingData(e),
-                              //     setSeleDropDown((preventData) => ({
-                              //       ...preventData,
-                              //       testName: e.target.value
-                              //     }))
-                              // }}
-                              readOnly
-                              placeholder=" "
-                              className={`inputPeerField peer border-borderColor focus:outline-none`}
-                            />
-                            <label htmlFor="testName" className="menuPeerLevel">
-                              Email Id
-                            </label>
-                          </>
-                        )
-                    }
+                        </div>
 
-
-                  </div>
-
-                  {/* Rejection Reason Dropdown */}
-                  <div className="relative w-full md:w-32">
-                    <CustomDropdown
-                      name="sampleRemark"
-                      label="Digital Report"
-                      value={singleRemarkData?.sampleRemark}
-                      options={[
-                        { label: 'Select Digital Report', value: 0, disabled: true },
-                        { label: 'Patient', value: 'Patient' },
-                        { label: 'Client', value: 'Client' },
-                        // ...allSampleRemark?.data?.map(item => ({
-                        //   label: item?.remark,
-                        //   value: parseInt(item?.id),
-                        // })),
-                      ]}
-                      onChange={(e) => handelOnChangetestRemark(e)}
-                      defaultIndex={0}
-                      activeTheme={activeTheme}
-                    />
-                  </div>
-
-                  {/* <div className="relative w-full md:w-32">
+                        {/* <div className="relative w-full md:w-32">
                     <CustomDropdown
                       name="showInHouse"
                       label="Select Show In House"
@@ -1157,17 +1232,21 @@ export default function ReportDispatch() {
                     />
                   </div> */}
 
-                  <div className="relative w-full">
-                    <CustomFormButtonWithLoading
-                      activeTheme={activeTheme}
-                      text="Save"
-                      icon={FaSpinner}
-                      isButtonClick={isButtonClick}
-                      loadingButtonNumber={1} // Unique number for the first button
-                    />
-                  </div>
-                </div>
-              </form>
+                        <div className="relative flex-1">
+                          <CustomFormButtonWithLoading
+                            activeTheme={activeTheme}
+                            text="Send"
+                            icon={FaSpinner}
+                            isButtonClick={isButtonClick}
+                            loadingButtonNumber={3} // Unique number for the first button
+                          />
+                        </div>
+                      </div>
+
+                    </div>
+                  </form>
+              }
+
 
               {/* Scrollable Content */}
 
@@ -1230,6 +1309,11 @@ export default function ReportDispatch() {
                   </tbody>
                 </CustomDynamicTable>
               } */}
+              <div className='border-b-[1px]  flex justify-center items-center h-6 rounded-b-md text-xs font-semibold'
+                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+              >
+
+              </div>
             </div>
 
           </div>
