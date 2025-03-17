@@ -4,6 +4,10 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+    margin: 0;
+    padding: 0;
+}
 
 /* Hide the default scrollbar */
 ::-webkit-scrollbar {

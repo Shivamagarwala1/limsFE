@@ -1,6 +1,6 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
-const CustomDynamicTable = ({ columns, activeTheme, children, height = '300px' }) => {
+const CustomDynamicTable = ({ columns, activeTheme, children, height }) => {
 
   const tableRef = useRef(null);
 
@@ -24,22 +24,54 @@ const CustomDynamicTable = ({ columns, activeTheme, children, height = '300px' }
     window.addEventListener("mouseup", handleMouseUp);
   };
 
+  const [maxHeight, setMaxHeight] = useState("auto");
+  // const tableRef = useRef(null);
+
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      const windowHeight = window.innerHeight;
+      const offsetTop = tableRef.current?.getBoundingClientRect().top || 0;
+      const calculatedHeight = windowHeight - offsetTop - 20; // Subtract some padding
+      setMaxHeight(`${calculatedHeight}px`);
+    };
+
+    updateMaxHeight();
+    window.addEventListener("resize", updateMaxHeight);
+
+    return () => window.removeEventListener("resize", updateMaxHeight);
+  }, []);
+
+
   return (
     <div
       ref={tableRef}
       onMouseDown={handleMouseDown} // Enables click and drag scrolling
+      // style={{
+      //   overflowY: "auto",
+      //   overflowX: "auto",
+      //   scrollbarWidth: "none",
+      //   msOverflowStyle: "none",
+      //   whiteSpace: "nowrap",
+      //   cursor: "grab", // Shows a grab cursor
+      //   maxHeight: height
+      // }}
+
+
+
       style={{
         overflowY: "auto",
         overflowX: "auto",
         scrollbarWidth: "none",
         msOverflowStyle: "none",
         whiteSpace: "nowrap",
-        cursor: "grab", // Shows a grab cursor
-        maxHeight: height
+        cursor: "grab",
+        // maxHeight: maxHeight, // Dynamically adjusted height
+        maxHeight: height === undefined ? maxHeight : height,
       }}
-
-      className=" overflow-y-auto mb-2"
+      className={`overflow-y-auto mb-2`}
     >
+
+
       <table className="table-auto border-collapse w-full text-xxs text-left">
         {/* Header */}
         <thead
@@ -68,7 +100,7 @@ const CustomDynamicTable = ({ columns, activeTheme, children, height = '300px' }
         {/* Table Body will be injected as children */}
         {children}
       </table>
-    </div>
+    </div >
   );
 };
 

@@ -11,7 +11,7 @@ git pull origin anil/main
 ============================muti selectedItems==================
 
 const[patientRegistrationData,setPatientRegistrationData]=useState({
-        departmentName123: []
+  departmentName123: []
 })
 
 
@@ -42,12 +42,12 @@ const[patientRegistrationData,setPatientRegistrationData]=useState({
 
 
 
- const handelOnChangePatientRegistrationForMultiSelect = (updatedSelectedItems) => {
+const handelOnChangePatientRegistrationForMultiSelect = (updatedSelectedItems) => {
         setPatientRegistrationData((prevData) => ({
             ...prevData,
             departmentName123: updatedSelectedItems, // Update the array of selected items
         }));
-    };
+};
 
 ==========================multiple file upload============================
 import React, { useRef } from "react";
@@ -130,4 +130,4 @@ const handleImageChange = (event) => {
         }
       };
     });
-  };
+};
