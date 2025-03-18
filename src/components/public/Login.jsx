@@ -76,19 +76,19 @@ export default function Login() {
                     });
 
                     // Fetch the navigation URL based on employee data                            
-                    const menuData = await getMenuDataBasedOnEmpIdAndRoleIdAndCentreId(           
-                        resp?.data?.employeeId,                                                   
-                        resp?.data?.defaultRole,                                                  
-                        resp?.data?.defaultCenter                                                 
-                    );                                                                            
+                    const menuData = await getMenuDataBasedOnEmpIdAndRoleIdAndCentreId(
+                        resp?.data?.employeeId,
+                        resp?.data?.defaultRole,
+                        resp?.data?.defaultCenter
+                    );
 
 
 
                     if (menuData?.data?.length > 0 && menuData.data[0]?.children?.length > 0) {
                         const navigationURL = menuData?.data[0]?.children[0]?.navigationURL;
                         if (navigationURL) {
-                            toast.success(resp?.message?.slice(0, -2));                          
-                            navigation(navigationURL);                                            
+                            toast.success(resp?.message?.slice(0, -2));
+                            navigation(navigationURL);
                         } else {
                             toast.error(resp?.message);
                         }
@@ -126,13 +126,13 @@ export default function Login() {
 
             <div className='absolute inset-0 bg-transparent '></div>
 
-            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch mx-20 pt-96 sm:pt-60 lg:pt-[20.5rem] 2xl:pt-[43rem]'>
+            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch sm:mx-20 pt-64 sm:pt-60 md:pt-64 lg:pt-[22rem] xl:pt-[27.5rem] 2xl:pt-[28rem] 4k:pt-[48rem]'>
 
                 {/* <div className='py-1 lg:py-0'>
                     <img src={logo} alt="path not found" className='w-32 h-10' />
                 </div> */}
 
-                <div className=" border-2 w-80 sm:w-96 h-auto shadow-xl rounded-lg bg-white/60 z-40 pt-2 2xl:mt-20">
+                <div className="border-2 w-72 sm:w-96  h-auto shadow-xl rounded-lg bg-white/60 z-40 pt-2">
 
                     {/* <div className='flex flex-col justify-center items-center mt-6'>
                         <img src={clientLogo} alt="path not found" className='w-10 h-10 sm:w-16 sm:h-16 ' />
@@ -147,11 +147,11 @@ export default function Login() {
                                 {/* <div className='flex flex-col justify-center items-center my-6'>                                                            
                                     <div className='font-bold text-sm text-center sm:text-nowrap text-black'>Sign in to manage and track your lab information</div>                                                          
                                     <p className='text-xs font-semibold text-black'>Laboratory  Information Management System</p>                             
-                                </div> */}                                                        
+                                </div> */}
 
                                 <form onSubmit={userLoginSubmit} autoComplete='off'>
 
-                                    <div className="flex items-stretch border-[1px] bg-white mx-10 h-8 rounded-md">
+                                    <div className="flex items-stretch border-[1px] bg-white mx-4 md:mx-10 h-8 rounded-md">
                                         <div className="flex items-center px-2">
                                             <FaUser className='text-gray-500 text-sm' />
                                         </div>
@@ -169,7 +169,7 @@ export default function Login() {
 
                                     <div className='mt-2'>
 
-                                        <div className="flex items-stretch border-[1px] bg-white mx-10 h-8 rounded-md">
+                                        <div className="flex items-stretch border-[1px] bg-white mx-4 md:mx-10 h-8 rounded-md">
                                             <div className="flex items-center px-2">
                                                 <FaLock className='text-gray-500 text-sm' />
                                             </div>
@@ -200,7 +200,7 @@ export default function Login() {
 
                                     <div className='text-end mx-10 mt-1 text-xs font-semibold cursor-pointer' onClick={() => setForgotPassword(true)}>Forgot password</div>
 
-                                    <div className="flex items-stretch border-[1px] bg-textColor border-textColor text-white mx-10 mt-2 h-8 rounded-md">
+                                    <div className="flex items-stretch border-[1px] bg-textColor border-textColor text-white mx-4 md:mx-10 mt-2 h-8 rounded-md">
                                         <button className="w-full h-full font-semibold border-none outline-none rounded-md text-sm flex justify-center items-center">
                                             {
                                                 isButtonClick ? <FaSpinner className='text-xl animate-spin' /> : 'Get started'
@@ -222,7 +222,7 @@ export default function Login() {
                         <div className="flex-1 border-t border-textColor mx-2"></div>
                     </div> */}
 
-                    <div className='my-3 flex justify-between items-center mx-10'>
+                    <div className='my-3 flex justify-between items-center mx-4 md:mx-10'>
                         {
                             iconData.map((data, index) => {
                                 return (

@@ -35,6 +35,9 @@ export default {
       animation: {
         slideDown: 'slideDown 0.5s ease-out',
       },
+      screens: {
+        '4k': '2560px', // 4K and larger screens
+      },
     },
   },
   plugins: [],
