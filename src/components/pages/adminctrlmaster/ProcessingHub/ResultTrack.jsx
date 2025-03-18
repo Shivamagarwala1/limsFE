@@ -24,7 +24,8 @@ import {
   ResultTrackRemarkPopupModal,
   SampleCollectionCommentPopupModal,
 } from "../../../../Custom Components/PopupModal";
-import { FormHeader } from "../../../../Custom Components/FormGenerator";
+// import { FormHeader } from "../../../../Custom Components/FormGenerator";
+import FormHeader from "../../../global/FormHeader";
 import RemarkGif from "../../../../assets/RemarkGif.gif";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import LegandaryButton from "../../../global/LegendButtonsForFilter";
@@ -48,10 +49,15 @@ import CustomFormButton from "../../../global/CustomFormButton";
 import CustomSmallPopup from "../../../global/CustomSmallPopup";
 import CustomFileUpload from "../../../global/CustomFileUpload";
 import { data } from "react-router-dom";
-import { useFormattedDateTime } from "../../../customehook/useDateTimeFormate";
+import { useFormattedDate, useFormattedDateTime } from "../../../customehook/useDateTimeFormate";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import CustomFormButtonWithLoading from "../../../global/CustomFormButtonWithLoading";
 import { RiDeleteBin5Fill } from "react-icons/ri";
+import CustomSearchInputFields from "../../../global/CustomSearchDropdown";
+import { DatePicker } from "../../../global/DatePicker";
+import { CustomTextBox } from "../../../global/CustomTextBox";
+import CustomMultiSelectDropdown from '../../../global/CustomMultiSelectDropdown'
+import CustomNormalFormButton from "../../../global/CustomNormalFormButton";
 
 export default function ResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -79,6 +85,34 @@ export default function ResultTrack() {
     doctorId: 0,
     template: 0
   });
+  const [resultTrackFromData, setresultTrackFromData] = useState({
+    // centreId: 0,
+    // fromDate: useFormattedDate(),
+    // toDate: useFormattedDate(),
+    // searchType: 'tbi.sampleReceiveDate',
+    // barcodeNo: '',
+    // department: [],
+    // test: [],
+    // user: '',
+    // header: 0,
+    // status: ''
+
+    centreIds: [],
+    fromDate: useFormattedDate(),
+    toDate: useFormattedDate(),
+    datetype: "tbi.sampleReceiveDate",
+    status: "",
+    orderby: "",
+    searchvalue: "",
+    itemIds: [],
+    departmentIds: [],
+    empid: 0,
+    reporttype: 0
+  })
+  const allCentreData = useRetrieveData();
+  const allDepartementData = useRetrieveData();
+  const allTestData = useRetrieveData();
+
   const [isHoveredPopupTable, setIsHoveredPopupTable] = useState(null);
 
   const [resonForReRunData, setReasonForReRundata] = useState(
@@ -160,6 +194,50 @@ export default function ResultTrack() {
     getAllData();
   }, [])
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await allCentreData.fetchDataFromApi(`/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)`);
+        //console.log(response);
+
+        await allDepartementData.fetchDataFromApi(`/labDepartment?select=id,deptname&$filter=(isactive eq 1)`);
+
+        await allTestData.fetchDataFromApi(`/itemMaster?select= itemId,ItemName&$filter=(deptId eq 2 and isactive eq 1)`);
+
+        // await allUserData.fetchDataFromApi(`/empMaster?select=empid,fName,lName&$filter=(isactive eq 1)`)
+
+      } catch (error) {
+        toast.error(error?.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+  const handelOnChangeForResultTrackFromData = (e) => {
+    setresultTrackFromData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+  const handelOnChangedepartment = (updatedSelectedItems) => {
+    setresultTrackFromData((preventData) => ({
+      ...preventData,
+      departmentIds: updatedSelectedItems
+    }));
+  };
+
+
+  const handelOnChangetest = (updatedSelectedItems) => {
+    setresultTrackFromData((preventData) => ({
+      ...preventData,
+      test: updatedSelectedItems
+    }));
+  };
+
+
   const handleFilterSelection = (selectedItem) => {
     setFilteringData(selectedItem);
   };
@@ -235,16 +313,28 @@ export default function ResultTrack() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const values = getValues();
+    // const values = getValues();
+    const itemData = resultTrackFromData?.departmentIds?.length
+      ? resultTrackFromData.departmentIds.map((item) => item?.id)
+      : [];
+
+    const testData = resultTrackFromData?.itemIds?.length
+      ? resultTrackFromData.itemIds.map((item) => item?.itemId)
+      : [];
+
     const payload = {
-      ...values,
+      // ...values,
+      ...resultTrackFromData,
       empId: lsData?.user?.employeeId,
-      centreIds: selectedCenter,
-      departmentIds: selectedDepartment,
-      itemIds: selectedTest,
+      centreIds: allCentreData?.data?.find((data) => data?.centreId === resultTrackFromData?.centreIds?.centreId)?.centreId,
+      departmentIds: itemData,
+      itemIds: testData,
       reporttype: 2,
       status: filteringData
     };
+
+
+    console.log(payload);
 
 
     try {
@@ -254,43 +344,6 @@ export default function ResultTrack() {
       if (response?.success) {
 
         setIsButtonClick(1);
-
-        // Initialize an empty object to group by workOrderId and accumulate investigation names
-
-        //!===================================================                                   
-        // const result = {};                                                                    
-
-        // // Loop through the data and group by workOrderId                                     
-        // response?.data.forEach(item => {                                                      
-        //   const { workOrderId, investigationName, testid, gender, centreId, reportType,  itemId } = item;                                                                         
-
-        //   // If workOrderId exists in result, push the investigationName into the investigationName array
-        //   if (result[workOrderId]) {
-        //     result[workOrderId].investigationName.push({
-        //       investigationName,  // Store investigationName
-        //       testid,             // Store testId
-        //       gender,             // Store gender
-        //       fromAge: 0,            // Store fromAge
-        //       toAge: 0,              // Store toAge
-        //       centreId,
-        //       reportType,
-        //       itemId
-        //     }          // Store centreId
-        //     );
-        //   } else {
-        //     // Otherwise, create a new entry for that workOrderId with the current item data and initialize the investigationName array
-        //     result[workOrderId] = {
-        //       ...item,  // Keep the full data
-        //       investigationName: [{ investigationName: investigationName, testid: testid, gender: gender, fromAge: 0, toAge: 0, centreId: centreId, reportType: reportType, itemId: itemId }]  // Add the investigationName array containing the current investigationName
-        //     };
-        //   }
-        // });                                                                                   
-
-        // // Convert the result object into an array if needed                                  
-        // const groupedData = Object.values(result);                                            
-
-        //!===================================================                                   
-
 
 
         const result = {};
@@ -567,95 +620,6 @@ export default function ResultTrack() {
       setObservationValue(computedValues);
     }
   }, [allObservationData]);
-
-
-
-
-  // useEffect(() => {
-  //   // Step 1: Filter `reportType === 1`
-  //   const filteredData = allObservationData?.filter(item => item?.reportType === 1);
-
-  //   let calculatedValues = {};
-
-  //   // Step 2: Process formulas
-  //   filteredData.forEach((formulaEntry) => {
-  //     if (formulaEntry.formula) {
-  //       const formula = formulaEntry.formula; // e.g. "357+708"
-  //       const observationIds = formula.match(/\d+/g)?.map(Number) || []; // Extract numbers
-
-  //       // Find values of matching observations
-  //       const matchedObservations = filteredData.filter(item =>
-  //         observationIds.includes(item.labObservationId)
-  //       );
-
-  //       // Sum their values
-  //       const totalSum = matchedObservations.reduce((sum, obs) => {
-  //         return sum + (parseFloat(obs.value) || 0);
-  //       }, 0);
-
-  //       // Store summed value
-  //       calculatedValues[formulaEntry.testId] = { ...calculatedValues[formulaEntry.testId], sum: totalSum };
-  //     }
-  //   });
-
-  //   setSummedValuesForFormuladata(calculatedValues); // Store calculated values
-  // }, [allObservationData]);
-
-  // const handleInputChangeForObserVtionValue = (testId, index, value) => {
-
-  //   const allowedPattern = /^[a-z0-9. -]*$/i; // Allows a-z, 0-9, dot (.), space (' '), and single quote (')
-
-
-  //   if (allowedPattern.test(value)) {
-  //     setObservationValue(prev => ({
-  //       ...prev,
-  //       [testId]: {
-  //         ...prev[testId],
-  //         [index]: value
-  //       }
-  //     }));
-
-  //     // Step 1: Filter `reportType === 1`
-  //     const filteredData = allObservationData?.filter(item => item?.reportType === 1);
-
-  //     console.log(filteredData);
-
-
-  //     let calculatedValues = {};
-
-  //     // Step 2: Process formulas
-  //     filteredData.forEach((formulaEntry) => {
-  //       if (formulaEntry.formula) {
-  //         const formula = formulaEntry.formula; // e.g. "357+708"
-  //         const observationIds = formula.match(/\d+/g)?.map(Number) || []; // Extract numbers
-
-  //         // Find values of matching observations
-  //         const matchedObservations = filteredData.filter(item =>
-  //           observationIds.includes(item.labObservationId)
-  //         );
-
-  //         console.log(matchedObservations);
-
-
-  //         // Sum their values
-  //         const totalSum = matchedObservations.reduce((sum, obs) => {
-  //           return sum + (parseFloat(obs.value) || 0);
-  //         }, 0);
-
-  //         // Store summed value
-  //         calculatedValues[formulaEntry.testId] = { ...calculatedValues[formulaEntry.testId], sum: totalSum };
-  //       }
-  //     });
-
-  //     setSummedValuesForFormuladata(calculatedValues); // Store calculated values
-
-  //     console.log(summedValuesForFormuladata);
-
-
-  //   } else {
-  //     toast.error("Invalid character! Only a-z, 0-9, spaces and dots (.), are allowed.");
-  //   }
-  // };
 
 
   const handleInputChangeForObserVtionValue = (testId, index, value) => {
@@ -1186,7 +1150,6 @@ export default function ResultTrack() {
 
 
 
-  //!============morden way code===============                                                  
   const allFileAttachementData = useRetrieveData();
   const allReportFileData = useRetrieveData();
   const allRejectionData = useRetrieveData();
@@ -1545,296 +1508,259 @@ export default function ResultTrack() {
   }
 
   //!=========================end===============================
-  // const updatedArray = addObjectId(PostData?.data);
 
-  // const currentRow = async (id) => {
-  //   const row = updatedArray?.filter((item) => item?.id == id);
-
-
-  //   setUserObj(row[0]);
-  //   return row[0];
-  // }
-
-  const statuses = [
-    {
-      Data: 1,
-      CallBack: () => {
-        console.log('sample');
-
-      },
-    },
-    { Data: 3, CallBack: () => { } },
-    { Data: 11, CallBack: () => { } },
-    // { Data: "Tested", CallBack: () => {} },
-    { Data: 5, CallBack: () => { } },
-    { Data: 4, CallBack: () => { } },
-    { Data: 7, CallBack: () => { } },
-    { Data: 9, CallBack: () => { } },
-    { Data: 12, CallBack: () => { } },
-    { Data: 8, CallBack: () => { } },
-    { Data: 6, CallBack: () => { } },
-    { Data: 10, CallBack: () => { } },
-  ];
 
 
   return (
     <div>
-      {/* <ResultTrackRemarkPopupModal
-        setShowPopup={setRemarkPopup}
-        showPopup={RemarkPopup}
-        rowData={Row}
-      />
-      <ReRunPopup
-        heading="Re-Run"
-        setShowPopup={setReRun}
-        showPopup={ReRun}
-        rows={ReRunRow}
-        columns={ReRunColumns}
-      />
-      <InfoPopup
-        heading="Patient Information"
-        setShowPopup={setInfo}
-        rows={row}
-        columns={InfoColumns}
-        showPopup={Info}
-      />
-      <ResultTrackRejectPopupModal
-        rowData={Row}
-        setShowPopup={setRejectPopup}
-        showPopup={RejectPopup}
-      /> */}
-      <>
-        {/* <div style={{ position: "fixed", top: "100px", maxHeight: "200px", overflowY: "auto", width: "100%",backgroundColor:"white" }}> */}
-        <div className="mb-1">
-          {/* Header Section */}
-          <FormHeader title="Patient Search" />
-          <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-              <UpdatedMultiSelectDropDown
-                id="Center"
-                name="serachCenter"
-                label="Center"
-                placeHolder="Search Center"
-                options={AllCenterData?.data}
-                isMandatory={false}
-                isDisabled={false}
-                optionKey="centreId"
-                optionValue={["companyName"]}
-                selectedValues={selectedCenter}
-                setSelectedValues={setSelectedCenter}
-              />
 
-              <InputGenerator
-                inputFields={[
-                  {
-                    label: "From Date",
-                    type: "customDateField",
-                    name: "fromDate",
-                  },
-                  {
-                    label: "To Date",
-                    type: "customDateField",
-                    name: "toDate",
-                  },
-                  {
-                    label: "Search",
-                    type: "select",
-                    name: "datetype",
-                    defaultView: true,
-                    dataOptions: [
-                      {
-                        id: "tbi.sampleReceiveDate",
-                        data: "Sample Received Date",
-                      },
-                      {
-                        id: "tbi.sampleCollectionDate",
-                        data: "Sample Collection Date",
-                      },
-                      { id: "tb.bookingDate", data: "Booking Date" },
-                      { id: "tbi.deliveryDate", data: "Delivery Date" },
-                    ],
-                  },
-                ]}
-              />
-              <div className="flex gap-[0.25rem]">
-                <InputGenerator
-                  inputFields={[
-                    {
-                      label: "Status",
-                      type: "select",
-                      name: "status",
-                      defaultView: true,
-                      dataOptions: [
-                        { id: "Pending", status: "Pending" },
-                        { id: "Tested", status: "Tested" },
-                        { id: "Approved", status: "Approved" },
-                        { id: "Urgent", status: "Urgent" },
-                        { id: "Machine Result", status: "Machine Result" },
-                      ],
-                    },
-                    {
-                      label: "Order By",
-                      type: "select",
-                      name: "orderby",
-                      defaultView: true,
-                      dataOptions: [
-                        { id: "tb.bookingDate", OrderBy: "Reg. Date" },
-                        { id: "tbi.workOrderId", OrderBy: "Work Order" },
-                        { id: "tbi.barcodeno", OrderBy: "Barcode No." },
-                        {
-                          id: "tbi.sampleReceiveDate",
-                          OrderBy: "Dept. Received",
-                        },
-                        { id: "tbi.investigationName", OrderBy: "Test Name" },
-                      ],
-                    },
-                  ]}
-                />
-              </div>
-              <InputGenerator
-                inputFields={[
-                  {
-                    label: "Search Barcode,Batch No.",
-                    type: "text",
-                    name: "searchvalue",
-                  },
-                ]}
-              />
+      <FormHeader headerData={'Patient Search'} />
 
-              <UpdatedMultiSelectDropDown
-                id="serachEmployeeList"
-                name="Test"
-                label="Test"
-                placeHolder="Search Test"
-                options={TestData?.data}
-                isMandatory={false}
-                isDisabled={false}
-                optionKey="itemId"
-                optionValue={["itemName"]}
-                selectedValues={selectedTest}
-                setSelectedValues={setSelectedTest}
-              />
+      <form autoComplete="off" onSubmit={handleSubmit}>
 
-              <UpdatedMultiSelectDropDown
-                id="EmployeeList"
-                name="serachEmployeeList"
-                label="Department"
-                placeHolder="Search Department"
-                options={DepartmentData?.data}
-                isMandatory={false}
-                isDisabled={false}
-                optionKey="id"
-                optionValue={["deptName"]}
-                selectedValues={selectedDepartment}
-                setSelectedValues={setSelectedDepartment}
-              />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
 
-              <div className="flex gap-[0.25rem]">
-                <div className="relative flex-1">
-                  <SubmitButton text={"Search"} />
-                </div>
-                <div className="relative flex-1">
-                </div>
-              </div>
-            </div>
+          <div className="relative flex-1">
 
-            {/* <LegendButtons statuses={statuses} /> */}
-
-            <LegandaryButton allFilterData={allFilterData} onFilterSelect={handleFilterSelection} />
-
-          </form>
-
-
-          {/* <div className="mt-1" style={{ maxHeight: "200px", overflow: "scroll" }}>
-
-            <DynamicTable
-              rows={updatedArray}
-              name="Patient Test Details"
-              loading={PostData?.loading}
-              tableStyle={{ marginBottom: "-25px" }}
-              columns={columns}
+            <CustomSearchInputFields
+              id="centreIds"
+              name="centreIds"
+              label="Centre"
+              value={resultTrackFromData?.centreIds}
+              options={allCentreData?.data}
+              onChange={(e) => handelOnChangeForResultTrackFromData(e)}
+              filterText="No records found"
+              placeholder=" "
+              searchWithName="companyName"
+              uniqueKey="centreId"
               activeTheme={activeTheme}
             />
-          </div> */}
+
+          </div>
+
+          <div className='relative flex-1'>
+            <DatePicker
+              id="fromDate"
+              name="fromDate"
+              value={resultTrackFromData?.fromDate || ''}
+              onChange={(e) => handelOnChangeForResultTrackFromData(e)}
+              placeholder=" "
+              label="From Date"
+              activeTheme={activeTheme}
+              currentDate={new Date()} // Current date: today
+              maxDate={new Date(2025, 11, 31)}
+
+            />
+          </div>
+
+          <div className='relative flex-1'>
+            <DatePicker
+              id="toDate"
+              name="toDate"
+              value={resultTrackFromData?.toDate || ''}
+              onChange={(e) => handelOnChangeForResultTrackFromData(e)}
+              placeholder=" "
+              label="To Date"
+              activeTheme={activeTheme}
+              currentDate={new Date()} // Current date: today
+              maxDate={new Date(2025, 11, 31)}
+
+            />
+          </div>
+
+
+          <div className="relative flex-1">
+
+            <CustomDropdown
+              name="datetype"
+              label="Search Type"
+              value={resultTrackFromData?.datetype}
+              options={[
+                // { label: 'Select Search Type ', value: 0, disabled: true },
+                { label: 'Sample Recived Date', value: 'tbi.sampleReceiveDate' },
+                { label: 'Sample Collection Date', value: 'tbi.sampleCollectionDate' },
+                { label: 'Booking Date', value: 'tb.bookingDate' },
+                { label: 'Dalivery Date', value: 'tbi.deliveryDate' },
+              ]}
+              onChange={(e) => handelOnChangeForResultTrackFromData(e)}
+              defaultIndex={0}
+              activeTheme={activeTheme}
+            />
+          </div>
+
+
+          <div className="flex gap-[0.25rem]">
+            <div className="relative flex-1">
+              <CustomDropdown
+                name="status"
+                label="Search Type"
+                value={resultTrackFromData?.status}
+                options={[
+                  { label: "Pending", value: "Pending" },
+                  { label: "Tested", value: "Tested" },
+                  { label: "Approved", value: "Approved" },
+                  { label: "Urgent", value: "Urgent" },
+                  { label: "Machine Result", value: "Machine Result" }
+                ]}
+                onChange={(e) => handelOnChangeForResultTrackFromData(e)}
+                defaultIndex={0}
+                activeTheme={activeTheme}
+              />
+            </div>
+
+            <div className="relative flex-1">
+              <CustomDropdown
+                name="orderby"
+                label="Order By"
+                value={resultTrackFromData?.orderby}
+                options={[
+                  { value: "tb.bookingDate", label: "Reg. Date" },
+                  { value: "tbi.workOrderId", label: "Work Order" },
+                  { value: "tbi.barcodeno", label: "Barcode No." },
+                  { value: "tbi.sampleReceiveDate", label: "Dept. Received" },
+                  { value: "tbi.investigationName", label: "Test Name" },
+                ]}
+                onChange={(e) => handelOnChangeForResultTrackFromData(e)}
+                defaultIndex={0}
+                activeTheme={activeTheme}
+              />
+            </div>
+          </div>
+
+          <div className="relative flex-1">
+            <CustomTextBox
+              type="charNumberWithSpace"
+              name="searchvalue"
+              value={resultTrackFromData?.searchvalue || ''}
+              onChange={(e) => handelOnChangeForResultTrackFromData(e)}
+              label="Search Barcode,Batch No."
+            // showLabel={true}
+            />
+          </div>
+
+
+          <div className="relative flex-1">
+
+            <CustomMultiSelectDropdown
+              id="itemIds"
+              name="itemIds"
+              label="Select Test"
+              options={allTestData?.data}
+              selectedItems={resultTrackFromData?.itemIds}
+              onSelectionChange={handelOnChangetest}
+              placeholder=" "
+              activeTheme={activeTheme}
+              uniqueId={'itemId'}
+              searchWithName={'itemName'}
+            />
+          </div>
+
+          <div className="relative flex-1">
+
+            <CustomMultiSelectDropdown
+              id="departmentIds"
+              name="departmentIds"
+              label="Select Departement"
+              options={allDepartementData?.data}
+              selectedItems={resultTrackFromData?.departmentIds}
+              onSelectionChange={handelOnChangedepartment}
+              placeholder=" "
+              activeTheme={activeTheme}
+              uniqueId={'id'}
+              searchWithName={'deptName'}
+            />
+          </div>
+
+
+          <div className="flex gap-[0.25rem]">
+
+            <div className="relative flex-1">
+              <CustomNormalFormButton activeTheme={activeTheme} text={'Search'} />
+            </div>
+
+            <div className="relative flex-1"></div>
+          </div>
+
 
         </div>
 
+        <LegandaryButton allFilterData={allFilterData} onFilterSelect={handleFilterSelection} />
+      </form>
 
-        <div>
+      <div>
 
-          {/* {
-            isButtonClick === 1 && (
-              <CustomLoadingPage />
-            )
-          } */}
+        {/* {
+          isButtonClick === 1 && (
+            <CustomLoadingPage />
+          )
+        } */}
 
-          <GridDataDetails
-            gridDataDetails={'Patient Record Details'}
-          />
+        <GridDataDetails
+          gridDataDetails={'Patient Record Details'}
+        />
 
-          {/* <div className="max-h-80 overflow-y-auto"> */}
-          <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme} height=
-            {"300px"}>
-            <tbody>
-              {allResultTrackingData?.map((data, index) => (
+        {/* <div className="max-h-80 overflow-y-auto"> */}
+        <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme}>
+          <tbody>
+            {allResultTrackingData?.map((data, index) => (
 
-                <tr
-                  className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                    ? ''
-                    : index % 2 === 0
-                      ? 'bg-gray-100'
-                      : 'bg-white'
-                    }`}
-                  key={index}
-                  onMouseEnter={() => setIsHoveredTable(index)}
-                  onMouseLeave={() => setIsHoveredTable(null)}
-                  style={{
-                    background:
-                      isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                    // Hides scrollbar for IE/Edge
-                  }}
-                >
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                    <div className="flex gap-1 items-center">
-                      <div>
-                        {index + 1}
-                      </div>
-                      {
-                        data?.urgent === 1 && (
-                          <div>
-                            <img src={UrgentGif} alt="path not found" />
-                          </div>
-                        )
-                      }
-
+              <tr
+                className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                  ? ''
+                  : index % 2 === 0
+                    ? 'bg-gray-100'
+                    : 'bg-white'
+                  }`}
+                key={index}
+                onMouseEnter={() => setIsHoveredTable(index)}
+                onMouseLeave={() => setIsHoveredTable(null)}
+                style={{
+                  background:
+                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                  // Hides scrollbar for IE/Edge
+                }}
+              >
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                  <div className="flex gap-1 items-center">
+                    <div>
+                      {index + 1}
                     </div>
-                  </td>
+                    {
+                      data?.urgent === 1 && (
+                        <div>
+                          <img src={UrgentGif} alt="path not found" />
+                        </div>
+                      )
+                    }
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.bookingDate}
-                  </td>
+                  </div>
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.workOrderId}
-                  </td>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {data?.bookingDate}
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.sampleReceiveDate}
-                  </td>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {data?.workOrderId}
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.patientName}
-                  </td>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {data?.sampleReceiveDate}
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.age}
-                  </td>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {data?.patientName}
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.barcodeNo}
-                  </td>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {data?.age}
+                </td>
 
-                  {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {data?.barcodeNo}
+                </td>
+
+                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="flex gap-1">
                       {data?.investigationName?.map((item, index) => (
                         <CustomeNormalButton
@@ -1847,404 +1773,394 @@ export default function ResultTrack() {
                     </div>
 
                   </td> */}
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                    <div className="flex flex-wrap gap-1">
-                      {data?.investigationName?.map((item, index) => (
-                        <CustomeNormalButton
-                          key={index}
-                          activeTheme={activeTheme}
-                          text={item?.investigationName}
-                          onClick={() =>
-                            handelObservationData(
-                              data?.totalAge,
-                              item,
-                              data?.workOrderId,
-                              item?.reportType,
-                              item?.itemId,
-                              data?.testid,
-                              data?.deptId
-                            )
-                          }
-                          className="w-auto" // Optional: Adjust button width if needed
-                        />
-                      ))}
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                  <div className="flex flex-wrap gap-1">
+                    {data?.investigationName?.map((item, index) => (
+                      <CustomeNormalButton
+                        key={index}
+                        activeTheme={activeTheme}
+                        text={item?.investigationName}
+                        onClick={() =>
+                          handelObservationData(
+                            data?.totalAge,
+                            item,
+                            data?.workOrderId,
+                            item?.reportType,
+                            item?.itemId,
+                            data?.testid,
+                            data?.deptId
+                          )
+                        }
+                        className="w-auto" // Optional: Adjust button width if needed
+                      />
+                    ))}
 
-                    </div>
-                  </td>
+                  </div>
+                </td>
 
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    {data?.approvedDate}
-                  </td>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {data?.approvedDate}
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
 
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => {
-                        setShowPopup(1), setSingleRemarkData((preventData) => ({
-                          ...preventData,
-                          transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName[index]?.investigationName,
-                        }))
-                      }}
-                    >
-                      <MdAddCircleOutline className="text-base" />
-                    </div>
-                  </td>
+                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                    onClick={() => {
+                      setShowPopup(1), setSingleRemarkData((preventData) => ({
+                        ...preventData,
+                        transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName[index]?.investigationName,
+                      }))
+                    }}
+                  >
+                    <MdAddCircleOutline className="text-base" />
+                  </div>
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => { setShowPopup(2), getAllInfoDocumentData(data?.itemId) }}
-                    >
-                      <FaCircleInfo />
-                    </div>
-                  </td>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                    onClick={() => { setShowPopup(2), getAllInfoDocumentData(data?.itemId) }}
+                  >
+                    <FaCircleInfo />
+                  </div>
+                </td>
 
-                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                    {data?.comment.length >= 9 ? (
-                      <div className="flex justify-center items-center gap-1">
-                        {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
-                        <div
-                          className="w-5 h-5 flex justify-center items-center rounded-sm"
-                          style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                          onClick={() => setShowPopup(3)}
-                        >
-                          <FaCommentDots />
-                        </div>
+                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                  {data?.comment.length >= 9 ? (
+                    <div className="flex justify-center items-center gap-1">
+                      {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
+                      <div
+                        className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                        onClick={() => setShowPopup(3)}
+                      >
+                        <FaCommentDots />
                       </div>
-                    ) : (
-                      data?.comment
-                    )}
-                  </td>
+                    </div>
+                  ) : (
+                    data?.comment
+                  )}
+                </td>
 
-                </tr>
-              ))}
-            </tbody>
-          </CustomDynamicTable >
-
-
-
-        </div >
+              </tr>
+            ))}
+          </tbody>
+        </CustomDynamicTable >
 
 
-        {/* observation data */}
-        <div>
 
-          {
-            isButtonClick === 2 && (
-              <CustomLoadingPage />
-            )
-          }
+      </div >
 
 
-          {
-            //allObservationData?.length !== 0 && (
+      {/* observation data */}
+      <div>
 
-            <>
-              {/* <GridDataDetails
+        {
+          isButtonClick === 2 && (
+            <CustomLoadingPage />
+          )
+        }
+
+
+        {
+
+
+          <>
+            {/* <GridDataDetails
                 gridDataDetails={'Result Entry'}
               /> */}
 
-              {
-                isEditorOpen ?
+            {
+              isEditorOpen ?
 
-                  <>
+                <>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
-                      <div className="relative flex-1">
-                        <CustomDropdown
-                          name="template"
-                          label="Select Template"
-                          value={resultTrackData?.template}
-                          options={[
-                            { label: 'Select Template Name', value: 0, disabled: true },
-                            ...allTemplateData?.map(item => ({
-                              label: item.name,
-                              value: parseInt(item.id),
-                            })),
-                          ]}
-                          onChange={(e) => handelOnChangeResultTrackData(e)}
-                          defaultIndex={0}
-                          activeTheme={activeTheme}
-                          isMandatory={!resultTrackData?.template}
-                        />
-
-                      </div>
-                    </div>
-
-
-                    <div className="mb-2">
-                      <CustomeEditor />
-                    </div>
-
-                    <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
-
-                      <div className="relative flex-1">
-                        <CustomDropdown
-                          name="doctorId"
-                          label="Select Doctor"
-                          value={resultTrackData?.doctorId}
-                          options={[
-                            { label: 'Select Doctor Name', value: 0, disabled: true },
-                            ...allDoctorData?.map(item => ({
-                              label: item.doctorName,
-                              value: parseInt(item.doctorId),
-                            })),
-                          ]}
-                          onChange={(e) => handelOnChangeResultTrackData(e)}
-                          defaultIndex={0}
-                          activeTheme={activeTheme}
-                          isMandatory={!resultTrackData?.doctorId}
-                        />
-                      </div>
-
-                      <div className='flex gap-[0.25rem]'>
-                        <div className="relative flex-1 ">
-                          <CustomFormButton
-                            activeTheme={activeTheme}
-                            text="Save"
-                            icon={FaSpinner}
-                            isButtonClick={isButtonClick}
-                            loadingButtonNumber={1} // Unique number for the first button
-                            onClick={() => onSubmitObservationData('Save', 1)}
-                          />
-                        </div>
-                        <div className="relative flex-1">
-                          <CustomeNormalButton
-                            activeTheme={activeTheme}
-                            text={String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold'}
-                            onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Hold') }}
-
-                          // // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
-                          />
-                        </div>
-                      </div>
-
-                      <div className='flex gap-[0.25rem]'>
-                        <div className="relative flex-1 ">
-                          {
-                            String(testIsHold?.isApproved) === '1' ?
-                              <CustomeNormalButton
-                                activeTheme={activeTheme}
-                                text={'Un Approve'}
-
-                                icon={FaSpinner}
-                                isButtonClick={isButtonClick}
-                                loadingButtonNumber={2} // Unique number for the first button
-                                // onClick={() => onSubmitObservationData('Approve', 3)}
-                                // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
-                                onClick={() => { setTrackingHoldOrApproved('Approve'), onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved() }}
-                              />
-
-                              :
-                              <CustomFormButton
-                                activeTheme={activeTheme}
-                                text="Approve"
-                                icon={FaSpinner}
-                                isButtonClick={isButtonClick}
-                                loadingButtonNumber={3} // Unique number for the first button
-
-                                // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
-
-                                disabled={resultTrackData?.doctorId === 0}
-                                onClick={() => onSubmitObservationData('Approve', 3)}
-                              />
-
-                          }
-
-
-                        </div>
-                        <div className="relative flex-1">
-                          <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'}
-                            onClick={() => handelOnSubmitForPrintReport(storeWorkOrderId)}
-                          />
-                        </div>
-                      </div>
-
-                      {/* <div className='flex gap-[0.25rem]'>
-                        <div className="relative flex-1 ">
-                          <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
-                            onClick={() => setShowPopup(8)}
-                          />
-                        </div>
-                        <div className="relative flex-1">
-                          <CustomeNormalButton activeTheme={activeTheme} text={'Add Attachment'} onClick={() => setShowPopup(7)} />
-                        </div>
-                      </div> */}
-
-                      <div className='flex gap-[0.25rem]'>
-                        <div className="relative flex-1 ">
-                          <CustomeNormalButton activeTheme={activeTheme} text={'Main List'} onClick={handleSubmit} />
-                        </div>
-                        <div className="relative flex-1">
-                          <CustomeNormalButton activeTheme={activeTheme} text={'Previous'}
-                            onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 1)}
-                          />
-                        </div>
-                      </div>
-
-                      <div className='flex gap-[0.25rem]'>
-                        <div className="relative flex-1 ">
-                          <CustomeNormalButton activeTheme={activeTheme} text={'Next'}
-                            onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 0)}
-                          />
-                        </div>
-                        <div className="relative flex-1">
-
-                        </div>
-                      </div>
-                    </div>
-
-                  </>
-                  :
-                  allObservationData?.length !== 0 && (
-                    <>
-                      <GridDataDetails
-                        gridDataDetails={'Result Entry'}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
+                    <div className="relative flex-1">
+                      <CustomDropdown
+                        name="template"
+                        label="Select Template"
+                        value={resultTrackData?.template}
+                        options={[
+                          { label: 'Select Template Name', value: 0, disabled: true },
+                          ...allTemplateData?.map(item => ({
+                            label: item.name,
+                            value: parseInt(item.id),
+                          })),
+                        ]}
+                        onChange={(e) => handelOnChangeResultTrackData(e)}
+                        defaultIndex={0}
+                        activeTheme={activeTheme}
+                        isMandatory={!resultTrackData?.template}
                       />
-                      <CustomDynamicTable CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
-                        <tbody>
-                          {allObservationData?.map((data, index) => {
 
-                            const isNextAvailable = index < allObservationData.length - 1;
+                    </div>
+                  </div>
 
-                            return (
-                              data?.reportType === 1 &&
-                                data?.observationName === "" ? (
-                                <React.Fragment key={index}>
 
-                                  {
-                                    index !== 0 && (
-                                      isNextAvailable && (
-                                        <tr>
-                                          <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
-                                          </td>
-                                        </tr>
-                                      )
+                  <div className="mb-2">
+                    <CustomeEditor />
+                  </div>
+
+                  <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
+
+                    <div className="relative flex-1">
+                      <CustomDropdown
+                        name="doctorId"
+                        label="Select Doctor"
+                        value={resultTrackData?.doctorId}
+                        options={[
+                          { label: 'Select Doctor Name', value: 0, disabled: true },
+                          ...allDoctorData?.map(item => ({
+                            label: item.doctorName,
+                            value: parseInt(item.doctorId),
+                          })),
+                        ]}
+                        onChange={(e) => handelOnChangeResultTrackData(e)}
+                        defaultIndex={0}
+                        activeTheme={activeTheme}
+                        isMandatory={!resultTrackData?.doctorId}
+                      />
+                    </div>
+
+                    <div className='flex gap-[0.25rem]'>
+                      <div className="relative flex-1 ">
+                        <CustomFormButton
+                          activeTheme={activeTheme}
+                          text="Save"
+                          icon={FaSpinner}
+                          isButtonClick={isButtonClick}
+                          loadingButtonNumber={1} // Unique number for the first button
+                          onClick={() => onSubmitObservationData('Save', 1)}
+                        />
+                      </div>
+                      <div className="relative flex-1">
+                        <CustomeNormalButton
+                          activeTheme={activeTheme}
+                          text={String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold'}
+                          onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Hold') }}
+
+                        // // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
+                        />
+                      </div>
+                    </div>
+
+                    <div className='flex gap-[0.25rem]'>
+                      <div className="relative flex-1 ">
+                        {
+                          String(testIsHold?.isApproved) === '1' ?
+                            <CustomeNormalButton
+                              activeTheme={activeTheme}
+                              text={'Un Approve'}
+
+                              icon={FaSpinner}
+                              isButtonClick={isButtonClick}
+                              loadingButtonNumber={2} // Unique number for the first button
+                              // onClick={() => onSubmitObservationData('Approve', 3)}
+                              // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+                              onClick={() => { setTrackingHoldOrApproved('Approve'), onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved() }}
+                            />
+
+                            :
+                            <CustomFormButton
+                              activeTheme={activeTheme}
+                              text="Approve"
+                              icon={FaSpinner}
+                              isButtonClick={isButtonClick}
+                              loadingButtonNumber={3} // Unique number for the first button
+
+                              // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+
+                              disabled={resultTrackData?.doctorId === 0}
+                              onClick={() => onSubmitObservationData('Approve', 3)}
+                            />
+
+                        }
+
+
+                      </div>
+                      <div className="relative flex-1">
+                        <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'}
+                          onClick={() => handelOnSubmitForPrintReport(storeWorkOrderId)}
+                        />
+                      </div>
+                    </div>
+
+
+                    <div className='flex gap-[0.25rem]'>
+                      <div className="relative flex-1 ">
+                        <CustomeNormalButton activeTheme={activeTheme} text={'Main List'} onClick={handleSubmit} />
+                      </div>
+                      <div className="relative flex-1">
+                        <CustomeNormalButton activeTheme={activeTheme} text={'Previous'}
+                          onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 1)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className='flex gap-[0.25rem]'>
+                      <div className="relative flex-1 ">
+                        <CustomeNormalButton activeTheme={activeTheme} text={'Next'}
+                          onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 0)}
+                        />
+                      </div>
+                      <div className="relative flex-1">
+
+                      </div>
+                    </div>
+                  </div>
+
+                </>
+                :
+                allObservationData?.length !== 0 && (
+                  <>
+                    <GridDataDetails
+                      gridDataDetails={'Result Entry'}
+                    />
+                    <CustomDynamicTable CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
+                      <tbody>
+                        {allObservationData?.map((data, index) => {
+
+                          const isNextAvailable = index < allObservationData.length - 1;
+
+                          return (
+                            data?.reportType === 1 &&
+                              data?.observationName === "" ? (
+                              <React.Fragment key={index}>
+
+                                {
+                                  index !== 0 && (
+                                    isNextAvailable && (
+                                      <tr>
+                                        <td colSpan="12" className="border-b px-4 h-6 text-base font-bold text-gridTextColor w-full">
+                                        </td>
+                                      </tr>
                                     )
-                                  }
+                                  )
+                                }
 
 
-                                  <tr>
-                                    <td colSpan="12" className="border-b px-4 h-6 text-xs font-extrabold text-gridTextColor w-full">
-                                      <div className="flex items-center gap-2 w-full">
-                                        <div style={{
-                                          background: activeTheme?.menuColor,
-                                          WebkitBackgroundClip: "text",
-                                          WebkitTextFillColor: "transparent",
-                                        }}>{data?.investigationName}</div>
-                                        <div className="flex justify-center items-center">
-                                          <input
-                                            type="checkbox"
-                                            checked={observationCheckValue[data?.testId] || false}
-                                            onChange={() =>
-                                              setObservationCheckValue(prev => ({
-                                                ...prev,
-                                                [data?.testId]: !prev[data?.testId] // Toggle checkbox state
-                                              }))
-                                            }
+                                <tr>
+                                  <td colSpan="12" className="border-b px-4 h-6 text-xs font-extrabold text-gridTextColor w-full">
+                                    <div className="flex items-center gap-2 w-full">
+                                      <div style={{
+                                        background: activeTheme?.menuColor,
+                                        WebkitBackgroundClip: "text",
+                                        WebkitTextFillColor: "transparent",
+                                      }}>{data?.investigationName}</div>
+                                      <div className="flex justify-center items-center">
+                                        <input
+                                          type="checkbox"
+                                          checked={observationCheckValue[data?.testId] || false}
+                                          onChange={() =>
+                                            setObservationCheckValue(prev => ({
+                                              ...prev,
+                                              [data?.testId]: !prev[data?.testId] // Toggle checkbox state
+                                            }))
+                                          }
+                                        />
+                                      </div>
+
+                                      <div className="w-20">
+                                        <CustomeNormalButton
+                                          activeTheme={activeTheme}
+                                          text={'Reject'}
+                                          disabled={String(data?.isapproved) !== '0'}
+                                          onClick={() => { setShowPopup(4), setTestIdForTracingAddAttachement(data?.testId) }}
+                                        />
+                                      </div>
+                                      <div className="w-20">
+                                        <CustomeNormalButton activeTheme={activeTheme}
+                                          text={'Re-Run'}
+                                          disabled={String(data?.isapproved) !== '0'}
+                                          onClick={() => {
+                                            setShowPopup(5), setTestIdForTracingAddAttachement(data?.testId),
+                                              handelPushAllAllTestDatabasedOnTestId(data?.testId)
+                                          }} />
+                                      </div>
+                                      <div className="w-20">
+                                        <CustomeNormalButton activeTheme={activeTheme}
+                                          text={'Comment'}
+                                          onClick={() => {
+                                            setShowPopup(9),
+                                              // setTestIdForTracingAddAttachement(data?.testId),
+
+                                              getCommentDatabasedOnTestId(data?.testId)
+                                          }}
+                                          disabled={String(data?.isapproved) !== '0'}
+                                        />
+                                      </div>
+
+                                      <div className='flex gap-[0.25rem]'>
+                                        <div className="relative flex-1 ">
+                                          <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
+                                            onClick={() => setShowPopup(8)}
+                                            disabled={String(data?.isapproved) !== '0'}
                                           />
                                         </div>
-
-                                        <div className="w-20">
-                                          <CustomeNormalButton
-                                            activeTheme={activeTheme}
-                                            text={'Reject'}
-                                            disabled={String(data?.isapproved) !== '0'}
-                                            onClick={() => { setShowPopup(4), setTestIdForTracingAddAttachement(data?.testId) }}
-                                          />
-                                        </div>
-                                        <div className="w-20">
-                                          <CustomeNormalButton activeTheme={activeTheme}
-                                            text={'Re-Run'}
-                                            disabled={String(data?.isapproved) !== '0'}
-                                            onClick={() => {
-                                              setShowPopup(5), setTestIdForTracingAddAttachement(data?.testId),
-                                                handelPushAllAllTestDatabasedOnTestId(data?.testId)
-                                            }} />
-                                        </div>
-                                        <div className="w-20">
-                                          <CustomeNormalButton activeTheme={activeTheme}
-                                            text={'Comment'}
-                                            onClick={() => {
-                                              setShowPopup(9),
-                                                // setTestIdForTracingAddAttachement(data?.testId),
-
-                                                getCommentDatabasedOnTestId(data?.testId)
-                                            }}
-                                            disabled={String(data?.isapproved) !== '0'}
-                                          />
-                                        </div>
-
-                                        <div className='flex gap-[0.25rem]'>
-                                          <div className="relative flex-1 ">
-                                            <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
-                                              onClick={() => setShowPopup(8)}
-                                              disabled={String(data?.isapproved) !== '0'}
-                                            />
-                                          </div>
-                                          <div className="relative flex-1">
-                                            <CustomeNormalButton activeTheme={activeTheme} text={'Add Attachment'} onClick={() => setShowPopup(7)} disabled={String(data?.isapproved) !== '0'} />
-                                          </div>
+                                        <div className="relative flex-1">
+                                          <CustomeNormalButton activeTheme={activeTheme} text={'Add Attachment'} onClick={() => setShowPopup(7)} disabled={String(data?.isapproved) !== '0'} />
                                         </div>
                                       </div>
-                                    </td>
-                                  </tr>
+                                    </div>
+                                  </td>
+                                </tr>
 
 
-                                </React.Fragment>
-                              )
-                                :
+                              </React.Fragment>
+                            )
+                              :
 
-                                data?.reportType === 1 && (
+                              data?.reportType === 1 && (
 
-                                  <tr
-                                    className={`cursor-pointer whitespace-nowrap 
+                                <tr
+                                  className={`cursor-pointer whitespace-nowrap 
                                   ${isHoveredTable === index ? '' : index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}  
                                   `}
 
-                                    key={index}
-                                    onMouseEnter={() => setIsHoveredTable(index)}
-                                    onMouseLeave={() => setIsHoveredTable(null)}
-                                    style={{
-                                      background:
-                                        isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                                      // Hides scrollbar for IE/Edge
-                                    }}
-                                  >
+                                  key={index}
+                                  onMouseEnter={() => setIsHoveredTable(index)}
+                                  onMouseLeave={() => setIsHoveredTable(null)}
+                                  style={{
+                                    background:
+                                      isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                    // Hides scrollbar for IE/Edge
+                                  }}
+                                >
 
 
-                                    <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
-                                      <div className="flex items-center gap-1">
-                                        <div>
-                                          {data?.observationName}
-                                        </div>
-                                        {
-                                          data?.observationName === 'DIFFERENTIAL LEUKOCYTE COUNT(DLC)' && (
-                                            <div>
-                                              <input
-                                                type="checkbox"
-                                                checked={observationCheckValue[data?.testId] || false}
-                                                onChange={() =>
-                                                  setObservationCheckValue(prev => ({
-                                                    ...prev,
-                                                    [data?.testId]: !prev[data?.testId] // Toggle checkbox state
-                                                  }))
-                                                }
-                                              />
-                                            </div>
-                                          )
-                                        }
-
+                                  <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
+                                    <div className="flex items-center gap-1">
+                                      <div>
+                                        {data?.observationName}
                                       </div>
-                                    </td>
+                                      {
+                                        data?.observationName === 'DIFFERENTIAL LEUKOCYTE COUNT(DLC)' && (
+                                          <div>
+                                            <input
+                                              type="checkbox"
+                                              checked={observationCheckValue[data?.testId] || false}
+                                              onChange={() =>
+                                                setObservationCheckValue(prev => ({
+                                                  ...prev,
+                                                  [data?.testId]: !prev[data?.testId] // Toggle checkbox state
+                                                }))
+                                              }
+                                            />
+                                          </div>
+                                        )
+                                      }
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                      <form autoComplete="off">
-                                        {/* <input
+                                    </div>
+                                  </td>
+
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                    <form autoComplete="off">
+                                      {/* <input
                                           type="text"
                                           name="charNumber"
                                           id="charNumber"
@@ -2262,232 +2178,232 @@ export default function ResultTrack() {
                                           }}
                                         /> */}
 
-                                        <input
-                                          type="text"
-                                          name="charNumber"
-                                          id="charNumber"
-                                          value={
-                                            data?.value === 'Header'
-                                              ? data?.value
-                                              : data?.formula
-                                                ? (observationValue[data?.testId]?.[index] !== undefined
-                                                  ? observationValue[data?.testId]?.[index]  // Use computed value if index exists
-                                                  : data?.value) // Otherwise, keep original value
-                                                : observationValue[data?.testId]?.[index] ?? data?.value
-                                          }
+                                      <input
+                                        type="text"
+                                        name="charNumber"
+                                        id="charNumber"
+                                        value={
+                                          data?.value === 'Header'
+                                            ? data?.value
+                                            : data?.formula
+                                              ? (observationValue[data?.testId]?.[index] !== undefined
+                                                ? observationValue[data?.testId]?.[index]  // Use computed value if index exists
+                                                : data?.value) // Otherwise, keep original value
+                                              : observationValue[data?.testId]?.[index] ?? data?.value
+                                        }
 
-                                          maxLength={15}
-                                          // readOnly={data?.value}
-                                          onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
-                                          className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  } ${data?.value !== "" && data?.value !== "Header"
-                                            ? Number(data?.value) < Number(data?.minVal)
-                                              ? "bg-yellow-500"
-                                              : Number(data?.value) > Number(data?.maxVal)
-                                                ? "bg-red-500"
-                                                : "bg-green-500"
-                                            : "" // No background color if value is "Header" or ""
-                                            }`}
-                                          style={{
-                                            background: data?.value === "Header" ? activeTheme?.menuColor : "black",
-                                            WebkitBackgroundClip: "text",
-                                            WebkitTextFillColor: "transparent",
-                                            display: "inline-block", // Ensures proper rendering of gradient
-                                          }}
-                                        />
+                                        maxLength={15}
+                                        // readOnly={data?.value}
+                                        onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
+                                        className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  } ${data?.value !== "" && data?.value !== "Header"
+                                          ? Number(data?.value) < Number(data?.minVal)
+                                            ? "bg-yellow-500"
+                                            : Number(data?.value) > Number(data?.maxVal)
+                                              ? "bg-red-500"
+                                              : "bg-green-500"
+                                          : "" // No background color if value is "Header" or ""
+                                          }`}
+                                        style={{
+                                          background: data?.value === "Header" ? activeTheme?.menuColor : "black",
+                                          WebkitBackgroundClip: "text",
+                                          WebkitTextFillColor: "transparent",
+                                          display: "inline-block", // Ensures proper rendering of gradient
+                                        }}
+                                      />
 
-                                      </form>
-                                    </td>
+                                    </form>
+                                  </td>
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold">
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold">
 
-                                      {data?.value !== 'Header' && data?.value ?
-                                        <div className="flex items-center justify-center gap-2">
-                                          <FaFlag
-                                            className={`text-base ${Number(data?.value) < Number(data?.minVal)
-                                              ? "text-yellow-500"
-                                              : Number(data?.value) > Number(data?.maxVal)
-                                                ? "text-red-500"
-                                                : "text-green-500"
-                                              }`}
-                                          />
-                                          <div className={`text-base font-semibold ${Number(data?.value) < Number(data?.minVal)
+                                    {data?.value !== 'Header' && data?.value ?
+                                      <div className="flex items-center justify-center gap-2">
+                                        <FaFlag
+                                          className={`text-base ${Number(data?.value) < Number(data?.minVal)
                                             ? "text-yellow-500"
                                             : Number(data?.value) > Number(data?.maxVal)
                                               ? "text-red-500"
                                               : "text-green-500"
-                                            }`}>
-                                            {Number(data?.value) < Number(data?.minVal)
-                                              ? "L"
-                                              : Number(data?.value) > Number(data?.maxVal)
-                                                ? "H"
-                                                : "N"}
-                                          </div>
+                                            }`}
+                                        />
+                                        <div className={`text-base font-semibold ${Number(data?.value) < Number(data?.minVal)
+                                          ? "text-yellow-500"
+                                          : Number(data?.value) > Number(data?.maxVal)
+                                            ? "text-red-500"
+                                            : "text-green-500"
+                                          }`}>
+                                          {Number(data?.value) < Number(data?.minVal)
+                                            ? "L"
+                                            : Number(data?.value) > Number(data?.maxVal)
+                                              ? "H"
+                                              : "N"}
                                         </div>
-                                        :
-                                        observationValue[data?.testId]?.[index] && observationValue[data?.testId]?.[index] !== "" && (
-                                          <div className="flex items-center justify-center gap-2">
-                                            <FaFlag
-                                              className={`text-base ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                                ? "text-yellow-500"
-                                                : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                                  ? "text-red-500"
-                                                  : "text-green-500"
-                                                }`}
-                                            />
-                                            <div className={`text-base font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                      </div>
+                                      :
+                                      observationValue[data?.testId]?.[index] && observationValue[data?.testId]?.[index] !== "" && (
+                                        <div className="flex items-center justify-center gap-2">
+                                          <FaFlag
+                                            className={`text-base ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
                                               ? "text-yellow-500"
                                               : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
                                                 ? "text-red-500"
                                                 : "text-green-500"
-                                              }`}>
-                                              {Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
-                                                ? "L"
-                                                : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
-                                                  ? "H"
-                                                  : "N"}
-                                            </div>
+                                              }`}
+                                          />
+                                          <div className={`text-base font-semibold ${Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                            ? "text-yellow-500"
+                                            : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
+                                              ? "text-red-500"
+                                              : "text-green-500"
+                                            }`}>
+                                            {Number(observationValue[data?.testId]?.[index]) < Number(data?.minVal)
+                                              ? "L"
+                                              : Number(observationValue[data?.testId]?.[index]) > Number(data?.maxVal)
+                                                ? "H"
+                                                : "N"}
                                           </div>
-                                        )}
-                                    </td>
+                                        </div>
+                                      )}
+                                  </td>
 
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.machineReading}>
-                                      {/* {data?.machineReading} */}
-                                      {data?.machineReading?.length > 7 ? `${data.machineReading.slice(0, 19)}...` : data?.machineReading}
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.machineReading}>
+                                    {/* {data?.machineReading} */}
+                                    {data?.machineReading?.length > 7 ? `${data.machineReading.slice(0, 19)}...` : data?.machineReading}
 
-                                    </td>
+                                  </td>
 
 
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                      {data?.machineName}
-                                    </td>
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                    {data?.machineName}
+                                  </td>
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                      {data?.minVal}
-                                    </td>
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                    {data?.minVal}
+                                  </td>
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                      {data?.maxVal}
-                                    </td>
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                    {data?.maxVal}
+                                  </td>
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                      {data?.unit}
-                                    </td>
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                    {data?.unit}
+                                  </td>
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.method}>
-                                      {data?.method?.length > 19 ? `${data.method.slice(0, 19)}...` : data?.method}
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.method}>
+                                    {data?.method?.length > 19 ? `${data.method.slice(0, 19)}...` : data?.method}
 
-                                    </td>
+                                  </td>
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.displayReading}>
-                                      {/* {data?.displayReading} */}
-                                      {data?.displayReading?.length > 19 ? `${data.displayReading.slice(0, 19)}...` : data?.displayReading}
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" title={data?.displayReading}>
+                                    {/* {data?.displayReading} */}
+                                    {data?.displayReading?.length > 19 ? `${data.displayReading.slice(0, 19)}...` : data?.displayReading}
 
-                                    </td>
+                                  </td>
 
-                                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                      {data?.oldreading}
-                                    </td>
+                                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                    {data?.oldreading}
+                                  </td>
 
-                                  </tr >
+                                </tr >
 
-                                )
+                              )
 
-                            )
-                          }
-                          )}
-                        </tbody>
-                      </CustomDynamicTable >
+                          )
+                        }
+                        )}
+                      </tbody>
+                    </CustomDynamicTable >
 
-                      <>
-                        <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
+                    <>
+                      <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  my-2  mx-1 lg:mx-2 items-center">
 
-                          <div className="relative flex-1">
-                            <CustomDropdown
-                              name="doctorId"
-                              label="Select Doctor"
-                              value={resultTrackData?.doctorId}
-                              options={[
-                                { label: 'Select Doctor Name', value: 0, disabled: true },
-                                ...allDoctorData?.map(item => ({
-                                  label: item.doctorName,
-                                  value: parseInt(item.doctorId),
-                                })),
-                              ]}
-                              onChange={(e) => handelOnChangeResultTrackData(e)}
-                              defaultIndex={0}
+                        <div className="relative flex-1">
+                          <CustomDropdown
+                            name="doctorId"
+                            label="Select Doctor"
+                            value={resultTrackData?.doctorId}
+                            options={[
+                              { label: 'Select Doctor Name', value: 0, disabled: true },
+                              ...allDoctorData?.map(item => ({
+                                label: item.doctorName,
+                                value: parseInt(item.doctorId),
+                              })),
+                            ]}
+                            onChange={(e) => handelOnChangeResultTrackData(e)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
+                            isMandatory={!resultTrackData?.doctorId}
+                          />
+                        </div>
+
+                        <div className='flex gap-[0.25rem]'>
+                          <div className="relative flex-1 ">
+                            <CustomFormButton
                               activeTheme={activeTheme}
-                              isMandatory={!resultTrackData?.doctorId}
+                              text="Save"
+                              icon={FaSpinner}
+                              isButtonClick={isButtonClick}
+                              loadingButtonNumber={1} // Unique number for the first button
+                              onClick={() => onSubmitObservationData('Save', 1)}
                             />
                           </div>
+                          <div className="relative flex-1">
+                            <CustomeNormalButton
+                              activeTheme={activeTheme}
+                              text={String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold'}
+                              onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Hold') }}
 
-                          <div className='flex gap-[0.25rem]'>
-                            <div className="relative flex-1 ">
-                              <CustomFormButton
-                                activeTheme={activeTheme}
-                                text="Save"
-                                icon={FaSpinner}
-                                isButtonClick={isButtonClick}
-                                loadingButtonNumber={1} // Unique number for the first button
-                                onClick={() => onSubmitObservationData('Save', 1)}
-                              />
-                            </div>
-                            <div className="relative flex-1">
-                              <CustomeNormalButton
-                                activeTheme={activeTheme}
-                                text={String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold'}
-                                onClick={() => { setShowPopup(6), setTrackingHoldOrApproved('Hold') }}
-
-                              // // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
-                              />
-                            </div>
+                            // // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.hold === 1}
+                            />
                           </div>
+                        </div>
 
-                          <div className='flex gap-[0.25rem]'>
-                            <div className="relative flex-1 ">
-                              {
-                                String(testIsHold?.isApproved) === '1' ?
-                                  <CustomeNormalButton
-                                    activeTheme={activeTheme}
-                                    text={'Un Approve'}
+                        <div className='flex gap-[0.25rem]'>
+                          <div className="relative flex-1 ">
+                            {
+                              String(testIsHold?.isApproved) === '1' ?
+                                <CustomeNormalButton
+                                  activeTheme={activeTheme}
+                                  text={'Un Approve'}
 
-                                    icon={FaSpinner}
-                                    isButtonClick={isButtonClick}
-                                    loadingButtonNumber={2} // Unique number for the first button
-                                    // onClick={() => onSubmitObservationData('Approve', 3)}
-                                    // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
-                                    onClick={() => { setTrackingHoldOrApproved('Approve'), onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved() }}
-                                  />
+                                  icon={FaSpinner}
+                                  isButtonClick={isButtonClick}
+                                  loadingButtonNumber={2} // Unique number for the first button
+                                  // onClick={() => onSubmitObservationData('Approve', 3)}
+                                  // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+                                  onClick={() => { setTrackingHoldOrApproved('Approve'), onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved() }}
+                                />
 
-                                  :
-                                  <CustomFormButton
-                                    activeTheme={activeTheme}
-                                    text="Approve"
-                                    icon={FaSpinner}
-                                    isButtonClick={isButtonClick}
-                                    loadingButtonNumber={3} // Unique number for the first button
+                                :
+                                <CustomFormButton
+                                  activeTheme={activeTheme}
+                                  text="Approve"
+                                  icon={FaSpinner}
+                                  isButtonClick={isButtonClick}
+                                  loadingButtonNumber={3} // Unique number for the first button
 
-                                    // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
+                                  // disabled={allDoctorData?.find((item) => item?.doctorId === resultTrackData?.doctorId)?.approve === 1}
 
-                                    disabled={resultTrackData?.doctorId === 0}
-                                    onClick={() => onSubmitObservationData('Approve', 3)}
-                                  />
+                                  disabled={resultTrackData?.doctorId === 0}
+                                  onClick={() => onSubmitObservationData('Approve', 3)}
+                                />
 
-                              }
+                            }
 
 
-                            </div>
-                            <div className="relative flex-1">
-                              <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'}
-                                onClick={() => handelOnSubmitForPrintReport(storeWorkOrderId)}
-                              />
-                            </div>
                           </div>
+                          <div className="relative flex-1">
+                            <CustomeNormalButton activeTheme={activeTheme} text={'Print Report'}
+                              onClick={() => handelOnSubmitForPrintReport(storeWorkOrderId)}
+                            />
+                          </div>
+                        </div>
 
-                          {/* <div className='flex gap-[0.25rem]'>
+                        {/* <div className='flex gap-[0.25rem]'>
                             <div className="relative flex-1 ">
                               <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
                                 onClick={() => setShowPopup(8)}
@@ -2498,473 +2414,473 @@ export default function ResultTrack() {
                             </div>
                           </div> */}
 
-                          <div className='flex gap-[0.25rem]'>
-                            <div className="relative flex-1 ">
-                              <CustomeNormalButton activeTheme={activeTheme} text={'Main List'} onClick={handleSubmit} />
-                            </div>
-                            <div className="relative flex-1">
-                              <CustomeNormalButton activeTheme={activeTheme} text={'Previous'}
-                                onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 1)}
-                              />
-                            </div>
+                        <div className='flex gap-[0.25rem]'>
+                          <div className="relative flex-1 ">
+                            <CustomeNormalButton activeTheme={activeTheme} text={'Main List'} onClick={handleSubmit} />
                           </div>
-
-                          <div className='flex gap-[0.25rem]'>
-                            <div className="relative flex-1 ">
-                              <CustomeNormalButton activeTheme={activeTheme} text={'Next'}
-                                onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 0)}
-                              />
-                            </div>
-                            <div className="relative flex-1">
-
-                            </div>
+                          <div className="relative flex-1">
+                            <CustomeNormalButton activeTheme={activeTheme} text={'Previous'}
+                              onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 1)}
+                            />
                           </div>
                         </div>
-                      </>
+
+                        <div className='flex gap-[0.25rem]'>
+                          <div className="relative flex-1 ">
+                            <CustomeNormalButton activeTheme={activeTheme} text={'Next'}
+                              onClick={() => showTheDataForNextAndPrevious(testIdForTracingAddAttachement, 0)}
+                            />
+                          </div>
+                          <div className="relative flex-1">
+
+                          </div>
+                        </div>
+                      </div>
                     </>
-                  )
+                  </>
+                )
+            }
+
+          </>
+
+        }
+
+
+      </div >
+
+
+
+      {
+        showPopup === 1 && (
+          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+            <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+
+              {/* Header */}
+              <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                  {'Test Remark Data'}
+                </div>
+                <IoMdCloseCircleOutline
+                  className="text-xl cursor-pointer"
+                  style={{ color: activeTheme?.iconColor }}
+                  onClick={() => setShowPopup(0)}
+                />
+              </div>
+
+              <FormHeader headerData={'Test Remark Data'} />
+
+              {/* Form */}
+              <form autoComplete="off" onSubmit={handelOnSubmitTestRemarkData} >
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-14 mx-1 lg:mx-2 items-center relative my-2">
+
+                  <div className="relative w-full md:w-32">
+                    <input
+                      type="search"
+                      id="investigationName"
+                      name="investigationName"
+                      value={singleRemarkData.investigationName || ''}
+                      // onChange={(e) => {
+                      //   handelOnChangeTestMappingData(e),
+                      //     setSeleDropDown((preventData) => ({
+                      //       ...preventData,
+                      //       testName: e.target.value
+                      //     }))
+                      // }}
+                      readOnly
+                      placeholder=" "
+                      className={`inputPeerField peer border-borderColor focus:outline-none`}
+                    />
+                    <label htmlFor="testName" className="menuPeerLevel">
+                      Test Name
+                    </label>
+
+                  </div>
+
+                  {/* Rejection Reason Dropdown */}
+                  <div className="relative w-full md:w-32">
+                    <CustomDropdown
+                      name="rejectionReason"
+                      label="Select Remark Reason"
+                      value={singleRemarkData?.rejectionReason}
+                      options={[
+                        { label: 'Select Remark Reason', value: 0, disabled: true },
+                        ...allSampleRejection?.data?.map(item => ({
+                          label: item?.remark,
+                          value: parseInt(item?.id),
+                        })),
+                      ]}
+                      onChange={(e) => handelOnChangetestRemark(e)}
+                      defaultIndex={0}
+                      activeTheme={activeTheme}
+                    />
+                  </div>
+
+                  <div className="relative w-full md:w-32">
+                    <CustomDropdown
+                      name="showInHouse"
+                      label="Select Show In House"
+                      value={singleRemarkData?.showInHouse}
+                      options={[
+                        { label: 'Yes', value: 1 },
+                        { label: 'No', value: 0 },
+
+                      ]}
+                      onChange={(e) => handelOnChangetestRemark(e)}
+                      defaultIndex={0}
+                      activeTheme={activeTheme}
+                    />
+                  </div>
+
+                  <div className="relative w-full">
+                    <CustomFormButtonWithLoading
+                      activeTheme={activeTheme}
+                      text="Save"
+                      icon={FaSpinner}
+                      isButtonClick={isButtonClick}
+                      loadingButtonNumber={6} // Unique number for the first button
+                    />
+                  </div>
+                </div>
+              </form>
+
+              {/* Scrollable Content */}
+
+              <GridDataDetails gridDataDetails={'Test Remark Details'} />
+
+              {allRemarkTestData?.loading ?
+                <CustomLoadingPage />
+                :
+                <CustomDynamicTable activeTheme={activeTheme} columns={['Sr. No', 'Test Name', 'Remark', 'Remark Date', 'Added By', 'In-House', 'Action']} height="30vh">
+                  <tbody >
+                    {
+                      allRemarkTestData?.data?.data?.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredPopupTable(index)}
+                          onMouseLeave={() => setIsHoveredPopupTable(null)}
+                          style={{
+                            background:
+                              isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {index + 1}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.itemName}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.invRemarks}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.remardkDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.remarkAdBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.isInternal === 1 ? 'Yes' : 'No'}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {
+                              data?.isapproved !== 1 && (
+                                <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
+                              )
+                            }
+                          </td>
+                        </tr>
+                      ))
+
+                    }
+                  </tbody>
+                </CustomDynamicTable>
               }
+            </div>
 
-            </>
-            //)
-          }
+          </div>
+        )
+      }
 
+      {
+        showPopup === 2 && (
+          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+            <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
 
-        </div >
-
-
-
-        {
-          showPopup === 1 && (
-            <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
-              <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
-
-                {/* Header */}
-                <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
-                  style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
-                  <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
-                    {'Test Remark Data'}
-                  </div>
-                  <IoMdCloseCircleOutline
-                    className="text-xl cursor-pointer"
-                    style={{ color: activeTheme?.iconColor }}
-                    onClick={() => setShowPopup(0)}
-                  />
+              {/* Header */}
+              <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                  {'Test Remark Data'}
                 </div>
-
-                <FormHeader headerData={'Test Remark Data'} />
-
-                {/* Form */}
-                <form autoComplete="off" onSubmit={handelOnSubmitTestRemarkData} >
-                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2 md:gap-14 mx-1 lg:mx-2 items-center relative my-2">
-
-                    <div className="relative w-full md:w-32">
-                      <input
-                        type="search"
-                        id="investigationName"
-                        name="investigationName"
-                        value={singleRemarkData.investigationName || ''}
-                        // onChange={(e) => {
-                        //   handelOnChangeTestMappingData(e),
-                        //     setSeleDropDown((preventData) => ({
-                        //       ...preventData,
-                        //       testName: e.target.value
-                        //     }))
-                        // }}
-                        readOnly
-                        placeholder=" "
-                        className={`inputPeerField peer border-borderColor focus:outline-none`}
-                      />
-                      <label htmlFor="testName" className="menuPeerLevel">
-                        Test Name
-                      </label>
-
-                    </div>
-
-                    {/* Rejection Reason Dropdown */}
-                    <div className="relative w-full md:w-32">
-                      <CustomDropdown
-                        name="rejectionReason"
-                        label="Select Remark Reason"
-                        value={singleRemarkData?.rejectionReason}
-                        options={[
-                          { label: 'Select Remark Reason', value: 0, disabled: true },
-                          ...allSampleRejection?.data?.map(item => ({
-                            label: item?.remark,
-                            value: parseInt(item?.id),
-                          })),
-                        ]}
-                        onChange={(e) => handelOnChangetestRemark(e)}
-                        defaultIndex={0}
-                        activeTheme={activeTheme}
-                      />
-                    </div>
-
-                    <div className="relative w-full md:w-32">
-                      <CustomDropdown
-                        name="showInHouse"
-                        label="Select Show In House"
-                        value={singleRemarkData?.showInHouse}
-                        options={[
-                          { label: 'Yes', value: 1 },
-                          { label: 'No', value: 0 },
-
-                        ]}
-                        onChange={(e) => handelOnChangetestRemark(e)}
-                        defaultIndex={0}
-                        activeTheme={activeTheme}
-                      />
-                    </div>
-
-                    <div className="relative w-full">
-                      <CustomFormButtonWithLoading
-                        activeTheme={activeTheme}
-                        text="Save"
-                        icon={FaSpinner}
-                        isButtonClick={isButtonClick}
-                        loadingButtonNumber={6} // Unique number for the first button
-                      />
-                    </div>
-                  </div>
-                </form>
-
-                {/* Scrollable Content */}
-
-                <GridDataDetails gridDataDetails={'Test Remark Details'} />
-
-                {allRemarkTestData?.loading ?
-                  <CustomLoadingPage />
-                  :
-                  <CustomDynamicTable activeTheme={activeTheme} columns={['Sr. No', 'Test Name', 'Remark', 'Remark Date', 'Added By', 'In-House', 'Action']} height="30vh">
-                    <tbody >
-                      {
-                        allRemarkTestData?.data?.data?.map((data, index) => (
-                          <tr
-                            className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                              ? ''
-                              : index % 2 === 0
-                                ? 'bg-gray-100'
-                                : 'bg-white'
-                              }`}
-                            key={index}
-                            onMouseEnter={() => setIsHoveredPopupTable(index)}
-                            onMouseLeave={() => setIsHoveredPopupTable(null)}
-                            style={{
-                              background:
-                                isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
-                              // Hides scrollbar for IE/Edge
-                            }}
-                          >
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {index + 1}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.itemName}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.invRemarks}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.remardkDate}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.remarkAdBy}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.isInternal === 1 ? 'Yes' : 'No'}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {
-                                data?.isapproved !== 1 && (
-                                  <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
-                                )
-                              }
-                            </td>
-                          </tr>
-                        ))
-
-                      }
-                    </tbody>
-                  </CustomDynamicTable>
-                }
+                <IoMdCloseCircleOutline
+                  className="text-xl cursor-pointer"
+                  style={{ color: activeTheme?.iconColor }}
+                  onClick={() => setShowPopup(0)}
+                />
               </div>
 
+              {/* Scrollable Content */}
+              <GridDataDetails gridDataDetails={'Test Remark Details'} />
+
+              {allInfoDocument?.loading ?
+                <CustomLoadingPage />
+                :
+                <CustomDynamicTable columns={resultTrackForPatientInformation} activeTheme={activeTheme} height="15vh">
+                  <tbody>
+                    {
+                      allInfoDocument?.data?.data?.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredPopupTable(index)}
+                          onMouseLeave={() => setIsHoveredPopupTable(null)}
+                          style={{
+                            background:
+                              isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {index + 1}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.investigationName}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.barcodeNo}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleCollectedby}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceivedBY}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registrationDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registerBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resultDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resutDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneOn}
+                          </td>
+
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSourceDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSouceLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSource}
+                          </td>
+                        </tr>
+                      ))
+
+                    }
+                  </tbody>
+                </CustomDynamicTable >
+              }
             </div>
-          )
-        }
 
-        {
-          showPopup === 2 && (
-            <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
-              <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+          </div>
+        )
+      }
 
-                {/* Header */}
-                <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
-                  style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
-                  <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
-                    {'Test Remark Data'}
-                  </div>
-                  <IoMdCloseCircleOutline
-                    className="text-xl cursor-pointer"
-                    style={{ color: activeTheme?.iconColor }}
-                    onClick={() => setShowPopup(0)}
-                  />
-                </div>
+      {
+        showPopup === 3 && (
+          <CustomPopup
+            headerData={'Comment'}
+            activeTheme={activeTheme}
+            setShowPopup={setShowPopup} // Pass the function, not the value
+          >
 
-                {/* Scrollable Content */}
-                <GridDataDetails gridDataDetails={'Test Remark Details'} />
+            Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet praesentium vel asperiores aliquid laboriosam, dignissimos tenetur voluptate! Voluptatibus mollitia debitis dolorum quaerat, dignissimos, vitae distinctio rem beatae aliquam qui voluptate.
 
-                {allInfoDocument?.loading ?
-                  <CustomLoadingPage />
-                  :
-                  <CustomDynamicTable columns={resultTrackForPatientInformation} activeTheme={activeTheme} height="15vh">
-                    <tbody>
-                      {
-                        allInfoDocument?.data?.data?.map((data, index) => (
-                          <tr
-                            className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                              ? ''
-                              : index % 2 === 0
-                                ? 'bg-gray-100'
-                                : 'bg-white'
-                              }`}
-                            key={index}
-                            onMouseEnter={() => setIsHoveredPopupTable(index)}
-                            onMouseLeave={() => setIsHoveredPopupTable(null)}
-                            style={{
-                              background:
-                                isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
-                              // Hides scrollbar for IE/Edge
-                            }}
-                          >
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {index + 1}
-                            </td>
+          </CustomPopup>
 
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.investigationName}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.barcodeNo}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.sampleReceiveDate}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.sampleCollectedby}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.sampleReceivedBY}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.sampleReceiveDate}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.registrationDate}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.registerBy}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.resultDate}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.resutDoneBy}
-                            </td>
-
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.outhouseDoneOn}
-                            </td>
+        )
+      }
 
 
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.outhouseLab}
-                            </td>
+      {
+        showPopup === 4 && (
+          // <CustomPopup
+          //   headerData={'Reject'}
+          //   activeTheme={activeTheme}
+          //   setShowPopup={setShowPopup} // Pass the function, not the value
+          // >
+          // </CustomPopup>
+          <div className="relative">
+            <CustomSmallPopup activeTheme={activeTheme} headerData={'Reject'} setShowPopup={setShowPopup}>
+              <FormHeader title={'Rejection Reason'} />
+              <div className="flex justify-between items-center gap-2 mx-2">
 
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.outhouseDoneBy}
-                            </td>
 
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.outSourceDate}
-                            </td>
+                {
+                  allRejectionData?.loading ?
+                    <CustomLoadingPage />
+                    :
+                    <>
+                      <div className="absolute w-72 mt-1">
+                        <CustomDropdown
+                          name="billingType"
+                          label="Select Billing Type"
+                          value={selectRejections || ''}
+                          options={[
+                            { label: 'Select Option', value: 0, disabled: true },
+                            ...allRejectionData?.data?.map(item => ({
+                              label: item.rejectionReason,
+                              value: item.id,
+                            })),
+                          ]}
+                          onChange={(e) => setSelectRejections(e.target.value)}
+                          defaultIndex={0}
+                          activeTheme={activeTheme}
+                          showLabel={false}
+                        />
+                      </div>
 
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.outSouceLab}
-                            </td>
 
-                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              {data?.outSource}
-                            </td>
-                          </tr>
-                        ))
 
-                      }
-                    </tbody>
-                  </CustomDynamicTable >
+                      <div className="w-20 md:w-20 mt-1 ml-[18.5rem]">
+                        <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                          isButtonClick={isButtonClick}
+                          loadingButtonNumber={3} // Unique number for the first button
+                          onClick={() => onSubmitHandelData()}
+                        />
+                      </div>
+                    </>
+
                 }
+
               </div>
 
-            </div>
-          )
-        }
 
-        {
-          showPopup === 3 && (
-            <CustomPopup
-              headerData={'Comment'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
+            </CustomSmallPopup>
+          </div>
 
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Amet praesentium vel asperiores aliquid laboriosam, dignissimos tenetur voluptate! Voluptatibus mollitia debitis dolorum quaerat, dignissimos, vitae distinctio rem beatae aliquam qui voluptate.
+        )
+      }
 
-            </CustomPopup>
-
-          )
-        }
-
-
-        {
-          showPopup === 4 && (
-            // <CustomPopup
-            //   headerData={'Reject'}
-            //   activeTheme={activeTheme}
-            //   setShowPopup={setShowPopup} // Pass the function, not the value
-            // >
-            // </CustomPopup>
-            <div className="relative">
-              <CustomSmallPopup activeTheme={activeTheme} headerData={'Reject'} setShowPopup={setShowPopup}>
-                <FormHeader title={'Rejection Reason'} />
-                <div className="flex justify-between items-center gap-2 mx-2">
-
-
-                  {
-                    allRejectionData?.loading ?
-                      <CustomLoadingPage />
-                      :
-                      <>
-                        <div className="absolute w-72 mt-1">
-                          <CustomDropdown
-                            name="billingType"
-                            label="Select Billing Type"
-                            value={selectRejections || ''}
-                            options={[
-                              { label: 'Select Option', value: 0, disabled: true },
-                              ...allRejectionData?.data?.map(item => ({
-                                label: item.rejectionReason,
-                                value: item.id,
-                              })),
-                            ]}
-                            onChange={(e) => setSelectRejections(e.target.value)}
-                            defaultIndex={0}
-                            activeTheme={activeTheme}
-                            showLabel={false}
-                          />
-                        </div>
-
-
-
-                        <div className="w-20 md:w-20 mt-1 ml-[18.5rem]">
-                          <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
-                            isButtonClick={isButtonClick}
-                            loadingButtonNumber={3} // Unique number for the first button
-                            onClick={() => onSubmitHandelData()}
-                          />
-                        </div>
-                      </>
-
-                  }
-
-                </div>
-
-
-              </CustomSmallPopup>
-            </div>
-
-          )
-        }
-
-        {
-          showPopup === 5 && (
-            <CustomPopup
-              headerData={'Re-Run'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
-              {/* <GridDataDetails
+      {
+        showPopup === 5 && (
+          <CustomPopup
+            headerData={'Re-Run'}
+            activeTheme={activeTheme}
+            setShowPopup={setShowPopup} // Pass the function, not the value
+          >
+            {/* <GridDataDetails
                 gridDataDetails={'Patient Details'}
               /> */}
 
-              {/* <CustomDynamicTable columns={resultTrackingForReRun} activeTheme={activeTheme} height=
+            {/* <CustomDynamicTable columns={resultTrackingForReRun} activeTheme={activeTheme} height=
                 {"300px"}>
                 <tbody>
 
                 </tbody>
               </CustomDynamicTable > */}
 
-              {
-                allReRunReasonData?.length !== 0 && (
-                  <>
-                    <GridDataDetails
-                      gridDataDetails={'Re-run Details'}
-                    />
+            {
+              allReRunReasonData?.length !== 0 && (
+                <>
+                  <GridDataDetails
+                    gridDataDetails={'Re-run Details'}
+                  />
 
-                    <CustomDynamicTable columns={[' ', 'Test Name', 'Rerun Reason']} activeTheme={activeTheme} height={"200px"} >
-                      <tbody className="mb-1">
-                        {allObservationData?.map((data, index) => {
+                  <CustomDynamicTable columns={[' ', 'Test Name', 'Rerun Reason']} activeTheme={activeTheme} height={"200px"} >
+                    <tbody className="mb-1">
+                      {allObservationData?.map((data, index) => {
 
-                          return (
+                        return (
 
-                            data?.reportType === 1 && index !== 0 && (
+                          data?.reportType === 1 && index !== 0 && (
 
-                              <tr
-                                className={`cursor-pointer whitespace-nowrap 
+                            <tr
+                              className={`cursor-pointer whitespace-nowrap 
                                   ${isHoveredTable === index ? '' : index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}  
                                   `}
 
-                                key={index}
-                                onMouseEnter={() => setIsHoveredTable(index)}
-                                onMouseLeave={() => setIsHoveredTable(null)}
-                                style={{
-                                  background:
-                                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                                  // Hides scrollbar for IE/Edge
-                                }}
-                              >
+                              key={index}
+                              onMouseEnter={() => setIsHoveredTable(index)}
+                              onMouseLeave={() => setIsHoveredTable(null)}
+                              style={{
+                                background:
+                                  isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                // Hides scrollbar for IE/Edge
+                              }}
+                            >
 
-                                <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor">
-                                  <input
-                                    type="checkbox"
-                                    checked={allSelectedReRunReasonData.some(item => item.rowIndex === index)}
-                                    onChange={() => handleCheckboxChange(index, data)}
-                                  />
-                                </td>
-                                <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
-                                  <div className="flex items-center gap-1">
-                                    <div>
-                                      {data?.observationName}
-                                    </div>
-
+                              <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor">
+                                <input
+                                  type="checkbox"
+                                  checked={allSelectedReRunReasonData.some(item => item.rowIndex === index)}
+                                  onChange={() => handleCheckboxChange(index, data)}
+                                />
+                              </td>
+                              <td className="border-b px-4 h-5 text-xxxs font-semibold text-gridTextColor" style={{ width: '0px' }}>
+                                <div className="flex items-center gap-1">
+                                  <div>
+                                    {data?.observationName}
                                   </div>
-                                </td>
 
-                                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                </div>
+                              </td>
+
+                              {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                   <form autoComplete="off">
                                     <input
                                       type="text"
@@ -2987,353 +2903,351 @@ export default function ResultTrack() {
                                 </td> */}
 
 
-                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                  <div className="relative w-40">
-                                    <CustomDropdown
-                                      key={index}
-                                      name={`rerunbyid_${index}`}  // Unique name for each dropdown
-                                      label="Select Doctor"
-                                      value={resonForReRunData.rerunbyid.find(item => item.index === index)?.rerunbyid || 0}  // Access rerunbyid by index
-                                      options={[
-                                        { label: 'Select Rerun Reason', value: 0, disabled: true },
-                                        ...allSampleRerunData?.data?.map((option) => ({
-                                          label: option.reason,
-                                          value: parseInt(option.id),
-                                        })),
-                                      ]}
-                                      onChange={(e) => handelOnChangeReRun(e, index)}  // Pass index to handler
-                                      defaultIndex={0}
-                                      activeTheme={activeTheme}
-                                      showLabel={false}
-                                    />
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                                <div className="relative w-40">
+                                  <CustomDropdown
+                                    key={index}
+                                    name={`rerunbyid_${index}`}  // Unique name for each dropdown
+                                    label="Select Doctor"
+                                    value={resonForReRunData.rerunbyid.find(item => item.index === index)?.rerunbyid || 0}  // Access rerunbyid by index
+                                    options={[
+                                      { label: 'Select Rerun Reason', value: 0, disabled: true },
+                                      ...allSampleRerunData?.data?.map((option) => ({
+                                        label: option.reason,
+                                        value: parseInt(option.id),
+                                      })),
+                                    ]}
+                                    onChange={(e) => handelOnChangeReRun(e, index)}  // Pass index to handler
+                                    defaultIndex={0}
+                                    activeTheme={activeTheme}
+                                    showLabel={false}
+                                  />
 
-                                  </div>
-                                </td>
-                              </tr >
-
-                            )
+                                </div>
+                              </td>
+                            </tr >
 
                           )
-                        }
-                        )}
-                      </tbody>
-                    </CustomDynamicTable >
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-
-                      <div className="flex gap-[0.25rem]">
-                        <div className="relative flex-1">
-                          <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
-                            isButtonClick={isButtonClick}
-                            loadingButtonNumber={5} // Unique number for the first button
-                            onClick={() => saveReasionRerunData()}
-                          />
-                        </div>
-                        <div className="relative flex-1">
-
-                        </div>
-                      </div>
-
-                    </div>
-                  </>
-                )
-              }
-
-
-            </CustomPopup>
-          )
-        }
-
-        {
-          showPopup === 6 && (
-            <CustomSmallPopup
-              headerData={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold' : testIsHold?.isApproved === '1' ? 'Not Approve' : 'Approve'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
-              <GridDataDetails
-                gridDataDetails={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold Reason' : 'Hold Reason' : testIsHold?.isApproved === '1' ? 'Not Approve Reason' : 'Approve Reason'}
-              />
-              <div className="flex justify-between items-center gap-2 mx-2">
-
-
-                <input
-                  type="text"
-                  id="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
-                  name="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
-                  value={reasionForHoldOrUnHoldAndApprovedOrNotApproved}
-                  onChange={(e) => setReasionForHoldOrUnHoldAndApprovedOrNotApproved(e.target.value)}
-                  autoComplete="off"
-                  placeholder=" "
-                  className={`inputPeerField peer mt-2 border-borderColor focus:outline-none`}
-                />
-                <div className="w-20 md:w-20 mt-2">
-                  <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Update'}
-                    isButtonClick={isButtonClick}
-                    loadingButtonNumber={3} // Unique number for the first button
-                    onClick={() => onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved()}
-                  />
-                </div>
-
-              </div>
-
-
-            </CustomSmallPopup>
-          )
-        }
-
-        {/* add attachment */}
-        {
-          showPopup === 7 && (
-            <CustomSmallPopup
-              headerData={'Add Attachment'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
-              <GridDataDetails
-                gridDataDetails={'Add Attachment'}
-              />
-              <div className="flex justify-between items-center gap-2 mx-2 mt-2">
-
-                <CustomFileUpload
-                  value={addAttachment}
-                  label='Upload Document'
-                  handelImageChange={handelImageChange}
-                  activeTheme={activeTheme}
-                  fileType={'pdf'}
-                />
-
-
-                <div className="w-20 md:w-20 ">
-                  <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
-                    isButtonClick={isButtonClick}
-                    loadingButtonNumber={4} // Unique number for the first button
-                    onClick={() => uploadAttachmentFiles('pdf')}
-                  />
-                </div>
-
-              </div>
-
-              <div className="my-1">
-                <GridDataDetails gridDataDetails={'Attachement Information'} />
-                {
-                  allFileAttachementData?.loading ?
-                    <CustomLoadingPage />
-                    :
-                    <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
-                      <tbody>
-                        {
-                          allFileAttachementData?.data?.map((item, index) => (
-                            <tr
-                              className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                                ? ''
-                                : index % 2 === 0
-                                  ? 'bg-gray-100'
-                                  : 'bg-white'
-                                }`}
-                              key={index}
-                              onMouseEnter={() => setIsHoveredTable(index)}
-                              onMouseLeave={() => setIsHoveredTable(null)}
-                              style={{
-                                background:
-                                  isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                                // Hides scrollbar for IE/Edge
-                              }}
-                            >
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {item?.attachment}
-                              </td>
-
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                <div className="flex gap-2 items-center text-base">
-                                  <div>
-                                    <FaEye className="text-blue-500"
-                                      onClick={() => viewResultData(item?.attachment)}
-                                    />
-                                  </div>
-                                  <div>
-                                    <MdDelete className="text-red-500" />
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                        }
-                      </tbody>
-                    </CustomDynamicTable>
-                }
-
-              </div>
-
-            </CustomSmallPopup>
-          )
-        }
-
-        {/* add report */}
-        {
-          showPopup === 8 && (
-            <CustomSmallPopup
-              headerData={'Add Report'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
-              <GridDataDetails
-                gridDataDetails={'Add Report'}
-              />
-              <div className="flex justify-between items-center gap-2 mx-2 mt-2">
-
-                <CustomFileUpload
-                  value={addAttachment}
-                  label='Upload Report'
-                  handelImageChange={handelImageChange}
-                  activeTheme={activeTheme}
-                  fileType={'img'}
-                />
-
-
-                <div className="w-20 md:w-20 ">
-                  <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
-                    isButtonClick={isButtonClick}
-                    loadingButtonNumber={4} // Unique number for the first button
-                    onClick={() => uploadAttachmentFiles('img')}
-                  />
-                </div>
-
-              </div>
-
-              <div className="my-1">
-                <GridDataDetails gridDataDetails={'Attachement Information'} />
-
-                {
-                  allReportFileData?.loading ?
-                    <CustomLoadingPage />
-                    :
-                    <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
-                      <tbody>
-                        {
-                          allReportFileData?.data?.map((item, index) => (
-                            <tr
-                              className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                                ? ''
-                                : index % 2 === 0
-                                  ? 'bg-gray-100'
-                                  : 'bg-white'
-                                }`}
-                              key={index}
-                              onMouseEnter={() => setIsHoveredTable(index)}
-                              onMouseLeave={() => setIsHoveredTable(null)}
-                              style={{
-                                background:
-                                  isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                                // Hides scrollbar for IE/Edge
-                              }}
-                            >
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                {item?.attachment}
-                              </td>
-
-                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                                <div className="flex gap-2 items-center text-base">
-                                  <div>
-                                    <FaEye className="text-blue-500"
-                                      onClick={() => viewResultData(item?.attachment)}
-                                    />
-                                  </div>
-                                  <div>
-                                    <MdDelete className="text-red-500" />
-                                  </div>
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                        }
-                      </tbody>
-                    </CustomDynamicTable>
-                }
-
-              </div>
-
-            </CustomSmallPopup>
-          )
-        }
-
-
-        {
-          showPopup === 9 && (
-            <CustomPopup
-              headerData={'Comment'}
-              activeTheme={activeTheme}
-              setShowPopup={setShowPopup} // Pass the function, not the value
-            >
-
-              <FormHeader title={'Comment'} />
-
-
-              {
-                allCommentData?.loading ?
-                  <CustomLoadingPage />
-                  :
-                  <>
-                    <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-
-                      {
-                        editorContent?.commentDataExit === false && (
-                          <div className="absolute w-48 ">
-                            <CustomDropdown
-                              name="tempName"
-                              label="Select Template Name"
-                              value={editorContent?.tempName || ''}
-                              options={[
-                                { label: 'Select Option', value: 0, disabled: true },
-                                ...allCommentData?.data?.map((item, index) => ({
-                                  label: item.templateName,
-                                  value: index + 1,
-                                })),
-                              ]}
-                              onChange={(e) => handleContentChange(e)}
-                              defaultIndex={0}
-                              activeTheme={activeTheme}
-                              showLabel={false}
-                            />
-                          </div>
                         )
                       }
+                      )}
+                    </tbody>
+                  </CustomDynamicTable >
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
 
-
-                      <div className={`flex gap-[0.25rem] w-32 h-[1.6rem] ${editorContent?.commentDataExit === false ? 'ml-60' : 'ml-0'}`}>
-                        <div className="relative flex-1">
-                          <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
-                            isButtonClick={isButtonClick}
-                            loadingButtonNumber={4} // Unique number for the first button
-                            onClick={() => onSubmitCommentData()}
-                          />
-                        </div>
-
-                        <div className="relative flex-1">
-                        </div>
+                    <div className="flex gap-[0.25rem]">
+                      <div className="relative flex-1">
+                        <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                          isButtonClick={isButtonClick}
+                          loadingButtonNumber={5} // Unique number for the first button
+                          onClick={() => saveReasionRerunData()}
+                        />
                       </div>
+                      <div className="relative flex-1">
 
-
+                      </div>
                     </div>
 
-                    <div className="my-2">
-                      <CustomeEditor
-                        value={editorContent?.template} // Controlled value for the editor
-                        onContentChange={handleContentChangeForEditor} />
-                    </div>
-                  </>
+                  </div>
+                </>
+              )
+            }
+
+
+          </CustomPopup>
+        )
+      }
+
+      {
+        showPopup === 6 && (
+          <CustomSmallPopup
+            headerData={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold' : 'Hold' : testIsHold?.isApproved === '1' ? 'Not Approve' : 'Approve'}
+            activeTheme={activeTheme}
+            setShowPopup={setShowPopup} // Pass the function, not the value
+          >
+            <GridDataDetails
+              gridDataDetails={trackingHoldOrApproved === 'Hold' ? String(testIsHold?.hold) === '1' ? 'UnHold Reason' : 'Hold Reason' : testIsHold?.isApproved === '1' ? 'Not Approve Reason' : 'Approve Reason'}
+            />
+            <div className="flex justify-between items-center gap-2 mx-2">
+
+
+              <input
+                type="text"
+                id="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                name="reasionForHoldOrUnHoldAndApprovedOrNotApproved"
+                value={reasionForHoldOrUnHoldAndApprovedOrNotApproved}
+                onChange={(e) => setReasionForHoldOrUnHoldAndApprovedOrNotApproved(e.target.value)}
+                autoComplete="off"
+                placeholder=" "
+                className={`inputPeerField peer mt-2 border-borderColor focus:outline-none`}
+              />
+              <div className="w-20 md:w-20 mt-2">
+                <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Update'}
+                  isButtonClick={isButtonClick}
+                  loadingButtonNumber={3} // Unique number for the first button
+                  onClick={() => onSubmitReasionForHoldOrUnHoldAndApprovedOrNotApproved()}
+                />
+              </div>
+
+            </div>
+
+
+          </CustomSmallPopup>
+        )
+      }
+
+      {/* add attachment */}
+      {
+        showPopup === 7 && (
+          <CustomSmallPopup
+            headerData={'Add Attachment'}
+            activeTheme={activeTheme}
+            setShowPopup={setShowPopup} // Pass the function, not the value
+          >
+            <GridDataDetails
+              gridDataDetails={'Add Attachment'}
+            />
+            <div className="flex justify-between items-center gap-2 mx-2 mt-2">
+
+              <CustomFileUpload
+                value={addAttachment}
+                label='Upload Document'
+                handelImageChange={handelImageChange}
+                activeTheme={activeTheme}
+                fileType={'pdf'}
+              />
+
+
+              <div className="w-20 md:w-20 ">
+                <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                  isButtonClick={isButtonClick}
+                  loadingButtonNumber={4} // Unique number for the first button
+                  onClick={() => uploadAttachmentFiles('pdf')}
+                />
+              </div>
+
+            </div>
+
+            <div className="my-1">
+              <GridDataDetails gridDataDetails={'Attachement Information'} />
+              {
+                allFileAttachementData?.loading ?
+                  <CustomLoadingPage />
+                  :
+                  <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
+                    <tbody>
+                      {
+                        allFileAttachementData?.data?.map((item, index) => (
+                          <tr
+                            className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                              ? ''
+                              : index % 2 === 0
+                                ? 'bg-gray-100'
+                                : 'bg-white'
+                              }`}
+                            key={index}
+                            onMouseEnter={() => setIsHoveredTable(index)}
+                            onMouseLeave={() => setIsHoveredTable(null)}
+                            style={{
+                              background:
+                                isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                              // Hides scrollbar for IE/Edge
+                            }}
+                          >
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                              {item?.attachment}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                              <div className="flex gap-2 items-center text-base">
+                                <div>
+                                  <FaEye className="text-blue-500"
+                                    onClick={() => viewResultData(item?.attachment)}
+                                  />
+                                </div>
+                                <div>
+                                  <MdDelete className="text-red-500" />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      }
+                    </tbody>
+                  </CustomDynamicTable>
               }
 
+            </div>
+
+          </CustomSmallPopup>
+        )
+      }
+
+      {/* add report */}
+      {
+        showPopup === 8 && (
+          <CustomSmallPopup
+            headerData={'Add Report'}
+            activeTheme={activeTheme}
+            setShowPopup={setShowPopup} // Pass the function, not the value
+          >
+            <GridDataDetails
+              gridDataDetails={'Add Report'}
+            />
+            <div className="flex justify-between items-center gap-2 mx-2 mt-2">
+
+              <CustomFileUpload
+                value={addAttachment}
+                label='Upload Report'
+                handelImageChange={handelImageChange}
+                activeTheme={activeTheme}
+                fileType={'img'}
+              />
+
+
+              <div className="w-20 md:w-20 ">
+                <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                  isButtonClick={isButtonClick}
+                  loadingButtonNumber={4} // Unique number for the first button
+                  onClick={() => uploadAttachmentFiles('img')}
+                />
+              </div>
+
+            </div>
+
+            <div className="my-1">
+              <GridDataDetails gridDataDetails={'Attachement Information'} />
+
+              {
+                allReportFileData?.loading ?
+                  <CustomLoadingPage />
+                  :
+                  <CustomDynamicTable activeTheme={activeTheme} columns={['Path', 'Action']} height="80px">
+                    <tbody>
+                      {
+                        allReportFileData?.data?.map((item, index) => (
+                          <tr
+                            className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                              ? ''
+                              : index % 2 === 0
+                                ? 'bg-gray-100'
+                                : 'bg-white'
+                              }`}
+                            key={index}
+                            onMouseEnter={() => setIsHoveredTable(index)}
+                            onMouseLeave={() => setIsHoveredTable(null)}
+                            style={{
+                              background:
+                                isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                              // Hides scrollbar for IE/Edge
+                            }}
+                          >
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                              {item?.attachment}
+                            </td>
+
+                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                              <div className="flex gap-2 items-center text-base">
+                                <div>
+                                  <FaEye className="text-blue-500"
+                                    onClick={() => viewResultData(item?.attachment)}
+                                  />
+                                </div>
+                                <div>
+                                  <MdDelete className="text-red-500" />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      }
+                    </tbody>
+                  </CustomDynamicTable>
+              }
+
+            </div>
+
+          </CustomSmallPopup>
+        )
+      }
+
+
+      {
+        showPopup === 9 && (
+          <CustomPopup
+            headerData={'Comment'}
+            activeTheme={activeTheme}
+            setShowPopup={setShowPopup} // Pass the function, not the value
+          >
+
+            <FormHeader title={'Comment'} />
+
+
+            {
+              allCommentData?.loading ?
+                <CustomLoadingPage />
+                :
+                <>
+                  <div className="relative grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+
+                    {
+                      editorContent?.commentDataExit === false && (
+                        <div className="absolute w-48 ">
+                          <CustomDropdown
+                            name="tempName"
+                            label="Select Template Name"
+                            value={editorContent?.tempName || ''}
+                            options={[
+                              { label: 'Select Option', value: 0, disabled: true },
+                              ...allCommentData?.data?.map((item, index) => ({
+                                label: item.templateName,
+                                value: index + 1,
+                              })),
+                            ]}
+                            onChange={(e) => handleContentChange(e)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
+                            showLabel={false}
+                          />
+                        </div>
+                      )
+                    }
 
 
 
-            </CustomPopup>
+                    <div className={`flex gap-[0.25rem] w-32 h-[1.6rem] ${editorContent?.commentDataExit === false ? 'ml-60' : 'ml-0'}`}>
+                      <div className="relative flex-1">
+                        <CustomFormButton activeTheme={activeTheme} icon={FaSpinner} text={'Save'}
+                          isButtonClick={isButtonClick}
+                          loadingButtonNumber={4} // Unique number for the first button
+                          onClick={() => onSubmitCommentData()}
+                        />
+                      </div>
 
-          )
-        }
+                      <div className="relative flex-1">
+                      </div>
+                    </div>
 
-      </>
+
+                  </div>
+
+                  <div className="my-2">
+                    <CustomeEditor
+                      value={editorContent?.template} // Controlled value for the editor
+                      onContentChange={handleContentChangeForEditor} />
+                  </div>
+                </>
+            }
+
+
+
+
+          </CustomPopup>
+
+        )
+      }
     </div >
   );
 }

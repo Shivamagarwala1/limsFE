@@ -14,6 +14,7 @@ import {
   FaUserCircle,
   FaArrowRight,
   FaEdit,
+  FaRegMoneyBillAlt,
 } from "react-icons/fa";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
@@ -37,6 +38,7 @@ import { setActiveTheme } from "../../redux/themeSlice";
 import DynamicMenu2 from "../private/DynamicMenuForMobile";
 import Notification from "../pages/Notification";
 import useOutsideClick from "../customehook/useOutsideClick";
+import CustomPopupWithResponsive from "../global/CustomPopupWithResponsive";
 
 export default function Navbar({ toggleFullScreen, routes }) {
   const [employeeWiseCentreData, setEmployeeWiseCentreData] = useState([]);
@@ -56,6 +58,7 @@ export default function Navbar({ toggleFullScreen, routes }) {
   const [isHovered, setIsHovered] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNotiFicationPopup, setShowNotificationPopup] = useState(false);
+  const [showPopup, setShowPopup] = useState(0);
 
   const navigation = useNavigate();
 
@@ -144,7 +147,6 @@ export default function Navbar({ toggleFullScreen, routes }) {
         (data) => data?.roleId === parseInt(user?.defaultRole)
       );
       setSelectedRole(selectedValue[0]?.roleName);
-      console.log("filteredDataForRole => ", selectedValue[0]);
       localStorage.setItem("RoleDetails", JSON.stringify(selectedValue[0]));
     } else {
       setSelectedRole("Role Data Not Found");
@@ -369,10 +371,25 @@ export default function Navbar({ toggleFullScreen, routes }) {
 
           {/* icons */}
           <div className="flex items-center gap-2">
+
+            <div className="flex items-centre">
+
+              <FaRegMoneyBillAlt
+                className="text-lg cursor-pointer "
+                title="Payment Card"
+                style={{ color: activeTheme?.iconColor }}
+                onClick={() => setShowPopup(1)}
+              />
+            </div>
+
             <div
               className="flex items-center justify-center relative"
             // ref={dropdownRefTheme}
             >
+
+
+
+
               <IoIosColorPalette
                 className="text-lg cursor-pointer "
                 title="Theme"
@@ -890,6 +907,19 @@ export default function Navbar({ toggleFullScreen, routes }) {
           handleShowChangePassword={handleShowChangePassword}
         />
       )}
+
+
+      {
+        showPopup === 1 && (
+          <>
+            <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Payment Details'} setShowPopup={setShowPopup} popuptype={'small'} >
+              <div className="flex justify-center items-center font-semibold text-xxs my-4">
+                Cooming soon :)
+              </div>
+            </CustomPopupWithResponsive>
+          </>
+        )
+      }
     </div>
   );
 }

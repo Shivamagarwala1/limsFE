@@ -837,6 +837,7 @@ export default function PatientRegistration() {
 
 
 
+
     // Function to delete data by itemId
     const deleteinvestigationGridDataByItemId = (indexToDelete) => {
 
@@ -1217,6 +1218,7 @@ export default function PatientRegistration() {
 
     //function for det the default value of sample type
 
+
     useEffect(() => {
 
         const storeSampleTypeDefaultValue = () => {
@@ -1227,11 +1229,19 @@ export default function PatientRegistration() {
                 itemName: item?.itemName
             }));
 
+            const transBarcodeItems = investigationGridData.map(item => ({
+                itemId: item.itemId,
+                name: '', // Access the first element of the array, fallback to empty string if the array is empty
+                sampleTypeName: item.sampleTypeName[0]
+            }));
+
             // Update the state with the transformed sampleType values
             setGridDataBarCodeandSampleType((prevState) => ({
                 ...prevState,
-                sampleType: transformedItems
+                sampleType: transformedItems,
+                barCode: transBarcodeItems
             }));
+
 
 
         }
@@ -1244,35 +1254,38 @@ export default function PatientRegistration() {
     }, [showPopup]); // Runs when showPopup changes
 
 
-    //console.log(gridDataBarCodeandSampleType);
+    // console.log(gridDataBarCodeandSampleType);
 
 
     //func  to handel barcode input change
     const handleInputChangeForPopUpGridData = (rowId, value) => {
-
-
-        // Update the barCode state in the gridDataBarCodeandSampleType state
         setGridDataBarCodeandSampleType((prevState) => {
-            // Preserve barCode values while updating only the changed row
-            const updatedBarCode = prevState.barCode.map(item =>
-                item.itemId === rowId ? { ...item, name: value } : item
-            );
+            // Get the sampleTypeName of the current row being updated
+            const currentSampleTypeName = prevState.barCode?.find(
+                (item) => item.itemId === rowId
+            )?.sampleTypeName;
 
-            const isBarCodePresent = prevState.barCode.some(item => item.itemId === rowId);
-            if (!isBarCodePresent) {
-                updatedBarCode.push({ itemId: rowId, name: value });
-            }
+            // Update barCode values where sampleTypeName matches
+            const updatedBarCode = prevState.barCode.map((item) =>
+                item.sampleTypeName === currentSampleTypeName
+                    ? { ...item, name: value } // Update all matching sampleTypeName
+                    : item
+            );
 
             return { ...prevState, barCode: updatedBarCode };
         });
 
-
-
+        // Optional: Update checkedItems if needed
         setCheckedItems((prev) => ({
             ...prev,
-            [itemId]: value.length > 0, // Check if barcode is not empty
+            [rowId]: value.length > 0, // Check if barcode is not empty
         }));
     };
+
+
+
+
+
 
 
 
