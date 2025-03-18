@@ -330,8 +330,8 @@ export default function ReportDispatch() {
 
     const updateData = {
       "centreId": reportDispatchData?.centreId,
-      "fromDate": reportDispatchData?.fromDate || "2025-03-12T16:39:45.806Z",
-      "toDate": reportDispatchData?.toDate || "2025-03-12T16:39:45.806Z",
+      "fromDate": reportDispatchData?.fromDate,
+      "toDate": reportDispatchData?.toDate,
       "datetype": reportDispatchData?.searchType || "",
       "searchvalue": reportDispatchData?.barcodeNo || "",
       "itemIds": testData,  // Ensures an array, not a string inside an array
@@ -339,7 +339,6 @@ export default function ReportDispatch() {
       "empid": parseInt(user?.employeeId),
       status: reportDispatchData?.status
     };
-
     try {
       await searchReportDispatch.postRequestData(`/tnx_Booking/GetDispatchData`, updateData);
     } catch (error) {

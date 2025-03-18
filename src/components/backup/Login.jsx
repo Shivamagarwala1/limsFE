@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { dologin, doPasswordForgot, saveDefaultCentreId } from '../../service/localstroageService';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../redux/userSlices';
-import loginImage from "../../assets/clientbk.png";
+import loginImage from "../../assets/loginImage.png";
 import ForgotPassword from './ForgotPassword';
 import { updateUserPassword } from '../../redux/updatePasswordSlice';
 import Footer from './Footer'
