@@ -244,6 +244,36 @@ export const downloadExcel = async (api, name = "RateList.xlsx") => {
   }
 };
 
+export const downloadPostExcel = async (api, payload, name = "RateList.xlsx") => {
+  try {
+    const response = await axios.post(`${BASE_URL}${api}`, payload, {
+      responseType: "blob", // Ensure binary data is handled correctly
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      },
+    });
+
+    // Create a blob from the response
+    const blob = new Blob([response.data], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    // Create a download link
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = name; // Set the filename
+    document.body.appendChild(link);
+    link.click();
+
+    // Clean up
+    document.body.removeChild(link);
+  } catch (error) {
+    console.error("Error downloading Excel file:", error);
+  }
+};
+
+
 export function convertToISO(dateStr, fieldId = "from") {
   const months = {
     Jan: "01",
