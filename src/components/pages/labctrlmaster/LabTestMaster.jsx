@@ -6,6 +6,7 @@ import { getAllDepartmentApi, getAllDocumentApi, getAllLabMaterApi, getAllSample
 import toast from 'react-hot-toast';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import { FaArrowDown, FaArrowUp, FaRegEdit, FaSpinner } from 'react-icons/fa';
+import CustomDynamicTable from '../../global/CustomDynamicTable'
 import { ImSwitch } from 'react-icons/im';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import useRippleEffect from '../../customehook/useRippleEffect';
@@ -230,9 +231,9 @@ export default function LabTestMaster() {
 
 
 
-        if (!labTestMasterData.sortName) errors.sortName = true;
+        // if (!labTestMasterData.sortName) errors.sortName = true;
 
-        if (!labTestMasterData.testMethod) errors.testMethod = true;
+        // if (!labTestMasterData.testMethod) errors.testMethod = true;
         if (!labTestMasterData.itemType) errors.itemType = true;
 
         if (!labTestMasterData.deptId) errors.deptId = true;
@@ -598,7 +599,7 @@ export default function LabTestMaster() {
                             value={labTestMasterData.sortName}
                             onChange={handelOnChangeLabTestMasterData}
                             placeholder=" "
-                            className={`inputPeerField peer ${formErrors.sortName ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
+                            className={`inputPeerField peer border-borderColor focus:outline-none`}
                         />
                         <label htmlFor="sortName" className="menuPeerLevel">
                             Short Name
@@ -616,8 +617,7 @@ export default function LabTestMaster() {
                             value={labTestMasterData.testMethod}
                             onChange={handelOnChangeLabTestMasterData}
                             placeholder=" "
-                            className={`inputPeerField peer ${formErrors.testMethod ? "border-b-red-500" : "border-borderColor"
-                                } focus:outline-none`}
+                            className={`inputPeerField peer border-borderColor  focus:outline-none`}
                         />
                         <label htmlFor="testMethod" className="menuPeerLevel">
                             Test Method
@@ -1176,7 +1176,7 @@ export default function LabTestMaster() {
                 </div>
 
                 {/* show data in table */}
-                <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
+                {/* <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
 
                     <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
                         <tr>
@@ -1285,7 +1285,94 @@ export default function LabTestMaster() {
                         }
 
                     </tbody>
-                </table>
+                </table> */}
+
+
+                <CustomDynamicTable activeTheme={activeTheme} columns={labTestMasterHeaderData} >
+
+                    <tbody>
+
+                        {
+                            allTestLabMasterData?.map((data, index) => {
+
+                                return (
+                                    <tr
+                                        className={`cursor-pointer 
+                                ${isHoveredTable === data?.empId
+                                                ? ''
+                                                : index % 2 === 0 ? 'bg-gray-100' : 'bg-white'
+                                            }`}
+                                        key={data?.itemId}
+                                        onMouseEnter={() => setIsHoveredTable(data?.itemId)}
+                                        onMouseLeave={() => setIsHoveredTable(null)}
+                                        style={{
+                                            background:
+                                                isHoveredTable === data?.itemId ? activeTheme?.subMenuColor : undefined,
+                                        }}
+                                    >
+                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                            {data?.itemId}
+                                        </td>
+
+                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                            {data?.itemType}
+                                        </td>
+
+                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                            {data?.itemCode}
+                                        </td>
+
+                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                            {data?.itemName}
+                                        </td>
+
+                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                            {data?.deptName}
+                                        </td>
+
+                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                            {data?.sampleTypeName}
+                                        </td>
+
+                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                            {data?.reporttype}
+                                        </td>
+
+                                        <td className="border-b px-4 h-5 flex items-center text-xxs font-semibold gap-2">
+                                            <button className="w-4 h-4 flex justify-center items-center">
+                                                <FaRegEdit
+                                                    className={`w-full h-full ${data?.isActive === 1 ? "text-blue-500 cursor-pointer" : "text-gray-400 cursor-not-allowed"
+                                                        }`}
+                                                    onClick={() => {
+                                                        if (data?.isActive === 1) {
+                                                            getSingleTestLabMasterDataForUpDate(data?.itemId);
+                                                            setIsEditData(true);
+                                                        }
+                                                    }}
+                                                />
+
+                                            </button>
+                                            <button
+                                                className={`w-4 h-4 flex justify-center items-center ${data?.isActive === 1 ? 'text-green-500' : 'text-red-500'
+                                                    }`}
+                                            >
+
+                                                <ImSwitch className="w-full h-full"
+                                                    onClick={() => {
+                                                        setClickedRowId(data);
+                                                        setShowPopup(true);
+                                                    }}
+                                                />
+
+                                            </button>
+                                        </td>
+                                    </tr>
+                                )
+                            })
+                        }
+
+                    </tbody>
+                </CustomDynamicTable>
             </div>
 
 

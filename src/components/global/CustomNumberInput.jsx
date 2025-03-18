@@ -9,6 +9,7 @@ export const CustomNumberInput = ({
     readOnly = false,
     isDisabled = false,
     maxLength = 10, // Default maxLength to 10
+    isMandatory = false
 }) => {
     // const [inputValue, setInputValue] = useState(value); // Local state for the input value
     const [isInvalid, setIsInvalid] = useState(false); // State for invalid input (for red border)    
@@ -59,7 +60,8 @@ export const CustomNumberInput = ({
                 readOnly={readOnly}
                 className={`
                     ${readOnly && !isDisabled ? 'cursor-not-allowed bg-slate-600' : ''}
-                    inputPeerField peer border-borderColor focus:outline-none
+                    inputPeerField peer  ${isMandatory ? "border-b-red-500" : "border-borderColor"
+                    } focus:outline-none
                       
                      ${isDisabled
                         ? "bg-gray-100 text-gray-500 cursor-not-allowed"

@@ -603,6 +603,8 @@ export default function SampleCollection() {
         </div>
         <LegendButtons statuses={statuses} />
       </form>
+
+      
       <div style={{ maxHeight: "350px", overflowY: "auto" }}>
         <DynamicTable
           rows={updatedArray}

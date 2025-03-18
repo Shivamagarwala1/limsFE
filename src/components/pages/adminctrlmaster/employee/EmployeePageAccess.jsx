@@ -9,6 +9,7 @@ import { IoMdMenu } from 'react-icons/io';
 import { employeePageAccessData } from '../../../listData/listData';
 import { IoAlertCircleOutline, IoClose } from 'react-icons/io5';
 import useRippleEffect from '../../../customehook/useRippleEffect';
+import CustomDynamicTable from '../../../global/CustomDynamicTable';
 
 export default function EmployeePageAccess() {
 
@@ -701,7 +702,8 @@ export default function EmployeePageAccess() {
             </div>
 
             {/* table data */}
-            <div className="mb-2">
+            {/* <div className='mb-2'>
+
                 <table className="table-auto border-collapse w-full text-sm text-left">
                     <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
                         <tr>
@@ -728,7 +730,7 @@ export default function EmployeePageAccess() {
                             ))}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody >
                         {allPageAccessData?.map((data) => (
                             <tr
                                 className={`cursor-pointer ${isHoveredTable === data?.id
@@ -776,15 +778,76 @@ export default function EmployeePageAccess() {
                                                 setremovePageAccessId(data?.id);
                                                 setShowActivePopup(true);
                                             }} />
-                                        {/* )} */}
+                                        {/* )} *
                                     </button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
+
                 </table>
 
-            </div>
+            </div > */}
+
+
+            <CustomDynamicTable activeTheme={activeTheme} columns={employeePageAccessData} >
+
+                <tbody >
+                    {allPageAccessData?.map((data) => (
+                        <tr
+                            className={`cursor-pointer ${isHoveredTable === data?.id
+                                ? ''
+                                : data?.id % 2 === 0
+                                    ? 'bg-gray-100'
+                                    : 'bg-white'
+                                }`}
+                            key={data?.id}
+                            onMouseEnter={() => setIsHoveredTable(data?.id)}
+                            onMouseLeave={() => setIsHoveredTable(null)}
+                            style={{
+                                background:
+                                    isHoveredTable === data?.id ? activeTheme?.subMenuColor : undefined,
+                            }}
+                        >
+                            <td className="border-b px-4 h-4 text-gridTextColor text-xxs font-semibold" style={{ width: '0%' }}>
+                                {data?.id}
+                            </td>
+                            <td className="border-b px-4 h-4 text-gridTextColor text-xxs font-semibold" style={{ width: '20%' }}>
+                                {data?.roleName}
+                            </td>
+                            <td className="border-b px-4 h-4 text-gridTextColor text-xxs font-semibold" style={{ width: '30%' }}>
+                                {data?.name}
+                            </td>
+                            <td className="border-b px-4 h-4 text-gridTextColor text-xxs font-semibold" style={{ width: '10%' }}>
+                                {data?.menuMame}
+                            </td>
+
+                            <td className="border-b px-4 h-4 text-gridTextColor text-xxs font-semibold" style={{ width: '10%' }}>
+                                {data?.subMenuName}
+                            </td>
+
+
+                            <td className="border-b px-4 h-4 text-gridTextColor text-xxs font-semibold">
+
+                                <button
+                                    type="button"
+                                    data-ripple-light="true"
+                                    className={`relative overflow-hidden w-5 h-4 flex justify-center items-center text-red-500`}
+                                >
+
+                                    <IoClose className="w-full h-full"
+                                        onClick={() => {
+                                            setremovePageAccessId(data?.id);
+                                            setShowActivePopup(true);
+                                        }} />
+                                    {/* )} */}
+                                </button>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+
+            </CustomDynamicTable>
 
 
             {/* popup for active and deactive status */}

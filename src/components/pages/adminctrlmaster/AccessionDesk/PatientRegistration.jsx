@@ -8,7 +8,7 @@ import { IoMdAdd, IoMdCloseCircleOutline } from 'react-icons/io';
 import { RiDeleteBin2Fill } from 'react-icons/ri';
 import { dummyDataForpatientRegistrationoldPatient, patientRegistrationInvestigation, patientRegistrationoldPatient, patientRegistrationPaymentMode, paymentModes } from '../../../listData/listData';
 import { CustomEmailInput } from '../../../global/CustomEmailInput'
-import { getAllBankNameApi, getAllCentreForPatientRegistrationData, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getOldPatientApi, getSingleEditInfoApi, getSingleEditTestApi, getSingleOldPatientDataInOldPatientPopupApi, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi, updateEditTestApi } from '../../../../service/service';
+import { getAllBankNameApi, getAllCentreForPatientRegistrationData, getAllDicountReasionApi, getAllDiscountApprovedBy, getAllDisCountType, getAllEmpTitleApi, getAllInvestiGationApi, getAllInvestigationGridApi, getAllRateTypeForPatientRegistrationData, getAllReferDrApi, getAllReferLabApi, getOldPatientApi, getSingleEditInfoApi, getSingleEditTestApi, getSingleOldPatientDataInOldPatientPopupApi, printBarCodeData, savePatientRegistrationDataApi, saveReferDrApi, updateEditInfoApi, updateEditTestApi } from '../../../../service/service';
 import { FaSearch, FaSpinner } from 'react-icons/fa'
 import { toast } from 'react-toastify';
 import { CustomTextBox } from '../../../global/CustomTextBox';
@@ -1104,6 +1104,11 @@ export default function PatientRegistration() {
         if (!patientRegistrationData.dob) errors.dob = true;
         if (!patientRegistrationData.refID1) errors.refID1 = true
 
+
+        if (!patientRegistrationData?.mobileNo || !/^\d{10}$/.test(patientRegistrationData?.mobileNo)) {
+            errors.mobileNo = true;
+        }
+
         if (!patientRegistrationData.gender) errors.gender = true;
         //if (!patientRegistrationData.investigationName) errors.investigationName = true;
 
@@ -1607,6 +1612,39 @@ export default function PatientRegistration() {
 
             if (response?.success) {
                 toast.success(response?.message);
+
+                try {
+                    const response2 = await printBarCodeData(response?.data?.barcodeNo);
+                    if (response2.success) {
+                        
+                        // const encodedData = encodeURIComponent(response2?.data);
+                        // // Get base URL dynamically
+                        // const baseUrl = window.location.origin;
+
+                        // // Construct barcode URL with base URL
+                        // const barcodeUrl = `${baseUrl}/barcode?cmd=${encodedData}`;
+
+                        // // Open in a new tab
+                        // window.open(barcodeUrl, '_blank'); 
+
+                        const data = response2?.data;
+                        const blob = new Blob([data], { type: "text/plain" });
+
+                        // Create a Blob URL
+                        const blobUrl = URL.createObjectURL(blob);
+
+                        // Open the Blob URL in a new tab to show the text
+                        window.open(blobUrl);
+
+
+                    } else {
+                        toast.error(error?.message);
+                    }
+                } catch (error) {
+                    toast.error(error?.message);
+                    console.log(error);
+
+                }
 
                 setPatientRegistrationData(
                     {
@@ -3238,6 +3276,7 @@ export default function PatientRegistration() {
                                     }}
                                     label="Mobile No."
                                     maxLength={10}
+                                    isMandatory={patientRegistrationDataError?.mobileNo}
                                 />
                             </div>
 

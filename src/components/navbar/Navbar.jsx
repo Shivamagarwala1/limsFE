@@ -376,7 +376,7 @@ export default function Navbar({ toggleFullScreen, routes }) {
 
               <FaRegMoneyBillAlt
                 className="text-lg cursor-pointer "
-                title="Payment Card"
+                title="Recharge Account"
                 style={{ color: activeTheme?.iconColor }}
                 onClick={() => setShowPopup(1)}
               />

@@ -50,7 +50,7 @@ export const labTestMasterHeaderData = ["Sr.No.", "Item Type", "Test Code", "Tes
 
 export const testMappingHeader = ['SR.No.', 'ID', 'Test Name', 'Header', 'Bold', 'Critical', 'PrintSeparate', 'Show Report', 'DLC Check', 'InterPertation', 'Ref.Range', 'Help Menu', 'Remove', 'Edit'];
 
-export const testMappingHeaderWithItemTypeIsPackage = ['SR.No.', 'ID', 'Test Name', 'PrintSeparate', 'Remove', 'Edit'];
+export const testMappingHeaderWithItemTypeIsPackage = ['SR.No.', 'ID', 'Test Name', 'PrintSeparate', 'Remove'];
 
 export const testMappingRoundUp = [-1, 0, 1, 2, 3, 4];
 
