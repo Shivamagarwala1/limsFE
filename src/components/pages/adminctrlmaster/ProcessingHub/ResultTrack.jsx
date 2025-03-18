@@ -150,7 +150,7 @@ export default function ResultTrack() {
 
     const getAllData = async () => {
       try {
-        await allFilterData.fetchDataFromApi(`/LegendColorMaster?select=id,colourCode,colourName,contantName`);
+        await allFilterData.fetchDataFromApi(`/LegendColorMaster?select=id,colourCode,colourName,contantName&$filter=(isactive eq 1 and (id gt 2 and id lt 13 or id eq 1))`);
 
       } catch (error) {
         toast.error(error.message)
@@ -1148,7 +1148,7 @@ export default function ResultTrack() {
 
     try {
 
-      const response = await viewPrintreportTrackingApi(testid);
+      const response = await viewPrintreportTrackingApi(testid, 1);
 
       // // Check the content type
       const contentType = response.headers["content-type"];
@@ -2064,7 +2064,7 @@ export default function ResultTrack() {
                         </div>
                       </div>
 
-                      <div className='flex gap-[0.25rem]'>
+                      {/* <div className='flex gap-[0.25rem]'>
                         <div className="relative flex-1 ">
                           <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
                             onClick={() => setShowPopup(8)}
@@ -2073,7 +2073,7 @@ export default function ResultTrack() {
                         <div className="relative flex-1">
                           <CustomeNormalButton activeTheme={activeTheme} text={'Add Attachment'} onClick={() => setShowPopup(7)} />
                         </div>
-                      </div>
+                      </div> */}
 
                       <div className='flex gap-[0.25rem]'>
                         <div className="relative flex-1 ">
@@ -2105,7 +2105,6 @@ export default function ResultTrack() {
                       <GridDataDetails
                         gridDataDetails={'Result Entry'}
                       />
-
                       <CustomDynamicTable CustomDynamicTable columns={resultTrackingForObservationHeader} activeTheme={activeTheme} height={"300px"} >
                         <tbody>
                           {allObservationData?.map((data, index) => {
@@ -2179,6 +2178,18 @@ export default function ResultTrack() {
                                             disabled={String(data?.isapproved) !== '0'}
                                           />
                                         </div>
+
+                                        <div className='flex gap-[0.25rem]'>
+                                          <div className="relative flex-1 ">
+                                            <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
+                                              onClick={() => setShowPopup(8)}
+                                              disabled={String(data?.isapproved) !== '0'}
+                                            />
+                                          </div>
+                                          <div className="relative flex-1">
+                                            <CustomeNormalButton activeTheme={activeTheme} text={'Add Attachment'} onClick={() => setShowPopup(7)} disabled={String(data?.isapproved) !== '0'} />
+                                          </div>
+                                        </div>
                                       </div>
                                     </td>
                                   </tr>
@@ -2193,14 +2204,7 @@ export default function ResultTrack() {
                                   <tr
                                     className={`cursor-pointer whitespace-nowrap 
                                   ${isHoveredTable === index ? '' : index % 2 === 0 ? 'bg-gray-100' : 'bg-white'}  
-                                  ${data?.value !== "" && data?.value !== "Header"
-                                        ? Number(data?.value) < Number(data?.minVal)
-                                          ? "bg-yellow-500"
-                                          : Number(data?.value) > Number(data?.maxVal)
-                                            ? "bg-red-500"
-                                            : "bg-green-500"
-                                        : "" // No background color if value is "Header" or ""
-                                      }`}
+                                  `}
 
                                     key={index}
                                     onMouseEnter={() => setIsHoveredTable(index)}
@@ -2269,13 +2273,20 @@ export default function ResultTrack() {
                                                 ? (observationValue[data?.testId]?.[index] !== undefined
                                                   ? observationValue[data?.testId]?.[index]  // Use computed value if index exists
                                                   : data?.value) // Otherwise, keep original value
-                                                : observationValue[data?.testId]?.[index] ?? ""
+                                                : observationValue[data?.testId]?.[index] ?? data?.value
                                           }
 
                                           maxLength={15}
-                                          readOnly={data?.value}
+                                          // readOnly={data?.value}
                                           onChange={(e) => handleInputChangeForObserVtionValue(data?.testId, index, e.target.value)}
-                                          className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  }`}
+                                          className={`w-[5.5rem] h-[1.2rem] outline-none rounded-sm border-[1px] pl-1 ${data?.value ? 'bg-gray-200' : 'bg-white'}  } ${data?.value !== "" && data?.value !== "Header"
+                                            ? Number(data?.value) < Number(data?.minVal)
+                                              ? "bg-yellow-500"
+                                              : Number(data?.value) > Number(data?.maxVal)
+                                                ? "bg-red-500"
+                                                : "bg-green-500"
+                                            : "" // No background color if value is "Header" or ""
+                                            }`}
                                           style={{
                                             background: data?.value === "Header" ? activeTheme?.menuColor : "black",
                                             WebkitBackgroundClip: "text",
@@ -2476,7 +2487,7 @@ export default function ResultTrack() {
                             </div>
                           </div>
 
-                          <div className='flex gap-[0.25rem]'>
+                          {/* <div className='flex gap-[0.25rem]'>
                             <div className="relative flex-1 ">
                               <CustomeNormalButton activeTheme={activeTheme} text={'Add Report'}
                                 onClick={() => setShowPopup(8)}
@@ -2485,7 +2496,7 @@ export default function ResultTrack() {
                             <div className="relative flex-1">
                               <CustomeNormalButton activeTheme={activeTheme} text={'Add Attachment'} onClick={() => setShowPopup(7)} />
                             </div>
-                          </div>
+                          </div> */}
 
                           <div className='flex gap-[0.25rem]'>
                             <div className="relative flex-1 ">
@@ -2669,7 +2680,11 @@ export default function ResultTrack() {
                             </td>
 
                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                              <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
+                              {
+                                data?.isapproved !== 1 && (
+                                  <RiDeleteBin5Fill className="text-red-500 w-4 h-4" />
+                                )
+                              }
                             </td>
                           </tr>
                         ))

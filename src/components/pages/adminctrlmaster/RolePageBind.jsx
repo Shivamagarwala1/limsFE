@@ -143,7 +143,7 @@ export default function RolePageBind() {
             </form>
 
             <GridDataDetails gridDataDetails={'Role Page Bind Details'} />
-            <CustomDynamicTable headers={headers} bodyData={bodyData} label={label} activeTheme={activeTheme} />
+            {/* <CustomDynamicTable headers={headers} bodyData={bodyData} label={label} activeTheme={activeTheme} /> */}
         </>
     )
 }

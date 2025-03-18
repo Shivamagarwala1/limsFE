@@ -360,4 +360,4 @@ export const resultTrackForPatientInformation = ['Sr. No.', 'Test Name', 'Barcod
 export const resultTrackingForReRun = ['Sr. No', 'Observation Name', 'Re-Run Remark'];
 
 export const reportDispatchHeaderData = [
-  "Sr. No", "Booking Date", "Visiter Id", "Barcode", "Visitor Name", "Age/Gender", "Mobile", "Ref. Doctor", "Centre", "Test Name", "Rec. Date", "Comments", "Created By", "Print", 'Digital Report', "Info/Documents", "Remark"];
+  "Sr. No", "Visit Id", "Patient Name", "Age/Gender", "Mobile", "Barcode", "Ref. Doctor", "Centre", "Test Name", "Print", 'Online  Report', "Rec. Date", "Comments", "Created By", "Info/Documents", "Remark"];
