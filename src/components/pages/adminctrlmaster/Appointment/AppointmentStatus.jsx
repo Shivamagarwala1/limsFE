@@ -3,34 +3,53 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputGenerator, { SubmitButton } from "../../../../Custom Components/InputGenerator";
+import InputGenerator, {
+  SubmitButton,
+} from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import {AssignPopup} from '../../../../Custom Components/PopupModal'
-import DynamicTable from "../../../../Custom Components/DynamicTable";
+import { AssignPopup } from "../../../../Custom Components/PopupModal";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../../Custom Components/DynamicTable";
+import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
+import toast from "react-hot-toast";
+import { addRandomObjectId } from "../../../../service/RedendentData";
+import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 
 export default function AppointmentStatus() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
 
   const PostData = usePostData();
-  const { fetchData, response, data, loading, error, getData } = useGetData();
+  const { fetchData, response, data, loading, error } = useGetData();
+
+  // ------------------ Center -------------------------------
+  const [CenterId, setCenterId] = useState(null);
+  const [CenterValue, setCenterValue] = useState("");
+  const [CenterDropDown, setCenterDropDown] = useState(false);
+  const [CenterHoveIndex, setCenterHoveIndex] = useState(null);
+  const [CenterSelectedOption, setCenterSelectedOption] = useState("");
 
   const [isButtonClick, setIsButtonClick] = useState(0);
-  const [ColumnTab, setColumnTab] = useState({
-    field: "discountReasonName",
-    header: "Discount Reason Name",
-  });
+
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [isEditData, setIsEditData] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
-  const [isHoveredTable, setIsHoveredTable] = useState(null);
-  const [isHoveredTable1, setIsHoveredTable1] = useState(null);
   const [AssignedPopup, setAssignedPopup] = useState(false);
   const AllCenterData = useGetData();
+  const [Row, setRow] = useState([]);
+  const getData = useGetData();
+  useEffect(() => {
+    getData?.fetchData(
+      "/centreMaster?select=centreid,companyname&$filter=(isactive eq 1)"
+    );
+  }, []);
   useEffect(() => {
     getReason();
-    AllCenterData?.fetchData('/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)');
+    AllCenterData?.fetchData(
+      "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
+    );
     // console.log(AllCenterData);
   }, [activeTab]);
   console.log(data);
@@ -40,20 +59,20 @@ export default function AppointmentStatus() {
   ];
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 30 },
-    {
-      field: `centre`,
-      headerName: `Centre`,
-      flex: 1,
-    },
+    { field: "Random", headerName: "Sr. No", width: 20 },
     {
       field: `bookingDate`,
       headerName: `Booking Date`,
       flex: 1,
     },
     {
-      field: `appointmentDate`,
-      headerName: `Appointment Date`,
+      field: `sceduleDate`,
+      headerName: `Sechduled Date`,
+      flex: 1,
+    },
+    {
+      field: `workOrderId`,
+      headerName: `Visit Id`,
       flex: 1,
     },
     {
@@ -62,26 +81,25 @@ export default function AppointmentStatus() {
       flex: 1,
     },
     {
-      field: `AgeSex`,
-      headerName: `Age/Sex`,
+      field: `age`,
+      headerName: `Age`,
       flex: 1,
     },
     {
-      field: `investigation`,
-      headerName: `investigation`,
+      field: `status`,
+      headerName: `Status`,
       flex: 1,
     },
     {
-      field: `mobileNo`,
-      headerName: `Mobile No.`,
+      field: `investigationName`,
+      headerName: `Investigation`,
       flex: 1,
     },
     {
-      field: `assignedPhelebomist`,
-      headerName: `Assigned Phelebo`,
+      field: `address`,
+      headerName: `Address`,
       flex: 1,
     },
-
     {
       field: "",
       width: 200,
@@ -89,42 +107,68 @@ export default function AppointmentStatus() {
       renderCell: (params) => {
         return (
           <div style={{ display: "flex", gap: "5px" }}>
-           <SubmitButton text={'Assign Phelebomist'} submit={false} callBack={() => {setAssignedPopup(true)}} style={{ padding: "5px 10px",width:"100px" }} />
-           <SubmitButton text={'Reschedule'} submit={false} callBack={() => {}} style={{ padding: "5px 10px",width:"100px" }} />
-           <SubmitButton text={'Cancel'} submit={false} callBack={() => {}} style={{ padding: "5px 10px",width:"100px" }} />
+            <SubmitButton
+              text={"Assign Phelebomist"}
+              submit={false}
+              callBack={() => {
+                setAssignedPopup(true);
+              }}
+               style={{height:"1.05rem", padding: "0px 5px", width: "100px" }}
+            />
+            <SubmitButton
+              text={"Reschedule"}
+              submit={false}
+              callBack={() => {}}
+               style={{height:"1.05rem", padding: "0px 5px", width: "100px" }}
+            />
+            <SubmitButton
+              text={"Cancel"}
+              submit={false}
+              callBack={() => {}}
+               style={{height:"1.05rem", padding: "0px 5px", width: "100px" }}
+            />
           </div>
         );
       },
     },
   ];
 
+  // Function to handle input changes
+  const handleSearchChange2 = (e) => {
+    setCenterValue(e.target.value);
+    setCenterDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick2 = (name, id) => {
+    setCenterValue(name);
+    setCenterId(id);
+    setCenterSelectedOption(name);
+    setCenterDropDown(false);
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
-    const lsData = getLocal("imarsar_laboratory");
-    const payload =
-      isButtonClick === 0
-        ? { ...values, createdById: lsData?.user?.employeeId }
-        : {
-            ...values,
-            updateById: lsData?.user?.employeeId,
-            id: clickedRowId?.id,
-            isActive: clickedRowId?.isActive,
-          };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    console.log(payload);
-    // if (data1?.success) {
-    //   toast.success(
-    //     isButtonClick === 0 ? data1?.message : "Updated Successfull"
-    //   );
-    //   setIsButtonClick(0);
-    //   getReason();
-    // }
+    if (!CenterId) {
+      toast.error("Center is Required");
+      return;
+    }
+    if (!values?.from) {
+      toast.error("From Date is Required");
+      return;
+    }
+
+    const get = await fetchData(
+      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.Todate}&CentreID=${CenterId}`
+    );
+    setRow(addRandomObjectId(get?.data?.data));
+    console.log(get);
   };
 
   const getReason = async () => {
     // const get = await fetchData(tabs[activeTab]?.getApi);
-    console.log(get);
+    // console.log(get);
   };
 
   const handleTheUpdateStatusMenu = async () => {
@@ -144,7 +188,32 @@ export default function AppointmentStatus() {
   };
 
   //   const InputFileds = [{ label: "", type: "" }];
-
+  const statuses = [
+    {
+      Data: 21,
+      CallBack: () => {
+        // Pending
+      },
+    },
+    {
+      Data: 20,
+      CallBack: () => {
+        // Collected
+      },
+    },
+    {
+      Data: 22,
+      CallBack: () => {
+        // Collected
+      },
+    },
+    {
+      Data: 23,
+      CallBack: () => {
+        // Collected
+      },
+    },
+  ];
   return (
     <div>
       <AssignPopup setShowPopup={setAssignedPopup} showPopup={AssignedPopup} />
@@ -161,71 +230,40 @@ export default function AppointmentStatus() {
 
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+          <SearchBarDropdown
+            id="search-bar"
+            name="Center"
+            value={CenterValue}
+            onChange={handleSearchChange2}
+            label="Center"
+            placeholder="Serch Center"
+            options={getData?.data}
+            isRequired={false}
+            showSearchBarDropDown={CenterDropDown}
+            setShowSearchBarDropDown={setCenterDropDown}
+            handleOptionClickForCentre={handleOptionClick2}
+            setIsHovered={setCenterHoveIndex}
+            isHovered={CenterHoveIndex}
+            style={{ marginTop: "0.1rem" }}
+          />
           <InputGenerator
             inputFields={[
-              { label: "Centre", type: "select", name: "centre",dataOptions:AllCenterData?.data },
               { label: "From Date", type: "customDateField", name: "from" },
-              { label: "To Date", type: "customDateField", name: "to" },
+              { label: "To Date", type: "customDateField", name: "Todate" },
             ]}
           />
-           <div className="flex gap-3">
-            <div class="relative flex-1 gap-3 flex justify-center items-center">
-              <div class="relative flex-1 gap-1 flex justify-center items-center text-xs">
-                <div class="w-6 h-6 bg-pink-300 rounded-full"></div>
-                Scheduled
-              </div>
-              <div class="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div class="w-6 h-6 bg-green-300 rounded-full"></div>
-                Confirmed
-              </div>
-              <div class="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div class="w-6 h-6 bg-red-500 rounded-full"></div>
-                Cancel
-              </div>
-              <div class="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div class="w-6 h-6 bg-violet-500 rounded-full"></div>
-                Assigned
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-[0.25rem]"></div>
-          <div className="flex gap-[0.25rem]">
-            <div className="relative flex-1 gap-1 flex justify-start items-center">
-              <button
-                type="submit"
-                className={`font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-              >
-                Search
-              </button>
-            </div>
-          </div>
+          <SubmitButton text={"Search"} />
         </div>
-      </form>
-      <div className="pt-1 w-full">
-    
 
-        <DynamicTable
-          rows={[
-            {
-              id: 1,
-              centre: "iMS",
-              bookingDate:"11-05-25",
-              appointmentDate:"12-05-25",
-              patientName:"Jon Snow",
-              AgeSex:"male/25",
-              investigation:"CBC (complete blood count)",
-              mobileNo: "1234567890",
-              assignedPhelebomist:"Phelebomist 1",
-            },
-          ]}
-          name="Appointment Status Details"
+        <LegendButtons statuses={statuses} />
+      </form>
+      <div className="w-full">
+        <UpdatedDynamicTable
+          rows={Row}
+          name="Phlebotomy Collection Details"
           loading={loading}
           columns={columns}
-          activeTheme={activeTheme}
+          viewKey="Random"
         />
       </div>
     </div>

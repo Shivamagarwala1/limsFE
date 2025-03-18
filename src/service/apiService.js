@@ -90,41 +90,41 @@ export const deleteData = async (url) => {
  * @param {object} params - Query parameters (optional)
  */
 export const useGetData = (url, params = {}) => {
-    const [data, setData] = useState([]);
-    const [response, setResponse] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-  
-    const fetchData = async (url, params = {}) => {
-      setLoading(true);
-      try {
-        const result = await getData(url, params);
-        setData(result?.data);
-        setResponse(result);
-        setError(null);
-        return result;
-      } catch (err) {
-        setError(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-  
-    const resetData = ()=>{
-      setData([]);
-    }
+  const [data, setData] = useState([]);
+  const [response, setResponse] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-    useEffect(() => {
-      // Check if BASE_URL is the restricted URL
-      if (BASE_URL !== "https://imarsar.com:8084/api") {
-        fetchData();
-      } else {
-        setLoading(false); // Set loading to false if the URL is restricted
-      }
-    }, [url, JSON.stringify(params)]);
-  
-    return { fetchData, response, data, loading, error,resetData };
+  const fetchData = async (url, params = {}) => {
+    setLoading(true);
+    try {
+      const result = await getData(url, params);
+      setData(result?.data);
+      setResponse(result);
+      setError(null);
+      return result;
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const resetData = () => {
+    setData([]);
+  };
+
+  useEffect(() => {
+    // Check if BASE_URL is the restricted URL
+    if (BASE_URL !== "https://imarsar.com:8084/api") {
+      fetchData();
+    } else {
+      setLoading(false); // Set loading to false if the URL is restricted
+    }
+  }, [url, JSON.stringify(params)]);
+
+  return { fetchData, response, data, loading, error, resetData };
+};
 
 /**
  * Custom hook to send a POST request with authentication
@@ -152,10 +152,14 @@ export const usePostData = () => {
     }
   };
 
-  return { postRequest, response,data, loading, error };
+  const resetData = () => {
+    setData([]);
+  };
+
+  return { postRequest, response, data, loading, error, resetData };
 };
 
-export const StatusUpdater = async (payload,api,fetchedData) => {
+export const StatusUpdater = async (payload, api, fetchedData) => {
   const data1 = await postData(api, payload);
   if (data1?.success) {
     toast.success("Status Updated Successfully");

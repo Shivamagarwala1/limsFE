@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
 import InputGenerator, {
   getFormattedDate,
+  SubmitButton,
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
@@ -10,11 +11,13 @@ import { useGetData, usePostData } from "../../../../service/apiService";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import {
   addRandomObjectId,
+  downloadPostExcel,
   ViewOrDownloadPostPDF,
 } from "../../../../service/RedendentData";
 import toast from "react-hot-toast";
 import { getLocal } from "usehoks";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
+import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 
 // Main Component
 export default function DiscountReport() {
@@ -22,6 +25,13 @@ export default function DiscountReport() {
   const todayDate = getFormattedDate();
   const lsData = getLocal("imarsar_laboratory");
   const { formRef, getValues, setValues } = useFormHandler();
+
+  // ------------------ Type -------------------------------
+  const [TypeId, setTypeId] = useState(null);
+  const [TypeValue, setTypeValue] = useState("Details");
+  const [TypeDropDown, setTypeDropDown] = useState(false);
+  const [TypeHoveIndex, setTypeHoveIndex] = useState(null);
+  const [TypeSelectedOption, setTypeSelectedOption] = useState("");
 
   const [FromDate, setFromDate] = useState(todayDate);
   const [ToDate, setToDate] = useState(todayDate);
@@ -45,7 +55,6 @@ export default function DiscountReport() {
       `/empMaster?select=empid,fName,lName&$filter=(isActive eq 1)`
     );
   }, []);
-
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 20 },
     { field: "workOrderId", headerName: "Visit Id", flex: 1 },
@@ -56,9 +65,58 @@ export default function DiscountReport() {
     { field: "discount", headerName: "Discount", flex: 1 },
     { field: "netAmount", headerName: "Net Amount", flex: 1 },
   ];
+  const columns1 = [
+    { field: "Random", headerName: "Sr. No", width: 20 },
+    { field: "centrecode", headerName: "Centre Code", flex: 1 },
+    { field: "companyName", headerName: "Centre Name", flex: 1 },
+    { field: "grossAmountSum", headerName: "Gross Amount", flex: 1 },
+    { field: "discountSum", headerName: "Discount", flex: 1 },
+    { field: "netAmountSum", headerName: "Net Amount", flex: 1 },
+    { field: "cashAmtSum", headerName: "Cash Amount", flex: 1 },
+    {
+      field: "onlinewalletAmtSum",
+      headerName: "Online Wallet Amount",
+      flex: 1,
+    },
+    { field: "nefTamtSum", headerName: "NEFT Amount", flex: 1 },
+    { field: "chequeAmtSum", headerName: "Cheque Amount", flex: 1 },
+  ];
 
   // Handle form submission
-  const handleSearch = async () => {
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    const values = getValues();
+    console.log(values);
+
+    if (!values?.FromDate) {
+      toast.error("From Date is required");
+      return;
+    }
+    if (!values?.ToDate) {
+      toast.error("To Date is required");
+      return;
+    }
+
+    const payload = {
+      empIds: UserValue,
+      centreIds: CenterValue,
+      fromDate: values?.FromDate,
+      toDate: values?.ToDate,
+    };
+    const api =
+      TypeValue == "Summary"
+        ? "/tnx_Booking/DiscountReportDataSummury"
+        : "/tnx_Booking/DiscountReportData";
+    try {
+      const res = await PostData?.postRequest(`${api}`, payload);
+      setRow(addRandomObjectId(res?.data));
+    } catch (error) {
+      toast?.error(res?.data?.message);
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async () => {
     if (!FromDate) {
       toast.error("From Date is required");
       return;
@@ -73,46 +131,63 @@ export default function DiscountReport() {
       fromDate: FromDate,
       toDate: ToDate,
     };
+    console.log("Payload ", payload);
+    const api =
+    TypeValue == "Summary"
+      ? "/tnx_Booking/DiscountReportSummury"
+      : "/tnx_Booking/DiscountReport";
     try {
-      const res = await PostData?.postRequest(
-        `/tnx_Booking/DiscountReportData`,
-        payload
-      );
-      setRow(addRandomObjectId(res?.data));
+      const res = await ViewOrDownloadPostPDF(`${api}`, payload);
     } catch (error) {
       toast?.error(res?.data?.message);
     }
   };
-
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const values = getValues();
-    console.log(values);
-
-    if (!values?.FromDate) {
+  const handleDownloadExcel = async () => {
+    if (!FromDate) {
       toast.error("From Date is required");
       return;
     }
-    if (!values?.ToDate) {
+    if (!ToDate) {
       toast.error("To Date is required");
       return;
     }
     const payload = {
       empIds: UserValue,
       centreIds: CenterValue,
-      fromDate: values?.FromDate,
-      toDate: values?.ToDate,
+      fromDate: FromDate,
+      toDate: ToDate,
     };
     console.log("Payload ", payload);
+    const api =
+      TypeValue == "Summary"
+        ? "/tnx_Booking/DiscountReportExcelSummury"
+        : "/tnx_Booking/DiscountReportExcel";
+
     try {
-      const res = await ViewOrDownloadPostPDF(
-        `/tnx_Booking/DiscountReportData`,
-        payload
+      const res = await downloadPostExcel(
+        `${api}`,
+        payload,
+        "CollectionReport.xlsx"
       );
     } catch (error) {
       toast?.error(res?.data?.message);
     }
+  };
+  // Function to handle input changes
+  const handleSearchChange2 = (e) => {
+    setRow([]);
+    setTypeValue(e.target.value);
+    setTypeDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick2 = (name, id) => {
+    setRow([]);
+    setTypeValue(name);
+    setTypeId(id);
+    setTypeSelectedOption(name);
+    setTypeDropDown(false);
   };
 
   // Summing all objects in the row array
@@ -133,7 +208,7 @@ export default function DiscountReport() {
     <>
       <div>
         <FormHeader title="Discount Report" />
-        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+        <form autoComplete="off" ref={formRef} onSubmit={handleSearch}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 mx-1 lg:mx-2">
             <InputGenerator
               inputFields={[
@@ -184,20 +259,44 @@ export default function DiscountReport() {
               selectedValues={UserValue}
               setSelectedValues={setUserValue}
             />
-
+            <div className="flex flex-row gap-2">
+              <SearchBarDropdown
+                id="search-bar"
+                name="Type"
+                value={TypeValue}
+                onChange={handleSearchChange2}
+                label="Type"
+                placeholder="Serch Type"
+                options={[{ data: "Details" }, { data: "Summary" }]}
+                isRequired={false}
+                showSearchBarDropDown={TypeDropDown}
+                setShowSearchBarDropDown={setTypeDropDown}
+                handleOptionClickForCentre={handleOptionClick2}
+                setIsHovered={setTypeHoveIndex}
+                isHovered={TypeHoveIndex}
+                style={{ marginTop: "0.1rem" }}
+              />
+              <SubmitButton
+                text="Search"
+                style={{ width: "100px", marginTop: "-4px" }}
+              />
+            </div>
             <TwoSubmitButton
               options={[
                 {
-                  label: "Search",
+                  label: "Print",
                   submit: false,
                   callBack: () => {
-                    handleSearch();
+                    handleSubmit();
                   },
                 },
-                // {
-                //   label: "Print",
-                //   submit: true,
-                // },
+                {
+                  label: "Export to Excel",
+                  submit: true,
+                  callBack: () => {
+                    handleDownloadExcel();
+                  },
+                },
               ]}
             />
           </div>
@@ -213,12 +312,13 @@ export default function DiscountReport() {
                 workOrderId: "",
                 name: "",
                 receivedBy: "",
+                centrecode: "",
                 // cashAmt:`₹ ${totalRow?.cashAmt}`
               },
             ]}
             name="Discount Report Details"
             loading={PostData?.loading}
-            columns={columns}
+            columns={TypeValue == "Summary" ? columns : columns}
             viewKey="Random"
           />
         </div>
