@@ -361,3 +361,15 @@ export const resultTrackingForReRun = ['Sr. No', 'Observation Name', 'Re-Run Rem
 
 export const reportDispatchHeaderData = [
   "Sr. No", "Visit Id", "Patient Name", "Age/Gender", "Mobile", "Barcode", "Ref. Doctor", "Centre", "Test Name", "Print", 'Online  Report', "Rec. Date", "Comments", "Created By", "Info/Documents", "Remark"];
+
+
+export const refundHeaderData = ['Sr. No', 'Booking Date', 'Patient Id', 'Patient Name', 'Age/Gender', 'Test Name', 'Mobile No.', 'Centre', 'Net Amount', 'Status', 'Remark', 'Refund'];
+
+
+export const disountHeaderData = ['Sr. No', 'Patient Id', 'Patient Name', 'Test Name', 'MRP', 'Gross Amount', 'Discount', 'Net Amount'];
+
+
+
+
+
+

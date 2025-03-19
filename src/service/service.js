@@ -1228,7 +1228,7 @@ export const getData = async (url, params = {}) => {
 export const useRetrieveData = () => {
     const [data, setData] = useState([]);
     const [response, setResponse] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     const fetchDataFromApi = async (url, params = {}) => {
