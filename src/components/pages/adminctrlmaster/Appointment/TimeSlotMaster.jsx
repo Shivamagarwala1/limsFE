@@ -84,8 +84,10 @@ export default function TimeSlotMaster() {
                 onClick={() => {
                   setClickedRowId(params?.row);
                   setIsButtonClick(1);
+                  const [from, to] = params?.row?.timeslot.split(" To ");
                   setSelectedCenter([`${params?.row?.centreId}`]);
-                  setValues([{ time: params?.row?.timeslot }]);
+                  setValues([{ fromTime: from }]);
+                  setValues([{ toTime: to }]);
                 }}
               />
             </button>
@@ -116,8 +118,12 @@ export default function TimeSlotMaster() {
       toast.error('Center is Required');
       return;
     }
-    if(!values?.time){
-      toast.error('Time is Required');
+    if(!values?.fromTime){
+      toast.error('From Time is Required');
+      return;
+    }
+    if(!values?.toTime){
+      toast.error('To Time is Required');
       return;
     }
     const data = selectedCenter?.map((item) => {
@@ -126,7 +132,7 @@ export default function TimeSlotMaster() {
         createdById: parseInt(lsData?.user?.employeeId),
         createdDateTime: new Date().toISOString(),
         centreId: item,
-        timeslot: values?.time,
+        timeslot: `${values?.fromTime} To ${values?.toTime}`,
       };
     });
     const data2 = selectedCenter?.map((item) => {
@@ -135,7 +141,7 @@ export default function TimeSlotMaster() {
         updateById: parseInt(lsData?.user?.employeeId),
         updateDateTime: new Date().toISOString(),
         centreId: item,
-        timeslot: values?.time,
+        timeslot: `${values?.fromTime} To ${values?.toTime}`,
       };
     });
     const payload = isButtonClick === 0 ? data : data2;
@@ -214,9 +220,15 @@ export default function TimeSlotMaster() {
             selectedValues={selectedCenter}
             setSelectedValues={setSelectedCenter}
           />
+          
+          <div className="flex gap-2">
           <InputGenerator
-            inputFields={[{ label: "Time Slot", type: "time", name: "time" }]}
+            inputFields={[{ label: "From", type: "time", name: "fromTime" }]}
           />
+           <InputGenerator
+            inputFields={[{ label: "To", type: "time", name: "toTime" }]}
+          />
+          </div>
           <SubmitButton text={isButtonClick == 0 ? "Save" : "Update"} />
         </div>
       </form>

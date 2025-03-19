@@ -60,7 +60,20 @@ export default function InputGenerator({
     field?.onChange && field.onChange(e.target.value, targetValue);
     setValue(inputValue.replace(numericRegex, ""));
   };
-
+  const handleInputChange1 = (e, field) => {
+    let inputValue = e.target.value;
+  
+    // Allow only numeric values (0-9)
+    const numericRegex = /\D/g; // Matches any non-digit character
+    let targetValue = inputValue.replace(numericRegex, "");
+  
+    // Call the onChange function if provided
+    field?.onChange && field.onChange(targetValue);
+  
+    // Update the state with the numeric value
+    setValue(targetValue);
+  };
+  
   return (
     <>
       {inputFields.map((field, index) => (
@@ -234,7 +247,7 @@ export default function InputGenerator({
                   readOnly={field?.readOnly}
                   required={field?.required}
                   onChange={(e) => {
-                    handleInputChange(e, field);
+                    handleInputChange1(e, field);
                   }}
                   placeholder={field?.placeholder || ""}
                   className={`inputPeerField peer focus:outline-none`}
