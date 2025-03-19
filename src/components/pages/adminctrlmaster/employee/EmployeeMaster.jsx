@@ -270,9 +270,8 @@ export default function EmployeeMaster() {
   useEffect(() => {
     setEmployeeData((prevData) => ({
       ...prevData,
-      empCode: `IMS${allEmpMasterData?.length + 1 < 10 ? "0" : ""}${
-        allEmpMasterData?.length + 1
-      }`,
+      empCode: `IMS${allEmpMasterData?.length + 1 < 10 ? "0" : ""}${allEmpMasterData?.length + 1
+        }`,
     }));
   }, [allEmpMasterData]);
 
@@ -451,28 +450,206 @@ export default function EmployeeMaster() {
     });
   };
 
+  //!=============before adding select all================
+  // const handleCheckboxChange = (e, data, checkBoxName) => {
+  //   const isChecked = e.target.checked;
+
+  //   if (checkBoxName === "deptName") {
+  //     setEmployeeData((prevData) => {
+  //       const updatedAccess = [...prevData.addEmpDepartmentAccess];
+
+  //       if (isChecked) {
+  //         // Add the department data
+  //         updatedAccess.push({
+  //           isActive: 1,
+
+  //           createdById: parseInt(user?.employeeId),
+  //           createdDateTime: new Date().toISOString(),
+  //           // updateById: 0,
+  //           // updateDateTime: new Date().toISOString(),
+  //           id: 0,
+  //           empId: 0,
+  //           departmentId: data.id,
+  //         });
+  //       } else {
+  //         // Remove the department data
+  //         const index = updatedAccess.findIndex(
+  //           (item) => item.departmentId === data.id
+  //         );
+  //         if (index !== -1) {
+  //           updatedAccess.splice(index, 1);
+  //         }
+  //       }
+
+  //       return {
+  //         ...prevData,
+  //         addEmpDepartmentAccess: updatedAccess,
+  //       };
+  //     });
+  //   } else if (checkBoxName === "centerData") {
+  //     //store the defaultdepartment
+  //     setDefaultCenter((prev) => {
+  //       if (isChecked) {
+  //         // Add the new data to the state
+  //         return [...prev, data];
+  //       } else {
+  //         // Remove the data from the state if unchecked
+  //         return prev.filter((item) => item.id !== data.id);
+  //       }
+  //     });
+
+  //     setEmployeeData((prevData) => {
+  //       const updatedAccess = [...prevData.addEmpCentreAccess];
+
+  //       if (isChecked) {
+  //         // Add the department data
+  //         updatedAccess.push({
+  //           isActive: 1,
+  //           createdById: parseInt(user?.employeeId),
+  //           createdDateTime: new Date().toISOString(),
+  //           // updateById: 0,
+  //           // updateDateTime: new Date().toISOString(),
+  //           id: 0,
+  //           empId: 0,
+  //           centreId: data.centreId,
+  //         });
+  //       } else {
+  //         // Remove the department data
+  //         const index = updatedAccess.findIndex(
+  //           (item) => item.centreId === data.centreId
+  //         );
+  //         if (index !== -1) {
+  //           updatedAccess.splice(index, 1);
+  //         }
+  //       }
+
+  //       return {
+  //         ...prevData,
+  //         addEmpCentreAccess: updatedAccess,
+  //       };
+  //     });
+  //   } else if (checkBoxName === "roleData") {
+  //     //store the defaultdepartment
+  //     setDefaultRole((prev) => {
+  //       if (isChecked) {
+  //         // Add the new data to the state
+  //         return [...prev, data];
+  //       } else {
+  //         // Remove the data from the state if unchecked
+  //         return prev.filter((item) => item.id !== data.id);
+  //       }
+  //     });
+
+  //     setEmployeeData((prevData) => {
+  //       const updatedAccess = [...prevData.addEmpRoleAccess];
+
+  //       if (isChecked) {
+  //         // Add the department data
+  //         updatedAccess.push({
+  //           isActive: 1,
+  //           createdById: parseInt(user?.employeeId),
+  //           createdDateTime: new Date().toISOString(),
+  //           // updateById: 0,
+  //           // updateDateTime: new Date().toISOString(),
+  //           id: 0,
+  //           empId: 0,
+  //           roleId: data.id,
+  //         });
+  //       } else {
+  //         // Remove the department data
+  //         const index = updatedAccess.findIndex(
+  //           (item) => item.roleId === data.id
+  //         );
+  //         if (index !== -1) {
+  //           updatedAccess.splice(index, 1);
+  //         }
+  //       }
+
+  //       return {
+  //         ...prevData,
+  //         addEmpRoleAccess: updatedAccess,
+  //       };
+  //     });
+  //   }
+  // };
+  //!=============end before adding select all================
+
+
+  const [isAllDeptSelected, setIsAllDeptSelected] = useState(false);
+  const [isAllCenterSelected, setIsAllCenterSelected] = useState(false);
+  const [isAllRoleSelected, setIsAllRoleSelected] = useState(false);
+
+  // Handle Select All for Departments, Centers, and Roles
+  const handleSelectAll = (e, checkBoxName) => {
+    const isChecked = e.target.checked;
+
+    if (checkBoxName === "deptName") {
+      setIsAllDeptSelected(isChecked);
+      setEmployeeData((prevData) => ({
+        ...prevData,
+        addEmpDepartmentAccess: isChecked
+          ? allDepartmentData.map((data) => ({
+            isActive: 1,
+            createdById: parseInt(user?.employeeId),
+            createdDateTime: new Date().toISOString(),
+            id: 0,
+            empId: 0,
+            departmentId: data.id,
+          }))
+          : [],
+      }));
+    } else if (checkBoxName === "centerData") {
+      setIsAllCenterSelected(isChecked);
+      setEmployeeData((prevData) => ({
+        ...prevData,
+        addEmpCentreAccess: isChecked
+          ? allCenterData.map((data) => ({
+            isActive: 1,
+            createdById: parseInt(user?.employeeId),
+            createdDateTime: new Date().toISOString(),
+            id: 0,
+            empId: 0,
+            centreId: data.centreId,
+          }))
+          : [],
+      }));
+      setDefaultCenter(isChecked ? allCenterData : []);
+    } else if (checkBoxName === "roleData") {
+      setIsAllRoleSelected(isChecked);
+      setEmployeeData((prevData) => ({
+        ...prevData,
+        addEmpRoleAccess: isChecked
+          ? allRoleData.map((data) => ({
+            isActive: 1,
+            createdById: parseInt(user?.employeeId),
+            createdDateTime: new Date().toISOString(),
+            id: 0,
+            empId: 0,
+            roleId: data.id,
+          }))
+          : [],
+      }));
+      setDefaultRole(isChecked ? allRoleData : []);
+    }
+  };
+
+  // Handle Individual Checkbox Change
   const handleCheckboxChange = (e, data, checkBoxName) => {
     const isChecked = e.target.checked;
 
     if (checkBoxName === "deptName") {
       setEmployeeData((prevData) => {
         const updatedAccess = [...prevData.addEmpDepartmentAccess];
-
         if (isChecked) {
-          // Add the department data
           updatedAccess.push({
             isActive: 1,
-
             createdById: parseInt(user?.employeeId),
             createdDateTime: new Date().toISOString(),
-            // updateById: 0,
-            // updateDateTime: new Date().toISOString(),
             id: 0,
             empId: 0,
             departmentId: data.id,
           });
         } else {
-          // Remove the department data
           const index = updatedAccess.findIndex(
             (item) => item.departmentId === data.id
           );
@@ -481,40 +658,34 @@ export default function EmployeeMaster() {
           }
         }
 
+        setIsAllDeptSelected(updatedAccess.length === allDepartmentData.length);
+
         return {
           ...prevData,
           addEmpDepartmentAccess: updatedAccess,
         };
       });
     } else if (checkBoxName === "centerData") {
-      //store the defaultdepartment
       setDefaultCenter((prev) => {
         if (isChecked) {
-          // Add the new data to the state
           return [...prev, data];
         } else {
-          // Remove the data from the state if unchecked
           return prev.filter((item) => item.id !== data.id);
         }
       });
 
       setEmployeeData((prevData) => {
         const updatedAccess = [...prevData.addEmpCentreAccess];
-
         if (isChecked) {
-          // Add the department data
           updatedAccess.push({
             isActive: 1,
             createdById: parseInt(user?.employeeId),
             createdDateTime: new Date().toISOString(),
-            // updateById: 0,
-            // updateDateTime: new Date().toISOString(),
             id: 0,
             empId: 0,
             centreId: data.centreId,
           });
         } else {
-          // Remove the department data
           const index = updatedAccess.findIndex(
             (item) => item.centreId === data.centreId
           );
@@ -523,40 +694,34 @@ export default function EmployeeMaster() {
           }
         }
 
+        setIsAllCenterSelected(updatedAccess.length === allCenterData.length);
+
         return {
           ...prevData,
           addEmpCentreAccess: updatedAccess,
         };
       });
     } else if (checkBoxName === "roleData") {
-      //store the defaultdepartment
       setDefaultRole((prev) => {
         if (isChecked) {
-          // Add the new data to the state
           return [...prev, data];
         } else {
-          // Remove the data from the state if unchecked
           return prev.filter((item) => item.id !== data.id);
         }
       });
 
       setEmployeeData((prevData) => {
         const updatedAccess = [...prevData.addEmpRoleAccess];
-
         if (isChecked) {
-          // Add the department data
           updatedAccess.push({
             isActive: 1,
             createdById: parseInt(user?.employeeId),
             createdDateTime: new Date().toISOString(),
-            // updateById: 0,
-            // updateDateTime: new Date().toISOString(),
             id: 0,
             empId: 0,
             roleId: data.id,
           });
         } else {
-          // Remove the department data
           const index = updatedAccess.findIndex(
             (item) => item.roleId === data.id
           );
@@ -565,6 +730,8 @@ export default function EmployeeMaster() {
           }
         }
 
+        setIsAllRoleSelected(updatedAccess.length === allRoleData.length);
+
         return {
           ...prevData,
           addEmpRoleAccess: updatedAccess,
@@ -572,6 +739,8 @@ export default function EmployeeMaster() {
       });
     }
   };
+
+
 
   const validateForm = () => {
     const errors = {};
@@ -844,7 +1013,7 @@ export default function EmployeeMaster() {
     const updatedFormData = {
       ...employeeData,
       //addEmpCenterAccess: [],//selectedSearchDropDownData?.addEmpCenterAccess,
-      indentApprove:parseInt(employeeData?.indentApprove),
+      indentApprove: parseInt(employeeData?.indentApprove),
       indentIssue: parseInt(employeeData?.indentIssue),
       updateDateTime: new Date().toISOString(),
       updateById: parseInt(user?.employeeId),
@@ -1008,9 +1177,8 @@ export default function EmployeeMaster() {
                 value={employeeData.title}
                 onChange={handelChangeEmployeeDetails}
                 name="title"
-                className={`inputPeerField cursor-pointer peer ${
-                  formErrors.title ? "border-b-red-500" : "border-borderColor"
-                } focus:outline-none `}
+                className={`inputPeerField cursor-pointer peer ${formErrors.title ? "border-b-red-500" : "border-borderColor"
+                  } focus:outline-none `}
               >
                 <option value="" disabled hidden className="text-gray-400">
                   Select Option
@@ -1036,9 +1204,8 @@ export default function EmployeeMaster() {
               value={employeeData.fName}
               onChange={handelChangeEmployeeDetails}
               placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.fName ? "border-b-red-500" : "border-borderColor"
-              }                  focus:outline-none`}
+              className={`inputPeerField peer ${formErrors.fName ? "border-b-red-500" : "border-borderColor"
+                }                  focus:outline-none`}
             />
             <label htmlFor="fName" className="menuPeerLevel">
               First Name
@@ -1054,9 +1221,8 @@ export default function EmployeeMaster() {
               value={employeeData.lName}
               onChange={handelChangeEmployeeDetails}
               placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.lName ? "border-b-red-500" : "border-borderColor"
-              } focus:outline-none`}
+              className={`inputPeerField peer ${formErrors.lName ? "border-b-red-500" : "border-borderColor"
+                } focus:outline-none`}
             />
             <label htmlFor="lName" className="menuPeerLevel">
               Last Name
@@ -1072,9 +1238,8 @@ export default function EmployeeMaster() {
               value={employeeData.mobileNo}
               onChange={handelChangeEmployeeDetails}
               placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.mobileNo ? "border-b-red-500" : "border-borderColor"
-              } focus:outline-none`}
+              className={`inputPeerField peer ${formErrors.mobileNo ? "border-b-red-500" : "border-borderColor"
+                } focus:outline-none`}
             />
             <label htmlFor="mobileNo" className="menuPeerLevel">
               Phone No.
@@ -1090,9 +1255,8 @@ export default function EmployeeMaster() {
               value={employeeData.email}
               onChange={handelChangeEmployeeDetails}
               placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.email ? "border-b-red-500" : "border-borderColor"
-              }  focus:outline-none`}
+              className={`inputPeerField peer ${formErrors.email ? "border-b-red-500" : "border-borderColor"
+                }  focus:outline-none`}
             />
             <label htmlFor="email" className="menuPeerLevel">
               Email
@@ -1205,11 +1369,10 @@ export default function EmployeeMaster() {
               }}
               onClick={() => openShowSearchBarDropDown(1)}
               placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.designationId
-                  ? "border-b-red-500"
-                  : "border-borderColor"
-              }  focus:outline-none`}
+              className={`inputPeerField peer ${formErrors.designationId
+                ? "border-b-red-500"
+                : "border-borderColor"
+                }  focus:outline-none`}
             />
             <label htmlFor="designationId" className="menuPeerLevel">
               Designation
@@ -1272,9 +1435,8 @@ export default function EmployeeMaster() {
               value={employeeData.userName}
               onChange={handelChangeEmployeeDetails}
               placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.userName ? "border-b-red-500" : "border-borderColor"
-              } focus:outline-none`}
+              className={`inputPeerField peer ${formErrors.userName ? "border-b-red-500" : "border-borderColor"
+                } focus:outline-none`}
             />
             <label htmlFor="userName" className="menuPeerLevel">
               User Name
@@ -1291,11 +1453,10 @@ export default function EmployeeMaster() {
                 value={employeeData.password}
                 onChange={handelChangeEmployeeDetails}
                 placeholder=" "
-                className={`inputPeerField peer ${
-                  formErrors.password
-                    ? "border-b-red-500"
-                    : "border-borderColor"
-                } focus:outline-none`}
+                className={`inputPeerField peer ${formErrors.password
+                  ? "border-b-red-500"
+                  : "border-borderColor"
+                  } focus:outline-none`}
               />
               <label htmlFor="password" className="menuPeerLevel">
                 Password
@@ -1310,11 +1471,10 @@ export default function EmployeeMaster() {
                 value={confirmPass}
                 onChange={(e) => setConfirmPass(e.target.value)}
                 placeholder=" "
-                className={`inputPeerField peer ${
-                  formErrors.confirmPass
-                    ? "border-b-red-500"
-                    : "border-borderColor"
-                }  focus:outline-none`}
+                className={`inputPeerField peer ${formErrors.confirmPass
+                  ? "border-b-red-500"
+                  : "border-borderColor"
+                  }  focus:outline-none`}
               />
               <label htmlFor="confirmPass" className="menuPeerLevel">
                 C. Password
@@ -1626,11 +1786,10 @@ export default function EmployeeMaster() {
           {/* Department */}
           <div className="relative flex-1">
             <div
-              className={`flex peer items-center border-[1.5px] ${
-                formErrors.addEmpDepartmentAccess
-                  ? "border-b-red-500"
-                  : "border-borderColor"
-              } rounded text-xxxs h-[1.6rem] text-[#495057] bg-white`}
+              className={`flex peer items-center border-[1.5px] ${formErrors.addEmpDepartmentAccess
+                ? "border-b-red-500"
+                : "border-borderColor"
+                } rounded text-xxxs h-[1.6rem] text-[#495057] bg-white`}
               onClick={() =>
                 showSearchBarDropDown !== 5
                   ? openShowSearchBarDropDown(5)
@@ -1645,8 +1804,8 @@ export default function EmployeeMaster() {
                   employeeData.addEmpDepartmentAccess.length === 0
                     ? ""
                     : employeeData.addEmpDepartmentAccess
-                        .map((data) => data.departmentId) // Extract departmentId
-                        .join(", ") // Join the array into a string separated by commas
+                      .map((data) => data.departmentId) // Extract departmentId
+                      .join(", ") // Join the array into a string separated by commas
                 }
                 onChange={handelChangeEmployeeDetails}
                 onClick={() => setShowSearchBarDropDown(5)}
@@ -1680,43 +1839,48 @@ export default function EmployeeMaster() {
                     <li className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2 w-full h-full">
                       <div>
                         {/* <input
-                                                        type="checkbox"
-                                                        checked={formData.subMenuId.split(',').length === allSubMenuData?.length && allSubMenuData?.length > 0}
-                                                        onChange={(e) => {
-                                                            const allIds = allSubMenuData?.map((data) => data.id.toString());
-                                                            if (e.target.checked) {
-                                                                // Select all checkboxes
-                                                                setFormData((prevFormData) => ({
-                                                                    ...prevFormData,
-                                                                    subMenuId: allIds.join(','),
-                                                                }));
-                                                                setIsValid((prevState) => ({
-                                                                    ...prevState,
-                                                                    subMenuId: allIds.length > 0,
-                                                                }));
-                                                            } else {
-                                                                // Deselect all checkboxes
-                                                                setFormData((prevFormData) => ({
-                                                                    ...prevFormData,
-                                                                    subMenuId: '',
-                                                                }));
-                                                                setIsValid((prevState) => ({
-                                                                    ...prevState,
-                                                                    subMenuId: false,
-                                                                }));
-                                                            }
-                                                        }}
-                                                    /> */}
+                          type="checkbox"
+                          checked={formData.subMenuId.split(',').length === allSubMenuData?.length && allSubMenuData?.length > 0}
+                          onChange={(e) => {
+                            const allIds = allSubMenuData?.map((data) => data.id.toString());
+                            if (e.target.checked) {
+                              // Select all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: allIds.join(','),
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: allIds.length > 0,
+                              }));
+                            } else {
+                              // Deselect all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: '',
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: false,
+                              }));
+                            }
+                          }}
+                        /> */}
+                        <input
+                          type="checkbox"
+                          checked={isAllDeptSelected}
+                          onChange={(e) => handleSelectAll(e, "deptName")}
+                        />
                       </div>
                       <div className="w-full">
-                        {/* <input
-                                                        type="search"
-                                                        name="searchSubMenuList"
-                                                        id="searchSubMenuList"
-                                                        className="border-[1px] outline-none rounded-md w-full px-2 my-1 h-[1.6rem]"
-                                                        // onChange={handleSearchMultiSelectDropDown}
-                                                        placeholder="Search..."
-                                                    /> */}
+                        <input
+                          type="search"
+                          name="searchSubMenuList"
+                          id="searchSubMenuList"
+                          className="border-[1px] outline-none rounded-md w-full px-2 my-1 h-[1.6rem]"
+                          // onChange={handleSearchMultiSelectDropDown}
+                          placeholder="Search..."
+                        />
                       </div>
                     </li>
 
@@ -1763,11 +1927,10 @@ export default function EmployeeMaster() {
           {/* Center */}
           <div className="relative flex-1">
             <div
-              className={`flex peer items-center border-[1.5px] ${
-                formErrors.addEmpCentreAccess
-                  ? "border-b-red-500"
-                  : "border-borderColor"
-              } rounded text-xxxs h-[1.6rem] text-[#495057] bg-white`}
+              className={`flex peer items-center border-[1.5px] ${formErrors.addEmpCentreAccess
+                ? "border-b-red-500"
+                : "border-borderColor"
+                } rounded text-xxxs h-[1.6rem] text-[#495057] bg-white`}
               onClick={() =>
                 showSearchBarDropDown !== 6
                   ? openShowSearchBarDropDown(6)
@@ -1782,8 +1945,8 @@ export default function EmployeeMaster() {
                   employeeData.addEmpCentreAccess.length === 0
                     ? ""
                     : employeeData.addEmpCentreAccess
-                        .map((data) => data.centreId) // Extract departmentId
-                        .join(", ") // Join the array into a string separated by commas
+                      .map((data) => data.centreId) // Extract departmentId
+                      .join(", ") // Join the array into a string separated by commas
                 }
                 onChange={handelChangeEmployeeDetails}
                 onClick={() => setShowSearchBarDropDown(6)}
@@ -1816,43 +1979,48 @@ export default function EmployeeMaster() {
                     <li className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2 w-full h-full">
                       <div>
                         {/* <input
-                                                        type="checkbox"
-                                                        checked={formData.subMenuId.split(',').length === allSubMenuData?.length && allSubMenuData?.length > 0}
-                                                        onChange={(e) => {
-                                                            const allIds = allSubMenuData?.map((data) => data.id.toString());
-                                                            if (e.target.checked) {
-                                                                // Select all checkboxes
-                                                                setFormData((prevFormData) => ({
-                                                                    ...prevFormData,
-                                                                    subMenuId: allIds.join(','),
-                                                                }));
-                                                                setIsValid((prevState) => ({
-                                                                    ...prevState,
-                                                                    subMenuId: allIds.length > 0,
-                                                                }));
-                                                            } else {
-                                                                // Deselect all checkboxes
-                                                                setFormData((prevFormData) => ({
-                                                                    ...prevFormData,
-                                                                    subMenuId: '',
-                                                                }));
-                                                                setIsValid((prevState) => ({
-                                                                    ...prevState,
-                                                                    subMenuId: false,
-                                                                }));
-                                                            }
-                                                        }}
-                                                    /> */}
+                          type="checkbox"
+                          checked={formData.subMenuId.split(',').length === allSubMenuData?.length && allSubMenuData?.length > 0}
+                          onChange={(e) => {
+                            const allIds = allSubMenuData?.map((data) => data.id.toString());
+                            if (e.target.checked) {
+                              // Select all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: allIds.join(','),
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: allIds.length > 0,
+                              }));
+                            } else {
+                              // Deselect all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: '',
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: false,
+                              }));
+                            }
+                          }}
+                        /> */}
+                        <input
+                          type="checkbox"
+                          checked={isAllCenterSelected}
+                          onChange={(e) => handleSelectAll(e, "centerData")}
+                        />
                       </div>
                       <div className="w-full">
-                        {/* <input
-                                                        type="search"
-                                                        name="searchSubMenuList"
-                                                        id="searchSubMenuList"
-                                                        className="border-[1px] outline-none rounded-md w-full px-2 my-1 h-[1.6rem]"
-                                                        // onChange={handleSearchMultiSelectDropDown}
-                                                        placeholder="Search..."
-                                                    /> */}
+                        <input
+                          type="search"
+                          name="searchSubMenuList"
+                          id="searchSubMenuList"
+                          className="border-[1px] outline-none rounded-md w-full px-2 my-1 h-[1.6rem]"
+                          // onChange={handleSearchMultiSelectDropDown}
+                          placeholder="Search..."
+                        />
                       </div>
                     </li>
 
@@ -1896,14 +2064,143 @@ export default function EmployeeMaster() {
             )}
           </div>
 
+
+          {/* Default Centre */}
+          <div className="relative flex-1">
+            <input
+              type="search"
+              id="defaultcentre"
+              name="defaultcentre"
+              // value={employeeData.defaultcentre}
+              // onChange={handelChangeEmployeeDetails}
+              value={
+                selectedSearchDropDownData?.defaultcentre ||
+                employeeData?.defaultcentre ||
+                ""
+              }
+              onChange={(e) => {
+                handelChangeEmployeeDetails(e),
+                  setSelectedSearchDropDownData((preventData) => ({
+                    ...preventData,
+                    defaultcentre: "",
+                  }));
+              }}
+              onClick={() => openShowSearchBarDropDown(8)}
+              placeholder=" "
+              className={`inputPeerField peer ${formErrors.defaultcentre
+                ? "border-b-red-500"
+                : "border-borderColor"
+                } focus:outline-none`}
+            />
+            <label htmlFor="defaultcentre" className="menuPeerLevel">
+              Default Centre
+            </label>
+
+            {/* Dropdown to select the menu */}
+            {showSearchBarDropDown === 8 && (
+              <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                <ul className="w-full">
+
+                  {/* <li className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2 w-full h-full">
+                    <div>
+                      {/* <input
+                          type="checkbox"
+                          checked={formData.subMenuId.split(',').length === allSubMenuData?.length && allSubMenuData?.length > 0}
+                          onChange={(e) => {
+                            const allIds = allSubMenuData?.map((data) => data.id.toString());
+                            if (e.target.checked) {
+                              // Select all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: allIds.join(','),
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: allIds.length > 0,
+                              }));
+                            } else {
+                              // Deselect all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: '',
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: false,
+                              }));
+                            }
+                          }}
+                        /> *
+                      <input
+                        type="checkbox"
+                        checked={isAllRoleSelected}
+                        onChange={(e) => handleSelectAll(e, "roleData")}
+                      />
+                    </div>
+                    <div className="w-full">
+                      <input
+                        type="search"
+                        name="searchSubMenuList"
+                        id="searchSubMenuList"
+                        className="border-[1px] outline-none rounded-md w-full px-2 my-1 h-[1.6rem]"
+                        // onChange={handleSearchMultiSelectDropDown}
+                        placeholder="Search..."
+                      />
+                    </div>
+                  </li> */}
+
+
+                  {filterAllDefaultCenterData?.length > 0 ? (
+                    filterAllDefaultCenterData?.map((data, index) => (
+                      <li
+                        key={data.centreId}
+                        name="defaultcentre"
+                        className="my-1 px-2 cursor-pointer"
+                        onClick={(e) => {
+                          setSelectedSearchDropDownData((preventData) => ({
+                            ...preventData,
+                            defaultcentre: data?.companyName,
+                          }));
+                          openShowSearchBarDropDown(0);
+                          //handelChangeEmployeeDetails(e)
+                          handelChangeEmployeeDetails({
+                            target: {
+                              name: "defaultcentre",
+                              value: data?.centreId,
+                            },
+                          });
+                        }}
+                        onMouseEnter={() => setIsHovered(index)}
+                        onMouseLeave={() => setIsHovered(null)}
+                        style={{
+                          background:
+                            isHovered === index
+                              ? activeTheme?.subMenuColor
+                              : "transparent",
+                        }}
+                      >
+                        {data?.companyName}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="py-4 text-gray-500 text-center">
+                      {import.meta.env.VITE_API_SELECT_CENTRE ||
+                        "No records found"}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+
+
           {/* Access Role */}
           <div className="relative flex-1">
             <div
-              className={`flex peer items-center border-[1.5px] ${
-                formErrors.addEmpRoleAccess
-                  ? "border-b-red-500"
-                  : "border-borderColor"
-              } rounded text-xxxs h-[1.6rem] text-[#495057] bg-white`}
+              className={`flex peer items-center border-[1.5px] ${formErrors.addEmpRoleAccess
+                ? "border-b-red-500"
+                : "border-borderColor"
+                } rounded text-xxxs h-[1.6rem] text-[#495057] bg-white`}
               onClick={() =>
                 showSearchBarDropDown !== 7
                   ? openShowSearchBarDropDown(7)
@@ -1918,8 +2215,8 @@ export default function EmployeeMaster() {
                   employeeData.addEmpRoleAccess.length === 0
                     ? ""
                     : employeeData.addEmpRoleAccess
-                        .map((data) => data.roleId)
-                        .join(", ")
+                      .map((data) => data.roleId)
+                      .join(", ")
                 }
                 onChange={handelChangeEmployeeDetails}
                 placeholder="Search Data"
@@ -1951,43 +2248,48 @@ export default function EmployeeMaster() {
                     <li className="my-1 px-2 cursor-pointer flex justify-start items-center gap-2 w-full h-full">
                       <div>
                         {/* <input
-                                                        type="checkbox"
-                                                        checked={formData.subMenuId.split(',').length === allSubMenuData?.length && allSubMenuData?.length > 0}
-                                                        onChange={(e) => {
-                                                            const allIds = allSubMenuData?.map((data) => data.id.toString());
-                                                            if (e.target.checked) {
-                                                                // Select all checkboxes
-                                                                setFormData((prevFormData) => ({
-                                                                    ...prevFormData,
-                                                                    subMenuId: allIds.join(','),
-                                                                }));
-                                                                setIsValid((prevState) => ({
-                                                                    ...prevState,
-                                                                    subMenuId: allIds.length > 0,
-                                                                }));
-                                                            } else {
-                                                                // Deselect all checkboxes
-                                                                setFormData((prevFormData) => ({
-                                                                    ...prevFormData,
-                                                                    subMenuId: '',
-                                                                }));
-                                                                setIsValid((prevState) => ({
-                                                                    ...prevState,
-                                                                    subMenuId: false,
-                                                                }));
-                                                            }
-                                                        }}
-                                                    /> */}
+                          type="checkbox"
+                          checked={formData.subMenuId.split(',').length === allSubMenuData?.length && allSubMenuData?.length > 0}
+                          onChange={(e) => {
+                            const allIds = allSubMenuData?.map((data) => data.id.toString());
+                            if (e.target.checked) {
+                              // Select all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: allIds.join(','),
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: allIds.length > 0,
+                              }));
+                            } else {
+                              // Deselect all checkboxes
+                              setFormData((prevFormData) => ({
+                                ...prevFormData,
+                                subMenuId: '',
+                              }));
+                              setIsValid((prevState) => ({
+                                ...prevState,
+                                subMenuId: false,
+                              }));
+                            }
+                          }}
+                        /> */}
+                        <input
+                          type="checkbox"
+                          checked={isAllRoleSelected}
+                          onChange={(e) => handleSelectAll(e, "roleData")}
+                        />
                       </div>
                       <div className="w-full">
-                        {/* <input
-                                                        type="search"
-                                                        name="searchSubMenuList"
-                                                        id="searchSubMenuList"
-                                                        className="border-[1px] outline-none rounded-md w-full px-2 my-1 h-[1.6rem]"
-                                                        // onChange={handleSearchMultiSelectDropDown}
-                                                        placeholder="Search..."
-                                                    /> */}
+                        <input
+                          type="search"
+                          name="searchSubMenuList"
+                          id="searchSubMenuList"
+                          className="border-[1px] outline-none rounded-md w-full px-2 my-1 h-[1.6rem]"
+                          // onChange={handleSearchMultiSelectDropDown}
+                          placeholder="Search..."
+                        />
                       </div>
                     </li>
 
@@ -2033,84 +2335,7 @@ export default function EmployeeMaster() {
             )}
           </div>
 
-          {/* Default Centre */}
-          <div className="relative flex-1">
-            <input
-              type="search"
-              id="defaultcentre"
-              name="defaultcentre"
-              // value={employeeData.defaultcentre}
-              // onChange={handelChangeEmployeeDetails}
-              value={
-                selectedSearchDropDownData?.defaultcentre ||
-                employeeData?.defaultcentre ||
-                ""
-              }
-              onChange={(e) => {
-                handelChangeEmployeeDetails(e),
-                  setSelectedSearchDropDownData((preventData) => ({
-                    ...preventData,
-                    defaultcentre: "",
-                  }));
-              }}
-              onClick={() => openShowSearchBarDropDown(8)}
-              placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.defaultcentre
-                  ? "border-b-red-500"
-                  : "border-borderColor"
-              } focus:outline-none`}
-            />
-            <label htmlFor="defaultcentre" className="menuPeerLevel">
-              Default Centre
-            </label>
 
-            {/* Dropdown to select the menu */}
-            {showSearchBarDropDown === 8 && (
-              <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
-                <ul>
-                  {filterAllDefaultCenterData?.length > 0 ? (
-                    filterAllDefaultCenterData?.map((data, index) => (
-                      <li
-                        key={data.centreId}
-                        name="defaultcentre"
-                        className="my-1 px-2 cursor-pointer"
-                        onClick={(e) => {
-                          setSelectedSearchDropDownData((preventData) => ({
-                            ...preventData,
-                            defaultcentre: data?.companyName,
-                          }));
-                          openShowSearchBarDropDown(0);
-                          //handelChangeEmployeeDetails(e)
-                          handelChangeEmployeeDetails({
-                            target: {
-                              name: "defaultcentre",
-                              value: data?.centreId,
-                            },
-                          });
-                        }}
-                        onMouseEnter={() => setIsHovered(index)}
-                        onMouseLeave={() => setIsHovered(null)}
-                        style={{
-                          background:
-                            isHovered === index
-                              ? activeTheme?.subMenuColor
-                              : "transparent",
-                        }}
-                      >
-                        {data?.companyName}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="py-4 text-gray-500 text-center">
-                      {import.meta.env.VITE_API_SELECT_CENTRE ||
-                        "No records found"}
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-          </div>
 
           {/* Default Role */}
           <div className="relative flex-1">
@@ -2132,11 +2357,10 @@ export default function EmployeeMaster() {
               }}
               onClick={() => openShowSearchBarDropDown(9)}
               placeholder=" "
-              className={`inputPeerField peer ${
-                formErrors.defaultrole
-                  ? "border-b-red-500"
-                  : "border-borderColor"
-              } focus:outline-none`}
+              className={`inputPeerField peer ${formErrors.defaultrole
+                ? "border-b-red-500"
+                : "border-borderColor"
+                } focus:outline-none`}
             />
             <label htmlFor="defaultrole" className="menuPeerLevel">
               Default Role
@@ -2195,7 +2419,7 @@ export default function EmployeeMaster() {
               onChange={handelChangeEmployeeDetails}
               className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-              // defaultValue={0}
+            // defaultValue={0}
             >
               <option value="" disabled hidden className="text-gray-400">
                 Select Option
@@ -2218,7 +2442,7 @@ export default function EmployeeMaster() {
               onChange={handelChangeEmployeeDetails}
               className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-              // defaultValue={0}
+            // defaultValue={0}
             >
               <option value="" disabled hidden className="text-gray-400">
                 Select Option
@@ -2239,7 +2463,7 @@ export default function EmployeeMaster() {
               onChange={handelChangeEmployeeDetails}
               className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-              // defaultValue={0}
+            // defaultValue={0}
             >
               <option value="" disabled hidden className="text-gray-400">
                 Select Option
@@ -2260,7 +2484,7 @@ export default function EmployeeMaster() {
               onChange={handelChangeEmployeeDetails}
               className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-              // defaultValue={0}
+            // defaultValue={0}
             >
               <option value="" disabled hidden className="text-gray-400">
                 Select Option
@@ -2281,7 +2505,7 @@ export default function EmployeeMaster() {
               onChange={handelChangeEmployeeDetails}
               className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-              // defaultValue={0}
+            // defaultValue={0}
             >
               <option value="" disabled hidden className="text-gray-400">
                 Select Option
@@ -2302,7 +2526,7 @@ export default function EmployeeMaster() {
               onChange={handelChangeEmployeeDetails}
               className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-              // defaultValue={0}
+            // defaultValue={0}
             >
               <option value="" disabled hidden className="text-gray-400">
                 Select Option
@@ -2374,7 +2598,7 @@ export default function EmployeeMaster() {
                 onChange={handelChangeEmployeeDetails}
                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-                // defaultValue={0}
+              // defaultValue={0}
               >
                 <option value="" disabled hidden className="text-gray-400">
                   Select Option
@@ -2396,7 +2620,7 @@ export default function EmployeeMaster() {
                 onChange={handelChangeEmployeeDetails}
                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-                // defaultValue={0}
+              // defaultValue={0}
               >
                 <option value="" disabled hidden className="text-gray-400">
                   Select Option
@@ -2419,7 +2643,7 @@ export default function EmployeeMaster() {
                 onChange={handelChangeEmployeeDetails}
                 className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-                // defaultValue={0}
+              // defaultValue={0}
               >
                 <option value="" disabled hidden className="text-gray-400">
                   Select Option
@@ -2524,13 +2748,12 @@ export default function EmployeeMaster() {
               return (
                 <tr
                   className={`cursor-pointer 
-                                            ${
-                                              isHoveredTable === data?.empId
-                                                ? ""
-                                                : data?.empId % 2 === 0
-                                                ? "bg-gray-100"
-                                                : "bg-white"
-                                            }`}
+                                            ${isHoveredTable === data?.empId
+                      ? ""
+                      : data?.empId % 2 === 0
+                        ? "bg-gray-100"
+                        : "bg-white"
+                    }`}
                   key={data?.empId}
                   onMouseEnter={() => setIsHoveredTable(data?.empId)}
                   onMouseLeave={() => setIsHoveredTable(null)}
@@ -2568,11 +2791,10 @@ export default function EmployeeMaster() {
                       className="relative overflow-hidden w-4 h-4 flex justify-center items-center"
                     >
                       <FaRegEdit
-                        className={`w-full h-full ${
-                          data?.isActive === 1
-                            ? "text-blue-500 cursor-pointer"
-                            : "text-gray-400 cursor-not-allowed"
-                        }`}
+                        className={`w-full h-full ${data?.isActive === 1
+                          ? "text-blue-500 cursor-pointer"
+                          : "text-gray-400 cursor-not-allowed"
+                          }`}
                         onClick={() => {
                           if (data?.isActive === 1) {
                             getSingleMenuDataForUpDate(data?.empId);
@@ -2584,9 +2806,8 @@ export default function EmployeeMaster() {
                     <button
                       type="button"
                       data-ripple-light="true"
-                      className={`relative overflow-hidden w-4 h-4 flex justify-center items-center ${
-                        data?.isActive === 1 ? "text-green-500" : "text-red-500"
-                      }`}
+                      className={`relative overflow-hidden w-4 h-4 flex justify-center items-center ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
+                        }`}
                     >
                       <ImSwitch
                         className="w-full h-full"

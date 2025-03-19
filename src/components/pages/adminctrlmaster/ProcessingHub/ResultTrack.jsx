@@ -101,7 +101,7 @@ export default function ResultTrack() {
     fromDate: useFormattedDate(),
     toDate: useFormattedDate(),
     datetype: "tbi.sampleReceiveDate",
-    status: "",
+    status: "Pending",
     orderby: "",
     searchvalue: "",
     itemIds: [],
@@ -324,13 +324,19 @@ export default function ResultTrack() {
 
     const payload = {
       // ...values,
-      ...resultTrackFromData,
+      // ...resultTrackFromData,
       empId: lsData?.user?.employeeId,
-      centreIds: allCentreData?.data?.find((data) => data?.centreId === resultTrackFromData?.centreIds?.centreId)?.centreId,
+      centreIds: resultTrackFromData?.centreIds.length !== 0 ? [allCentreData?.data?.find((data) => data?.centreId === resultTrackFromData?.centreIds?.centreId)]?.centreId : [],
       departmentIds: itemData,
       itemIds: testData,
+      fromDate: resultTrackFromData?.fromDate,
+      toDate: resultTrackFromData?.toDate,
+      datetype: resultTrackFromData?.datetype,
+      orderby: resultTrackFromData?.orderby,
+      searchvalue: resultTrackFromData?.searchvalue,
+
       reporttype: 2,
-      status: filteringData
+      status: filteringData || resultTrackFromData?.status,
     };
 
 
@@ -399,6 +405,7 @@ export default function ResultTrack() {
 
     } catch (error) {
       toast.error(error?.message);
+      console.log(error);
     }
 
     setIsButtonClick(0);
@@ -1573,7 +1580,7 @@ export default function ResultTrack() {
 
             <CustomDropdown
               name="datetype"
-              label="Search Type"
+              label="Date Type"
               value={resultTrackFromData?.datetype}
               options={[
                 // { label: 'Select Search Type ', value: 0, disabled: true },

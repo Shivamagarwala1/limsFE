@@ -1557,15 +1557,18 @@ export default function TestMapping() {
                                             }} />
                                         </td>
 
-                                        <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                            <CiEdit className='text-xl cursor-pointer' onClick={() => {
-                                                getSingleDataForNewObseravationUsingId(data?.observationID
-                                                );
-                                                setIsEditNewMappingPopup(true);
-                                            }
-                                            } />
-                                        </td>
-                                        {/*   */}
+                                        {
+                                            testMappingData?.itemType !== '3' && (
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                                    <CiEdit className='text-xl cursor-pointer' onClick={() => {
+                                                        getSingleDataForNewObseravationUsingId(data?.observationID
+                                                        );
+                                                        setIsEditNewMappingPopup(true);
+                                                    }
+                                                    } />
+                                                </td>
+
+                                            )}
                                     </tr>
                                 )
                             })

@@ -829,6 +829,7 @@ export default function ReportDispatch() {
         <LegandaryButton allFilterData={allFilterData} onFilterSelect={handleFilterSelection} />
       </form>
 
+
       <GridDataDetails gridDataDetails={'Dispatch Details'} />
       {
         searchReportDispatch?.loading ?
@@ -937,7 +938,7 @@ export default function ReportDispatch() {
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
 
                       {
-                        data?.approved === 1 && reportDispatchData?.header === 1 && (
+                        data?.approved === 1 && (
                           <input
                             type="checkbox"
                             className="flex items-center justify-center"
