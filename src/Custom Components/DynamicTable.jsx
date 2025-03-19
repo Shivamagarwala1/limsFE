@@ -84,9 +84,20 @@ const DynamicTable = ({
                       flex: col?.flex ? col?.flex : "",
                     }}
                   >
-                    {col?.renderHeaderCell
-                      ? col?.renderHeaderCell({ row: {} })
-                      : col?.headerName}
+
+                    <div className="flex gap-1 items-center">
+                      {
+                        (col?.headerName === 'Sample Coll.' || col?.headerName === 'Sample Rec.') && (
+                          <input type="checkbox" name="" id="" />
+                        )
+                      }
+
+
+                      {col?.renderHeaderCell
+                        ? col?.renderHeaderCell({ row: {} })
+                        : col?.headerName}
+                    </div>
+
                   </th>
                 ))}
               </tr>
@@ -96,13 +107,12 @@ const DynamicTable = ({
                 {rows?.map((row, index) => (
                   <tr
                     key={row?.id}
-                    className={`cursor-pointer ${
-                      isHoveredTable === row?.id
-                        ? ""
-                        : index % 2 === 0
+                    className={`cursor-pointer ${isHoveredTable === row?.id
+                      ? ""
+                      : index % 2 === 0
                         ? "bg-gray-100"
                         : "bg-white"
-                    }`}
+                      }`}
                     onMouseEnter={() => setIsHoveredTable(row?.id)}
                     onMouseLeave={() => setIsHoveredTable(null)}
                     style={{
@@ -243,13 +253,12 @@ export const UpdatedDynamicTable = ({
                 {rows?.map((row, index) => (
                   <tr
                     key={row?.[viewKey] || index} // Ensure a valid key
-                    className={`cursor-pointer ${
-                      isHoveredTable === row?.[viewKey]
-                        ? ""
-                        : index % 2 === 0
+                    className={`cursor-pointer ${isHoveredTable === row?.[viewKey]
+                      ? ""
+                      : index % 2 === 0
                         ? "bg-gray-100"
                         : "bg-white"
-                    }`}
+                      }`}
                     onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
                     onMouseLeave={() => setIsHoveredTable(null)}
                     style={{
@@ -275,13 +284,12 @@ export const UpdatedDynamicTable = ({
                 {extraRow?.map((row, index) => (
                   <tr
                     key={row?.[viewKey] || index} // Ensure a valid key
-                    className={`cursor-pointer ${
-                      isHoveredTable === row?.[viewKey]
-                        ? ""
-                        : index % 2 === 0
+                    className={`cursor-pointer ${isHoveredTable === row?.[viewKey]
+                      ? ""
+                      : index % 2 === 0
                         ? "bg-gray-100"
                         : "bg-white"
-                    }`}
+                      }`}
                     onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
                     onMouseLeave={() => setIsHoveredTable(null)}
                     style={{

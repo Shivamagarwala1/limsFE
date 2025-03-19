@@ -16,7 +16,7 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/RolePageBind")),
         exact: true,
     },
-    
+
     {
         path: "/LIMS/clientmaster",
         component: React.lazy(() => import("../pages/adminctrlmaster/client/ClientMaster")),
@@ -57,7 +57,7 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/RateListUploadByExcel")),
         exact: true,
     },
-    
+
     {
         path: "/LIMS/lab-test-master",
         component: React.lazy(() => import("../pages/labctrlmaster/LabTestMaster")),
@@ -186,6 +186,11 @@ export const allRoutes = [
     {
         path: "/LIMS/LedgerStatus",
         component: React.lazy(() => import("../pages/adminctrlmaster/Account/LedgerStatus")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/AppointmentBooking",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Appointment/AppointmentBooking")),
         exact: true,
     },
     {
@@ -348,7 +353,7 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/Doctor Account/DoctorIPreport")),
         exact: true,
     },
-    
+
     {
         path: "/LIMS/TicketSupport",
         component: React.lazy(() => import("../pages/adminctrlmaster/ticketmanagements/TicketSupport")),
