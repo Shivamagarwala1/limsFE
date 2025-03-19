@@ -66,7 +66,7 @@ export const CustomTextBox = ({
                     const regex = new RegExp(`^[A-Za-z0-9\\s${allowedSpecialChars}]*$`);
                     return regex.test(value);
                 }
-                return /^[A-Za-z0-9\\s]*$/.test(value);
+                return /^[A-Za-z0-9\s]*$/.test(value);
 
             case "barcode":
                 return /^[A-Za-z0-9-]*$/.test(value); // Allows only letters and numbers, no spaces or special characters
@@ -178,7 +178,7 @@ export const CustomTextBox = ({
                 }
                 break;
             case "charNumberWithSpace":
-                if (!/^[A-Za-z0-9\\s]*$/.test(newValue)) {
+                if (!/^[A-Za-z0-9\s]*$/.test(newValue)) {
                     newValue = newValue.replace(/[^A-Za-z0-9\\s]/g, ""); // Remove invalid characters
                     // return false;
                 }
