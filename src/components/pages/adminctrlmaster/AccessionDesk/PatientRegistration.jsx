@@ -56,7 +56,7 @@ export default function PatientRegistration() {
         gender: '',
         emailId: '',
 
-        collectionDateAndTime: useFormattedDateTime(),
+        collectionDateAndTime: '',
 
         investigationName: '',
         itemId: 0,
@@ -1616,7 +1616,7 @@ export default function PatientRegistration() {
                 try {
                     const response2 = await printBarCodeData(response?.data?.barcodeNo);
                     if (response2.success) {
-                        
+
                         // const encodedData = encodeURIComponent(response2?.data);
                         // // Get base URL dynamically
                         // const baseUrl = window.location.origin;
