@@ -602,6 +602,8 @@ export default function ReportDispatch() {
   }
 
 
+  console.log(searchReportDispatch);
+
 
   return (
     <div>
@@ -889,7 +891,11 @@ export default function ReportDispatch() {
 
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.patientName} <br /> {data?.bookingDate}
+                      {data?.patientName}
+
+                      <div className="text-xxxs">
+                        {data?.bookingDate}
+                      </div>
                     </td>
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
