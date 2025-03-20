@@ -12,17 +12,54 @@ import { TwoSubmitButton } from "../../../Custom Components/InputGenerator";
 import toast from "react-hot-toast";
 import { getLocal } from "usehoks";
 import { AiFillDelete } from "react-icons/ai";
-import DynamicTable from "../../../Custom Components/DynamicTable";
+import DynamicTable, {
+  StyledHr,
+  UpdatedDynamicTable,
+} from "../../../Custom Components/DynamicTable";
 import axios from "axios";
 import { UpdatedMultiSelectDropDown } from "../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addRandomObjectId } from "../../../service/RedendentData";
+
+const RateInputCell = ({ params, initialQuantity = "", setRow }) => {
+  const [Quantity, setQuantity] = useState(initialQuantity);
+  useEffect(() => {
+    const isEdited = Quantity !== params?.row?.rate;
+    setRow((prev) =>
+      prev.map((item) =>
+        item.index === params?.row.index
+          ? {
+              ...item,
+              rate: parseInt(Quantity),
+              edited: isEdited,
+            }
+          : item
+      )
+    );
+  }, [Quantity, setRow]);
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={Quantity}
+        maxLength={8}
+        name="Quantity"
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+          setQuantity(newValue);
+        }}
+      />
+    </div>
+  );
+};
 
 export default function OutSourceProcessMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const lsData = getLocal("imarsar_laboratory");
   const [Flag, setFlag] = useState(false);
-  const [ShowRow, setShowRow] = useState(false);
   const [BookingId, setBookingId] = useState("");
   const [BookingValue, setBookingValue] = useState("");
   const [BookingDropDown, setBookingDropDown] = useState(false);
@@ -43,6 +80,7 @@ export default function OutSourceProcessMaster() {
   // ----------------------- Investigation -----------------------
   const [InvestigationId, setInvestigationId] = useState("");
   const [InvestigationValue, setInvestigationValue] = useState([]);
+  const [FilteredItems, setFilteredItems] = useState([]);
 
   const [row, setRow] = useState([]);
   const ItemData = useGetData();
@@ -55,6 +93,12 @@ export default function OutSourceProcessMaster() {
   useEffect(() => {
     fetchedData();
   }, [DepartmentId]);
+  useEffect(() => {
+    const filteredItems = TestData?.data
+      ?.filter((item) => InvestigationValue.includes(item.itemId.toString()))
+      .map((item, index) => ({ ...item, index: index + 1 }));
+    setFilteredItems(filteredItems);
+  }, [InvestigationValue]);
   useEffect(() => {
     fetchGrid();
   }, [LabId, DepartmentId, BookingId, Flag]);
@@ -112,12 +156,12 @@ export default function OutSourceProcessMaster() {
 
   const fetchGrid = async () => {
     if (!BookingId || !LabId || !DepartmentId) return;
-    GridData?.fetchData(
+    const res = await GridData?.fetchData(
       `/item_outsourcemaster/GetOutSourceMapping?BookingCentre=${BookingId}&OutSourceLab=${LabId}&DeptId=${DepartmentId}`
     );
-    const grid = await addRandomObjectId(GridData?.data?.data);
+    console.log(res?.data?.data);
+    const grid = await addRandomObjectId(res?.data?.data);
     setRow(grid); // Store API response in the state
-    setShowRow(true);
   };
 
   const columns = [
@@ -126,6 +170,11 @@ export default function OutSourceProcessMaster() {
     { field: "processingCentre", headerName: "Lab Centre", flex: 1 },
     { field: "deptName", headerName: "Dept Name", flex: 1 },
     { field: "itemName", headerName: "Item Name", flex: 1 },
+    {
+      field: `rate`,
+      headerName: `Rate`,
+      flex: 1,
+    },
     {
       field: "Delete",
       headerName: "Delete",
@@ -148,20 +197,33 @@ export default function OutSourceProcessMaster() {
       },
     },
   ];
-
+  const columns1 = [
+    { field: "index", headerName: "Sr. No", width: 20 },
+    { field: "itemName", headerName: "Item Name", flex: 1 },
+    {
+      field: `rate`,
+      headerName: `Rate`,
+      width: 120,
+      renderCell: (params) => {
+        // console.log(params?.row?.id," ",params?.row)
+        return <RateInputCell params={params} setRow={setFilteredItems} />;
+      },
+    },
+  ];
   const handleSubmit = async () => {
     try {
-      const Payload = await InvestigationValue?.map((item) => {
+      const Payload = await FilteredItems?.map((item) => {
         return {
           createdById: parseInt(lsData?.user?.employeeId),
           createdDateTime: new Date().toISOString(),
           labId: LabId,
           bookingCentreId: BookingId,
-          itemId: item,
+          itemId: item?.itemId,
           departmentId: DepartmentId,
+          rate: item?.rate,
         };
       });
-
+      console.log(Payload, " mm ", FilteredItems);
       const res = await PostData?.postRequest(
         `/item_outsourcemaster/SaveOutSourceMapping`,
         Payload
@@ -169,13 +231,13 @@ export default function OutSourceProcessMaster() {
       console.log(PostData?.response);
       if (res?.success) {
         toast.success(res?.message);
-        GridData?.fetchData(
+        setFilteredItems([]);
+        const res1 = await GridData?.fetchData(
           `/item_outsourcemaster/GetOutSourceMapping?BookingCentre=${BookingId}&OutSourceLab=${LabId}&DeptId=${DepartmentId}`
         );
         // /item_OutHouseMaster/GetOutHouseMapping?BookingCentre=1&LabCentre=1&DeptId=1
-        const grid = await addRandomObjectId(GridData?.data?.data);
+        const grid = await addRandomObjectId(res1?.data?.data);
         setRow(grid); // Store API response in the state
-        setShowRow(true);
       } else {
         toast.error(res?.message);
       }
@@ -274,21 +336,6 @@ export default function OutSourceProcessMaster() {
               setIsHovered={setDepartmentHoveIndex}
               isHovered={DepartmentHoveIndex}
             />
-            {/* Investigation */}
-            {/* <SearchBarDropdown
-              id="search-bar"
-              name="Investigation"
-              value={InvestigationValue}
-              onChange={handleSearchChange2}
-              label="Investigation"
-              options={TestData?.data}
-              isRequired={false}
-              showSearchBarDropDown={InvestigationDropDown}
-              setShowSearchBarDropDown={setInvestigationDropDown}
-              handleOptionClickForCentre={handleOptionClick2}
-              setIsHovered={setInvestigationHoveIndex}
-              isHovered={InvestigationHoveIndex}
-            /> */}
             <UpdatedMultiSelectDropDown
               id="Investigation"
               name="serachInvestigation"
@@ -318,12 +365,27 @@ export default function OutSourceProcessMaster() {
         </form>
       </div>
 
+      {FilteredItems?.length > 0 && (
+        <>
+          <StyledHr style={{ height: "0.05rem" }} />
+          <div className="w-full md:w-[50%]">
+            <DynamicTable
+              name="Add Items"
+              rows={FilteredItems}
+              columns={columns1}
+              viewKey="Random"
+              showHr={false}
+            />
+          </div>
+        </>
+      )}
       {/* grid data */}
       <div>
-        <DynamicTable
+        <UpdatedDynamicTable
           name="Out House Process Master Details"
-          rows={ShowRow ? row : []}
+          rows={row}
           columns={columns}
+          viewKey="Random"
         />
       </div>
     </>

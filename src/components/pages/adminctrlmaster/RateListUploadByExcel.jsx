@@ -15,6 +15,7 @@ import { addObjectId, downloadExcel } from "../../../service/RedendentData";
 import { FaRegEdit } from "react-icons/fa";
 import { UpdatedDynamicTable } from "../../../Custom Components/DynamicTable";
 import { getLocal } from "usehoks";
+import { ReschedulePopupModal } from "../../../Custom Components/NewPopups";
 
 const MrpInputCell = ({ params, initialTime, setRow }) => {
   const [mrp, setMrp] = useState(initialTime || "");
@@ -84,35 +85,109 @@ const RateInputCell = ({ params, initialTime, setRow }) => {
   );
 };
 
-const CheckboxInputCell = ({ params, setSelectedData, row }) => {
+const CheckboxInputCell = ({ params, setSelectedData, row, setRow }) => {
   const [enabled, setEnabled] = useState(false);
+  const [Checked, setChecked] = useState(params?.row?.checkbox || false);
 
   useEffect(() => {
-    if (params?.row?.mrp == 0.0) {
+    if (params?.row?.mrp === 0.0) {
       setEnabled(false);
     } else {
-      // Enable checkbox only if the row is edited
       setEnabled(params?.row?.edited === true);
     }
   }, [row]);
+
+  useEffect(() => {
+    setChecked(params?.row?.checkbox || false);
+  }, [params?.row?.checkbox]);
+
+  const handleCheckboxClick = () => {
+    setChecked((prevChecked) => !prevChecked); // Toggle checked state
+
+    setRow((prev) =>
+      prev.map((item) =>
+        item.id === params?.row.id ? { ...item, checkbox: !Checked } : item
+      )
+    );
+
+    setSelectedData(
+      (prev) =>
+        prev.some((item) => item.id === params?.row.id)
+          ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
+          : [...prev, { ...params?.row, checkbox: !Checked }] // Add if not
+    );
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input type="checkbox" checked={Checked} onClick={handleCheckboxClick} />
+    </div>
+  );
+};
+
+const CheckboxSelectAllInputCell = ({
+  params,
+  SelectedData = [],
+  setSelectedData,
+  allRows = [],
+  setRow,
+}) => {
+  const [enabled, setEnabled] = useState(false);
+  const [isAllSelected, setIsAllSelected] = useState(false); // Track "Select All" state
+
+  useEffect(() => {
+    if (params?.row?.mrp === 0.0) {
+      setEnabled(false);
+    } else {
+      setEnabled(params?.row?.edited === true);
+    }
+  }, [params?.row]);
+
+  useEffect(() => {
+    // Check if all rows are selected
+    if (
+      allRows.length > 0 &&
+      allRows.every((row) => SelectedData.some((item) => item.id === row.id))
+    ) {
+      setIsAllSelected(true);
+    } else {
+      setIsAllSelected(false);
+    }
+  }, [SelectedData, allRows]);
+
+  const handleCheckboxClick = () => {
+    if (isAllSelected) {
+      // Deselect all (remove selectAll key)
+      const updatedRows = allRows.map((row) => ({
+        ...row,
+        selectAll: false,
+        checkbox: true,
+      }));
+      setSelectedData([]);
+      setRow(updatedRows);
+    } else {
+      // Select all (add selectAll: true)
+      const updatedRows = allRows.map((row) => ({
+        ...row,
+        selectAll: true,
+        checkbox: true,
+      }));
+      setSelectedData(updatedRows);
+      setRow(updatedRows);
+    }
+  };
 
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
         type="checkbox"
-        disabled={!enabled} // Disable if not edited
-        onClick={() =>
-          setSelectedData(
-            (prev) =>
-              prev.some((item) => item.id === params?.row.id)
-                ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
-                : [...prev, { ...params?.row }] // Add if not
-          )
-        }
+        checked={isAllSelected} // Reflects "Select All" state
+        onChange={handleCheckboxClick}
       />
     </div>
   );
 };
+
 export default function RateListUploadByExcel() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -139,7 +214,7 @@ export default function RateListUploadByExcel() {
       );
     };
     fetchedData();
-  }, []);
+  }, [row]);
   const handleOptionClick1 = (name, id) => {
     setRateTypeValue(name);
     setRateTypeId(id);
@@ -177,6 +252,10 @@ export default function RateListUploadByExcel() {
           },
         }
       );
+
+      if (!response?.data?.success) {
+        toast.error(response?.data?.message);
+      }
       const rows = addObjectId(response?.data?.data || []);
       setRow(rows); // Store the response JSON in state
       console.log("Upload successful:", response.data);
@@ -189,7 +268,10 @@ export default function RateListUploadByExcel() {
       toast.error("No data selected for submission.");
       return;
     }
-
+    if (!RateTypeId) {
+      toast.error("RateType is Required");
+      return;
+    }
     const formattedData = SelectedData.map((item) => ({
       isActive: 1,
       createdById: parseInt(lsData?.user?.employeeId),
@@ -255,6 +337,21 @@ export default function RateListUploadByExcel() {
     {
       field: `select`,
       headerName: `Select`,
+      renderHeaderCell: (params) => {
+        return (
+          <div className="flex gap-1">
+            <CheckboxSelectAllInputCell
+              setSelectedData={setSelectedData}
+              initialTime={params?.row}
+              allRows={row}
+              setRow={setRow}
+              SelectedData={SelectedData}
+              params={params}
+            />
+            Selct All
+          </div>
+        );
+      },
       flex: 1,
       renderCell: (params) => {
         return (
@@ -262,6 +359,7 @@ export default function RateListUploadByExcel() {
             setSelectedData={setSelectedData}
             initialTime={params?.row}
             row={row}
+            setRow={setRow}
             params={params}
           />
         );
@@ -291,23 +389,9 @@ export default function RateListUploadByExcel() {
               handleOptionClickForCentre={handleOptionClick1}
               setIsHovered={setRateTypeHoveIndex}
               isHovered={RateTypeHoveIndex}
+              style={{ marginTop: "0px" }}
             />
-            {/* <div className="relative flex-1 flex justify-start items-center">
-              {
-                <button
-                  type="button"
-                  data-ripple-light="true"
-                  className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                  style={{
-                    background: activeTheme?.menuColor,
-                    color: activeTheme?.iconColor,
-                  }}
-                  // onClick={onSubmitSaveEmployeeMaster}
-                >
-                  Download
-                </button>
-              }
-            </div> */}
+
             {/* File Upload */}
             <FileUpload
               FileData={FileData}

@@ -19,6 +19,7 @@ export const DatePickerWithTime = ({
   maxDate = new Date(2100, 0, 1),
   highlightedDates = [],
   disabledDates = [],
+  calenderStyle = {},
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -90,7 +91,7 @@ export const DatePickerWithTime = ({
             !isDisabled ? () => setShowCalendar(!showCalendar) : undefined
           } // Prevent click when disabled
           style={{
-            background: activeTheme?.subMenuColor,
+            background: activeTheme?.menuColor,
             color: activeTheme?.iconColor,
           }}
         >
@@ -102,6 +103,7 @@ export const DatePickerWithTime = ({
       {showCalendar && (
         <div
           ref={calendarRef}
+          style={calenderStyle}
           className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50"
         >
           <UserCalendar

@@ -6,6 +6,7 @@ import FileUpload from "./FileUpload";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { TableHeader, UpdatedDynamicTable } from "./DynamicTable";
 import InputGenerator, {
+  getFormattedDate,
   SubmitButton,
   TwoSubmitButton,
 } from "./InputGenerator";
@@ -13,8 +14,12 @@ import { IoMdCloseCircleOutline } from "react-icons/io";
 import toast from "react-hot-toast";
 import { useFormHandler } from "./useFormHandler";
 import axios from "axios";
-import { addRandomObjectId } from "../service/RedendentData";
+import {
+  addRandomObjectId,
+  convertDateTimeFormat,
+} from "../service/RedendentData";
 import { MdPadding } from "react-icons/md";
+import { DatePickerWithTime } from "./DatePickerWithTime";
 
 export const UploadCertificatePopupModal = ({
   showPopup,
@@ -776,6 +781,253 @@ export const IndentApprovePopupModal = ({
             ]}
           />
         </div>
+      </div>
+    </div>
+  );
+};
+
+export const ReschedulePopupModal = ({
+  showPopup,
+  setShowPopup,
+  Params,
+  UserId,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const lsData = getLocal("imarsar_laboratory");
+  const { formRef, getValues, setValues } = useFormHandler();
+  const [selectedDate, setSelectedDate] = useState("");
+  if (!showPopup) return null;
+
+  const handleReject = async (e) => {
+    if (e) e.preventDefault(); // Prevents default form submission
+
+    const values = getValues();
+    if (!selectedDate) {
+      toast.error("Reschedule Date is required");
+      return;
+    }
+    if (!values?.RescheduleReason) {
+      toast.error("Reschedule Reason is required");
+      return;
+    }
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/appointmentBooking/rescheduleAppointment?AppointmentId=${Params?.row?.appointmentId}&userid=${lsData?.user?.employeeId}&RescheduleDate=${selectedDate}&rescheduleReson=${values?.RescheduleReason}`
+      );
+      if (res?.data?.success) {
+        toast.success(res?.data?.message);
+      } else {
+        toast.error(res?.data?.message);
+      }
+      setShowPopup(false); // Close modal on success
+    } catch (error) {
+      console.error("Error rejecting indent:", error);
+    }
+  };
+  const todayDate = getFormattedDate();
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">Reschedule Reason</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <form autoComplete="off" ref={formRef} onSubmit={handleReject}>
+          {/* Input Field */}
+          <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
+            <DatePickerWithTime
+              id="datepicker"
+              name="datepicker"
+              value={selectedDate}
+              currentDate={todayDate}
+              onChange={handleDateChange}
+              placeholder="Reschedule Date"
+              label={""}
+              isMandatory={true}
+              editable={false}
+              labelStyle={{ marginLeft: "-4px" }}
+              inputStyle={{ height: "1.05rem" }}
+              iconStyle={{ height: "1.05rem", borderRadius: "5px" }}
+              calenderStyle={{
+                width: "250px",
+                marginLeft: "-275px",
+                marginTop: "-100px",
+              }}
+              showTime={true}
+            />
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "Reschedule Reason",
+                  type: "text",
+                  name: "RescheduleReason",
+                },
+              ]}
+            />
+            <SubmitButton
+              submit={false}
+              text={"Reschedule"}
+              callBack={() => {
+                handleReject();
+              }}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+        </form>
+        {/* <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-2 "
+        >
+          {" "}
+         
+        </div> */}
+      </div>
+    </div>
+  );
+};
+
+export const CancelPopupModal = ({
+  showPopup,
+  setShowPopup,
+  Params,
+  UserId,
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const lsData = getLocal("imarsar_laboratory");
+  const { formRef, getValues, setValues } = useFormHandler();
+  const [selectedDate, setSelectedDate] = useState("");
+  if (!showPopup) return null;
+
+  const handleReject = async (e) => {
+    if (e) e.preventDefault(); // Prevents default form submission
+
+    const values = getValues();
+    if (!values?.CancelReason) {
+      toast.error("Cancel Reason is required");
+      return;
+    }
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/appointmentBooking/CancelAppointment?AppointmentId=${Params?.row?.appointmentId}&isCancel=1&userid=${lsData?.user?.employeeId}&Reason=${values?.CancelReason}`
+      );
+      if (res?.data?.success) {
+        toast.success(res?.data?.message);
+        window?.location?.reload();
+      } else {
+        toast.error(res?.data?.message);
+      }
+      setShowPopup(false); // Close modal on success
+    } catch (error) {
+      console.error("Error rejecting indent:", error);
+    }
+  };
+  const todayDate = getFormattedDate();
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">Cancel Reason</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <form autoComplete="off" ref={formRef} onSubmit={handleReject}>
+          {/* Input Field */}
+          <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
+            {/* <DatePickerWithTime
+              id="datepicker"
+              name="datepicker"
+              value={selectedDate}
+              currentDate={todayDate}
+              onChange={handleDateChange}
+              placeholder="Reschedule Date"
+              label={""}
+              isMandatory={true}
+              editable={false}
+              labelStyle={{ marginLeft: "-4px" }}
+              inputStyle={{ height: "1.05rem" }}
+              iconStyle={{ height: "1.05rem", borderRadius: "5px" }}
+              calenderStyle={{
+                width: "250px",
+                marginLeft: "-275px",
+                marginTop: "-100px",
+              }}
+              showTime={true}
+            /> */}
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "Cancel Reason",
+                  type: "text",
+                  name: "CancelReason",
+                },
+              ]}
+            />
+            <SubmitButton
+              submit={false}
+              text={"Save"}
+              callBack={() => {
+                handleReject();
+              }}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+        </form>
+        {/* <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-2 "
+        >
+          {" "}
+         
+        </div> */}
       </div>
     </div>
   );

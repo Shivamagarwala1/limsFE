@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
   SubmitButton,
 } from "../../../../Custom Components/InputGenerator";
-import { getLocal } from "usehoks";
+import { getLocal, getSession, setSession } from "usehoks";
 import { AssignPopup } from "../../../../Custom Components/PopupModal";
 import DynamicTable, {
   UpdatedDynamicTable,
@@ -15,6 +15,10 @@ import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import toast from "react-hot-toast";
 import { addRandomObjectId } from "../../../../service/RedendentData";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
+import {
+  CancelPopupModal,
+  ReschedulePopupModal,
+} from "../../../../Custom Components/NewPopups";
 
 export default function AppointmentStatus() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -34,10 +38,13 @@ export default function AppointmentStatus() {
 
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [isEditData, setIsEditData] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
   const [AssignedPopup, setAssignedPopup] = useState(false);
+
+  const [showPopup1, setShowPopup1] = useState(false);
+  const [showPopup2, setShowPopup2] = useState(false);
+  const [Params, setParams] = useState(null);
   const AllCenterData = useGetData();
+  const [groupedRows, setGroupedRows] = useState([]);
   const [Row, setRow] = useState([]);
   const getData = useGetData();
   useEffect(() => {
@@ -51,12 +58,50 @@ export default function AppointmentStatus() {
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
     );
     // console.log(AllCenterData);
-  }, [activeTab]);
-  console.log(data);
-  const rows = [
-    { id: 1, client: "client 1" },
-    { id: 2, client: "client 2" },
-  ];
+  }, []);
+  useEffect(() => {
+    getGrid();
+  }, [showPopup1, showPopup2]);
+  useEffect(() => {
+    const mergeByWorkOrderId = (Row) => {
+      const grouped = Row.reduce((acc, curr) => {
+        const existing = acc.find(
+          (item) => item.workOrderId === curr.workOrderId
+        );
+
+        if (existing) {
+          existing.investigationName.push(curr.investigationName);
+        } else {
+          acc.push({
+            ...curr,
+            investigationName: [curr.investigationName], // Store as an array
+          });
+        }
+
+        return acc;
+      }, []);
+
+      return grouped;
+    };
+
+    // Update state with the grouped data
+    setGroupedRows(mergeByWorkOrderId(Row));
+  }, [Row]); // Runs when `rows` change
+  console.log(groupedRows);
+
+  const getGrid = async () => {
+    const values = await getSession("appointmentBooking");
+    if (!values?.CenterId) {
+      return;
+    }
+    setCenterValue(values?.CenterValue);
+    setValues([{from:values?.from}]);
+    setValues([{Todate:values?.to}]);
+    const get = await fetchData(
+      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.to}&CentreID=${values?.CenterId}`
+    );
+    setRow(addRandomObjectId(get?.data?.data));
+  };
 
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 20 },
@@ -94,6 +139,27 @@ export default function AppointmentStatus() {
       field: `investigationName`,
       headerName: `Investigation`,
       flex: 1,
+      renderCell: (params) => {
+        return (
+          <div style={{ display: "flex", gap: "5px" }}>
+            {params?.row?.investigationName.map((item) => {
+              return (
+                <SubmitButton
+                  text={item}
+                  submit={false}
+                  callBack={() => {
+                    // setAssignedPopup(true);
+                  }}
+                  style={{
+                    height: "1.05rem",
+                    padding: "0px 5px",
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
+      },
     },
     {
       field: `address`,
@@ -111,21 +177,28 @@ export default function AppointmentStatus() {
               text={"Assign Phelebomist"}
               submit={false}
               callBack={() => {
+                setParams(params);
                 setAssignedPopup(true);
               }}
-               style={{height:"1.05rem", padding: "0px 5px", width: "100px" }}
+              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
             />
             <SubmitButton
               text={"Reschedule"}
               submit={false}
-              callBack={() => {}}
-               style={{height:"1.05rem", padding: "0px 5px", width: "100px" }}
+              callBack={() => {
+                setParams(params);
+                setShowPopup1(true);
+              }}
+              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
             />
             <SubmitButton
               text={"Cancel"}
               submit={false}
-              callBack={() => {}}
-               style={{height:"1.05rem", padding: "0px 5px", width: "100px" }}
+              callBack={() => {
+                setParams(params);
+                setShowPopup2(true);
+              }}
+              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
             />
           </div>
         );
@@ -162,6 +235,12 @@ export default function AppointmentStatus() {
     const get = await fetchData(
       `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.Todate}&CentreID=${CenterId}`
     );
+    setSession("appointmentBooking", {
+      CenterId: CenterId,
+      CenterValue: CenterValue,
+      from: values?.from,
+      to: values?.Todate,
+    });
     setRow(addRandomObjectId(get?.data?.data));
     console.log(get);
   };
@@ -216,7 +295,21 @@ export default function AppointmentStatus() {
   ];
   return (
     <div>
-      <AssignPopup setShowPopup={setAssignedPopup} showPopup={AssignedPopup} />
+      <AssignPopup
+        setShowPopup={setAssignedPopup}
+        Params={Params}
+        showPopup={AssignedPopup}
+      />
+      <ReschedulePopupModal
+        showPopup={showPopup1}
+        setShowPopup={setShowPopup1}
+        Params={Params}
+      />
+      <CancelPopupModal
+        showPopup={showPopup2}
+        setShowPopup={setShowPopup2}
+        Params={Params}
+      />
       {/* Header Section */}
       <div
         className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
@@ -259,7 +352,7 @@ export default function AppointmentStatus() {
       </form>
       <div className="w-full">
         <UpdatedDynamicTable
-          rows={Row}
+          rows={groupedRows}
           name="Phlebotomy Collection Details"
           loading={loading}
           columns={columns}
