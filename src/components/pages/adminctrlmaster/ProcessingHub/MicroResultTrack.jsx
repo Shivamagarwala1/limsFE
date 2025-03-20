@@ -33,6 +33,13 @@ import {
 import AntibioticTable from "../../../../Custom Components/AntibioticTable";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { FaCircleInfo } from "react-icons/fa6";
+import CustomDynamicTable from "../../../global/CustomDynamicTable";
+import { useRetrieveData } from "../../../../service/service";
+import { IoMdCloseCircleOutline } from "react-icons/io";
+import GridDataDetails from "../../../global/GridDataDetails";
+import CustomLoadingPage from "../../../global/CustomLoadingPage";
+import { resultTrackForPatientInformation } from "../../../listData/listData";
 
 export default function MicroResultTrack() {
   const BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -64,12 +71,14 @@ export default function MicroResultTrack() {
   const [RemarkPopup, setRemarkPopup] = useState(false);
   const [HoldUnHold, setHoldUnHold] = useState(false);
   const [Flag, setFlag] = useState(false);
+  const [showPopup1, setShowPopup1] = useState(false);
   const [Info, setInfo] = useState(null);
   const [FileUploadPopupModal, setFileUploadPopupModal] = useState(false);
   const [AddAttachmentPopupModal, setAddAttachmentPopupModal] = useState(false);
   const [HoldUnHoldDetails, setHoldUnHoldDetails] = useState({});
   const [Row, setRow] = useState({});
-  const [isHoveredTable1, setIsHoveredTable1] = useState(null);
+  const [isHoveredTable, setIsHoveredTable] = useState(null);
+  const [isHoveredPopupTable, setIsHoveredPopupTable] = useState(null);
   const [UserObj, setUserObj] = useState(null);
   const [ThirdArr, setThirdArr] = useState({ FirstHalf: [], SecondHalf: [] });
   const AllCenterData = useGetData();
@@ -84,6 +93,7 @@ export default function MicroResultTrack() {
   const getTemplateData = usePostData();
   const Signature = useGetData();
   const lsData = getLocal("imarsar_laboratory");
+  const allInfoDocument = useRetrieveData();
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
@@ -243,15 +253,15 @@ export default function MicroResultTrack() {
       renderCell: (params) => {
         // console.log(params.row)
         return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <SubmitButton
-              submit={false}
-              text={"i"}
-              callBack={() => {
-                setInfo(true);
-              }}
-              style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
-            />
+          <div
+            className="w-5 h-5 flex justify-center items-center rounded-sm"
+            style={{
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+            }}
+            onClick={() => { setShowPopup1(2), getAllInfoDocumentData(params?.row?.itemId) }}
+          >
+            <FaCircleInfo />
           </div>
         );
       },
@@ -286,6 +296,19 @@ export default function MicroResultTrack() {
       },
     },
   ];
+
+
+    //info/ document
+    const getAllInfoDocumentData = async (testId) => {
+      console.log(testId);
+  
+      try {
+        await allInfoDocument.fetchDataFromApi(`/tnx_Booking/GetTestInfo?TestId=${testId}`);
+  
+      } catch (error) {
+        toast.error(error?.message);
+      }
+    }
 
   //accept child to parent in editor
   const handleContentChange = (content) => {
@@ -1109,6 +1132,130 @@ export default function MicroResultTrack() {
           </div>
         )}
       </>
+      {
+        showPopup1 === 2 && (
+          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+            <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+
+              {/* Header */}
+              <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                  {'Test Remark Data'}
+                </div>
+                <IoMdCloseCircleOutline
+                  className="text-xl cursor-pointer"
+                  style={{ color: activeTheme?.iconColor }}
+                  onClick={() => setShowPopup1(0)}
+                />
+              </div>
+
+              {/* Scrollable Content */}
+              <GridDataDetails gridDataDetails={'Test Remark Details'} />
+
+              {allInfoDocument?.loading ?
+                <CustomLoadingPage />
+                :
+                <CustomDynamicTable columns={resultTrackForPatientInformation} activeTheme={activeTheme} height="15vh">
+                  <tbody>
+                    {
+                      allInfoDocument?.data?.data?.map((data, index) => (
+                        <tr
+                          className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                            ? ''
+                            : index % 2 === 0
+                              ? 'bg-gray-100'
+                              : 'bg-white'
+                            }`}
+                          key={index}
+                          onMouseEnter={() => setIsHoveredPopupTable(index)}
+                          onMouseLeave={() => setIsHoveredPopupTable(null)}
+                          style={{
+                            background:
+                              isHoveredPopupTable === index ? activeTheme?.subMenuColor : undefined,
+                            // Hides scrollbar for IE/Edge
+                          }}
+                        >
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {index + 1}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.investigationName}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.barcodeNo}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleCollectedby}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceivedBY}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.sampleReceiveDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registrationDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.registerBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resultDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.resutDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneOn}
+                          </td>
+
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outhouseDoneBy}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSourceDate}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSouceLab}
+                          </td>
+
+                          <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                            {data?.outSource}
+                          </td>
+                        </tr>
+                      ))
+
+                    }
+                  </tbody>
+                </CustomDynamicTable >
+              }
+            </div>
+
+          </div>
+        )
+      }
     </div>
   );
 }

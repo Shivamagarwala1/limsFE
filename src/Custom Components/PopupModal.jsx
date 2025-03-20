@@ -351,97 +351,145 @@ export const RemarkPopupModal1 = ({
   );
 };
 
-export const AssignPopup = ({
-  showPopup,
-  setShowPopup,
-  handleSubmit,
-  handleTheUpdateStatusMenu,
-}) => {
+export const AssignPopup = ({ showPopup, setShowPopup, Params }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
-  const data = Array(6).fill({ name: "Dummy User", count: 0 }); // Example data
-  const otherData = Array(3).fill({ name: "Dummy User", count: 0 }); // Example data
+  const lsData = getLocal("imarsar_laboratory");
+  const [OutSideLocation, setOutSideLocation] = useState([]);
+  const [InSideLocation, setInSideLocation] = useState([]);
+  const getData = useGetData();
+  const postData = usePostData();
+
+  useEffect(() => {
+    FetchPhlebo();
+  }, [showPopup]);
+
+  useEffect(() => {
+    if (getData?.data?.data) {
+      const outSide = getData?.data?.data?.filter(
+        (item) => item?.status === "OutSideLocation"
+      );
+      const inSide = getData?.data?.data?.filter(
+        (item) => item?.status !== "OutSideLocation"
+      );
+
+      setOutSideLocation(outSide);
+      setInSideLocation(inSide);
+    }
+  }, [getData?.data?.data]);
+
+  const FetchPhlebo = async () => {
+    await getData?.fetchData(
+      `/appointmentBooking/GetPhelebo?pincode=${Params?.row?.pinCode}`
+    );
+  };
+
+  if (!showPopup) return null; // Avoid unnecessary rendering
+
+  const handleAssign = async (pheleboId) => {
+    const res = await postData?.postRequest(
+      `/appointmentBooking/AssignAppointment?AppointmentId=${Params?.row?.appointmentId}&pheleboid=${pheleboId}&userid=${lsData?.user?.employeeId}`
+    );
+    if (res?.success) {
+      toast.success(res?.message);
+      window?.location?.reload();
+    }else{
+      toast.error(res?.message);
+    }
+  };
 
   return (
-    showPopup && (
-      <div className="fixed inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50 z-50">
-        <div className="bg-white rounded-lg shadow-lg max-w-4xl">
-          {/* Header */}
-          <div
-            style={{
-              background: activeTheme?.menuColor,
-              color: activeTheme?.iconColor,
-              borderRadius: "5px",
-              borderBottomLeftRadius: "0px",
-              borderBottomRightRadius: "0px",
-            }}
-            className="flex justify-between items-center p-1 border-b"
-          >
-            <span className="text-base font-semibold">Assign Phlebotomist</span>
-            <IoMdCloseCircleOutline
-              className="text-xl cursor-pointer"
-              style={{ color: activeTheme?.iconColor }}
-              onClick={() => setShowPopup(false)}
-            />
-          </div>
-          {/* Content */}
-          <div
-            className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
-            style={{ background: activeTheme?.blockColor }}
-          >
-            {/* <IoMdMenu className="font-semibold text-lg" /> */}
-            <div>Phlebo From Mapped Location</div>
-          </div>
-          <div
-            style={{ maxHeight: "100px", paddingBottom: "0.40rem" }}
-            className=" p-4 pt-1 overflow-y-auto"
-          >
+    <div className="fixed inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="bg-white rounded-lg shadow-lg max-w-4xl">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex justify-between items-center p-1 border-b"
+        >
+          <span className="text-base font-semibold">Assign Phlebotomist</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+
+        {/* Inside Location */}
+        <div
+          className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
+          style={{ background: activeTheme?.blockColor }}
+        >
+          <div>Phlebo From Mapped Location</div>
+        </div>
+        <div
+          style={{ maxHeight: "100px", paddingBottom: "0.40rem" }}
+          className="p-4 pt-1 overflow-y-auto"
+        >
+          {getData?.loading ? (
+            <p className="text-gray-600">Loading...</p>
+          ) : InSideLocation.length > 0 ? (
             <div className="grid grid-cols-3 gap-1 overflow-y-auto">
-              {data?.map((item, index) => (
+              {InSideLocation?.map((item, index) => (
                 <ButtonWithImage
-                  img={""}
                   key={index}
-                  text={item?.name}
+                  text={item?.pheleboname}
                   submit={false}
-                  callBack={() => {}}
+                  callBack={() => {
+                    handleAssign(item?.pheleboId);
+                  }}
                   style={{ padding: "5px 10px", width: "100px" }}
                 />
               ))}
             </div>
-          </div>{" "}
-          <div
-            className="w-full h-[0.10rem]"
-            style={{ background: activeTheme?.menuColor }}
-          ></div>
-          <div
-            className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
-            style={{ background: activeTheme?.blockColor }}
-          >
-            <div>Phlebo From Other Location</div>
-          </div>
-          <div
-            style={{ maxHeight: "100px", paddingBottom: "0.40rem" }}
-            className=" p-4 pt-1 overflow-y-auto"
-          >
-            {data.length > 0 ? (
-              <div className="grid grid-cols-3 gap-1 overflow-y-auto">
-                {otherData?.map((item, index) => (
-                  <ButtonWithImage
-                    img={""}
-                    key={index}
-                    text={item?.name}
-                    submit={false}
-                    callBack={() => {}}
-                    style={{ padding: "5px 10px", width: "100px" }}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-600">No data available.</p>
-            )}
-          </div>
+          ) : (
+            <p className="text-gray-600">No data available.</p>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div
+          className="w-full h-[0.10rem]"
+          style={{ background: activeTheme?.menuColor }}
+        ></div>
+
+        {/* Outside Location */}
+        <div
+          className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
+          style={{ background: activeTheme?.blockColor }}
+        >
+          <div>Phlebo From Other Location</div>
+        </div>
+        <div
+          style={{ maxHeight: "100px", paddingBottom: "0.40rem" }}
+          className="p-4 pt-1 overflow-y-auto"
+        >
+          {getData?.loading ? (
+            <p className="text-gray-600">Loading...</p>
+          ) : OutSideLocation.length > 0 ? (
+            <div className="grid grid-cols-3 gap-1 overflow-y-auto">
+              {OutSideLocation?.map((item, index) => (
+                <ButtonWithImage
+                  key={index}
+                  text={item?.pheleboname}
+                  submit={false}
+                  callBack={() => {
+                    handleAssign(item?.pheleboId);
+                  }}
+                  style={{ padding: "5px 10px", width: "100px" }}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-600">No data available.</p>
+          )}
         </div>
       </div>
-    )
+    </div>
   );
 };
 

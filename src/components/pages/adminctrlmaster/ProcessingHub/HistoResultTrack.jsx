@@ -27,6 +27,13 @@ import { addObjectId } from "../../../../service/RedendentData";
 import RemarkGif from "../../../../assets/RemarkGif.gif";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { useRetrieveData } from "../../../../service/service";
+import { FaCircleInfo } from "react-icons/fa6";
+import { IoMdCloseCircleOutline } from "react-icons/io";
+import GridDataDetails from "../../../global/GridDataDetails";
+import CustomLoadingPage from "../../../global/CustomLoadingPage";
+import CustomDynamicTable from "../../../global/CustomDynamicTable";
+import { resultTrackForPatientInformation } from "../../../listData/listData";
 
 export default function HistoResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -37,8 +44,11 @@ export default function HistoResultTrack() {
   const [selectedTest, setSelectedTest] = useState([]);
   const [selectedDepartment, setSelectedDepartment] = useState([]);
   const [RemarkPopup, setRemarkPopup] = useState(false);
+  const [showPopup1, setShowPopup1] = useState(false);
+  const [isHoveredPopupTable, setIsHoveredPopupTable] = useState(null);
   const [HoldUnHold, setHoldUnHold] = useState(false);
   const [Flag, setFlag] = useState(false);
+  const [isHoveredTable, setIsHoveredTable] = useState(null);
   const [FileUploadPopupModal, setFileUploadPopupModal] = useState(false);
   const [AddAttachmentPopupModal, setAddAttachmentPopupModal] = useState(false);
   const [HoldUnHoldDetails, setHoldUnHoldDetails] = useState({});
@@ -70,6 +80,7 @@ export default function HistoResultTrack() {
   const retreveTest = useGetData();
   const Signature = useGetData();
   const lsData = getLocal("imarsar_laboratory");
+  const allInfoDocument = useRetrieveData();
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
@@ -107,7 +118,7 @@ export default function HistoResultTrack() {
     return row;
   };
 
-  console.log("Content => ",editorContent2);
+  console.log("Content => ", editorContent2);
   const columns = [
     {
       field: "id",
@@ -237,15 +248,17 @@ export default function HistoResultTrack() {
       renderCell: (params) => {
         // console.log(params.row)
         return (
-          <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            <SubmitButton
-              submit={false}
-              text={"i"}
-              callBack={() => {
-                setInfo(true);
-              }}
-              style={{ width: "30px", fontSize: "0.75rem", height: "20px" }}
-            />
+          <div
+            className="w-5 h-5 flex justify-center items-center rounded-sm"
+            style={{
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+            }}
+            onClick={() => {
+              setShowPopup1(2), getAllInfoDocumentData(params?.row?.itemId);
+            }}
+          >
+            <FaCircleInfo />
           </div>
         );
       },
@@ -280,7 +293,17 @@ export default function HistoResultTrack() {
       },
     },
   ];
+  const getAllInfoDocumentData = async (testId) => {
+    console.log(testId);
 
+    try {
+      await allInfoDocument.fetchDataFromApi(
+        `/tnx_Booking/GetTestInfo?TestId=${testId}`
+      );
+    } catch (error) {
+      toast.error(error?.message);
+    }
+  };
   //accept child to parent in editor
   const handleContentChange = (content) => {
     // Update editor content
@@ -651,6 +674,188 @@ export default function HistoResultTrack() {
           showPopup={AddAttachmentPopupModal}
           retreveTestData={retreveTestData}
         />
+        {showPopup1 === 2 && (
+          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+            <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+              {/* Header */}
+              <div
+                className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                style={{
+                  borderImage: activeTheme?.menuColor,
+                  background: activeTheme?.menuColor,
+                }}
+              >
+                <div
+                  className="font-semibold text-xxs md:text-sm"
+                  style={{ color: activeTheme?.iconColor }}
+                >
+                  {"Test Remark Data"}
+                </div>
+                <IoMdCloseCircleOutline
+                  className="text-xl cursor-pointer"
+                  style={{ color: activeTheme?.iconColor }}
+                  onClick={() => setShowPopup1(0)}
+                />
+              </div>
+
+              {/* Scrollable Content */}
+              <GridDataDetails gridDataDetails={"Test Remark Details"} />
+
+              {allInfoDocument?.loading ? (
+                <CustomLoadingPage />
+              ) : (
+                <CustomDynamicTable
+                  columns={resultTrackForPatientInformation}
+                  activeTheme={activeTheme}
+                  height="15vh"
+                >
+                  <tbody>
+                    {allInfoDocument?.data?.data?.map((data, index) => (
+                      <tr
+                        className={`cursor-pointer whitespace-nowrap ${
+                          isHoveredTable === index
+                            ? ""
+                            : index % 2 === 0
+                            ? "bg-gray-100"
+                            : "bg-white"
+                        }`}
+                        key={index}
+                        onMouseEnter={() => setIsHoveredPopupTable(index)}
+                        onMouseLeave={() => setIsHoveredPopupTable(null)}
+                        style={{
+                          background:
+                            isHoveredPopupTable === index
+                              ? activeTheme?.subMenuColor
+                              : undefined,
+                          // Hides scrollbar for IE/Edge
+                        }}
+                      >
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {index + 1}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.investigationName}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.barcodeNo}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.sampleReceiveDate}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.sampleCollectedby}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.sampleReceivedBY}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.sampleReceiveDate}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.registrationDate}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.registerBy}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.resultDate}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.resutDoneBy}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.outhouseDoneOn}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.outhouseLab}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.outhouseDoneBy}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.outSourceDate}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.outSouceLab}
+                        </td>
+
+                        <td
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                          style={{ width: "0%" }}
+                        >
+                          {data?.outSource}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </CustomDynamicTable>
+              )}
+            </div>
+          </div>
+        )}
         {/* Header Section */}
         <div>
           <FormHeader title="Histo Result Track" />
