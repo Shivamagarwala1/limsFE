@@ -126,7 +126,7 @@ export default function Login() {
 
             <div className='absolute inset-0 bg-transparent '></div>
 
-            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch sm:mx-20 pt-64 sm:pt-60 md:pt-64 lg:pt-[22rem] xl:pt-[27.5rem] 2xl:pt-[28rem] 4k:pt-[48rem]'>
+            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch sm:mx-20 pt-64 sm:pt-60 md:pt-64 lg:pt-[20rem] xl:pt-[20.5rem] 2xl:pt-[28rem] 4k:pt-[48rem]'>
 
                 {/* <div className='py-1 lg:py-0'>
                     <img src={logo} alt="path not found" className='w-32 h-10' />

@@ -68,14 +68,14 @@ export const CustomNumberInput = ({
                         : "bg-white"
                     } ${isInvalid ? "border-red-500" : "border-gray-300"}`}
 
-                style={{
-                    backgroundColor: readOnly ? (isDisabled ? "#eff5f5" : "#eff5f5") : "white !important"
-                }}
+                // style={{
+                //     backgroundColor: readOnly ? (isDisabled ? "#eff5f5" : "#eff5f5") : "white !important"
+                // }}
             />
             <label htmlFor={name} className={`menuPeerLevel`}
-                style={{
-                    backgroundColor: readOnly ? (isDisabled ? "#eff5f5" : "#eff5f5") : "white !important"
-                }}
+                // style={{
+                //     backgroundColor: readOnly ? (isDisabled ? "#eff5f5" : "#eff5f5") : "white !important"
+                // }}
             >
                 {label}
             </label>

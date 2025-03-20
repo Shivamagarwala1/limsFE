@@ -20,7 +20,6 @@ import CustomDropdown from "../../../global/CustomDropdown";
 import { DatePicker } from "../../../global/DatePicker";
 import { useFormattedDate, useFormattedDateTime } from "../../../customehook/useDateTimeFormate";
 import { CustomTextBox } from "../../../global/CustomTextBox";
-import CustomeNormalButton from "../../../global/CustomeNormalButton";
 import CustomNormalFormButton from "../../../global/CustomNormalFormButton";
 import { toast } from "react-toastify";
 import CustomSearchInputFields from "../../../global/CustomSearchDropdown";

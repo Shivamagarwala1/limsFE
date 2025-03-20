@@ -1,49 +1,49 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import { useGetData, usePostData } from "../../../../service/apiService";
+import { useGetData } from "../../../../service/apiService";
+
+
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
   SubmitButton,
 } from "../../../../Custom Components/InputGenerator";
-import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
-import { getLocal } from "usehoks";
-import { FaRegEdit, FaSpinner } from "react-icons/fa";
-import { ImSwitch } from "react-icons/im";
-import { IoMdCloseCircleOutline, IoMdMenu } from "react-icons/io";
-import { addRandomObjectId, fetchAllCenterData } from "../../../../service/RedendentData";
-import { MdDelete } from "react-icons/md";
-import DynamicTable, { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
-import {
-  AddTestPopup,
-  SampleCollectionPopup,
-} from "../../../../Custom Components/PopupModal";
+import { FaSpinner } from "react-icons/fa";
+
+import { addRandomObjectId } from "../../../../service/RedendentData";
+
 import toast from "react-hot-toast";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
-import CustomFormButton from "../../../global/CustomFormButton";
-import PopupFooter from "../../../global/PopupFooter";
-import { useRetrieveData } from "../../../../service/service";
+import { useRetrieveData, usePostData } from "../../../../service/service";
 import GridDataDetails from "../../../global/GridDataDetails";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import CustomLoadingPage from "../../../global/CustomLoadingPage";
-import CustomeNormalButton from "../../../global/CustomeNormalButton";
 import { CustomTextBox } from "../../../global/CustomTextBox";
+import CustomPopupWithResponsive from "../../../global/CustomPopupWithResponsive";
+import CustomDropdown from "../../../global/CustomDropdown";
+import CustomFormButtonWithLoading from '../../../global/CustomFormButtonWithLoading'
+import FormHeader from "../../../global/FormHeader";
+import { CustomNumberInput } from "../../../global/CustomNumberInput";
+import { DatePicker } from "../../../global/DatePicker";
+import { MdDelete } from "react-icons/md";
+
 
 export default function PhlebotomyCollection() {
+
+  const user = useSelector((state) => state.userSliceName?.user || null);
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
 
-  const PostData = usePostData();
-  const { fetchData, response, data, loading } = useGetData();
+  const { fetchData, data, } = useGetData();
 
   const [isButtonClick, setIsButtonClick] = useState(0);
 
   const [clickedRowId, setClickedRowId] = useState(null);
-  const [showPopup, setShowPopup] = useState(false);
+  const [showPopup, setShowPopup] = useState(0);
   const [isEditData, setIsEditData] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [AddTest, setAddTest] = useState(false);
-  const [SampleCollection, setSampleCollection] = useState(false);
+  // const [ShowPopup, setShowPopup] = useState(0);
   // ------------------ Center -------------------------------
   const [CenterId, setCenterId] = useState(null);
   const [CenterValue, setCenterValue] = useState("");
@@ -56,188 +56,37 @@ export default function PhlebotomyCollection() {
   const [investigationGridData, setinvestigationGridData] = useState();
   const allPhlebotomyCollection = useRetrieveData();
   const [isHoveredTable, setIsHoveredTable] = useState(null);
+  const [isHoveredTablePopup, setIsHoveredTablePopup] = useState(null);
+  const [checkedItems, setCheckedItems] = useState();
+  const [testData, setTestData] = useState({
+    name: '',
+    mobileNo: '',
+    address: '',
+    age: '',
+    scheduleDate: '',
+    bookingDate: '',
+    investigationData: [],
+  });
 
+  const postDataForPhlebotomyCollection = usePostData();
 
-  const [rows, setRows] = useState([
-    { id: 1, Investigation: "Amylase Urine", checked: true },
-    { id: 2, Investigation: "Peripheral - GBP", checked: true },
-    // { id: 3, Investigation: "TSH", checked: true },
-    { id: 4, Investigation: "Xray", checked: true },
-    { id: 5, Investigation: "CBC (Complete Blood Count)", checked: true },
-  ]);
+  // const [rows, setRows] = useState([
+  //   { id: 1, Investigation: "Amylase Urine", checked: true },
+  //   { id: 2, Investigation: "Peripheral - GBP", checked: true },
+  //   // { id: 3, Investigation: "TSH", checked: true },
+  //   { id: 4, Investigation: "Xray", checked: true },
+  //   { id: 5, Investigation: "CBC (Complete Blood Count)", checked: true },
+  // ]);
   const [Row, setRow] = useState([]);
+
   useEffect(() => {
     getData?.fetchData(
       "/centreMaster?select=centreid,companyname&$filter=(isactive eq 1)"
     );
   }, []);
 
-  // const AllCenterData = fetchAllCenterData();
-  useEffect(() => {
-    getReason();
-    // console.log(AllCenterData);
-  }, [activeTab]);
-  console.log(data);
 
-  const getSingleInvastiGation = (id) => {
-    console.log(id);
 
-    setSampleCollection(true);
-  }
-
-  const columns = [
-    { field: "Random", headerName: "Sr. No", width: 20 },
-    {
-      field: `bookingDate`,
-      headerName: `Booking Date`,
-      flex: 1,
-    },
-    {
-      field: `sceduleDate`,
-      headerName: `Sechduled Date`,
-      flex: 1,
-    },
-    {
-      field: `workOrderId`,
-      headerName: `Visit Id`,
-      flex: 1,
-    },
-    {
-      field: `patientName`,
-      headerName: `Patient Name`,
-      flex: 1,
-    },
-    {
-      field: `age`,
-      headerName: `Age`,
-      flex: 1,
-    },
-    {
-      field: `status`,
-      headerName: `Status`,
-      flex: 1,
-    },
-    {
-      field: `investigationName`,
-      headerName: `Investigation`,
-      flex: 1,
-    },
-    {
-      field: `address`,
-      headerName: `Address`,
-      flex: 1,
-    },
-    {
-
-      field: "",
-      width: 150,
-      headerName: "Action",
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "5px" }}>
-            <SubmitButton
-              text={"Sample Collection"}
-              submit={false}
-              callBack={() => {
-                getSingleInvastiGation(data?.id)
-              }}
-              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
-            />
-            <SubmitButton
-              text={"Add Test"}
-              submit={false}
-              callBack={() => {
-                setAddTest(true);
-              }}
-              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
-            />
-            <SubmitButton
-              text={"Payment Sattlement"}
-              submit={false}
-              callBack={() => {
-                toast("Coming Soon");
-              }}
-              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
-            />
-          </div>
-        );
-      },
-    },
-  ];
-  const popupColumns = [
-    { field: "Investigation", headerName: "Investigation", flex: 1 },
-    {
-      field: `SampleTypeBarcode`,
-      headerName: `Sample Type`,
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "5px" }}>
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "",
-                  type: "select",
-                  dataOptions: [
-                    { id: 1, test: "URINE" },
-                    { id: 2, test: "WB EDTA" },
-                    { id: 3, test: "Whole Body" },
-                    { id: 4, test: "Serum" },
-                  ],
-                  style: { height: "2rem" },
-                },
-              ]}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      field: `Barcode`,
-      headerName: `Barcode`,
-      flex: 1,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "5px" }}>
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "Enter Barcode No.",
-                  type: "text",
-                  style: { height: "2rem" },
-                },
-              ]}
-            />
-          </div>
-        );
-      },
-    },
-    {
-      field: "",
-      width: 50,
-      headerName: "Collection",
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "5px" }}>
-            <input
-              checked={params.row.checked}
-              type="checkbox"
-              onChange={() => {
-                const updatedRows = rows.map((row) =>
-                  row.id === params.row.id
-                    ? { ...row, checked: !row.checked }
-                    : row
-                );
-                setRows(updatedRows);
-              }}
-            />
-          </div>
-        );
-      },
-    },
-  ];
-
-  // Function to handle input changes
   const handleSearchChange2 = (e) => {
     setCenterValue(e.target.value);
     setCenterDropDown(true); // Show dropdown when typing
@@ -280,107 +129,228 @@ export default function PhlebotomyCollection() {
   };
 
 
-  const handleSampleTypeChange = (event, index, itemId) => {
-    const selectedOption = event.target.value;
+  //!=============anil code===============
 
+  const handleSampleTypeChange = (selectedValue, sampleTypeData, investigationName) => {
+    // ✅ Update investigationGridData with the new selected sample type
+    setinvestigationGridData((prevData) =>
+      prevData.map((item) =>
+        item.investigationName === investigationName
+          ? { ...item, selectedSampleTypeId: selectedValue } // Update selected sample type
+          : item
+      )
+    );
 
-    // Create the updated sample type object based on the selected option
-    const updatedSampleType = {
-      // Get the id based on selected option
-      name: selectedOption,  // The name is the selected value
-      id: itemId      // Assuming itemType comes from props or state
-    };
+    // ✅ Update checkedItems with the new sample type
+    setCheckedItems((prevCheckedItems) =>
+      prevCheckedItems.map((item) =>
+        item.investigationName === investigationName
+          ? {
+            ...item,
+            sampleTypeName: selectedValue?.target?.value, // Update sampleTypeName in checkedItems
+          }
+          : item
+      )
+    );
 
-    // setGridDataBarCodeandSampleType((prevState) => {
-    //   // Check if the updatedSampleType.id already exists in the sampleType array
-    //   const existingSampleTypeIndex = prevState.sampleType.findIndex(item => item.id === updatedSampleType.id);
-
-    //   if (existingSampleTypeIndex !== -1) {
-    //     // If the id exists, update the sampleTypeName for that item
-    //     const updatedSampleTypes = prevState.sampleType.map((item, idx) =>
-    //       idx === existingSampleTypeIndex ? { ...item, name: selectedOption } : item
-    //     );
-
-    //     return {
-    //       ...prevState,
-    //       sampleType: updatedSampleTypes,
-    //     };
-    //   } else {
-    //     // If the id does not exist, push the new sampleType
-    //     return {
-    //       ...prevState,
-    //       sampleType: [...prevState.sampleType, updatedSampleType],
-    //     };
-    //   }
-    // });
   };
 
+  const handleInputChangeForPopUpGridData = (
+    investigationName,
+    value,
+    sampleTypeId
+  ) => {
 
-  const handleInputChangeForPopUpGridData = (rowId, value) => {
-    // setGridDataBarCodeandSampleType((prevState) => {
-    //   // Get the sampleTypeName of the current row being updated
-    //   const currentSampleTypeName = prevState.barCode?.find(
-    //     (item) => item.itemId === rowId
-    //   )?.sampleTypeName;
+    let updatedCheckedItems;
 
-    //   // Update barCode values where sampleTypeName matches
-    //   const updatedBarCode = prevState.barCode.map((item) =>
-    //     item.sampleTypeName === currentSampleTypeName
-    //       ? { ...item, name: value } // Update all matching sampleTypeName
-    //       : item
-    //   );
+    // ✅ Update barcode and isChecked for matching sampleTypeId
+    updatedCheckedItems = checkedItems.map((item) =>
+      item.sampleTypeName === Number(sampleTypeId)
+        ? {
+          ...item,
+          barcode: value, // ✅ Same barcode for all matching sampleTypeId
+          isChecked: value !== "", // ✅ Auto-check if barcode is filled
+        }
+        : item
+    );
 
-    //   return { ...prevState, barCode: updatedBarCode };
-    // });
+    // ✅ Check if investigationName already exists
+    const itemExists = updatedCheckedItems.some(
+      (item) => item.investigationName === investigationName
+    );
 
-    // // Optional: Update checkedItems if needed
-    // setCheckedItems((prev) => ({
-    //   ...prev,
-    //   [rowId]: value.length > 0, // Check if barcode is not empty
-    // }));
-  };
-
-
-
-  const getReason = async () => {
-    // const get = await fetchData(`/appointmentBooking/GetAppointmentData?FromDate=18-Mar-2025&Todate=23-Mar-2025&CentreID=1`);
-    // console.log(get);
-  };
-
-  const handleTheUpdateStatusMenu = async () => {
-    const lsData = getLocal("imarsar_laboratory");
-    const payload = {
-      ...clickedRowId,
-      updateById: lsData?.user?.employeeId,
-      isActive: clickedRowId?.isActive === 1 ? 0 : 1,
-    };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    if (data1?.success) {
-      toast.success("Status Updated Successfully");
-      console.log(payload);
-      getReason();
-      setShowPopup(false);
+    if (!itemExists) {
+      // ✅ If investigationName doesn't exist, push a new item
+      updatedCheckedItems = [
+        ...updatedCheckedItems,
+        {
+          investigationName: investigationName,
+          barcode: value, // ✅ Store the value properly
+          isChecked: value !== "", // ✅ Auto-check if barcode is filled
+          sampleTypeName: Number(sampleTypeId),
+        },
+      ];
     }
+
+    // ✅ Update the state with modified data
+    setCheckedItems(updatedCheckedItems);
+
+    // ✅ Debug to check the updated values
   };
 
-  //   const InputFileds = [{ label: "", type: "" }];
+
+  const handleCheckboxChange = (investigationName) => {
+    const updatedCheckedItems = checkedItems.map((item) =>
+      item.investigationName === investigationName
+        ? { ...item, isChecked: !item.isChecked }
+        : item
+    );
+    setCheckedItems(updatedCheckedItems);
+  };
+
+  // State to track if patient-wise barcode is enabled or not
+  const [patientWiseBarcode, setPatientWiseBarcode] = useState(false);
+
+
+  const handelToUpdatePatientWiseBarcode = () => {
+    // ✅ Get the first non-empty barcode value to apply to all items
+    const firstBarcode = checkedItems.find((item) => item.barcode !== "")?.barcode || "";
+
+    // ✅ Update all items to have the same barcode and mark them as checked
+    const updatedCheckedItems = checkedItems.map((item) => ({
+      ...item,
+      barcode: firstBarcode, // ✅ Apply the same barcode to all
+      isChecked: firstBarcode !== "", // ✅ Auto-check if barcode is not empty
+    }));
+
+    // ✅ Update the state with the new checkedItems
+    setCheckedItems(updatedCheckedItems);
+    // ✅ Toggle patientWiseBarcode state
+    setPatientWiseBarcode(!patientWiseBarcode);
+  };
+
+  //update sample status
+  const updateSampleStatus = async (e) => {
+    e.preventDefault();
+    setIsButtonClick(1);
+
+    const updatedData = checkedItems
+      ?.filter((data) => data?.isChecked === true)
+      .map((item) => ({
+        testid: item?.testId,
+        barcodeno: item?.barcode,
+        iscamplecollected: "Y",
+        collectedBy: parseInt(user?.employeeId),
+      }));
+
+    try {
+      const response = await postDataForPhlebotomyCollection.postRequestData(`/appointmentBooking/UpdateSamplestatus`, updatedData);
+
+      if (response?.success) {
+        toast.success(response?.message);
+      } else {
+        toast.error(response?.message);
+      }
+
+    } catch (error) {
+      toast.error(error?.message);
+    }
+
+    setIsButtonClick(0);
+
+  }
+
+  // !=================add test data=============
+  const handleAddTest = (data) => {
+
+    if (!data?.investigationName || data.investigationName.length === 0) {
+      console.error("No investigation names available");
+      return;
+    }
+
+
+
+
+    // Create an array of investigation objects
+    const investigations = data?.investigationName.map((name) => ({
+      investigationName: name,
+      // mrp: data?.mrp,
+      grossAmount: data?.grossAmount,
+      discount: data?.discount,
+      netAmount: data?.netAmount,
+      deliveryDate: data?.bookingDate,
+    }));
+
+    // Create a single object with multiple investigations
+    const newTestData = {
+      name: data?.patientName,
+      mobileNo: data?.mobileNo,
+      address: data?.address,
+      age: data?.age,
+      pincode:data?.pinCode,
+      scheduleDate: data?.sceduleDate,
+      bookingDate: data?.bookingDate,
+      investigationData: investigations, // Store all investigations in a single array
+    };
+
+    // Update testData and immediately open the popup
+    setTestData((prevData) => {
+      const updatedData = Array.isArray(prevData)
+        ? [...prevData, newTestData]
+        : [newTestData];
+
+      // ✅ Check if investigationData is not empty and open popup immediately
+      if (updatedData?.[0]?.investigationData.length !== 0) {
+        setShowPopup(2);
+      }
+
+      return updatedData; // Return updated data to setTestData
+    });
+  };
+
+  console.log(allPhlebotomyCollection);
+
+
+  console.log(testData);
+
+
+  const handelOnChangeEditTest = (e) => {
+    setAddTest((preventData) => ({
+      ...preventData,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+
+  // Function to delete a specific investigation by index
+  const handleDelete = (index) => {
+    // Get the first object in the array
+    const updatedInvestigations = testData[0].investigationData.filter(
+      (_, i) => i !== index
+    );
+
+    // Update the first object in the array with the new investigation data
+    const updatedData = [
+      {
+        ...testData[0],
+        investigationData: updatedInvestigations,
+      },
+    ];
+
+    // Set the updated data
+    setTestData(updatedData);
+  };
+
+
+
+
+  // !=================end anil code================
+
 
   return (
     <div>
-      <AddTestPopup
-        setShowPopup={setAddTest}
-        showPopup={AddTest}
-        heading="Add Test"
-        rows={rows}
-        columns={popupColumns}
-      />
-      {/* <SampleCollectionPopup
-        setShowPopup={setSampleCollection}
-        showPopup={SampleCollection}
-        heading={"Sample Collection"}
-        rows={rows}
-        columns={popupColumns}
-      /> */}
+
+
       {/* Header Section */}
       <div
         className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
@@ -430,18 +400,20 @@ export default function PhlebotomyCollection() {
               },
             ]}
           />
-          <SubmitButton text={"Search"} />
+
+          <div className="flex gap-[[0.25rem]">
+            <div className="relative flex-1">
+              <SubmitButton text={"Search"} />
+            </div>
+
+            <div className="relative flex-1">
+              {/* <SubmitButton text={"Search"} /> */}
+            </div>
+          </div>
+
         </div>
       </form>
-      {/* <div className="w-full">
-        <UpdatedDynamicTable
-          rows={Row}
-          name="Phlebotomy Collection Details"
-          loading={loading}
-          columns={columns}
-          viewKey="Random"
-        />
-      </div> */}
+
 
 
       {/* ==================== my code =================== */}
@@ -453,7 +425,6 @@ export default function PhlebotomyCollection() {
           </div>
           :
           <CustomDynamicTable activeTheme={activeTheme} columns={["Sr. No", 'Booking Date', 'Sechduled Date', 'Visit Id', 'Patient Name', 'Age', 'Mobile No.', 'Status', 'Investigation', 'Address', 'Action']} >
-
             <tbody >
               {
                 allPhlebotomyCollection?.data?.data
@@ -575,21 +546,34 @@ export default function PhlebotomyCollection() {
                         <div className="flex gap-2">
                           <button
                             type="button"
-                            className="rounded-md h-4 w-24 text-xxxs"
+                            className={`rounded-md ${data?.investigationName.length >= 2 ? 'h-7' : 'h-4'}  w-24 text-xxxs`}
                             style={{
                               background: activeTheme?.menuColor,
                               color: activeTheme?.iconColor,
                             }}
                             onClick={() => {
                               // Get all data matching the current mobileNo
-                              const filteredData = allPhlebotomyCollection?.data?.data.filter(
+                              const filteredData = allPhlebotomyCollection?.data?.data?.filter(
                                 (item) => item.mobileNo === data.mobileNo
                               );
 
                               // Store the filtered data
+                              setShowPopup(1);
                               setinvestigationGridData(filteredData);
-                              setSampleCollection(true);
+
+                              // ✅ Update checkedItems based on filteredData
+                              const updatedCheckedItems =
+                                filteredData?.map((data) => ({
+                                  investigationName: data?.investigationName || "",
+                                  sampleTypeName: data?.sampletypedata?.[0]?.sampleTypeId || "",
+                                  barcode: "",
+                                  isChecked: false,
+                                  testId: data?.testId
+                                })) || [];
+
+                              setCheckedItems(updatedCheckedItems);
                             }}
+
                           >
                             Sample Collections
                           </button>
@@ -597,18 +581,20 @@ export default function PhlebotomyCollection() {
 
                           <button
                             type="button"
-                            className="rounded-md h-4 w-20 text-xxxs"
+                            className={`rounded-md ${data?.investigationName.length >= 2 ? 'h-7' : 'h-4'} w-20 text-xxxs`}
                             style={{
                               background: activeTheme?.menuColor,
                               color: activeTheme?.iconColor,
                             }}
+
+                            onClick={() => handleAddTest(data)} // Pass data to function
                           >
                             Add Test
                           </button>
 
                           <button
                             type="button"
-                            className="rounded-md h-4 w-28 text-xxxs"
+                            className={`rounded-md ${data?.investigationName.length >= 2 ? 'h-7' : 'h-4'} w-28 text-xxxs`}
                             style={{
                               background: activeTheme?.menuColor,
                               color: activeTheme?.iconColor,
@@ -626,163 +612,125 @@ export default function PhlebotomyCollection() {
             </tbody>
 
           </CustomDynamicTable>
-
       }
+
+
       {
-        console.log(investigationGridData)
+        showPopup === 1 && (
 
-      }
-      {
-        SampleCollection && (
-          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-            <div className="w-full mx-2 lg:mx-60 h-auto z-50 shadow-2xl bg-white rounded-lg  animate-slideDown">
+          <>
+            <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Sample Collection Details'} setShowPopup={setShowPopup} popuptype="mediumUpper">
 
-              <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
-                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
-              >
-                <div className=" font-semibold"
-                  style={{ color: activeTheme?.iconColor }}
-                >
-                  Sample Collection Details
-                </div>
+              <GridDataDetails gridDataDetails={'Sammple Collection Details'} />
 
-                <IoMdCloseCircleOutline className='text-xl cursor-pointer'
-                  style={{ color: activeTheme?.iconColor }}
-                  onClick={() => { setSampleCollection(false) }}
-                />
-              </div>
+              <form autoComplete="off" onSubmit={updateSampleStatus}>
 
-              <div className=''>
 
-                <div
-                  className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-                  style={{ background: activeTheme?.blockColor }}
-                >
-                  <div>
-                    <FontAwesomeIcon icon="fa-solid fa-house" />
-                  </div>
-                  <div>Old Patient Info.</div>
-                </div>
+                <CustomDynamicTable height={'25vh'} activeTheme={activeTheme} columns={['Investigation', 'Sample Type', 'Bar Code', 'Collect']}>
+                  <tbody>
+                    {
+                      checkedItems !== undefined && (
+                        investigationGridData?.map((data, rowIndex) => {
 
-                <div className="grid grid-cols-12 gap-2 mt-[2px]  mx-1 mb-1 bg-white">
-                  <div className="col-span-12 bg-white">
-                    <div className="max-h-96 overflow-y-auto ">
-                      {/* Table */}
-                      <table className="table-auto border-collapse w-full text-xxs text-left ">
-                        <thead
-                          style={{
-                            position: "sticky",
-                            top: 0,
-                            zIndex: 1,
-                            background: activeTheme?.menuColor,
-                            color: activeTheme?.iconColor,
-                          }}
-                        >
-                          <tr>
-                            <td className="border-b font-semibold border-gray-300 px-4 text-xxs" style={{ width: "10%" }}>
-                              Investigation
-                            </td>
+                          const matchedItem = checkedItems.find(
+                            (item) => item.investigationName === data?.investigationName
+                          );
+                          return (
+                            <tr
+                              key={`${rowIndex}`}
+                              className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                                }`}
+                              onMouseEnter={() => setIsHoveredTable(rowIndex)}
+                              onMouseLeave={() => setIsHoveredTable(null)}
+                              style={{
+                                background:
+                                  isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
+                              }}
+                            >
+                              {/* Investigation Name */}
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                {data?.investigationName}
+                              </td>
 
-                            <td className="border-b font-semibold border-gray-300 px-4 text-xxs" style={{ width: "3%" }}>
-                              Sample Type
-                            </td>
+                              {/* CustomDropdown for Sample Type */}
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
 
-                            <td className="border-b font-semibold border-gray-300 px-4 text-xxs" style={{ width: "3%" }}>
-                              Barcode
-                            </td>
-
-                            <td className="border-b font-semibold border-gray-300 px-4 text-xxs" style={{ width: "3%" }}>
-                              Collect
-                            </td>
-                          </tr>
-                        </thead>
-
-                        <tbody>
-                          {investigationGridData?.map((data, rowIndex) => {
-                            // Declare barcodeValue inside the map function
-                            // const barcodeValue =
-                            //   gridDataBarCodeandSampleType?.barCode.find(
-                            //     (item) => item.itemId === data?.itemId
-                            //   )?.name || "";
-
-                            return (
-                              <tr
-                                key={rowIndex}
-                                className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"}`}
-                                onMouseEnter={() => setIsHoveredTable(rowIndex)}
-                                onMouseLeave={() => setIsHoveredTable(null)}
-                                style={{
-                                  background: isHoveredTable === rowIndex ? activeTheme?.subMenuColor : undefined,
-                                }}
-                              >
-                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "10%" }}>
-                                  {data?.investigationName}
-                                </td>
-
-                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                  <select
-                                    className="border rounded px-1 w-full outline-none"
-                                    onChange={(e) => handleSampleTypeChange(e, rowIndex, data?.itemId)}
-                                    defaultValue={data?.sampletypedata?.[0] || 0} // Set to the first value in the array
-                                  >
-                                    <option value={0} disabled hidden className="text-gray-400">
-                                      Select Option
-                                    </option>
-                                    {data?.sampletypedata?.map((item, index) => (
-                                      <option key={index} value={item?.sampleTypeId}>
-                                        {item?.sampleTypeName}
-                                      </option>
-                                    ))}
-                                  </select>
-
-                                </td>
-
-                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                  <form autoComplete='off'>
-                                    <CustomTextBox
-                                      type="barcode"
-                                      name="barCode"
-                                      maxLength={12}
-                                      // value={barcodeValue || ""}
-
-                                      // readOnly={patientWiseBarcode}
-
-                                      onChange={(e) => handleInputChangeForPopUpGridData(data?.itemId, e.target.value)}
-                                      placeholder=" "
-                                      label="Barcode"
-                                      showLabel='false'
-                                    />
-                                  </form>
-                                </td>
-
-                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: "3%" }}>
-                                  <input
-                                    type="checkbox"
-                                  // checked={checkedItems[data?.itemId] || false} // Use updated state
-                                  // onChange={() => handleCheckboxChange123(data?.itemId)} // Allow manual toggle
+                                <div className="relative w-32">
+                                  <CustomDropdown
+                                    label="Select Sample Type"
+                                    value={data?.selectedSampleTypeId?.target.value || data?.sampletypedata?.[0]?.sampleTypeId || 0} // Use updated value
+                                    options={
+                                      data?.sampletypedata?.map((item) => ({
+                                        label: item?.sampleTypeName,
+                                        value: parseInt(item?.sampleTypeId),
+                                      })) || []
+                                    }
+                                    onChange={(e) => handleSampleTypeChange(e, data?.sampletypedata, data?.investigationName)} // Pass investigationName
+                                    defaultIndex={0}
+                                    activeTheme={activeTheme}
+                                    showLabel={false}
                                   />
-                                </td>
 
 
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                                </div>
+                              </td>
 
-                    </div>
-                  </div>
+                              {/* CustomTextBox for Barcode */}
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                <div className="w-32">
+                                  <CustomTextBox
+                                    type="barcode"
+                                    name="barCode"
+                                    maxLength={12}
+                                    placeholder=" "
+                                    label="Barcode"
+                                    showLabel="false"
+                                    value={
+                                      checkedItems.find((item) => item.investigationName === data.investigationName)
+                                        ?.barcode || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleInputChangeForPopUpGridData(
+                                        data.investigationName,
+                                        e.target.value,
+                                        data?.selectedSampleTypeId?.target.value || data?.sampletypedata?.[0]?.sampleTypeId
+                                      )
+                                    }
+                                  />
+                                </div>
 
-                </div>
+                              </td>
+
+                              {/* Checkbox - Auto-Check Based on investigationName */}
+                              <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                <input
+                                  type="checkbox"
+                                  checked={matchedItem?.isChecked || false}
+                                  onChange={() => handleCheckboxChange(data?.investigationName)}
+                                />
+
+                              </td>
+                            </tr>
+                          )
+                        })
+                      )
+                    }
+                  </tbody>
 
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mb-1 mx-1">
-                  <div className="relative flex-1"></div>
-                  <div className="relative flex-1"></div>
-                  <div className="relative flex-1"></div>
-                  <div className="relative flex-1"></div>
+                </CustomDynamicTable>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2 ">
+                  <CustomFormButtonWithLoading
+                    activeTheme={activeTheme}
+                    text="Collect & Save"
+                    icon={FaSpinner}
+                    isButtonClick={isButtonClick}
+                    loadingButtonNumber={1} // Unique number for the first button
+                  />
+
                   <div
-                    className="relative flex-1 overflow-hidden cursor-pointer flex items-center gap-1 w-full rounded-md pl-2 text-xxxs h-[1.6rem] font-semibold"
+                    className="relative flex-1 overflow-hidden cursor-pointer flex items-center gap-1 w-full rounded-md pl-2 text-xxxs h-[1.6rem] font-semibold lg:w-36"
                     style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                     type="button"
                     data-ripple-light="true"
@@ -791,46 +739,258 @@ export default function PhlebotomyCollection() {
                     <input
                       type="checkbox"
                       name="patientWiseBarcode"
-                      // checked={patientWiseBarcode} // Bind checked state
+                      checked={patientWiseBarcode} // Bind checked state
                       readOnly // Prevent direct interaction with the checkbox
                     />
                     <div className=''>
                       Patient wise barcode
                     </div>
                   </div>
-
-                  <div className="relative flex-1">
-                    {/* <CustomeNormalButton activeTheme={activeTheme} text='' /> */}
-                    <CustomFormButton
-                      activeTheme={activeTheme}
-                      text="Collect"
-                      icon={FaSpinner}
-                      isButtonClick={isButtonClick}
-                      loadingButtonNumber={5} // Unique number for the first button
-                      onClick={() => onSubmitForSavePatientRegistrationData(1)} // Pass button number to handler
-                    />
-                  </div>
-
-                  {/* <div className="relative flex-1">
-                    <CustomFormButton
-                      activeTheme={activeTheme}
-                      text="Recive & Save"
-                      icon={FaSpinner}
-                      isButtonClick={isButtonClick}
-                      loadingButtonNumber={5} // Unique number for the first button
-                      onClick={() => onSubmitForSavePatientRegistrationData(2)} // Pass button number to handler
-                    />
-                  </div> */}
                 </div>
+              </form>
+            </CustomPopupWithResponsive>
+          </>
 
-
-                <PopupFooter />
-              </div>
-
-            </div>
-          </div>
         )
       }
+
+
+      {
+        showPopup === 2 && (
+          <>
+            <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Test Data Details'} setShowPopup={setShowPopup} popuptype="mediumUpper">
+
+              <FormHeader headerData={'Test Data'} />
+
+              {
+                testData?.investigationData?.length !== 0 && (
+                  <form autoComplete='off'>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
+
+                      <div className="flex gap-[0.25rem]">
+                        <div className='relative flex-1'>
+                          <CustomNumberInput
+                            type="phoneNumber"
+                            name="mobileNo"
+                            value={testData[0]?.mobileNo || ''}
+                            onChange={(e) => {
+                              handelOnChangeEditTest(e)
+                            }}
+                            maxLength={10}
+                            label="Mobile No."
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className='relative flex-1'>
+                          <CustomNumberInput
+                            type="pincode"
+                            name="pincode"
+                            value={testData[0]?.pincode || ''}
+                            onChange={(e) => {
+                              handelOnChangeEditTest(e)
+                            }}
+                            maxLength={10}
+                            label="Pin Code"
+                            readOnly={true}
+                          />
+                        </div>
+                      </div>
+
+                      <div className='relative flex-1'>
+                        <CustomTextBox
+                          type="propercase"
+                          name="name"
+                          value={testData[0]?.name || ''}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          label="Name"
+                          readOnly={true}
+                        />
+                      </div>
+
+                      <div className='flex gap-[0.25rem]'>
+
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="years"
+                            name="age"
+                            value={testData[0]?.age.split(" ")[0] || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Years"
+                            isDisabled={false}
+                            maxLength={3}
+                            allowSpecialChars={false}
+                            readOnly={true}
+
+
+                          />
+                        </div>
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="years"
+                            name="age"
+                            value={testData[0]?.age.split(" ")[2] || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Month"
+                            isDisabled={false}
+                            maxLength={3}
+                            allowSpecialChars={false}
+                            readOnly={true}
+                          />
+                        </div>
+
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="years"
+                            name="age"
+                            value={testData[0]?.age.split(" ")[2] || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Day"
+                            isDisabled={false}
+                            maxLength={3}
+                            allowSpecialChars={false}
+                            readOnly={true}
+                          />
+                        </div>
+
+                      </div>
+
+                      <div className="relative flex-1">
+                        <CustomTextBox
+                          // type="text", name, id, value, placeholder, onChange, label
+                          type='allCharacters'
+                          name='address'
+                          allowSpecialChars={true}
+                          value={testData[0]?.address}
+                          placeholder=' '
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          label='Address'
+                          readOnly={true}
+                        />
+                      </div>
+
+                      <div className='relative flex-1'>
+                        <DatePicker
+                          id="dob"
+                          name="bookingDate"
+                          value={testData[0]?.bookingDate || ''}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          placeholder=" "
+                          label="Booking Data"
+                          activeTheme={activeTheme}
+                          //isDisabled={false}
+                          currentDate={new Date()} // Current date: today
+                          maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                          readOnly={true}
+                          showTime={false}
+                          showBigerCalandar={true}
+
+                        />
+
+                      </div>
+
+
+                      <div className='relative flex-1'>
+                        <DatePicker
+                          id="dob"
+                          name="scheduleDate"
+                          value={testData[0]?.scheduleDate || ''}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          placeholder=" "
+                          label="Schedule Date"
+                          activeTheme={activeTheme}
+                          //isDisabled={false}
+                          currentDate={new Date()} // Current date: today
+                          maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                          readOnly={true}
+                          showTime={false}
+                          showBigerCalandar={true}
+
+                        />
+
+                      </div>
+
+                    </div>
+
+
+                    {/* grid data */}
+                    <GridDataDetails gridDataDetails={'Test Data Details'} />
+
+                    <CustomDynamicTable height={'20vh'} activeTheme={activeTheme} columns={["Investigation Name", "Delivery Date", "Discount", "Gross Amt", , "Net Amt", 'Action']}>
+                      <tbody>
+                        {
+                          testData[0]?.investigationData?.map((data, rowIndex) => {
+                            return (
+                              <tr
+                                key={`${rowIndex}`}
+                                className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                                  }`}
+                                onMouseEnter={() => setIsHoveredTablePopup(rowIndex)}
+                                onMouseLeave={() => setIsHoveredTablePopup(null)}
+                                style={{
+                                  background:
+                                    isHoveredTablePopup === rowIndex ? activeTheme?.subMenuColor : undefined,
+                                }}
+                              >
+                                {/* Investigation Name */}
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.investigationName}
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.deliveryDate}
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.discount}
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.grossAmount}
+                                </td>
+
+                                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.mrp}
+                                </td> */}
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.netAmount}
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  <MdDelete className="w-4 h-4 text-red-500" onClick={() => handleDelete(rowIndex)} />
+                                </td>
+                              </tr>
+                            )
+                          })
+                        }
+                      </tbody>
+
+
+                    </CustomDynamicTable>
+                  </form>
+                )
+              }
+
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2 ">
+                <CustomFormButtonWithLoading
+                  activeTheme={activeTheme}
+                  text="Update"
+                  icon={FaSpinner}
+                  isButtonClick={isButtonClick}
+                  loadingButtonNumber={2} // Unique number for the first button
+                />
+              </div>
+            </CustomPopupWithResponsive>
+          </>
+        )
+      }
+
     </div>
   );
 }
