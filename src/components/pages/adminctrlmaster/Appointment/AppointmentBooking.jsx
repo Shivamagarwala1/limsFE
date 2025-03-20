@@ -94,7 +94,7 @@ export default function AppointmentBooking() {
         "transactionId": 0,
         "workorderId": "string",
         "appointmentType": 0,
-        "appointmentScheduledOn": useFormattedDateTime(),
+        "appointmentScheduledOn": '',
         "pincode": "string",
         "status": 0,
         "assignedPhlebo": 0,
@@ -1119,6 +1119,7 @@ export default function AppointmentBooking() {
         if (!patientRegistrationData.dob) errors.dob = true;
         if (!patientRegistrationData.refID1) errors.refID1 = true
 
+        if (!patientRegistrationData?.appointmentScheduledOn) errors.appointmentScheduledOn = true
 
         if (!patientRegistrationData?.mobileNo || !/^\d{10}$/.test(patientRegistrationData?.mobileNo)) {
             errors.mobileNo = true;
@@ -1653,6 +1654,7 @@ export default function AppointmentBooking() {
 
             if (response?.success) {
                 toast.success(response?.message);
+                console.log(response);
 
                 try {
                     const response2 = await printBarCodeData(response?.data?.barcodeNo);
@@ -2974,7 +2976,7 @@ export default function AppointmentBooking() {
         <>
             <div>
                 {/* Header Section */}
-                <FormHeader headerData='Patient Registration' />
+                <FormHeader headerData='Appointment Booking' />
 
                 {/* form data */}
                 <form autoComplete='off'>
@@ -3179,7 +3181,7 @@ export default function AppointmentBooking() {
                                 placeholder=" "
                                 label="Appointment Schedule"
                                 activeTheme={activeTheme}
-
+                                isMandatory={patientRegistrationDataError?.appointmentScheduledOn}
                                 currentDate={new Date()} // Current date: today
                                 maxDate={new Date(2025, 11, 31)}
                                 showTime={true}
@@ -4981,29 +4983,7 @@ isDisabled={false}
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-2  mx-1 lg:mx-2">
 
                                                 {/* Discount Type */}
-                                                <div className="relative flex-1">
-                                                    {/* <select
-id="discountType"
-name='discountType'
-value={patientRegistrationData?.discountType}
-onChange={(event) => handelOnChangePatientRegistration(event)}
-className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
->
-<option value={0} disabled hidden className='text-gray-400'>
-Select Option
-</option>
-
-{
-allDicountTypeData?.map((data) => (
-<option key={data?.id} value={data?.id}>{data?.type}</option>
-
-))
-}
-
-</select>
-<label htmlFor="discountType" className="menuPeerLevel">
-Discount Type
-</label> */}
+                                                {/* <div className="relative flex-1">
 
                                                     <CustomDropdown
                                                         name="discountType"
@@ -5021,28 +5001,16 @@ Discount Type
                                                         activeTheme={activeTheme}
                                                         isMandatory={patientRegistrationDataError?.discountType}
                                                     />
-                                                </div>
+                                                </div> */}
 
 
                                                 {/* Discount Ammount */}
-                                                <div className="relative flex-1"
+                                                {/* <div className="relative flex-1"
                                                     onBlur={() =>
                                                         (patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt) && toast.error('Remove your amt')
                                                     }
                                                 >
-                                                    {/* <input
-                                                        type="number"
-                                                        id="discountAmmount"
-                                                        name="discountAmmount"
-                                                        value={patientRegistrationData?.discountAmmount}
-                                                        onChange={(event) => handelOnChangePatientRegistration(event)}
-                                                        placeholder=" "
-                                                        className={`inputPeerField peer ${patientRegistrationDataError.discountAmmount ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
-                                                        />
 
-                                                        <label htmlFor="discountAmmount" className="menuPeerLevel">
-                                                        Discount Ammount
-                                                        </label> */}
 
                                                     <CustomTextBox
                                                         type="decimalpositive"
@@ -5053,28 +5021,15 @@ Discount Type
                                                         readOnly={patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt}
                                                         isMandatory={patientRegistrationDataError.discountAmmount}
                                                     />
-                                                </div>
+                                                </div> */}
 
                                                 {/* Discount % */}
-                                                <div className="relative flex-1"
+                                                {/* <div className="relative flex-1"
                                                     onBlur={() =>
                                                         (patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt) && toast.error('Remove your amt')
                                                     }
                                                 >
-                                                    {/* <input
-                                                            type="number"
-                                                            id="discountPercentage"
-                                                            name="discountPercentage"
-                                                            value={patientRegistrationData?.discountPercentage}
 
-                                                            onChange={(e) => handelOnChangePatientRegistration(e)}
-
-                                                            placeholder=" "
-                                                            className={`inputPeerField  ${patientRegistrationDataError.discountPercentage ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
-                                                            />
-                                                            <label htmlFor="discountPercentage" className="menuPeerLevel">
-                                                            Discount %
-                                                            </label> */}
 
                                                     <CustomTextBox
                                                         type="decimalpositive"
@@ -5085,43 +5040,11 @@ Discount Type
                                                         readOnly={patientRegistrationData?.cashAmt || patientRegistrationData?.creditCardAmt || patientRegistrationData?.onlinewalletAmt}
                                                         isMandatory={patientRegistrationDataError.discountPercentage}
                                                     />
-                                                </div>
+                                                </div> */}
 
 
                                                 {/* Discount Reason */}
-                                                <div className="relative flex-1">
-                                                    {/* <select
-                                                        id="discountid"
-                                                        name="discountid"
-                                                        value={patientRegistrationData?.discountid}
-                                                        onChange={(event) => {
-                                                        const selectedOption = event.target.options[event.target.selectedIndex];
-                                                        const id = selectedOption.value;
-                                                        const reasonName = selectedOption.getAttribute("data-reasonname");
-
-                                                        // Call separate methods for id and reasonName
-                                                        handelOnChangePatientRegistration(event);
-
-                                                        setPatientRegistrationSelectData((preventData) => ({
-                                                        ...preventData,
-                                                        discountid: reasonName
-                                                        }))
-                                                        }}
-                                                        className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountid ? "border-b-red-500" : "border-borderColor"} focus:outline-none`}
-                                                        >
-                                                        <option value={0} disabled hidden className="text-gray-400">
-                                                        Select Option
-                                                        </option>
-                                                        {allDiscountReasonData?.map((data) => (
-                                                        <option key={data?.id} value={data?.id} data-reasonname={data?.discountReasonName}>
-                                                        {data?.discountReasonName}
-                                                        </option>
-                                                        ))}
-                                                        </select>
-
-                                                        <label htmlFor="discountid" className="menuPeerLevel">
-                                                        Discount Reason
-                                                        </label> */}
+                                                {/* <div className="relative flex-1">
 
                                                     <CustomDropdown
                                                         name="discountid"
@@ -5139,31 +5062,11 @@ Discount Type
                                                         activeTheme={activeTheme}
                                                         isMandatory={patientRegistrationDataError?.discountid}
                                                     />
-                                                </div>
+                                                </div> */}
 
 
                                                 {/* Discount Approved By */}
-                                                <div className="relative flex-1">
-                                                    {/* <select
-id="discountApproved"
-name='discountApproved'
-value={patientRegistrationData?.discountApproved}
-onChange={(event) => handelOnChangePatientRegistration(event)}
-className={`inputPeerField cursor-pointer peer  ${patientRegistrationDataError.discountApproved ? "border-b-red-500" : "border-borderColor"} focus:outline-none `}
->
-<option value={0} disabled hidden className='text-gray-400'>
-Select Option
-</option>
-{
-allDiscountApprovedByData?.map((data) => (
-<option key={data?.empId} value={data?.empId}>{`${data?.fName} ${data?.lName}`}</option>
-
-))
-}
-</select>
-<label htmlFor="discountApproved" className="menuPeerLevel">
-Discount Approved By
-</label> */}
+                                                {/* <div className="relative flex-1">
 
                                                     <CustomDropdown
                                                         name="discountApproved"
@@ -5181,7 +5084,7 @@ Discount Approved By
                                                         activeTheme={activeTheme}
                                                         isMandatory={patientRegistrationDataError?.discountApproved}
                                                     />
-                                                </div>
+                                                </div> */}
 
 
 
@@ -5214,12 +5117,13 @@ Discount Approved By
                                                             }}
 
                                                             onClick={() => {
-                                                                if (isPreprintedCode === 0) {
-                                                                    onSubmitForSavePatientRegistrationData(0);
-                                                                } else {
+                                                                // if (isPreprintedCode === 0) {
+                                                                //     onSubmitForSavePatientRegistrationData(0);
+                                                                // } else {
 
-                                                                    setShowPopup(6);
-                                                                }
+                                                                //     setShowPopup(6);
+                                                                // }
+                                                                onSubmitForSavePatientRegistrationData(0);
                                                             }}
                                                         >
                                                             Save
@@ -5267,12 +5171,13 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                             }}
 
                                                             onClick={() => {
-                                                                if (isPreprintedCode === 0) {
-                                                                    onSubmitForSavePatientRegistrationData(0);
-                                                                } else {
-                                                                    setShowPopup(6);
+                                                                // if (isPreprintedCode === 0) {
+                                                                //     onSubmitForSavePatientRegistrationData(0);
+                                                                // } else {
+                                                                //     setShowPopup(6);
 
-                                                                }
+                                                                // }
+                                                                onSubmitForSavePatientRegistrationData(0)
                                                             }}
                                                         >
                                                             Save
