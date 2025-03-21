@@ -11,11 +11,13 @@ import { useNavigate } from 'react-router-dom';
 import { dologin, doPasswordForgot, saveDefaultCentreId } from '../../service/localstroageService';
 import { useDispatch } from 'react-redux';
 import { loginUser } from '../../redux/userSlices';
-import loginImage from "../../assets/clientbk.png";
+import loginImage from "../../assets/clientloginbg.jpg";
+import loginFe from "../../assets/clientloginfe.png";
 import ForgotPassword from './ForgotPassword';
 import { updateUserPassword } from '../../redux/updatePasswordSlice';
 import Footer from './Footer'
 import Notification from '../pages/Notification';
+
 export default function Login() {
 
     const [loginData, setLoginData] = useState({
@@ -34,7 +36,9 @@ export default function Login() {
 
 
     const navigation = useNavigate();
+
     const userLoginSubmit = async (event) => {
+
         event.preventDefault();
 
         setButtonClick(true);
@@ -119,18 +123,16 @@ export default function Login() {
 
 
     return (
-
-
         <div className="bg-cover bg-center w-full h-screen sm:h-full md:h-screen overflow-hidden"
             style={{ backgroundImage: `url(${loginImage})` }}>
 
             <div className='absolute inset-0 bg-transparent '></div>
 
-            <div className='flex flex-col lg:flex-row justify-center items-center lg:items-stretch sm:mx-20 pt-64 sm:pt-60 md:pt-64 lg:pt-[20rem] xl:pt-[20.5rem] 2xl:pt-[28rem] 4k:pt-[48rem]'>
+            <div className='flex flex-col h-full w-full gap-3  justify-center items-center '>
 
-                {/* <div className='py-1 lg:py-0'>
-                    <img src={logo} alt="path not found" className='w-32 h-10' />
-                </div> */}
+                <div >
+                    <img src={loginFe} alt="path not found" className='w-72 h-auto object-fill lg:w-96 lg:h-60' />
+                </div>
 
                 <div className="border-2 w-72 sm:w-96  h-auto shadow-xl rounded-lg bg-white/60 z-40 pt-2">
 
@@ -191,9 +193,6 @@ export default function Login() {
                                                         :
                                                         <FaEyeSlash className='text-gray-500 cursor-pointer' onClick={() => setShowPassword(!showPassword)} />
                                                 }
-
-
-
                                             </div>
                                         </div>
                                     </div>
@@ -244,6 +243,5 @@ export default function Login() {
 
             <Footer />
         </div>
-
     )
 }

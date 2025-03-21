@@ -58,11 +58,11 @@ export default function Base() {
                 if (!user) return;
 
                 try {
-                    const resp = await getMenuDataBasedOnEmpIdAndRoleIdAndCentreId(
-                        user?.employeeId,
-                        user?.defaultRole,
-                        user?.defaultCenter
-                    );
+                    const resp = await getMenuDataBasedOnEmpIdAndRoleIdAndCentreId(               
+                        user?.employeeId,                                                         
+                        user?.defaultRole,                                                        
+                        user?.defaultCenter                                                       
+                    );                                                                            
 
                     if (resp?.success) {
                         setRoutes(resp?.data);
