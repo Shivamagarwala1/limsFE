@@ -17,16 +17,27 @@ import {
 } from "../../../../service/RedendentData";
 import { getLocal } from "usehoks";
 
-const CheckboxInputCell = ({ params, setTestIds, TestIds, SelectAll1 }) => {
+const CheckboxInputCell = ({
+  params,
+  setTestIds,
+  TestIds,
+  SelectAll1,
+  CheckboxDisable,
+}) => {
   const [enabled, setEnabled] = useState(false);
   // console.log(TestIds);
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       {SelectAll1 ? (
-        <input type="checkbox" checked={SelectAll1} />
+        <input
+          type="checkbox"
+          disabled={CheckboxDisable}
+          checked={SelectAll1}
+        />
       ) : (
         <input
           type="checkbox"
+          disabled={CheckboxDisable}
           onClick={() =>
             setTestIds(
               (prev) =>
@@ -56,6 +67,7 @@ export default function WorkSheet() {
   const [searchValue, setSearchValue] = useState(
     "GENERIC DIAGNOSTIC PVT. LTD."
   );
+  const [CheckboxDisable, setCheckboxDisable] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [selectedOption, setSelectedOption] = useState("");
@@ -98,6 +110,14 @@ export default function WorkSheet() {
     const row = addObjectId(GridData?.data || []);
     setRow(row);
   }, [GridData?.data]);
+
+  useEffect(() => {
+    if (searchValue2 == "Pending") {
+      setCheckboxDisable(false);
+    } else {
+      setCheckboxDisable(true);
+    }
+  }, [searchValue2]);
 
   const handlePrint = async () => {
     const allIds = await TestIds?.map((obj) => obj.testid).join(",");
@@ -172,6 +192,7 @@ export default function WorkSheet() {
             <input
               type="checkbox"
               checked={SelectAll}
+              disabled={CheckboxDisable}
               onChange={() => {
                 setSelectAll(!SelectAll);
                 if (!SelectAll) {
@@ -191,6 +212,7 @@ export default function WorkSheet() {
       renderCell: (params) => (
         <CheckboxInputCell
           params={params}
+          CheckboxDisable={CheckboxDisable}
           setTestIds={setTestIds}
           TestIds={TestIds}
           SelectAll1={SelectAll1}
@@ -253,7 +275,7 @@ export default function WorkSheet() {
     setShowDropdown4(false);
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     const payload = {
       centreId: searchId,
       fromDate: fromDate, // Dynamic current timestamp
@@ -264,7 +286,16 @@ export default function WorkSheet() {
       status: searchValue2,
       empid: lsData?.user?.employeeId,
     };
-    GridData?.postRequest(`/tnx_Booking/GetWorkSheetData`, payload);
+    const res = await GridData?.postRequest(
+      `/tnx_Booking/GetWorkSheetData`,
+      payload
+    );
+    if (res?.success && searchValue2 == "Pending") {
+      setCheckboxDisable(false);
+    } else {
+      setCheckboxDisable(true);
+    }
+    console.log("res =>", res);
   };
 
   const handleSubmit = () => {};
@@ -375,20 +406,20 @@ export default function WorkSheet() {
                   setIsHovered={setHoveredIndex4}
                   isHovered={hoveredIndex4}
                 />
-                  <SearchBarDropdown
-                    id="search-bar"
-                    name="search"
-                    value={searchValue1}
-                    onChange={handleSearchChange1}
-                    label="Test"
-                    options={TestData?.data}
-                    isRequired={false}
-                    showSearchBarDropDown={showDropdown1}
-                    setShowSearchBarDropDown={setShowDropdown1}
-                    handleOptionClickForCentre={handleOptionClick1}
-                    setIsHovered={setHoveredIndex1}
-                    isHovered={hoveredIndex1}
-                  />
+                <SearchBarDropdown
+                  id="search-bar"
+                  name="search"
+                  value={searchValue1}
+                  onChange={handleSearchChange1}
+                  label="Test"
+                  options={TestData?.data}
+                  isRequired={false}
+                  showSearchBarDropDown={showDropdown1}
+                  setShowSearchBarDropDown={setShowDropdown1}
+                  handleOptionClickForCentre={handleOptionClick1}
+                  setIsHovered={setHoveredIndex1}
+                  isHovered={hoveredIndex1}
+                />
               </div>
               <div
                 style={{ marginTop: "-3px" }}
@@ -430,7 +461,7 @@ export default function WorkSheet() {
                 />
               </div>
               <TwoSubmitButton
-               style={{marginTop:"-4px"}}
+                style={{ marginTop: "-4px" }}
                 options={[
                   {
                     label: "Search",
