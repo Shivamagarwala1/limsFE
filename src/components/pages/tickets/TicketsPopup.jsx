@@ -1,16 +1,17 @@
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { IoMdCloseCircleOutline } from 'react-icons/io';
 import { LuNotebookPen } from 'react-icons/lu';
 import { useSelector } from 'react-redux';
 import FromHeader from '../../global/FormHeader'
 import { CustomTextBox } from '../../global/CustomTextBox';
 import CustomDropdown from '../../global/CustomDropdown';
-import { useFormattedDate } from '../../customehook/useDateTimeFormate';
+import { useFormattedDate, useFormattedDateTime } from '../../customehook/useDateTimeFormate';
 import Draggable from 'react-draggable';
 import CustomFileUpload from '../../global/CustomFileUpload';
 import { toast } from 'react-toastify';
 import CustomFormButton from '../../global/CustomFormButton';
 import { FaHandshake, FaSpinner } from 'react-icons/fa6';
+import { usePostData, useRetrieveData } from '../../../service/service';
 export default function TicketsPopup() {
 
     const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -25,7 +26,26 @@ export default function TicketsPopup() {
         uploadDocument: '',
         deliveryDate: useFormattedDate()
     })
+
     const [isButtonClick, setIsButtonClick] = useState(0);
+    const allTicketType = useRetrieveData();
+    const postDataForTicketsPopup = usePostData();
+
+    useEffect(() => {
+
+        const getAllData = async () => {
+            try {
+                await allTicketType.fetchDataFromApi('/SupportTicketType?select=id,ticketType&$filter=(isActive eq 1)')
+            } catch (error) {
+                toast.error(error?.message);
+            }
+        }
+
+        if (showhelpAndSupportPopup) {
+            getAllData()
+        }
+
+    }, [showhelpAndSupportPopup])
 
 
     const handelOnChangeTicketPopup = (e) => {
@@ -77,11 +97,71 @@ export default function TicketsPopup() {
 
         setIsButtonClick(1);
 
-        console.log(ticketsPopupData);
+        const updatedData = {
+            "id": 0,
+            "clientId": parseInt(user?.employeeId),
+            "clientName": user?.name,
+            "ticketTypeId": parseInt(ticketsPopupData?.ticketType),
+            "priority": parseInt(ticketsPopupData?.priority),
+            "task": ticketsPopupData?.ticketDescription,
+            "document": ticketsPopupData?.uploadDocument,
+            "createDate": ticketsPopupData?.deliveryDate,
+            "assignedTo": 0,
+            "assignedBy": 0,
+            "assignedDate": new Date('0001-01-01T00:00:00Z') // Correct format
+                .toLocaleString("en-US", { hour12: true })
+                .replace(",", "")
+                .replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) =>
+                    `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`
+                ),
+            "isAssigned": 0,
+            "isCompleted": 0,
+            "completedBy": 0,
+            "completedDate": new Date('0001-01-01T00:00:00Z') // Correct format
+                .toLocaleString("en-US", { hour12: true })
+                .replace(",", "")
+                .replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) =>
+                    `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`
+                ),
+            "deliverydate": new Date('0001-01-01T00:00:00Z') // Correct format
+                .toLocaleString("en-US", { hour12: true })
+                .replace(",", "")
+                .replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) =>
+                    `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`
+                ),
+            "actionTaken": "",
+            "isReopen": 0,
+            "reopenBy": 0,
+            "reopenDate": new Date('0001-01-01T00:00:00Z') // Correct format
+                .toLocaleString("en-US", { hour12: true })
+                .replace(",", "")
+                .replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) =>
+                    `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`
+                ),
+            "reopenReason": ""
+        }
 
-        setTimeout(() => {
-            setIsButtonClick(0)
-        }, 2000);
+
+        try {
+            const response = await postDataForTicketsPopup.postRequestData('/supportTicket/saveUpdateSupportTicket', updatedData);
+
+            if (response?.success) {
+                toast.success(response?.message);
+                setTicketsPopupData({
+                    ticketType: 0,
+                    ticketSubject: '',
+                    ticketDescription: '',
+                    priority: 0,
+                    uploadDocument: '',
+                })
+            } else {
+                toast.error(response?.message);
+            }
+        } catch (error) {
+            toast.error(error?.message)
+        }
+
+        setIsButtonClick(0)
     }
     const dragRef = useRef(null);
 
@@ -116,14 +196,16 @@ export default function TicketsPopup() {
                                 <IoMdCloseCircleOutline className='text-xl cursor-pointer'
                                     style={{ color: activeTheme?.iconColor }}
                                     onClick={() => {
-                                        setShowhelpAndSupportPopup(!showhelpAndSupportPopup), setTicketsPopupData({
-                                            ticketType: '',
-                                            ticketSubject: '',
-                                            ticketDescription: '',
-                                            priority: '',
-                                            uploadDocument: '',
-                                            deliveryDate: useFormattedDate()
-                                        })
+                                        setShowhelpAndSupportPopup(!showhelpAndSupportPopup)
+                                        // 
+                                        //  setTicketsPopupData({
+                                        //     ticketType: '',
+                                        //     ticketSubject: '',
+                                        //     ticketDescription: '',
+                                        //     priority: '',
+                                        //     uploadDocument: '',
+                                        //     deliveryDate: useFormattedDate()
+                                        // })
                                     }}
                                 />
                             </div>
@@ -141,10 +223,11 @@ export default function TicketsPopup() {
                                             label="Ticket Type"
                                             value={ticketsPopupData?.ticketType || ''}
                                             options={[
-                                                { label: 'Select Option', value: '', disabled: true },
-                                                { label: 'Ticket type1', value: '1' },
-                                                { label: 'Ticket type2', value: '2' },
-                                                { label: 'Ticket type3', value: '3' },
+                                                { label: 'Select Ticket Type', value: '', disabled: true },
+                                                ...allTicketType?.data?.map(item => ({
+                                                    label: item?.ticketType,
+                                                    value: parseInt(item?.id),
+                                                })),
                                             ]}
                                             onChange={(e) => handelOnChangeTicketPopup(e)}
                                             defaultIndex={0}
@@ -230,52 +313,17 @@ export default function TicketsPopup() {
                                     </div>
 
 
-
-
-
-
-                                    {/* <div className='relative flex-1'>
-                                        <DatePicker
-                                            id="deliveryDate"
-                                            name="deliveryDate"
-                                            value={ticketsPopupData?.deliveryDate || ''}
-                                            onChange={(e) => handelOnChangeTicketPopup(e)}
-                                            placeholder=" "
-                                            label="Delivery Date"
-                                            activeTheme={activeTheme}
-                                            //isDisabled={false}
-                                            isMandatory={!Boolean(ticketsPopupData?.deliveryDate)}
-                                            currentDate={new Date()} // Current date: today
-                                            maxDate={new Date(2025, 11, 31)}
-                                            showTime={false}
-                                            showBigerCalandar={true}
-                                        />
-
-                                    </div> */}
-
                                 </div>
 
                                 <div className='mx-1 mb-2'>
                                     <textarea
                                         rows={4}
                                         maxLength={500}
-
+                                        name='ticketDescription'
+                                        onChange={handelOnChangeTicketPopup}
                                         className='w-full rounded border-[1.5px] px-1 text-sm font-semibold h-[5.4rem] outline-none bg-white text-[#795548]'
                                     />
 
-
-                                    {/* <CustomTextBox
-                                        type="alphabetandchar"
-                                        name="ticketDescription"
-                                        value={ticketsPopupData?.ticketDescription || ''}
-                                        onChange={(e) => handelOnChangeTicketPopup(e)}
-                                        label="Ticket Description Research"
-                                        isDisabled={false}
-                                        maxLength={500}
-                                        allowSpecialChars={false}
-                                        isMandatory={!Boolean(ticketsPopupData?.ticketDescription)}
-                                        decimalPrecision={4}
-                                    /> */}
                                 </div>
                             </form>
 
