@@ -5,8 +5,8 @@ import themeReducer from './themeSlice';
 
 export const store = configureStore({
   reducer: {
-    userSliceName: authReducer,
-    updatePasswordSlicesName: updatePasswordSlices,
-    theme: themeReducer,
+    userSliceName: authReducer,                                                                   
+    updatePasswordSlicesName: updatePasswordSlices,                                               
+    theme: themeReducer,                                                                          
   },
 });

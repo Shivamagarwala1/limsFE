@@ -256,7 +256,7 @@ export default function Navbar({ toggleFullScreen, routes }) {
 
   return (
     <div>
-      {/* ========================== for desktop================== */}
+      {/* ==========================for desktop================== */}
       <div
         className="h-12 hidden lg:flex justify-between items-center px-4"
         style={{
@@ -373,7 +373,6 @@ export default function Navbar({ toggleFullScreen, routes }) {
           <div className="flex items-center gap-2">
 
             <div className="flex items-centre">
-
               <FaRegMoneyBillAlt
                 className="text-lg cursor-pointer "
                 title="Recharge Account"
