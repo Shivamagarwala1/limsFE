@@ -35,7 +35,11 @@ const SelectInputCell = ({ initialTime, setRow, params, DepartmentData }) => {
     const isEdited =
       DepartmentId !== params?.row?.outsourceLabId ||
       DepartmentValue !== params?.row?.outsourceLabName;
+    const findedValue = params?.row?.outSourcelabs?.find(
+      (item) => item?.id == DepartmentId
+    );
 
+    console.log("DepartmentData => ", findedValue);
     setRow((prev) =>
       prev.some((item) => item.Random === params?.row.Random)
         ? prev.map((item) =>
@@ -43,6 +47,7 @@ const SelectInputCell = ({ initialTime, setRow, params, DepartmentData }) => {
               ? {
                   ...item,
                   outSourceLab: { Id: DepartmentId, Name: DepartmentValue },
+                  outSourceRate: findedValue?.rate,
                   edited: isEdited, // ✅ Mark as edited only if department changed
                 }
               : item
@@ -52,6 +57,7 @@ const SelectInputCell = ({ initialTime, setRow, params, DepartmentData }) => {
             {
               ...params?.row,
               outSourceLab: { Id: DepartmentId, Name: DepartmentValue },
+              outSourceRate: findedValue?.rate,
               edited: isEdited, // ✅ Mark as edited only if department changed
             },
           ]
@@ -79,7 +85,7 @@ const SelectInputCell = ({ initialTime, setRow, params, DepartmentData }) => {
         name="Department"
         value={DepartmentValue}
         onChange={handleSearchChange1}
-        options={DepartmentData?.data}
+        options={params?.row?.outSourcelabs}
         isRequired={false}
         showSearchBarDropDown={DepartmentDropDown}
         setShowSearchBarDropDown={setDepartmentDropDown}
@@ -226,30 +232,30 @@ export default function TransferOutSource() {
       headerName: `Test Name`,
       flex: 1,
     },
-    {
-      field: `rate`,
-      headerName: `Booking Rate`,
-      flex: 1,
-    },
-    {
-      field: `outSourceRate`,
-      headerName: `Out Source Rate`,
-      flex: 1,
-      renderCell: (params) => {
-        // console.log(params?.row?.id," ",params?.row)
-        return (
-          <RateInputCell
-            params={params}
-            initialQuantity={params?.row?.outSourceRate}
-            setRow={setRow}
-          />
-        );
-      },
-    },
+    // {
+    //   field: `rate`,
+    //   headerName: `Booking Rate`,
+    //   flex: 1,
+    // },
+    // {
+    //   field: `outSourceRate`,
+    //   headerName: `Out Source Rate`,
+    //   width: 120,
+    //   renderCell: (params) => {
+    //     // console.log(params?.row?.id," ",params?.row)
+    //     return (
+    //       <RateInputCell
+    //         params={params}
+    //         initialQuantity={params?.row?.outSourceRate}
+    //         setRow={setRow}
+    //       />
+    //     );
+    //   },
+    // },
     {
       field: `outSourcelabs`,
       headerName: `Out Source Lab`,
-      flex: 1,
+      width: 120,
       renderCell: (params) => {
         // console.log(params?.row?.id," ",params?.row)
         return (
@@ -338,7 +344,7 @@ export default function TransferOutSource() {
           {/* Header Section */}
           <FormHeader title="Transfer Out Source" />
           <form autoComplete="off">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-2  mx-1 lg:mx-2">
               <InputGenerator
                 inputFields={[
                   {
