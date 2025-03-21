@@ -2369,6 +2369,9 @@ export default function PatientRegistration() {
         setIsHandelClick(true);
     };
 
+   // console.log(editTestData);
+    
+
     //change the gender value based on the title
     useEffect(() => {
         const genderMap = { 1: 'M', 6: 'M', 2: 'F', 5: 'F' };
@@ -6226,7 +6229,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                                 />
                                                                             </td>
                                                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                                                                {(
+                                                    {(
                                                                                     (data?.netAmount || 0) -
                                                                                     parseFloat(
                                                                                         gridDataBarCodeandSampleType?.discount.find(
