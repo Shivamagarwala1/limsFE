@@ -239,6 +239,7 @@ export const downloadExcel = async (api, name = "RateList.xlsx") => {
 
     // Clean up
     document.body.removeChild(link);
+    return response;
   } catch (error) {
     console.error("Error downloading Excel file:", error);
   }

@@ -5,6 +5,7 @@ import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
   SubmitButton,
+  TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { getLocal, getSession, setSession } from "usehoks";
 import { AssignPopup } from "../../../../Custom Components/PopupModal";
@@ -95,8 +96,9 @@ export default function AppointmentStatus() {
       return;
     }
     setCenterValue(values?.CenterValue);
-    setValues([{from:values?.from}]);
-    setValues([{Todate:values?.to}]);
+    setCenterId(values?.CenterId);
+    setValues([{ from: values?.from }]);
+    setValues([{ Todate: values?.to }]);
     const get = await fetchData(
       `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.to}&CentreID=${values?.CenterId}`
     );
@@ -141,23 +143,33 @@ export default function AppointmentStatus() {
       flex: 1,
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "5px" }}>
-            {params?.row?.investigationName.map((item) => {
-              return (
-                <SubmitButton
-                  text={item}
-                  submit={false}
-                  callBack={() => {
-                    // setAssignedPopup(true);
-                  }}
-                  style={{
-                    height: "1.05rem",
-                    padding: "0px 5px",
-                  }}
-                />
-              );
-            })}
-          </div>
+          <div className="relative group flex gap-5">
+            {params?.row?.investigationName[0]}...
+        
+          {/* Tooltip */}
+          <span style={{height:"fit-content",top:"1.5rem"}}
+            className="w-[500px] bg-gray-300 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 
+              hidden gap-1 p-3 group-hover:flex flex-wrap justify-start 
+              text-xs px-2 py-1 rounded-md shadow-lg 
+              z-[9999] whitespace-normal pointer-events-none"
+          >
+            {params?.row?.investigationName.map((item, index) => (
+              <SubmitButton
+                key={index}
+                text={item}
+                submit={false}
+                callBack={() => {
+                  // setAssignedPopup(true);
+                }}
+                style={{
+                  height: "1.05rem",
+                  padding: "0px 5px",
+                }}
+              />
+            ))}
+          </span>
+        </div>
+        
         );
       },
     },
@@ -345,7 +357,8 @@ export default function AppointmentStatus() {
               { label: "To Date", type: "customDateField", name: "Todate" },
             ]}
           />
-          <SubmitButton text={"Search"} />
+          {/* <SubmitButton text={"Search"} /> */}
+          <TwoSubmitButton options={[{label:"Search",submit:true}]} />
         </div>
 
         <LegendButtons statuses={statuses} />
