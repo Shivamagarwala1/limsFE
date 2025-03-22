@@ -87,6 +87,7 @@ const SelectInputCell = ({ initialTime, setRow, params, DepartmentData }) => {
         onChange={handleSearchChange1}
         options={params?.row?.outSourcelabs}
         isRequired={false}
+        disableDroDown={params?.row?.isApprove == 1 ? true : false}
         showSearchBarDropDown={DepartmentDropDown}
         setShowSearchBarDropDown={setDepartmentDropDown}
         handleOptionClickForCentre={handleOptionClick1}
@@ -260,20 +261,20 @@ export default function TransferOutSource() {
         // console.log(params?.row?.id," ",params?.row)
         return (
           <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
-            {params?.row?.isApprove == 0 ? (
+            {/* {params?.row?.isApprove == 0 ? ( */}
               <SelectInputCell
                 setRow={setRow}
                 params={params}
                 initialTime={params?.row?.outSourcelabs}
                 DepartmentData={DepartmentData}
               />
-            ) : (
-              <input
-                style={{ borderRadius: "3px" }}
-                value={params?.row?.outsourceLabName}
-                className="w-full  border-0 text-xxxs font-semibold px-2 pt-1 focus:outline-none"
-              />
-            )}
+            {/* // ) : (
+            //   <input
+            //     style={{ borderRadius: "3px" }}
+            //     value={params?.row?.outsourceLabName}
+            //     className="w-full  border-0 text-xxxs font-semibold px-2 pt-1 focus:outline-none"
+            //   />
+            // )} */}
           </div>
         );
       },
@@ -377,17 +378,17 @@ export default function TransferOutSource() {
                 options={[
                   {
                     submit: false,
-                    label: "Save",
+                    label: "Search",
                     callBack: () => {
-                      handleSubmit();
-                      // alert('hii')
+                      handleSearch();
                     },
                   },
                   {
                     submit: false,
-                    label: "Search",
+                    label: "Save",
                     callBack: () => {
-                      handleSearch();
+                      handleSubmit();
+                      // alert('hii')
                     },
                   },
                 ]}

@@ -12,9 +12,9 @@ import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FormHeader } from "../../../../Custom Components/FormGenerator";
 import {
-  addObjectId,
   addRandomObjectId,
   downloadExcel,
+  downloadPostExcel,
   ViewOrDownloadPostPDF,
   ViewOrDownloandPDF,
 } from "../../../../service/RedendentData";
@@ -23,7 +23,7 @@ import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 
 // Main Component
-export default function DoctorBusinessReport() {
+export default function ClientBusinessRevenue() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
 
   const todayDate = getFormattedDate();
@@ -46,7 +46,7 @@ export default function DoctorBusinessReport() {
   const [row, setRow] = useState([]);
   const DoctorData = useGetData();
   const CenterData = useGetData();
-  const getData = useGetData();
+  const getData = usePostData();
   const PostData = usePostData();
 
   useEffect(() => {
@@ -57,30 +57,40 @@ export default function DoctorBusinessReport() {
   }, []);
 
   useEffect(() => {
-    if (getData?.data?.data) {
-      setRow(addRandomObjectId(getData.data.data));
+    if (getData?.data) {
+      setRow(addRandomObjectId(getData?.data));
     }
   }, [getData?.data]);
 
   // Columns for the table
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 20 },
-    { field: "bookingDate", headerName: "Booking Date", flex: 1 },
     { field: "workOrderId", headerName: "Visit Id", flex: 1 },
-    { field: "patientName", headerName: "Patient Name", flex: 1 },
-    { field: "doctorName", headerName: "Doctor Name", flex: 1 },
+    { field: "name", headerName: "Name", flex: 1 },
+    { field: "centrecode", headerName: "Centre Code", flex: 1 },
+    { field: "companyName", headerName: "Centre Name", flex: 1 },
+    { field: "collectionDate", headerName: "Collection Date", flex: 1 },
+    { field: "receivedBy", headerName: "Received By", flex: 1 },
     { field: "grossAmount", headerName: "Gross Amount", flex: 1 },
     { field: "discount", headerName: "Discount", flex: 1 },
     { field: "netAmount", headerName: "Net Amount", flex: 1 },
-    { field: "paidAmount", headerName: "Paid Amount", flex: 1 },
+    { field: "cashAmt", headerName: "Cash Amount", flex: 1 },
+    { field: "onlinewalletAmt", headerName: "Online Wallet Amount", flex: 1 },
+    { field: "nefTamt", headerName: "NEFT Amount", flex: 1 },
+    { field: "chequeAmt", headerName: "Cheque Amount", flex: 1 },
   ];
   const columns1 = [
     { field: "Random", headerName: "Sr. No", width: 20 },
-    { field: "doctorName", headerName: "Doctor Name", flex: 1 },
+    { field: "centreCode", headerName: "Centre Code", flex: 1 },
+    { field: "companyName", headerName: "Centre Name", flex: 1 },
     { field: "totalGrossAmount", headerName: "Total Gross Amount", flex: 1 },
     { field: "totalDiscount", headerName: "Total Discount", flex: 1 },
     { field: "totalNetAmount", headerName: "Total Net Amount", flex: 1 },
-    { field: "totalPaidAmount", headerName: "Total Paid Amount", flex: 1 },
+    { field: "totalCashAmount", headerName: "Total Cash Amount", flex: 1 },
+    { field: "totalOnlineWalletAmount", headerName: "Total Online Wallet Amount", flex: 1 },
+    { field: "totalNEFTAmount", headerName: "Total NEFT Amount", flex: 1 },
+    { field: "totalChequeAmount", headerName: "Total Cheque Amount", flex: 1 },
+    { field: "totalTransactions", headerName: "Total Transactions", flex: 1 },
   ];
   // Handle form submission
   const handleSubmit = async () => {
@@ -88,32 +98,35 @@ export default function DoctorBusinessReport() {
       toast.error("Center is Required");
       return;
     }
-    if (DoctorValue.length == 0) {
-      toast.error("Doctor is Required");
-      return;
-    }
-    const doctorString = await DoctorValue.join(",");
-    const CenterString = await CenterValue.join(",");
-
+    const payload = {
+      empIds: [],
+      centreIds: CenterValue,
+      fromDate: FromDate,
+      toDate: ToDate,
+    };
     if (TypeValue == "Details") {
-      await getData?.fetchData(
-        `/doctorReferalMaster/DoctorBussinessReport?DoctorId=${doctorString}&centreID=${CenterString}&FromDate=${FromDate}&ToDate=${ToDate}`
+      await getData?.postRequest(
+        `/tnx_Booking/ClientRevenueReportData`,
+        payload
       );
     } else {
-      await getData?.fetchData(
-        `/doctorReferalMaster/DoctorBussinessReportSummury?DoctorId=${doctorString}&centreID=${CenterString}&FromDate=${FromDate}&ToDate=${ToDate}`
+      await getData?.postRequest(
+        `/tnx_Booking/ClientRevenueReportDataSummury`,
+        payload
       );
     }
   };
 
   // Function to handle input changes
   const handleSearchChange2 = (e) => {
+    setRow([]);
     setTypeValue(e.target.value);
     setTypeDropDown(true); // Show dropdown when typing
   };
 
   // Function to handle selection from the dropdown
   const handleOptionClick2 = (name, id) => {
+    setRow([]);
     setTypeValue(name);
     setTypeId(id);
     setTypeSelectedOption(name);
@@ -126,31 +139,33 @@ export default function DoctorBusinessReport() {
       toast.error("Center is Required");
       return;
     }
-    if (DoctorValue.length == 0) {
-      toast.error("Doctor is Required");
-      return;
-    }
-    const doctorString = await DoctorValue.join(",");
-    const CenterString = await CenterValue.join(",");
+    const payload = {
+      empIds: [],
+      centreIds: CenterValue,
+      fromDate: FromDate,
+      toDate: ToDate,
+    };
     try {
       if (TypeValue == "Details") {
-        const res = await downloadExcel(
-          `/doctorReferalMaster/DoctorBussinessReportExcel?DoctorId=${doctorString}&centreID=${CenterString}&FromDate=${FromDate}&ToDate=${ToDate}`,
-          "DoctorBusinessReport.xlsx"
+        const res = await downloadPostExcel(
+          `/tnx_Booking/ClientRevenueReportExcel`,
+          payload,
+          "ClientBusinessRevenue.xlsx"
         );
         console.log("res => ", res);
-        if (res?.status !== 200) {
-          toast?.error(res?.statusText);
-        }
+        // if (res?.status !== 200) {
+        //   toast?.error(res?.statusText);
+        // }
       } else {
-        const res = await downloadExcel(
-          `/doctorReferalMaster/DoctorBussinessReportSummuryExcel?DoctorId=${doctorString}&centreID=${CenterString}&FromDate=${FromDate}&ToDate=${ToDate}`,
-          "DoctorBusinessReport.xlsx"
+        const res = await downloadPostExcel(
+          `/tnx_Booking/ClientRevenueReportExcelSummury`,
+          payload,
+          "ClientBusinessRevenueSummary.xlsx"
         );
         console.log("res => ", res);
-        if (res?.status !== 200) {
-          toast?.error(res?.statusText);
-        }
+        // if (res?.status !== 200) {
+        //   toast?.error(res?.statusText);
+        // }
       }
     } catch (error) {
       toast?.error(res?.message);
@@ -162,21 +177,23 @@ export default function DoctorBusinessReport() {
       toast.error("Center is Required");
       return;
     }
-    if (DoctorValue.length == 0) {
-      toast.error("Doctor is Required");
-      return;
-    }
-    const doctorString = await DoctorValue.join(",");
-    const CenterString = await CenterValue.join(",");
+    const payload = {
+      empIds: [],
+      centreIds: CenterValue,
+      fromDate: FromDate,
+      toDate: ToDate,
+    };
     try {
       if (TypeValue == "Details") {
-        const res = await ViewOrDownloandPDF(
-          `/doctorReferalMaster/DoctorBussinessReportPdf?DoctorId=${doctorString}&centreID=${CenterString}&FromDate=${FromDate}&ToDate=${ToDate}`
+        const res = await ViewOrDownloadPostPDF(
+          `/tnx_Booking/ClientRevenueReport`,
+          payload
         );
         console.log("res => ", res);
       } else {
-        const res = await ViewOrDownloandPDF(
-          `/doctorReferalMaster/DoctorBussinessReportSummuryPdf?DoctorId=${doctorString}&centreID=${CenterString}&FromDate=${FromDate}&ToDate=${ToDate}`
+        const res = await ViewOrDownloadPostPDF(
+          `/tnx_Booking/ClientRevenueReportSummury`,
+          payload
         );
       }
     } catch (error) {
@@ -222,47 +239,31 @@ export default function DoctorBusinessReport() {
               },
             ]}
           />
-          <UpdatedMultiSelectDropDown
-            id="Doctor"
-            name="serachDoctor"
-            label="Doctor"
-            placeHolder="Search Doctor"
-            options={DoctorData?.data}
-            isMandatory={false}
-            isDisabled={false}
-            optionKey="doctorId"
-            optionValue={["doctorName"]}
-            selectedValues={DoctorValue}
-            setSelectedValues={setDoctorValue}
+          <SearchBarDropdown
+            id="search-bar"
+            name="Type"
+            value={TypeValue}
+            onChange={handleSearchChange2}
+            label="Type"
+            placeholder="Serch Type"
+            options={[{ data: "Details" }, { data: "Summary" }]}
+            isRequired={false}
+            showSearchBarDropDown={TypeDropDown}
+            setShowSearchBarDropDown={setTypeDropDown}
+            handleOptionClickForCentre={handleOptionClick2}
+            setIsHovered={setTypeHoveIndex}
+            isHovered={TypeHoveIndex}
+            style={{ marginTop: "0.1rem" }}
           />
-          <div className="flex flex-row gap-2">
-            <SearchBarDropdown
-              id="search-bar"
-              name="Type"
-              value={TypeValue}
-              onChange={handleSearchChange2}
-              label="Type"
-              placeholder="Serch Type"
-              options={[{ data: "Details" }, { data: "Summary" }]}
-              isRequired={false}
-              showSearchBarDropDown={TypeDropDown}
-              setShowSearchBarDropDown={setTypeDropDown}
-              handleOptionClickForCentre={handleOptionClick2}
-              setIsHovered={setTypeHoveIndex}
-              isHovered={TypeHoveIndex}
-              style={{ marginTop: "0.1rem" }}
-            />
-            <SubmitButton
-              text="Search"
-              style={{ width: "100px", marginTop: "-5px" }}
-              submit={false}
-              callBack={() => {
-                handleSubmit();
-              }}
-            />
-          </div>
           <TwoSubmitButton
             options={[
+              {
+                label: "Search",
+                submit: false,
+                callBack: () => {
+                  handleSubmit();
+                },
+              },
               {
                 label: "Excel",
                 submit: false,
@@ -270,6 +271,10 @@ export default function DoctorBusinessReport() {
                   handleExcel();
                 },
               },
+            ]}
+          />
+          <TwoSubmitButton
+            options={[
               {
                 label: "Print",
                 submit: false,
@@ -278,18 +283,7 @@ export default function DoctorBusinessReport() {
                 },
               },
             ]}
-          />{" "}
-          {/* <TwoSubmitButton
-            options={[
-              {
-                label: "Print",
-                submit: false,
-                callBack: () => {
-                  // handleSubmit();
-                },
-              },
-            ]}
-          /> */}
+          />
         </div>
       </form>
       <div style={{ height: "300px" }}>

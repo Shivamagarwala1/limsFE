@@ -20,6 +20,7 @@ export const DatePickerWithTime = ({
   highlightedDates = [],
   disabledDates = [],
   calenderStyle = {},
+  tillDate=new Date()
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -115,6 +116,7 @@ export const DatePickerWithTime = ({
             highlightedDates={highlightedDates}
             disabledDates={disabledDates}
             showTime={showTime}
+            tillDate={tillDate}
             activeTheme={activeTheme}
           />
         </div>
@@ -143,6 +145,7 @@ export const DatePickerWithTimeInTable = ({
   maxDate = new Date(2100, 0, 1),
   highlightedDates = [],
   disabledDates = [],
+  tillDate=new Date()
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -250,6 +253,7 @@ export const DatePickerWithTimeInTable = ({
             disabledDates={disabledDates}
             showTime={showTime}
             activeTheme={activeTheme}
+            tillDate={tillDate}
           />
         </div>
       )}
@@ -267,6 +271,7 @@ export const DatePickerWithTimeInTable = ({
 // isDisabled={false}
 // isMandatory={true}
 // showTime={true}
+// tillDate={new Date(2025, 11, 31)}
 // minDate={new Date(2000, 0, 1)} // Minimum date: January 1, 1990
 // currentDate={new Date()} // Current date: today
 // maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025

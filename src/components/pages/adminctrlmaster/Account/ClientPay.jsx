@@ -3,33 +3,87 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputGenerator, { SubmitButton } from "../../../../Custom Components/InputGenerator";
+import InputGenerator, {
+  SubmitButton,
+  TwoSubmitButton,
+} from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
 import DynamicTable from "../../../../Custom Components/DynamicTable";
 import { FaRegEdit } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import FileUpload from "../../../../Custom Components/FileUpload";
 import toast from "react-hot-toast";
+import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
+import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 
 export default function ClientPay() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
-
+  const lsData = getLocal("imarsar_laboratory");
   const PostData = usePostData();
+  const DocumentData = usePostData();
   const { fetchData, response, data, loading } = useGetData();
 
   const [isButtonClick, setIsButtonClick] = useState(0);
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [isEditData, setIsEditData] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
+
+  // ------------------ Center -------------------------------
+  const [CenterId, setCenterId] = useState(null);
+  const [CenterValue, setCenterValue] = useState("");
+  const [CenterDropDown, setCenterDropDown] = useState(false);
+  const [CenterHoveIndex, setCenterHoveIndex] = useState(null);
+  const [CenterSelectedOption, setCenterSelectedOption] = useState("");
+  // ------------------ PaymentMode -------------------------------
+  const [PaymentModeId, setPaymentModeId] = useState(null);
+  const [PaymentModeValue, setPaymentModeValue] = useState("");
+  const [PaymentModeDropDown, setPaymentModeDropDown] = useState(false);
+  const [PaymentModeHoveIndex, setPaymentModeHoveIndex] = useState(null);
+  const [PaymentModeSelectedOption, setPaymentModeSelectedOption] =
+    useState("");
+  // ------------------ Bank -------------------------------
+  const [BankId, setBankId] = useState(null);
+  const [BankValue, setBankValue] = useState("");
+  const [BankDropDown, setBankDropDown] = useState(false);
+  const [BankHoveIndex, setBankHoveIndex] = useState(null);
+  const [BankSelectedOption, setBankSelectedOption] = useState("");
+  // ------------------ PaymentType -------------------------------
+  const [PaymentTypeId, setPaymentTypeId] = useState(null);
+  const [PaymentTypeValue, setPaymentTypeValue] = useState("");
+  const [PaymentTypeDropDown, setPaymentTypeDropDown] = useState(false);
+  const [PaymentTypeHoveIndex, setPaymentTypeHoveIndex] = useState(null);
+  const [PaymentTypeSelectedOption, setPaymentTypeSelectedOption] =
+    useState("");
+
   const [FileData, setFileData] = useState({ fileName: "" });
+  const [PDFPath, setPDFPath] = useState("");
   const [PaymentMode, setPaymentMode] = useState(1);
 
+  const AllCenterData = useGetData();
+  const BankData = useGetData();
+  useEffect(() => {
+    AllCenterData?.fetchData(
+      "/centreMaster?select=centreid,companyName&$filter=( centretypeid eq 2 or centretypeid eq 3 )"
+    );
+    BankData?.fetchData("/bank_master");
+    // console.log(AllCenterData);
+  }, []);
   useEffect(() => {
     getReason();
-    console.log(activeTab);
   }, [PaymentMode]);
+
+  useEffect(() => {
+    if (FileData.fileData) {
+      if (!FileData || !FileData.fileData) {
+        toast.error("No PDF selected!");
+        return;
+      } else {
+        handlePdfUpload();
+      }
+    }
+  }, [FileData]);
+
   console.log(FileData);
 
   const columns = [
@@ -80,39 +134,30 @@ export default function ClientPay() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
-
-    // Check for required fields
-    const requiredFields = ["Payment Date", "Payment Mode", "Payment Type", "Advance"];
-
-    // Add additional required fields based on PaymentMode
-    if (PaymentMode === 2) {
-      requiredFields.push("Bank", "Cheque No.", "Cheque Date");
-    } else if (PaymentMode === 3) {
-      requiredFields.push("Bank", "Neft No.", "Neft Date");
-    } else if (PaymentMode === 4) {
-      requiredFields.push("Bank", "Rtgs No.", "Rtgs Date");
-    } else if (PaymentMode === 5) {
-      requiredFields.push("Bank", "Online No.", "Online Date");
-    }
-
-    const missingFields = requiredFields.filter(field => !values[field]);
-
-    if (missingFields.length > 0) {
-      toast(`${missingFields[0]} is required`);
-      return;
-    }
-
-    const lsData = getLocal("imarsar_laboratory");
+    console.log(values);
     const payload =
       isButtonClick === 0
-        ? { ...values, createdById: lsData?.user?.employeeId }
+        ? {
+            ...values,
+            paymentMode: PaymentModeValue,
+            bank: BankValue,
+            tnxNo: "12345",
+            tnxDate: new Date().toISOString(),
+            paymentType: PaymentTypeValue,
+            fileName: PDFPath,
+            createdBy: lsData?.user?.employeeId,
+            createdDate: new Date().toISOString(),
+          }
         : {
             ...values,
-            updateById: lsData?.user?.employeeId,
-            id: clickedRowId?.id,
-            isActive: clickedRowId?.isActive,
+            ...clickedRowId,
+            updateByID: lsData?.user?.employeeId,
+            updateDate: new Date().toISOString(),
           };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
+    const data1 = await PostData?.postRequest(
+      "/CentrePayment/SubmitPayment",
+      payload
+    );
     console.log(payload);
     // if (data1?.success) {
     //   toast.success(
@@ -123,6 +168,85 @@ export default function ClientPay() {
     // }
   };
 
+  const handlePdfUpload = async () => {
+    const formData = new FormData();
+    formData.append("paymentReciept", FileData.fileData);
+
+    try {
+      const response = await DocumentData.postRequest(
+        `/CentrePayment/paymentRecieptUpload`,
+        formData
+      );
+      if (response?.success) {
+        const filePath = response?.message;
+        if (!filePath) {
+          toast.error("File path missing in response.");
+        } else {
+          setPDFPath(filePath);
+        }
+      } else {
+        toast.error(response?.message || "An error occurred.");
+      }
+    } catch (error) {
+      //   toast.error("Upload failed!");
+      //   console.error("Upload Error:", error);
+    }
+  };
+
+  // Function to handle input changes
+  const handleSearchChange2 = (e) => {
+    setCenterValue(e.target.value);
+    setCenterDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick2 = (name, id) => {
+    setCenterValue(name);
+    setCenterId(id);
+    setCenterSelectedOption(name);
+    setCenterDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange1 = (e) => {
+    setPaymentModeValue(e.target.value);
+    setPaymentModeDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick1 = (name, id) => {
+    setPaymentMode(id);
+    setPaymentModeValue(name);
+    setPaymentModeId(id);
+    setPaymentModeSelectedOption(name);
+    setPaymentModeDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange = (e) => {
+    setPaymentTypeValue(e.target.value);
+    setPaymentTypeDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick = (name, id) => {
+    setPaymentTypeValue(name);
+    setPaymentTypeId(id);
+    setPaymentTypeSelectedOption(name);
+    setPaymentTypeDropDown(false);
+  };
+
+  // Function to handle input changes
+  const handleSearchChange3 = (e) => {
+    setBankValue(e.target.value);
+    setBankDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick3 = (name, id) => {
+    setBankValue(name);
+    setBankId(id);
+    setBankSelectedOption(name);
+    setBankDropDown(false);
+  };
   const getReason = async () => {
     console.log(get);
   };
@@ -144,7 +268,26 @@ export default function ClientPay() {
   // };
 
   //   const InputFileds = [{ label: "", type: "" }];
-
+  const statuses = [
+    {
+      Data: 17,
+      CallBack: () => {
+        // Pending
+      },
+    },
+    {
+      Data: 18,
+      CallBack: () => {
+        // Collected
+      },
+    },
+    {
+      Data: 19,
+      CallBack: () => {
+        // Collected
+      },
+    },
+  ];
   return (
     <div>
       {/* Header Section */}
@@ -160,167 +303,221 @@ export default function ClientPay() {
 
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+          <SearchBarDropdown
+            id="search-bar"
+            name="Center"
+            value={CenterValue}
+            onChange={handleSearchChange2}
+            label="Center"
+            placeholder="Serch Center"
+            options={AllCenterData?.data}
+            isRequired={false}
+            showSearchBarDropDown={CenterDropDown}
+            setShowSearchBarDropDown={setCenterDropDown}
+            handleOptionClickForCentre={handleOptionClick2}
+            setIsHovered={setCenterHoveIndex}
+            isHovered={CenterHoveIndex}
+            style={{ marginTop: "0.1rem" }}
+          />
           <InputGenerator
             inputFields={[
-              {
-                label: "Client",
-                type: "select",
-                name: "",
-                dataOptions: [{ id: 1 }],
-              },
               {
                 label: "Payment Date",
                 type: "customDateField",
                 name: "paymentDate",
-                required: true,
-              },
-              {
-                label: "Payment Mode",
-                type: "select",
-                name: "paymentMode",
-                required: true,
-                dataOptions: [
-                  { id: 1, mode: "Cash" },
-                  { id: 2, mode: "Cheque" },
-                  { id: 3, mode: "Neft" },
-                  { id: 4, mode: "Rtgs" },
-                  { id: 5, mode: "Online" },
-                ],
-                callBack: (e) => {
-                  e.preventDefault();
-                  setPaymentMode(e.target.value);
-                },
-              },
-              {
-                label: "Payment Type",
-                type: "select",
-                name: "paymentType",
-                required: true,
-                dataOptions: [
-                  { id: 1, Type: "Deposit" },
-                  { id: 2, Type: "Credit Note" },
-                  { id: 3, Type: "Debit Note" },
-                ],
-              },
-              {
-                label: "Advance Amount",
-                type: "number",
-                name: "advance",
-                required: true,
               },
             ]}
           />
+          <SearchBarDropdown
+            id="search-bar"
+            name="PaymentMode"
+            value={PaymentModeValue}
+            onChange={handleSearchChange1}
+            label="Payment Mode"
+            placeholder="Serch PaymentMode"
+            options={[
+              { id: 1, mode: "Cash" },
+              { id: 2, mode: "Cheque" },
+              { id: 3, mode: "Neft" },
+              { id: 4, mode: "Rtgs" },
+              { id: 5, mode: "Online" },
+            ]}
+            isRequired={false}
+            showSearchBarDropDown={PaymentModeDropDown}
+            setShowSearchBarDropDown={setPaymentModeDropDown}
+            handleOptionClickForCentre={handleOptionClick1}
+            setIsHovered={setPaymentModeHoveIndex}
+            isHovered={PaymentModeHoveIndex}
+            style={{ marginTop: "0.1rem" }}
+          />
+          <SearchBarDropdown
+            id="search-bar"
+            name="PaymentType"
+            value={PaymentTypeValue}
+            onChange={handleSearchChange}
+            label="Payment Type"
+            placeholder="Serch PaymentType"
+            options={[
+              { id: 1, Type: "Deposit" },
+              { id: 2, Type: "Credit Note" },
+              { id: 3, Type: "Debit Note" },
+            ]}
+            isRequired={false}
+            showSearchBarDropDown={PaymentTypeDropDown}
+            setShowSearchBarDropDown={setPaymentTypeDropDown}
+            handleOptionClickForCentre={handleOptionClick}
+            setIsHovered={setPaymentTypeHoveIndex}
+            isHovered={PaymentTypeHoveIndex}
+            style={{ marginTop: "0.1rem" }}
+          />
+          <InputGenerator
+            inputFields={[
+              {
+                label: "Advance Amount",
+                type: "number",
+                name: "advancePaymentAmt",
+              },
+            ]}
+          />
+
           {PaymentMode == 2 && (
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "Bank",
-                  type: "select",
-                  name: "Bank",
-                  required: true,
-                  dataOptions: [
-                    // { id: 1, Type: "Deposit" },
-                    // { id: 2, Type: "Credit Note" },
-                    // { id: 3, Type: "Debit Note" },
-                  ],
-                },
-                {
-                  label: "Cheque No.",
-                  type: "number",
-                  name: "ChequeNo",
-                },
-                {
-                  label: "Cheque Date",
-                  type: "customDateField",
-                  name: "ChequeDate",
-                  required: true,
-                },
-              ]}
-            />
+            <>
+              <SearchBarDropdown
+                id="search-bar"
+                name="Bank"
+                value={BankValue}
+                onChange={handleSearchChange3}
+                label="Bank"
+                placeholder="Serch Bank"
+                options={BankData?.data}
+                isRequired={false}
+                showSearchBarDropDown={BankDropDown}
+                setShowSearchBarDropDown={setBankDropDown}
+                handleOptionClickForCentre={handleOptionClick3}
+                setIsHovered={setBankHoveIndex}
+                isHovered={BankHoveIndex}
+                style={{ marginTop: "0.1rem" }}
+              />
+              <InputGenerator
+                inputFields={[
+                  {
+                    label: "Cheque No.",
+                    type: "number",
+                    name: "ChequeNo",
+                  },
+                  {
+                    label: "Cheque Date",
+                    type: "customDateField",
+                    name: "ChequeDate",
+                  },
+                ]}
+              />
+            </>
           )}
           {PaymentMode == 3 && (
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "Bank",
-                  type: "select",
-                  name: "Bank",
-                  required: true,
-                  dataOptions: [
-                    // { id: 1, Type: "Deposit" },
-                    // { id: 2, Type: "Credit Note" },
-                    // { id: 3, Type: "Debit Note" },
-                  ],
-                },
-                {
-                  label: "Neft No.",
-                  type: "number",
-                  name: "NeftNo",
-                },
-                {
-                  label: "Neft Date",
-                  type: "customDateField",
-                  name: "NeftDate",
-                  required: true,
-                },
-              ]}
-            />
+            <>
+              <SearchBarDropdown
+                id="search-bar"
+                name="Bank"
+                value={BankValue}
+                onChange={handleSearchChange3}
+                label="Bank"
+                placeholder="Serch Bank"
+                options={BankData?.data}
+                isRequired={false}
+                showSearchBarDropDown={BankDropDown}
+                setShowSearchBarDropDown={setBankDropDown}
+                handleOptionClickForCentre={handleOptionClick3}
+                setIsHovered={setBankHoveIndex}
+                isHovered={BankHoveIndex}
+                style={{ marginTop: "0.1rem" }}
+              />
+              <InputGenerator
+                inputFields={[
+                  {
+                    label: "Neft No.",
+                    type: "number",
+                    name: "NeftNo",
+                  },
+                  {
+                    label: "Neft Date",
+                    type: "customDateField",
+                    name: "NeftDate",
+                    required: true,
+                  },
+                ]}
+              />
+            </>
           )}
           {PaymentMode == 4 && (
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "Bank",
-                  type: "select",
-                  name: "Bank",
-                  required: true,
-                  dataOptions: [
-                    // { id: 1, Type: "Deposit" },
-                    // { id: 2, Type: "Credit Note" },
-                    // { id: 3, Type: "Debit Note" },
-                  ],
-                },
-                {
-                  label: "Rtgs No.",
-                  type: "number",
-                  name: "RtgsNo",
-                },
-                {
-                  label: "Rtgs Date",
-                  type: "customDateField",
-                  name: "RtgsDate",
-                  required: true,
-                },
-              ]}
-            />
+            <>
+              <SearchBarDropdown
+                id="search-bar"
+                name="Bank"
+                value={BankValue}
+                onChange={handleSearchChange3}
+                label="Bank"
+                placeholder="Serch Bank"
+                options={BankData?.data}
+                isRequired={false}
+                showSearchBarDropDown={BankDropDown}
+                setShowSearchBarDropDown={setBankDropDown}
+                handleOptionClickForCentre={handleOptionClick3}
+                setIsHovered={setBankHoveIndex}
+                isHovered={BankHoveIndex}
+                style={{ marginTop: "0.1rem" }}
+              />
+              <InputGenerator
+                inputFields={[
+                  {
+                    label: "Rtgs No.",
+                    type: "number",
+                    name: "RtgsNo",
+                  },
+                  {
+                    label: "Rtgs Date",
+                    type: "customDateField",
+                    name: "RtgsDate",
+                    required: true,
+                  },
+                ]}
+              />
+            </>
           )}
           {PaymentMode == 5 && (
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "Bank",
-                  type: "select",
-                  name: "Bank",
-                  required: true,
-                  dataOptions: [
-                    // { id: 1, Type: "Deposit" },
-                    // { id: 2, Type: "Credit Note" },
-                    // { id: 3, Type: "Debit Note" },
-                  ],
-                },
-                {
-                  label: "Online No.",
-                  type: "number",
-                  name: "OnlineNo",
-                },
-                {
-                  label: "Online Date",
-                  type: "customDateField",
-                  name: "OnlineDate",
-                  required: true,
-                },
-              ]}
-            />
+            <>
+              <SearchBarDropdown
+                id="search-bar"
+                name="Bank"
+                value={BankValue}
+                onChange={handleSearchChange3}
+                label="Bank"
+                placeholder="Serch Bank"
+                options={BankData?.data}
+                isRequired={false}
+                showSearchBarDropDown={BankDropDown}
+                setShowSearchBarDropDown={setBankDropDown}
+                handleOptionClickForCentre={handleOptionClick3}
+                setIsHovered={setBankHoveIndex}
+                isHovered={BankHoveIndex}
+                style={{ marginTop: "0.1rem" }}
+              />
+              <InputGenerator
+                inputFields={[
+                  {
+                    label: "Online No.",
+                    type: "number",
+                    name: "OnlineNo",
+                  },
+                  {
+                    label: "Online Date",
+                    type: "customDateField",
+                    name: "OnlineDate",
+                    required: true,
+                  },
+                ]}
+              />
+            </>
           )}
           <FileUpload
             FileData={FileData}
@@ -332,27 +529,21 @@ export default function ClientPay() {
             }}
           />
           <InputGenerator
-            inputFields={[{ label: "Remarks", type: "text", name: "remark" }]}
+            inputFields={[{ label: "Remarks", type: "text", name: "remarks" }]}
           />
-           <SubmitButton text={'Save'} />
-           
-          <div className="flex gap-[0.25rem]">
-            <div class="relative flex-1 gap-1 flex justify-center items-center">
-              <div class="relative flex-1 gap-1 flex justify-center items-center text-xs">
-                <div class="w-5 h-5 bg-blue-300 rounded-full"></div>
-                Pending
-              </div>
-              <div class="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div class="w-5 h-5 bg-green-300 rounded-full"></div>
-                Approved
-              </div>
-              <div class="relative flex-1 gap-1 flex justify-start items-center text-xs">
-                <div class="w-5 h-5 bg-red-500 rounded-full"></div>
-                Reject
-              </div>
-            </div>
-          </div>
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Save",
+                submit: true,
+                // callBack: () => {
+                //   handleSubmit();
+                // },
+              },
+            ]}
+          />
         </div>
+        <LegendButtons statuses={statuses} />
       </form>
       <DynamicTable
         rows={[

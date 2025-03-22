@@ -1,7 +1,13 @@
 import React, { useRef } from "react";
 import { useSelector } from "react-redux";
 
-function RiplledButton({ status,index,statuses }) {
+function RiplledButton({
+  status,
+  index,
+  statuses,
+  btnStyle = {},
+  callBack = () => {},
+}) {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const buttonRef = useRef(null); // Added ref for the button
 
@@ -33,20 +39,23 @@ function RiplledButton({ status,index,statuses }) {
         type="button"
         ref={buttonRef}
         data-ripple-light="true"
+        disabled={status?.disabled}
         onClick={(e) => {
           handleClick(e);
+          callBack();
           const matchedStatus = statuses?.find((s) => s?.Data === status?.id);
           matchedStatus?.CallBack();
           // callBack?.(status);
         }}
-        className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-[100px] rounded-md flex justify-center items-center cursor-pointer mb-1"
+        className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-[100px] rounded-md flex justify-center items-center ${status?.disabled ? "cursor-not-allowed" : "cursor-pointer"} mb-1`}
         style={{
+          ...btnStyle,
           backgroundColor: status?.colourCode || "#ccc",
           color: activeTheme?.iconColor || "#000",
           ...status?.style,
         }}
       >
-        {status?.contantName || "Unknown"}
+        {status?.name ? status.name.trim() : status?.contantName || "Unknown"}
       </button>
       <style jsx>{`
         .ripple {
