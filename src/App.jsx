@@ -100,7 +100,7 @@ const App = () => {
 
 
       {
-        user && (
+        (user && user?.allowTicket === 1) && (
           <TicketsPopup />
         )
       }

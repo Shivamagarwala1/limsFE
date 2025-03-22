@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import FromHeader from '../../global/FormHeader'
 import { CustomTextBox } from '../../global/CustomTextBox';
 import CustomDropdown from '../../global/CustomDropdown';
-import { useFormattedDate, useFormattedDateTime } from '../../customehook/useDateTimeFormate';
+import { useFormattedDateTime } from '../../customehook/useDateTimeFormate';
 import Draggable from 'react-draggable';
 import CustomFileUpload from '../../global/CustomFileUpload';
 import { toast } from 'react-toastify';
@@ -24,12 +24,24 @@ export default function TicketsPopup() {
         ticketDescription: '',
         priority: '',
         uploadDocument: '',
-        deliveryDate: useFormattedDate()
+        deliveryDate: useFormattedDateTime()
     })
 
     const [isButtonClick, setIsButtonClick] = useState(0);
     const allTicketType = useRetrieveData();
     const postDataForTicketsPopup = usePostData();
+
+
+    const handleClick = (user) => {
+        if (user?.allowTicketRole === parseInt(user?.defaultRole)) {
+            setShowhelpAndSupportPopup(!showhelpAndSupportPopup);
+        } else {
+            toast.error('Access Denied! You do not have permission.');
+        }
+    };
+
+
+
 
     useEffect(() => {
 
@@ -46,6 +58,8 @@ export default function TicketsPopup() {
         }
 
     }, [showhelpAndSupportPopup])
+
+
 
 
     const handelOnChangeTicketPopup = (e) => {
@@ -103,7 +117,7 @@ export default function TicketsPopup() {
             "clientName": user?.name,
             "ticketTypeId": parseInt(ticketsPopupData?.ticketType),
             "priority": parseInt(ticketsPopupData?.priority),
-            "task": ticketsPopupData?.ticketDescription,
+            "task": `${ticketsPopupData?.ticketDescription}`,
             "document": ticketsPopupData?.uploadDocument,
             "createDate": ticketsPopupData?.deliveryDate,
             "assignedTo": 0,
@@ -138,9 +152,9 @@ export default function TicketsPopup() {
                 .replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) =>
                     `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`
                 ),
-            "reopenReason": ""
-        }
-
+            "reopenReason": "",
+            roleId: parseInt(user?.defaultRole)
+        }        
 
         try {
             const response = await postDataForTicketsPopup.postRequestData('/supportTicket/saveUpdateSupportTicket', updatedData);
@@ -170,8 +184,8 @@ export default function TicketsPopup() {
             <Draggable nodeRef={dragRef} >
                 <div ref={dragRef} className='fixed bottom-52 right-3  p-2 rounded-full z-30 shadow-2xl cursor-pointer' title='Support Ticket'
                     style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-
-                    onClick={() => setShowhelpAndSupportPopup(!showhelpAndSupportPopup)}
+                    onClick={() => handleClick(user)}
+                // onClick={() => setShowhelpAndSupportPopup(!showhelpAndSupportPopup)}
                 >
                     <LuNotebookPen className='text-2xl' />
                 </div>

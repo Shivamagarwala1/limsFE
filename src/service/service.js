@@ -1284,6 +1284,8 @@ export const usePostData = () => {
 
     const postRequestData = async (url, body) => {
         setLoading(true);
+        console.log(url);
+
         setError(null);
         try {
             const result = await saveDataFromApi(url, body);
