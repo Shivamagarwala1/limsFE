@@ -67,19 +67,11 @@ export default function DiscountReport() {
   ];
   const columns1 = [
     { field: "Random", headerName: "Sr. No", width: 20 },
-    { field: "centrecode", headerName: "Centre Code", flex: 1 },
-    { field: "companyName", headerName: "Centre Name", flex: 1 },
+    { field: "empCode", headerName: "Employee Code", flex: 1 },
+    { field: "employeeName", headerName: "Employee Name", flex: 1 },
     { field: "grossAmountSum", headerName: "Gross Amount", flex: 1 },
     { field: "discountSum", headerName: "Discount", flex: 1 },
     { field: "netAmountSum", headerName: "Net Amount", flex: 1 },
-    { field: "cashAmtSum", headerName: "Cash Amount", flex: 1 },
-    {
-      field: "onlinewalletAmtSum",
-      headerName: "Online Wallet Amount",
-      flex: 1,
-    },
-    { field: "nefTamtSum", headerName: "NEFT Amount", flex: 1 },
-    { field: "chequeAmtSum", headerName: "Cheque Amount", flex: 1 },
   ];
 
   // Handle form submission
@@ -133,9 +125,9 @@ export default function DiscountReport() {
     };
     console.log("Payload ", payload);
     const api =
-    TypeValue == "Summary"
-      ? "/tnx_Booking/DiscountReportSummury"
-      : "/tnx_Booking/DiscountReport";
+      TypeValue == "Summary"
+        ? "/tnx_Booking/DiscountReportSummury"
+        : "/tnx_Booking/DiscountReport";
     try {
       const res = await ViewOrDownloadPostPDF(`${api}`, payload);
     } catch (error) {
@@ -239,7 +231,6 @@ export default function DiscountReport() {
               options={getData?.data}
               isMandatory={false}
               isDisabled={false}
-              selectAll={false}
               optionKey="centreId"
               optionValue={["companyName"]}
               selectedValues={CenterValue}
@@ -253,7 +244,6 @@ export default function DiscountReport() {
               options={UserData?.data}
               isMandatory={false}
               isDisabled={false}
-              selectAll={false}
               optionKey="empId"
               optionValue={["fName", "lName"]}
               selectedValues={UserValue}
@@ -313,12 +303,14 @@ export default function DiscountReport() {
                 name: "",
                 receivedBy: "",
                 centrecode: "",
+                employeeName: "",
+                empCode: "",
                 // cashAmt:`₹ ${totalRow?.cashAmt}`
               },
             ]}
             name="Discount Report Details"
             loading={PostData?.loading}
-            columns={TypeValue == "Summary" ? columns : columns}
+            columns={TypeValue == "Summary" ? columns1 : columns}
             viewKey="Random"
           />
         </div>

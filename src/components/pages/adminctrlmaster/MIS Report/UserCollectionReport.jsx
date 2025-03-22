@@ -71,8 +71,8 @@ export default function UserCollectionReport() {
   ];
   const columns1 = [
     { field: "Random", headerName: "Sr. No", width: 20 },
-    { field: "centrecode", headerName: "Centre Code", flex: 1 },
-    { field: "companyName", headerName: "Centre Name", flex: 1 },
+    { field: "empCode", headerName: "Employee Code", flex: 1 },
+    { field: "employeeName", headerName: "Employee Name", flex: 1 },
     { field: "grossAmountSum", headerName: "Gross Amount", flex: 1 },
     { field: "discountSum", headerName: "Discount", flex: 1 },
     { field: "netAmountSum", headerName: "Net Amount", flex: 1 },
@@ -243,7 +243,6 @@ export default function UserCollectionReport() {
               options={getData?.data}
               isMandatory={false}
               isDisabled={false}
-              selectAll={false}
               optionKey="centreId"
               optionValue={["companyName"]}
               selectedValues={CenterValue}
@@ -257,7 +256,6 @@ export default function UserCollectionReport() {
               options={UserData?.data}
               isMandatory={false}
               isDisabled={false}
-              selectAll={false}
               optionKey="empId"
               optionValue={["fName", "lName"]}
               selectedValues={UserValue}
@@ -317,6 +315,8 @@ export default function UserCollectionReport() {
                 name: "",
                 receivedBy: "",
                 centrecode: "",
+                employeeName:"",
+                empCode:""
                 // cashAmt:`₹ ${totalRow?.cashAmt}`
               },
             ]}

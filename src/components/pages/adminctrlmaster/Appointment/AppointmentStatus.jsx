@@ -145,31 +145,30 @@ export default function AppointmentStatus() {
         return (
           <div className="relative group flex gap-5">
             {params?.row?.investigationName[0]}...
-        
-          {/* Tooltip */}
-          <span style={{height:"fit-content",top:"1.5rem"}}
-            className="w-[500px] bg-gray-300 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 
+            {/* Tooltip */}
+            <span
+              style={{ height: "fit-content", top: "1.5rem" }}
+              className="w-[500px] bg-gray-300 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 
               hidden gap-1 p-3 group-hover:flex flex-wrap justify-start 
               text-xs px-2 py-1 rounded-md shadow-lg 
               z-[9999] whitespace-normal pointer-events-none"
-          >
-            {params?.row?.investigationName.map((item, index) => (
-              <SubmitButton
-                key={index}
-                text={item}
-                submit={false}
-                callBack={() => {
-                  // setAssignedPopup(true);
-                }}
-                style={{
-                  height: "1.05rem",
-                  padding: "0px 5px",
-                }}
-              />
-            ))}
-          </span>
-        </div>
-        
+            >
+              {params?.row?.investigationName.map((item, index) => (
+                <SubmitButton
+                  key={index}
+                  text={item}
+                  submit={false}
+                  callBack={() => {
+                    // setAssignedPopup(true);
+                  }}
+                  style={{
+                    height: "1.05rem",
+                    padding: "0px 5px",
+                  }}
+                />
+              ))}
+            </span>
+          </div>
         );
       },
     },
@@ -184,33 +183,42 @@ export default function AppointmentStatus() {
       headerName: "Action",
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "5px" }}>
-            <SubmitButton
-              text={"Assign Phelebomist"}
-              submit={false}
+          <div style={{ display: "flex", flexDirection: "row", gap: "5px" }}>
+            <LegendButtons
               callBack={() => {
                 setParams(params);
-                setAssignedPopup(true);
               }}
-              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
-            />
-            <SubmitButton
-              text={"Reschedule"}
-              submit={false}
-              callBack={() => {
-                setParams(params);
-                setShowPopup1(true);
-              }}
-              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
-            />
-            <SubmitButton
-              text={"Cancel"}
-              submit={false}
-              callBack={() => {
-                setParams(params);
-                setShowPopup2(true);
-              }}
-              style={{ height: "1.05rem", padding: "0px 5px", width: "100px" }}
+              style={{ flexDirection: "row", flexWrap: "nowrap", gap: "5px" }}
+              btnStyle={{ height: "1.05rem", marginTop: "2px" }}
+              statuses={[
+                {
+                  Data: 23,
+                  name: "Assign Phelebomist",
+                  disabled:
+                    params?.row?.isSampleCollected == "Y" ? true : false,
+                  CallBack: () => {
+                    setAssignedPopup(true);
+                  },
+                },
+                {
+                  Data: 21,
+                  name: "Reschedule",
+                  disabled:
+                    params?.row?.isSampleCollected == "Y" ? true : false,
+                  CallBack: () => {
+                    setShowPopup1(true);
+                  },
+                },
+                {
+                  Data: 22,
+                  name: "Cancel",
+                  disabled:
+                    params?.row?.isSampleCollected == "Y" ? true : false,
+                  CallBack: () => {
+                    setShowPopup2(true);
+                  },
+                },
+              ]}
             />
           </div>
         );
@@ -358,7 +366,7 @@ export default function AppointmentStatus() {
             ]}
           />
           {/* <SubmitButton text={"Search"} /> */}
-          <TwoSubmitButton options={[{label:"Search",submit:true}]} />
+          <TwoSubmitButton options={[{ label: "Search", submit: true }]} />
         </div>
 
         <LegendButtons statuses={statuses} />
