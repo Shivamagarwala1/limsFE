@@ -1233,6 +1233,7 @@ export const useRetrieveData = () => {
 
     const fetchDataFromApi = async (url, params = {}) => {
         setLoading(true);
+
         try {
             const result = await getData(url, params);
 
@@ -1284,7 +1285,6 @@ export const usePostData = () => {
 
     const postRequestData = async (url, body) => {
         setLoading(true);
-        console.log(url);
 
         setError(null);
         try {

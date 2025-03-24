@@ -4,21 +4,25 @@ import { DatePicker } from '../../../global/DatePicker'
 import { useFormattedDate } from '../../../customehook/useDateTimeFormate'
 import { useSelector } from 'react-redux';
 import CustomDropdown from '../../../global/CustomDropdown';
-import CustomeNormalButton from '../../../global/CustomeNormalButton';
 import GridDataDetails from '../../../global/GridDataDetails';
 import CustomDynamicTable from '../../../global/CustomDynamicTable'
 import { usePostData, useRetrieveData } from '../../../../service/service';
 import CustomFormButtonWithLoading from '../../../global/CustomFormButtonWithLoading';
-import { FaBookOpen, FaDeleteLeft, FaSpinner } from 'react-icons/fa6';
+import { FaBookOpen, FaSpinner } from 'react-icons/fa6';
 import CustomLoadingPage from '../../../global/CustomLoadingPage';
 // import { IoMdCloseCircleOutline } from "react-icons/io";
+import FromHeader from '../../../global/FormHeader'
 
 
-import { MdAssignmentTurnedIn, MdOutlineClose, MdOutlineCreditScore, } from 'react-icons/md';
+import { MdAssignmentTurnedIn, MdModeEditOutline, MdOutlineClose, MdOutlineCreditScore, } from 'react-icons/md';
 import { IoIosEye, IoMdCloseCircleOutline } from 'react-icons/io';
 import { toast } from 'react-toastify';
-import { FaPauseCircle } from 'react-icons/fa';
+import { FaPauseCircle, } from 'react-icons/fa';
+
 import CustomSearchInputFields from '../../../global/CustomSearchDropdown';
+import { getDefaultCentreId } from '../../../../service/localstroageService';
+import { CustomTextBox } from '../../../global/CustomTextBox';
+import CustomFileUpload from '../../../global/CustomFileUpload';
 
 export default function TicketSupport() {
 
@@ -43,11 +47,15 @@ export default function TicketSupport() {
     const [isButtonClick, setIsButtonClick] = useState(0);
     const [isHoveredTable, setIsHoveredTable] = useState(null);
     const [showPopup, setShowPopup] = useState(0);
+    const [ticketsPopupData, setTicketsPopupData] = useState(null);
+    const [dataIsEdit, setDataIsEdit] = useState(null);
 
     const allAssignedEng = useRetrieveData();
     const allTicketSupportData = useRetrieveData();
     const postDataForTicketsAssign = usePostData();
+    const getDataForTicketsAssign = useRetrieveData();
     const allCentreData = useRetrieveData();
+    const allTicketType = useRetrieveData();
 
 
     useEffect(() => {
@@ -70,9 +78,11 @@ export default function TicketSupport() {
     }
 
 
-    const onSubmitSearchData = async (e) => {
-
-        e.preventDefault();
+    const onSubmitSearchData = async (e = null) => {
+        // Prevent default only if the event is passed and has preventDefault
+        if (e?.preventDefault) {
+            e.preventDefault();
+        }
         setIsButtonClick(1);
 
         if (ticketSupportFilterData?.dateType === '') {
@@ -81,7 +91,19 @@ export default function TicketSupport() {
             return;
         }
 
-        await allTicketSupportData.fetchDataFromApi(`/supportTicket/GetTicketDetails?FromDate=${ticketSupportFilterData?.fromDate + " " + '00:00:00'}&Todate=${ticketSupportFilterData?.toDate + " " + '23:59:59'}&Status=${ticketSupportFilterData?.ticketStatus}&assingedto=${ticketSupportFilterData?.assignedEngineer}&Datetype=${ticketSupportFilterData?.dateType}`);
+
+
+        try {
+            const response = await allTicketSupportData.fetchDataFromApi(`/supportTicket/GetTicketDetails?FromDate=${ticketSupportFilterData?.fromDate + " " + '00:00:00'}&Todate=${ticketSupportFilterData?.toDate + " " + '23:59:59'}&Status=${ticketSupportFilterData?.ticketStatus}&assingedto=${ticketSupportFilterData?.assignedEngineer}&Datetype=${ticketSupportFilterData?.dateType}$roleid=${getDefaultCentreId()}`);
+
+            console.log(response?.data);
+
+            if (!response?.data?.success && e?.preventDefault) {
+                toast.error(response?.data?.message)
+            }
+        } catch (error) {
+            toast.error(error?.message);
+        }
 
         setIsButtonClick(0);
     }
@@ -103,32 +125,170 @@ export default function TicketSupport() {
     };
 
 
+    useEffect(() => {
+
+        const getAllData = async () => {
+            try {
+                await allTicketType.fetchDataFromApi('/SupportTicketType?select=id,ticketType&$filter=(isActive eq 1)')
+            } catch (error) {
+                toast.error(error?.message);
+            }
+        }
+
+        if (showPopup === 7) {
+            getAllData()
+        }
+
+    }, [showPopup])
+
+    //get single ticket data for updated
+    const getSingleTicketData = async (ticketId, loading, openPopUp) => {
+        setIsButtonClick(loading);
+        const response = await getDataForTicketsAssign.fetchDataFromApi(`/supportTicket?$filter=(id eq ${ticketId})`);
+
+        //console.log(response?.data[0]);
+
+
+        setTicketsPopupData(response?.data[0]);
+
+        setShowPopup(openPopUp);
+
+        setIsButtonClick(0);
+    }
+
+    const handelOnChangeTicketPopup = (e) => {
+        setTicketsPopupData((preventData) => ({
+            ...preventData,
+            [e.target.name]: e.target.value
+        }))
+    }
+
+    const handelImageChange = (e) => {
+        const file = e.target.files[0];
+
+        if (file) {
+            const fileType = file.type;
+
+            // Handle image files
+            // if (fileType.startsWith("image/")) {
+            //     const reader = new FileReader();
+            //     reader.onloadend = () => {
+            //         setPatientRegistrationData((prevData) => ({
+            //             ...prevData,
+            //             uploadDocument: reader.result, // Store base64 image
+            //             fileType: "image", // Store file type
+            //         }));
+            //     };
+            //     reader.readAsDataURL(file);
+            // }
+            // Handle PDF files
+            if (fileType === "application/pdf") {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setTicketsPopupData((prevData) => ({
+                        ...prevData,
+                        uploadDocument: reader.result, // Store base64 PDF
+                        fileType: "pdf", // Store file type
+                    }));
+                };
+                reader.readAsDataURL(file);
+            }
+            // Handle unsupported files
+            else {
+                toast.info("Please upload a valid PDF file.")
+            }
+        }
+    };
+
+
+    const onSubmitForSaveRolePageBindData = async (e = null) => {
+        // Prevent default only if the event is passed and has preventDefault
+        if (e?.preventDefault) {
+            e.preventDefault();
+        }
+        setIsButtonClick(8);
+
+        if (ticketSupportFilterData?.ticketDesc === '') {
+            toast.warning('Please provide a reason.!');
+            setIsButtonClick(0);
+            return;
+        }
+
+        try {
+            const response = await postDataForTicketsAssign.postRequestData('/supportTicket/saveUpdateSupportTicket', ticketsPopupData);
+
+            if (response?.success) {
+                toast.success(response?.message);
+                onSubmitSearchData();
+                setShowPopup(0);
+                setTicketsPopupData({});
+            } else {
+                toast.error(response?.message);
+            }
+        } catch (error) {
+            toast.error(error?.message)
+        }
+
+        setIsButtonClick(0);
+        setShowPopup(0);
+    }
+
+
     //assigned ticket
-    const submitAssignTicketData = async (e) => {
-        e.preventDefault();
+    const submitAssignTicketData = async (e = null) => {
+        // Prevent default only if the event is passed and has preventDefault
+        if (e?.preventDefault) {
+            e.preventDefault();
+        }
         setIsButtonClick(2);
 
-        const response = await postDataForTicketsAssign.postRequestData(`supportTicket/AssignTicket?ticketId=${ticketSupportFilterData?.ticketId}&AssigneTo=${ticketSupportFilterData?.ticketAssignedEng}&DeliveryDate=${ticketSupportFilterData?.daliveryDate}&UserId=${parseInt(user?.employeeId)}`);
+        if (ticketSupportFilterData?.ticketDesc === '') {
+            toast.warning('Please provide a reason.!');
+            setIsButtonClick(0);
+            return;
+        }
+
+        const response = await postDataForTicketsAssign.postRequestData(`/supportTicket/AssignTicket?ticketId=${ticketSupportFilterData?.ticketId}&AssigneTo=${ticketSupportFilterData?.ticketAssignedEng}&DeliveryDate=${ticketSupportFilterData?.daliveryDate}&UserId=${parseInt(user?.employeeId)}`);
 
         if (response?.success) {
             toast.success(response?.message);
+            setticketSupportFilterData((preventData) => ({
+                ...preventData,
+                ticketAssignedEng: 0,
+                ticketId: 0,
+                deliveryDate: useFormattedDate()
+            }))
+            onSubmitSearchData();
+            setShowPopup(0);
         } else {
             toast.error(response?.message);
         }
 
         setIsButtonClick(0);
+        setShowPopup(0);
     }
 
 
     //close ticket
-    const submitCloseTicketData = async (e) => {
-        e.preventDefault();
+    const submitCloseTicketData = async (e = null) => {
+        // Prevent default only if the event is passed and has preventDefault
+        if (e?.preventDefault) {
+            e.preventDefault();
+        }
         setIsButtonClick(3);
+
+        if (ticketSupportFilterData?.ticketDesc === '') {
+            toast.warning('Please provide a reason.!');
+            setIsButtonClick(0);
+            return;
+        }
 
         const response = await postDataForTicketsAssign.postRequestData(`/supportTicket/closeTicket?ticketId=${ticketSupportFilterData?.ticketId}&closeRemark=${ticketSupportFilterData?.ticketDesc}&UserId=${parseInt(user?.employeeId)}`);
 
         if (response?.success) {
             toast.success(response?.message);
+            onSubmitSearchData();
+            setShowPopup(0);
             // setticketSupportFilterData({
             //     fromDate: useFormattedDate(),
             //     toDate: useFormattedDate(),
@@ -151,14 +311,25 @@ export default function TicketSupport() {
 
 
     //reopen ticket
-    const submitReOpenTicketData = async (e) => {
-        e.preventDefault();
+    const submitReOpenTicketData = async (e = null) => {
+        // Prevent default only if the event is passed and has preventDefault
+        if (e?.preventDefault) {
+            e.preventDefault();
+        }
         setIsButtonClick(4);
+
+        if (ticketSupportFilterData?.ticketDesc === '') {
+            toast.warning('Please provide a reason.!');
+            setIsButtonClick(0);
+            return;
+        }
 
         const response = await postDataForTicketsAssign.postRequestData(`/supportTicket/ReOpenTicket?ticketId=${ticketSupportFilterData?.ticketId}&reOpenReason=${ticketSupportFilterData?.ticketDesc}&UserId=${parseInt(user?.employeeId)}`);
 
         if (response?.success) {
             toast.success(response?.message);
+            onSubmitSearchData();
+            setShowPopup(0);
             // setticketSupportFilterData({
             //     fromDate: useFormattedDate(),
             //     toDate: useFormattedDate(),
@@ -180,14 +351,25 @@ export default function TicketSupport() {
     }
 
     //hold ticket
-    const submitHoldTicketData = async (e) => {
-        e.preventDefault();
+    const submitHoldTicketData = async (e = null) => {
+        // Prevent default only if the event is passed and has preventDefault
+        if (e?.preventDefault) {
+            e.preventDefault();
+        }
         setIsButtonClick(5);
+
+        if (ticketSupportFilterData?.ticketDesc === '') {
+            toast.warning('Please provide a reason.!');
+            setIsButtonClick(0);
+            return;
+        }
 
         const response = await postDataForTicketsAssign.postRequestData(`/supportTicket/HoldTicket?ticketId=${ticketSupportFilterData?.ticketId}&HoldReason=${ticketSupportFilterData?.ticketDesc}&UserId=${parseInt(user?.employeeId)}`);
 
         if (response?.success) {
             toast.success(response?.message);
+            onSubmitSearchData();
+            setShowPopup(0);
             // setticketSupportFilterData({
             //     fromDate: useFormattedDate(),
             //     toDate: useFormattedDate(),
@@ -209,14 +391,25 @@ export default function TicketSupport() {
     }
 
     //rectct 
-    const submitRejectTicketData = async (e) => {
-        e.preventDefault();
+    const submitRejectTicketData = async (e = null) => {
+        // Prevent default only if the event is passed and has preventDefault
+        if (e?.preventDefault) {
+            e.preventDefault();
+        }
         setIsButtonClick(6);
+
+        if (ticketSupportFilterData?.ticketDesc === '') {
+            toast.warning('Please provide a reason.!');
+            setIsButtonClick(0);
+            return;
+        }
 
         const response = await postDataForTicketsAssign.postRequestData(`/supportTicket/RejectTicket?ticketId=${ticketSupportFilterData?.ticketId}&rejectedReason=${ticketSupportFilterData?.ticketDesc}&UserId=${parseInt(user?.employeeId)}`);
 
         if (response?.success) {
             toast.success(response?.message);
+            onSubmitSearchData();
+            setShowPopup(0);
             // setticketSupportFilterData({
             //     fromDate: useFormattedDate(),
             //     toDate: useFormattedDate(),
@@ -240,26 +433,22 @@ export default function TicketSupport() {
 
 
     //complete 
-    const submitCompleteTicketData = async (e) => {
+    const submitCompleteTicketData = async (e = null) => {
         e.preventDefault();
         setIsButtonClick(7);
 
-        const response = await postDataForTicketsAssign.postRequestData(`//supportTicket/CompleteTicket?ticketId=${ticketSupportFilterData?.ticketId}&ActionTaken=${ticketSupportFilterData?.ticketDesc}&UserId=${parseInt(user?.employeeId)}`);
+        const response = await postDataForTicketsAssign.postRequestData(`/supportTicket/CompleteTicket?ticketId=${ticketSupportFilterData?.ticketId}&ActionTaken=${ticketSupportFilterData?.ticketDesc}&UserId=${parseInt(user?.employeeId)}`);
+
+        if (ticketSupportFilterData?.ticketDesc === '') {
+            toast.warning('Please provide a reason.!');
+            setIsButtonClick(0);
+            return;
+        }
 
         if (response?.success) {
             toast.success(response?.message);
-            // setticketSupportFilterData({
-            //     fromDate: useFormattedDate(),
-            //     toDate: useFormattedDate(),
-            //     assignedEngineer: 0,
-            //     ticketStatus: 0,
-
-            //     //assign ticket
-            //     ticketAssignedEng: 0,
-            //     daliveryDate: useFormattedDate(),
-            //     ticketId: 0,
-            //     ticketDesc: ''
-            // })
+            onSubmitSearchData();
+            setShowPopup(0);
         } else {
             toast.error(response?.message);
         }
@@ -372,7 +561,7 @@ export default function TicketSupport() {
                     </div>
 
 
-                    <div className='flex gap-[0.25rem]'>
+                    <div className='flex gap-[0.25rem] items-center'>
                         <div className='relative flex-1 '>
                             <CustomDropdown
                                 name="ticketStatus"
@@ -415,6 +604,13 @@ export default function TicketSupport() {
                 </div>
             </form>
 
+            <select name="" id="">
+                <option value="">okk</option>
+                <option value="">okk</option>
+                <option value="">okk</option>
+            </select>
+
+
             <div>
                 <GridDataDetails gridDataDetails={'Ticket Details'} />
                 {
@@ -423,7 +619,7 @@ export default function TicketSupport() {
                             <CustomLoadingPage />
                         </div>
                         :
-                        <CustomDynamicTable activeTheme={activeTheme} columns={['SR. NO.', ' Ticket ID', "Ticket Type", "Ticket Details", "Client Name", 'Assign Date', 'Delivered Date', 'Delivery date', 'Ticket Status', 'Hold ticket', 'Document View', "Created Date", , "Action Taken", "Assigned To", "Assigned", "Re Open", 'Close', 'Hold', 'Reject', 'Complete']} >
+                        <CustomDynamicTable activeTheme={activeTheme} columns={['SR. NO.', ' Ticket ID', "Ticket Type", "Ticket Details", 'Action', "Client Name", 'Assign Date', 'Delivered Date', 'Delivery date', 'Ticket Status', 'Hold ticket', 'Document View', "Created Date", , "Action Taken", "Assigned To", "Assigned", "Re Open", 'Close', 'Hold', 'Reject', 'Complete']} >
                             <tbody>
                                 {
                                     allTicketSupportData?.data?.data?.map((data, index) => (
@@ -455,9 +651,38 @@ export default function TicketSupport() {
                                                 {data?.ticketType}
                                             </td>
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.task}
+                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }} title={data?.task}>
+
+                                                {data?.task?.length >= 30
+                                                    ? data?.task.substring(0, 30) + "..."
+                                                    : data?.task}
+
                                             </td>
+
+
+                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                <div className="flex justify-start items-center">
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 && data?.isAssigned === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
+                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                        onClick={() => {
+                                                            if (data?.isCompleted === 0 || data?.isAssigned === 0) {
+
+                                                                getSingleTicketData(data?.ticketId, data?.ticketId * 2, 7)
+                                                            }
+                                                        }}
+
+                                                        title='Edit Ticket'
+                                                    >
+                                                        {
+                                                            isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
+                                                                <FaSpinner className='h-4 w-4' /> :
+                                                                <MdModeEditOutline className='h-4 w-4' />
+                                                        }
+
+                                                    </div>
+                                                </div>
+                                            </td>
+
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 {data?.clientName}
@@ -472,7 +697,35 @@ export default function TicketSupport() {
                                             </td>
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.deliveryDate}
+                                                <div className='flex items-center gap-2 cursor-pointer justify-between'>
+                                                    <div>
+                                                        {data?.deliveryDate}
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex justify-start items-center">
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === null ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
+                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                onClick={() => {
+                                                                    if (data?.isCompleted === 0) {
+
+                                                                        getSingleTicketData(data?.ticketId, data?.ticketId * 2, 8)
+
+                                                                    }
+                                                                }}
+
+                                                                title='Edit Delivery Date'
+                                                            >
+                                                                {
+                                                                    isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
+                                                                        <FaSpinner className='h-4 w-4' /> :
+                                                                        <MdModeEditOutline className='h-4 w-4' />
+                                                                }
+
+                                                            </div>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
                                             </td>
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
@@ -514,14 +767,16 @@ export default function TicketSupport() {
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 <div className="flex justify-start items-center">
-                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isAssigned === 0 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                         onClick={() => {
-                                                            setShowPopup(1)
-                                                                , setticketSupportFilterData((preventData) => ({
-                                                                    ...preventData,
-                                                                    ticketId: data?.ticketId
-                                                                }))
+                                                            if (data?.isCompleted === 0 && data?.isAssigned === 0) {
+                                                                setShowPopup(1)
+                                                                    , setticketSupportFilterData((preventData) => ({
+                                                                        ...preventData,
+                                                                        ticketId: data?.ticketId
+                                                                    }))
+                                                            }
                                                         }}
 
                                                         title='Assign Ticket'
@@ -530,15 +785,20 @@ export default function TicketSupport() {
                                                     </div>
                                                 </div>
                                             </td>
+
+
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 <div className="flex justify-start items-center">
-                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isReopen === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                         onClick={() => {
-                                                            setShowPopup(2), setticketSupportFilterData((preventData) => ({
-                                                                ...preventData,
-                                                                ticketId: data?.ticketId
-                                                            }))
+                                                            if (data?.isCompleted === 0 && data?.isReopen !== 1) {
+                                                                setShowPopup(2), setticketSupportFilterData((preventData) => ({
+                                                                    ...preventData,
+                                                                    ticketId: data?.ticketId
+                                                                }))
+                                                            }
+
                                                         }}
 
                                                         title='Re Open'
@@ -547,18 +807,22 @@ export default function TicketSupport() {
                                                     </div>
                                                 </div>
                                             </td>
+
+
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 <div className="flex justify-start items-center">
-                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-
                                                         onClick={() => {
-                                                            setShowPopup(3),
-                                                                setticketSupportFilterData((preventData) => ({
+                                                            if (data?.isCompleted === 0 && data?.isClosed !== 1) {
+                                                                setShowPopup(3), setticketSupportFilterData((preventData) => ({
                                                                     ...preventData,
                                                                     ticketId: data?.ticketId
                                                                 }))
+                                                            }
+
                                                         }}
+
 
                                                         title='Close'
                                                     >
@@ -566,15 +830,20 @@ export default function TicketSupport() {
                                                     </div>
                                                 </div>
                                             </td>
+
+
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 <div className="flex justify-start items-center">
-                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isHold === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                         onClick={() => {
-                                                            setShowPopup(4), setticketSupportFilterData((preventData) => ({
-                                                                ...preventData,
-                                                                ticketId: data?.ticketId
-                                                            }))
+                                                            if (data?.isCompleted === 0 && data?.isHold !== 1) {
+                                                                setShowPopup(4), setticketSupportFilterData((preventData) => ({
+                                                                    ...preventData,
+                                                                    ticketId: data?.ticketId
+                                                                }))
+                                                            }
+
                                                         }}
 
                                                         title='Hold'
@@ -583,15 +852,20 @@ export default function TicketSupport() {
                                                     </div>
                                                 </div>
                                             </td>
+
+
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 <div className="flex justify-start items-center">
-                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isRejected === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                         onClick={() => {
-                                                            setShowPopup(5), setticketSupportFilterData((preventData) => ({
-                                                                ...preventData,
-                                                                ticketId: data?.ticketId
-                                                            }))
+                                                            if (data?.isCompleted === 0 && data?.isRejected !== 1) {
+                                                                setShowPopup(5), setticketSupportFilterData((preventData) => ({
+                                                                    ...preventData,
+                                                                    ticketId: data?.ticketId
+                                                                }))
+                                                            }
+
                                                         }}
 
                                                         title='Reject'
@@ -600,15 +874,20 @@ export default function TicketSupport() {
                                                     </div>
                                                 </div>
                                             </td>
+
+
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 <div className="flex justify-start items-center">
-                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                         onClick={() => {
-                                                            setShowPopup(6), setticketSupportFilterData((preventData) => ({
-                                                                ...preventData,
-                                                                ticketId: data?.ticketId
-                                                            }))
+                                                            if (data?.isCompleted !== 1) {
+                                                                setShowPopup(6), setticketSupportFilterData((preventData) => ({
+                                                                    ...preventData,
+                                                                    ticketId: data?.ticketId
+                                                                }))
+                                                            }
+
                                                         }}
 
                                                         title='Complete'
@@ -951,7 +1230,7 @@ export default function TicketSupport() {
                             <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
                                 <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
-                                    Hold Ticket
+                                    Reject Ticket
                                 </div>
                                 <IoMdCloseCircleOutline
                                     className="text-xl cursor-pointer"
@@ -1078,6 +1357,264 @@ export default function TicketSupport() {
                     </div>
                 )
 
+            }
+
+
+            {/* edit ticket */}
+            {
+                showPopup === 7 && (
+                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+                        <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+
+                            {/* Header */}
+                            <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                                <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                                    Edit Ticket
+                                </div>
+                                <IoMdCloseCircleOutline
+                                    className="text-xl cursor-pointer"
+                                    style={{ color: activeTheme?.iconColor }}
+                                    onClick={() => setShowPopup(0)}
+                                />
+                            </div>
+
+                            <FromHeader
+                                headerData='Support Ticket'
+                            />
+
+                            <form autoComplete='off' onSubmit={onSubmitForSaveRolePageBindData}>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-2 mt-2 mb-1 items-center  mx-1">
+
+                                    <div className='relative flex-1 mt-[1.9px]'>
+                                        <CustomDropdown
+                                            name="ticketTypeId"
+                                            label="Ticket Type"
+                                            value={ticketsPopupData?.ticketTypeId || ''}
+                                            options={[
+                                                { label: 'Select Ticket Type', value: '', disabled: true },
+                                                ...allTicketType?.data?.map(item => ({
+                                                    label: item?.ticketType,
+                                                    value: parseInt(item?.id),
+                                                })),
+                                            ]}
+                                            onChange={(e) => handelOnChangeTicketPopup(e)}
+                                            defaultIndex={0}
+                                            activeTheme={activeTheme}
+                                            isMandatory={!Boolean(ticketsPopupData?.ticketTypeId)}
+                                        />
+
+                                    </div>
+
+
+                                    <div className='relative flex-1 mt-[1.9px]'>
+                                        <CustomDropdown
+                                            name="priority"
+                                            label="Select Priority"
+                                            value={ticketsPopupData?.priority || ''}
+                                            options={[
+                                                { label: 'Select Option', value: '', disabled: true },
+                                                { label: 'Normal', value: 1 },
+                                                { label: 'Medium', value: 2 },
+                                                { label: 'High', value: 3 },
+                                            ]}
+                                            onChange={(e) => handelOnChangeTicketPopup(e)}
+                                            defaultIndex={0}
+                                            activeTheme={activeTheme}
+                                            isMandatory={!Boolean(ticketsPopupData?.priority)}
+                                        />
+
+                                    </div>
+
+                                    <div className="relative flex-1 ">
+                                        <CustomTextBox
+                                            type="alphabetandcharWithSpace"
+                                            name="ticketSubject"
+                                            value={ticketsPopupData?.ticketSubject || ''}
+                                            onChange={(e) => handelOnChangeTicketPopup(e)}
+                                            label="Ticket Subject"
+                                            isDisabled={false}
+                                            maxLength={50}
+                                            allowSpecialChars={false}
+                                            isMandatory={!Boolean(ticketsPopupData?.ticketSubject)}
+                                            decimalPrecision={4}
+                                        />
+                                    </div>
+
+                                    <div className="relative flex-1 flex gap-1">
+                                        <CustomFileUpload
+                                            value={ticketsPopupData?.uploadDocument}
+                                            handelImageChange={handelImageChange}
+                                            activeTheme={activeTheme}
+                                            fileType="pdf"
+                                        />
+                                        <div className="flex justify-start items-center">
+                                            <div className="w-6 h-full flex justify-center items-center rounded-sm cursor-pointer"
+                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                onClick={() => {
+                                                    openDocument(ticketsPopupData?.document)
+                                                }}
+
+                                                title='View Documents'
+                                            >
+                                                <IoIosEye className='h-4 w-4' />
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <div className='flex gap-[0.25rem]'>
+                                        <div className="relative flex-1">
+                                            <CustomFormButtonWithLoading
+                                                activeTheme={activeTheme}
+                                                text="Update"
+                                                icon={FaSpinner}
+                                                isButtonClick={isButtonClick}
+                                                loadingButtonNumber={8} // Unique number for the first button
+                                            />
+                                        </div>
+
+                                        <div className="relative flex-1">
+                                        </div>
+                                    </div>
+
+                                    <div className="">
+                                        {/* <CustomTextBox
+                                            type="alphabetandchar"
+                                            name="ticketDescription"
+                                            value={ticketsPopupData?.ticketDescription || ''}
+                                            onChange={(e) => handelOnChangeTicketPopup(e)}
+                                            label="Ticket Description"
+                                            isDisabled={false}
+                                            maxLength={2}
+                                            allowSpecialChars={false}
+                                            isMandatory={!Boolean(ticketsPopupData?.ticketDescription)}
+                                            decimalPrecision={4}
+                                        /> */}
+                                    </div>
+
+
+                                </div>
+
+                                <div className='mx-1 mb-2'>
+                                    <textarea
+                                        rows={4}
+                                        maxLength={500}
+                                        value={ticketsPopupData?.task}
+                                        name='task'
+                                        onChange={handelOnChangeTicketPopup}
+                                        className='w-full rounded border-[1.5px] px-1 text-sm font-semibold h-[5.4rem] outline-none bg-white text-[#795548]'
+                                    />
+
+                                </div>
+                            </form>
+
+                            {/* footer */}
+                            <div
+                                className="border-t-[1px] flex justify-center items-center py-[10px] rounded-b-md text-xs font-semibold"
+                                style={{
+                                    borderImage: activeTheme?.menuColor,
+                                    background: activeTheme?.menuColor,
+                                    color: activeTheme?.iconColor,
+                                }}
+                            ></div>
+                        </div>
+                    </div>
+                )
+            }
+
+
+            {/* edit deliverydate */}
+            {
+                showPopup === 8 && (
+                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+                        <div className="w-80  max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
+
+                            {/* Header */}
+                            <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"
+                                style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}>
+                                <div className="font-semibold text-xxs md:text-sm" style={{ color: activeTheme?.iconColor }}>
+                                    Edit Delivery Date
+                                </div>
+                                <IoMdCloseCircleOutline
+                                    className="text-xl cursor-pointer"
+                                    style={{ color: activeTheme?.iconColor }}
+                                    onClick={() => setShowPopup(0)}
+                                />
+                            </div>
+
+                            <FromHeader
+                                headerData='Edit Ticket Delivery Date '
+                            />
+
+                            <form autoComplete='off' onSubmit={onSubmitForSaveRolePageBindData}>
+                                <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-2 mt-2 mb-1 items-center  mx-1">
+
+                                    <div className="relative flex-1">
+                                        <DatePicker
+                                            id="deliverydate"
+                                            name="deliverydate"
+                                            value={ticketsPopupData?.deliverydate || ''}
+                                            onChange={(e) => handelOnChangeTicketPopup(e)}
+                                            placeholder=" "
+                                            label="DeliveryDate"
+                                            activeTheme={activeTheme}
+                                            //isDisabled={false}
+                                            isMandatory={!Boolean(ticketsPopupData?.deliverydate)}
+                                            currentDate={new Date()} // Current date: today
+                                            showTime={false}
+                                            showBigerCalandar={false}
+                                        />
+                                    </div>
+
+
+                                    <div className='flex gap-[0.25rem]'>
+                                        <div className="relative flex-1">
+                                            <CustomFormButtonWithLoading
+                                                activeTheme={activeTheme}
+                                                text="Update"
+                                                icon={FaSpinner}
+                                                isButtonClick={isButtonClick}
+                                                loadingButtonNumber={8} // Unique number for the first button
+                                            />
+                                        </div>
+
+                                        <div className="relative flex-1">
+                                        </div>
+                                    </div>
+
+                                    <div className="">
+                                        {/* <CustomTextBox
+                                            type="alphabetandchar"
+                                            name="ticketDescription"
+                                            value={ticketsPopupData?.ticketDescription || ''}
+                                            onChange={(e) => handelOnChangeTicketPopup(e)}
+                                            label="Ticket Description"
+                                            isDisabled={false}
+                                            maxLength={2}
+                                            allowSpecialChars={false}
+                                            isMandatory={!Boolean(ticketsPopupData?.ticketDescription)}
+                                            decimalPrecision={4}
+                                        /> */}
+                                    </div>
+
+
+                                </div>
+
+                            </form>
+
+                            {/* footer */}
+                            <div
+                                className="border-t-[1px] flex justify-center items-center py-[10px] rounded-b-md text-xs font-semibold"
+                                style={{
+                                    borderImage: activeTheme?.menuColor,
+                                    background: activeTheme?.menuColor,
+                                    color: activeTheme?.iconColor,
+                                }}
+                            ></div>
+                        </div>
+                    </div>
+                )
             }
 
         </>

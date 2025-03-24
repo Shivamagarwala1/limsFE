@@ -117,6 +117,7 @@ export default function TicketsPopup() {
             "clientName": user?.name,
             "ticketTypeId": parseInt(ticketsPopupData?.ticketType),
             "priority": parseInt(ticketsPopupData?.priority),
+            "ticketSubject": ticketsPopupData?.ticketSubject,
             "task": `${ticketsPopupData?.ticketDescription}`,
             "document": ticketsPopupData?.uploadDocument,
             "createDate": ticketsPopupData?.deliveryDate,
@@ -154,7 +155,7 @@ export default function TicketsPopup() {
                 ),
             "reopenReason": "",
             roleId: parseInt(user?.defaultRole)
-        }        
+        }
 
         try {
             const response = await postDataForTicketsPopup.postRequestData('/supportTicket/saveUpdateSupportTicket', updatedData);
@@ -291,6 +292,7 @@ export default function TicketsPopup() {
                                             value={ticketsPopupData?.uploadDocument}
                                             handelImageChange={handelImageChange}
                                             activeTheme={activeTheme}
+                                            fileType="pdf"
                                         />
                                     </div>
 

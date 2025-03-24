@@ -1,11 +1,18 @@
 import { useMemo } from "react";
 
 export const useFormattedDate = (date = new Date()) => {
-    const formattedDate = useMemo(() => {
-        return `${String(date.getDate()).padStart(2, "0")}-${date.toLocaleString("default", {
-            month: "short",
-        })}-${date.getFullYear()}`;
-    }, [date]);
+    // const formattedDate = useMemo(() => {
+    //     return `${String(date.getDate()).padStart(2, "0")}-${date.toLocaleString("default", {
+    //         month: "short",
+    //     })}-${date.getFullYear()}`;
+    // }, [date]);
+
+    // return formattedDate;
+
+    const formattedDate = `${String(date.getDate()).padStart(2, "0")}-${date.toLocaleString(
+        "default",
+        { month: "short" }
+    )}-${date.getFullYear()}`;
 
     return formattedDate;
 };
