@@ -20,6 +20,8 @@ import {
   CancelPopupModal,
   ReschedulePopupModal,
 } from "../../../../Custom Components/NewPopups";
+import { useRetrieveData } from "../../../../service/service";
+import CustomDynamicTable from "../../../global/CustomDynamicTable";
 
 export default function AppointmentStatus() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -43,6 +45,7 @@ export default function AppointmentStatus() {
 
   const [showPopup1, setShowPopup1] = useState(false);
   const [showPopup2, setShowPopup2] = useState(false);
+  const [showTestData, setShowTestData] = useState(0);
   const [Params, setParams] = useState(null);
   const AllCenterData = useGetData();
   const [groupedRows, setGroupedRows] = useState([]);
@@ -89,6 +92,9 @@ export default function AppointmentStatus() {
     setGroupedRows(mergeByWorkOrderId(Row));
   }, [Row]); // Runs when `rows` change
   console.log(groupedRows);
+
+
+
 
   const getGrid = async () => {
     const values = await getSession("appointmentBooking");
@@ -137,6 +143,11 @@ export default function AppointmentStatus() {
       headerName: `Status`,
       flex: 1,
     },
+    {
+      field: `assinedphelebo`,
+      headerName: `Assined Phelebo`,
+      flex: 1,
+    }, ,
     {
       field: `investigationName`,
       headerName: `Investigation`,
@@ -218,6 +229,15 @@ export default function AppointmentStatus() {
                     setShowPopup2(true);
                   },
                 },
+                {
+                  Data: 23,
+                  name: "Add Test",
+                  // disabled:
+                  //   params?.row?.isSampleCollected == "Y" ? true : false,
+                  CallBack: () => {
+                    handleAddTest(params?.row);
+                  },
+                },
               ]}
             />
           </div>
@@ -253,17 +273,47 @@ export default function AppointmentStatus() {
     }
 
     const get = await fetchData(
-      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.Todate}&CentreID=${CenterId}`
+      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.Todate}&CentreID=${CenterId}&status=0`
     );
     setSession("appointmentBooking", {
       CenterId: CenterId,
       CenterValue: CenterValue,
       from: values?.from,
       to: values?.Todate,
+      status: values?.status
     });
     setRow(addRandomObjectId(get?.data?.data));
     console.log(get);
   };
+
+
+  //searching legends button
+  const handleSubmitForLegent = async (status) => {
+    //event.preventDefault();
+    const values = getValues();
+    if (!CenterId) {
+      toast.error("Center is Required");
+      return;
+    }
+    if (!values?.from) {
+      toast.error("From Date is Required");
+      return;
+    }
+
+    const get = await fetchData(
+      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.Todate}&CentreID=${CenterId}&status=${status}`
+    );
+    setSession("appointmentBooking", {
+      CenterId: CenterId,
+      CenterValue: CenterValue,
+      from: values?.from,
+      to: values?.Todate,
+      status: values?.status
+    });
+    setRow(addRandomObjectId(get?.data?.data));
+    console.log(get);
+  };
+
 
   const getReason = async () => {
     // const get = await fetchData(tabs[activeTab]?.getApi);
@@ -292,27 +342,383 @@ export default function AppointmentStatus() {
       Data: 21,
       CallBack: () => {
         // Pending
+        handleSubmitForLegent(0)
       },
     },
     {
       Data: 20,
       CallBack: () => {
         // Collected
+        handleSubmitForLegent(2)
       },
     },
     {
       Data: 22,
       CallBack: () => {
-        // Collected
+        // cancle
+        handleSubmitForLegent(3)
       },
     },
     {
       Data: 23,
       CallBack: () => {
         // Collected
+        handleSubmitForLegent(1)
+
       },
     },
   ];
+
+  // !=================anil code add test data=============
+
+  const [testData, setTestData] = useState({});
+  const [rateId, setRateId] = useState(0);
+  const postDataForPhlebotomyCollection = usePostData();
+  const allTitleData = useRetrieveData();
+  const allReferData = useRetrieveData();
+  const allEditTestDataForInvasticationName = useRetrieveData();
+  const selectedInvatigationData = useRetrieveData();
+
+  const handleAddTest = async (data) => {
+
+    console.log(data);
+
+    setIsButtonClick(3)
+    if (!data?.investigationName || data.investigationName.length === 0) {
+      console.error("No investigation names available");
+      return;
+    }
+
+    setRateId(data?.rateId)
+
+    try {
+
+      await allTitleData.fetchDataFromApi('/titleMaster?select=id,title&$filter=(isActive eq 1)')
+
+      await allReferData.fetchDataFromApi('/doctorReferalMaster?select=doctorId,doctorName&$filter=(isActive eq 1 and type eq 1)')
+
+      const response = await allTestData.fetchDataFromApi(
+        `/tnx_BookingItem/GetPatientEditTest?searchValue=${data?.workOrderId}`
+      );
+      // console.log(response);
+
+      //       console.log(allReferData?.data?.find((item) => item?.doctorId === response?.data?.data?.refID1).doctorId);
+
+      const matchedDoctor1 = allReferData?.data?.find((data) => data?.doctorId === response?.data?.data?.refID1);
+
+      console.log(matchedDoctor1);
+
+
+      const matchedDoctor2 = allReferData?.data?.find((data) => data?.doctorId === response?.data?.data?.refID2);
+
+      setTestData((prevData) => ({
+        ...prevData,
+        ...response?.data?.data,
+        refID1: matchedDoctor1
+          ? { doctorId: matchedDoctor1?.doctorId, doctorName: matchedDoctor1?.doctorName } : null,
+        refID2: matchedDoctor2
+          ? { doctorId: matchedDoctor2?.doctorId, doctorName: matchedDoctor2?.doctorName }
+          : null,
+      }));
+
+
+      await allEditTestDataForInvasticationName.fetchDataFromApi(`/tnx_BookingItem/GetitemDetailRate?ratetype=${response?.data?.data?.rateId}`)
+
+
+    } catch (error) {
+      toast.error(error?.message);
+    }
+
+    setShowTestData(2);
+    setIsButtonClick(0);
+  };
+
+
+  const handelOnChangeEditTest = (e) => {
+    setTestData((preventData) => ({
+      ...preventData,
+      [e.target.name]: e.target.value
+    }))
+  }
+
+
+  //func to check or uncheck a specific investigation
+  //check box
+  const handleCheckboxChangeEditTestCheckBo = (index, isChecked) => {
+
+    setTestData((prevData) => {
+
+      // Ensure prevData.testData exists and is an array
+      const updatedTestData = Array.isArray(prevData?.itemdetail)
+        ? prevData.itemdetail.map((item, idx) =>
+          idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
+        )
+        : [];
+
+      return {
+        ...prevData, // Keep other properties intact
+        itemdetail: updatedTestData,
+      };
+      // });
+
+    });
+
+  };
+
+
+  const handelOnChangePatientRegistrationSelect = async (selectedItem) => {
+
+    const response = await selectedInvatigationData.fetchDataFromApi(`/tnx_BookingItem/GetitemDetail?ratetype=${rateId}&itemId=${selectedItem.target.value.itemId}`)
+
+    setTestData((prevState) => {
+      const existingTestData = prevState?.itemdetail || [];
+
+      const newTestData = Array.isArray(response?.data?.data) ? response.data?.data.map(({
+        itemName, mrp, netAmt, deliveryDate, isUrgent, itemId, discount, id, itemType, grosss,
+        sampleTypeName, sortName, testcode, defaultsampletype, departmentname, deptId, gender,
+        sampleTypeId, approvedDate, departmentReceiveDate, invoiceDate, notApprovedDate,
+        outhouseDoneOn, resultDate, sampleCollectionDate, sampleReceiveDate, sampleRecollectedDate, holdDate, unHoldDate,
+        sampleRejectionOn, showonReportdate
+      }) => ({
+        investigationName: itemName,
+        mrp,
+        netAmount: netAmt,
+        rate: grosss,
+        isUrgent: isUrgent || 0,
+        deliveryDate,
+        discount,
+        id: id || 0,
+        defaultsampletype,
+        departmentName: departmentname,
+        sampleTypeName,
+        gender,
+        sampleTypeId,
+        sortName,
+        createdById: parseInt(user?.employeeId) || 0,
+        createdDateTime: new Date().toISOString(),
+        isActive: 1,
+        updateById: 0,
+        updateDateTime: new Date('1888-03-01T10:22:20.044Z').toISOString(),
+        workOrderId: testData?.workOrderId || 0,
+        transactionId: testData?.transactionId || 0,
+        testcode,
+        itemId: itemId || 0,
+        packageID: 0,
+        deptId,
+        barcodeNo: '',
+        isPackage: 0,
+        packageName: '',
+        itemType,
+        packMrp: 0,
+        packItemRate: 0,
+        packItemDiscount: 0,
+        packItemNet: 0,
+        reportType: 0,
+        centreId: testData?.centreId || 0,
+        sessionCentreid: 0,
+        isSra: 0,
+        isMachineOrder: 0,
+        isEmailsent: 0,
+        sampleCollectionDate: sampleCollectionDate || new Date().toISOString(),
+        sampleReceiveDate: sampleReceiveDate || new Date().toISOString(),
+        resultDate: resultDate || new Date().toISOString(),
+        approvedDate: approvedDate || new Date().toISOString(),
+        notApprovedDate: notApprovedDate || new Date().toISOString(),
+        deliveryDate: deliveryDate || new Date().toISOString(),
+        departmentReceiveDate: departmentReceiveDate || new Date().toISOString(),
+        sampleRejectionOn: sampleRejectionOn || new Date().toISOString(),
+        outhouseDoneOn: outhouseDoneOn || new Date().toISOString(),
+        sampleRecollectedDate: sampleRecollectedDate || new Date().toISOString(),
+        invoiceDate: invoiceDate || new Date().toISOString(),
+        showonReportdate: showonReportdate || new Date().toISOString(),
+        holdDate: holdDate || new Date().toISOString(),
+        unHoldDate: unHoldDate || new Date().toISOString(),
+      })) : [];
+
+
+      let duplicateFound = false; // Flag to track if any duplicates exist
+
+      const uniqueNewData = newTestData.filter(newItem => {
+        const isDuplicate = existingTestData.some(existingItem => existingItem.itemId === newItem.itemId);
+        if (isDuplicate) {
+          duplicateFound = true; // Set flag if at least one duplicate is found
+        }
+        return !isDuplicate;
+      });
+
+      // Show toast only once if any duplicates exist
+      if (duplicateFound) {
+        toast.error("Some tests already exist and were not added!");
+      }
+
+      return {
+        ...prevState,
+        itemdetail: [...existingTestData, ...uniqueNewData], // Append only unique new data
+      };
+    });
+  }
+
+
+  // Function to delete a specific investigation by index
+  const deleteinvestigationGridDataByForEditTestDataUsingItemId = (indexToDelete) => {
+
+    const updatedData = [...testData?.itemdetail]; // Create a copy of the array to avoid mutating the original
+
+
+    // Check if the item exists at the specified index
+    if (updatedData[indexToDelete]) {
+      updatedData[indexToDelete] = {
+        ...updatedData[indexToDelete],
+        isRemoveItem: updatedData[indexToDelete]?.isRemoveItem === 1 ? 0 : 1 // Set isRemoveItem to 1
+      };
+    }
+
+
+    setTestData((prevData) => ({
+      ...prevData,
+      itemdetail: updatedData
+    }));
+
+  };
+
+
+
+  //update test data
+  const onSubmitForSaveEditTestData = async (e) => {
+
+    e.preventDefault();
+
+    setIsButtonClick(2);
+
+    // Generate the transformed list based on testData
+    const transformedList = testData?.itemdetail.map((data) => ({
+
+      isActive: 1,
+      createdById: data?.createdById,
+      createdDateTime: data?.createdDateTime,
+      updateById: parseInt(user?.employeeId),
+      updateDateTime: new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      id: data?.id || 0,
+      workOrderId: data?.workOrderId,
+      transactionId: data?.transactionId,
+      testcode: data?.testcode, //need to check
+      itemId: parseInt(data?.itemId),
+      packageID: data?.itemType === 3 ? parseInt(data?.itemType) : 0,
+      deptId: data?.deptId,
+
+      // barcodeNo: gridDataBarCodeandSampleType.barCode.find(barcode => barcode.itemId === data.itemId)?.name || '',
+
+      // barcodeNo: checkedItems.find(barcode => barcode.itemId === data.itemId)?.name ||
+      //   checkedItems.find(barcode => barcode.sampleTypeName === data.sampleTypeName)?.name || '',
+      barcodeNo: '',
+
+      departmentName: data?.departmentName || '',
+      // investigationName: investigationGridData?.find(barcode => barcode.itemId === data.itemId)?.itemName || '',
+      investigationName: data?.investigationName,
+      isPackage: data?.itemType === 3 ? 1 : 0,
+      // packageName: data?.itemType === 3 ? selectedInvastigationList?.find(barcode => barcode.itemId === data.itemId)?.
+      //itemName : '',
+      packageName: '',
+      itemType: data?.itemType,
+
+      mrp: data?.mrp,
+      rate: data?.rate,
+      discount: data?.discount,
+      netAmount: data?.netAmount,
+
+      packMrp: data?.itemType === 3 ? data?.mrp : 0,
+      packItemRate: data?.rate === 3 ? data?.rate : 0,
+      packItemDiscount: data?.itemType === 3 ? data?.discount : 0,
+      packItemNet: data?.itemType === 3 ? data?.netAmt : 0,
+      reportType: 0,
+
+      centreId: parseInt(testData?.centreId), //
+      sessionCentreid: parseInt(user?.defaultCenter),
+      isSra: 0,
+      isMachineOrder: 0,
+      isEmailsent: 0,
+      sampleTypeId: 0,
+      // sampleTypeName: gridDataBarCodeandSampleType?.sampleType?.length !== 0 ? gridDataBarCodeandSampleType?.sampleType?.find(barcode => barcode.itemType === data.itemType)?.name : '',
+      sampleTypeName: data?.sampleTypeName,
+
+      sampleCollectionDate: data?.sampleCollectionDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      sampleCollectedby: "",
+      sampleCollectedID: 0,
+      sampleReceiveDate: data?.sampleReceiveDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      sampleReceivedBY: "",
+      resultDate: data?.resultDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      resultDoneByID: 0,
+      resutDoneBy: "0",
+      isResultDone: 0,
+      isApproved: 0,
+      approvedDate: data?.approvedDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      approvedByID: 0,
+      approvedbyName: "0",
+      notApprovedBy: "0",
+      notApprovedDate: data?.notApprovedDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      isReporting: 0,
+      isCritical: 0,
+      deliveryDate: data?.deliveryDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      isInvoiceCreated: 0,
+      invoiceNumber: 0,
+      isUrgent: data?.isUrgent,
+      isSampleCollected: data?.id !== 0 ? data?.isSampleCollected : "N",
+      samplecollectionremarks: "",
+      departmentReceiveRemarks: "",
+      departmentReceiveDate: data?.departmentReceiveDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      departmentReceiveBy: "",
+      departmentReceiveByID: 0,
+      isRemoveItem: data?.isRemoveItem,
+      sampleRejectionBy: 0,
+      sampleRejectionByName: "",
+      sampleRejectionOn: data?.sampleRejectionOn || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      interpretationId: 0,
+      approvalDoctor: 0,
+      isOuthouse: 0,
+      outhouseLab: 0,
+      labName: "",
+      outhouseDoneBy: 0,
+      outhouseDoneOn: data?.outhouseDoneOn || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      sampleRecollectedby: 0,
+      sampleRecollectedDate: data?.sampleCollectionDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      isrerun: 0,
+      invoiceNo: "0",
+      invoiceDate: data?.invoiceDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      invoiceCycle: "",
+      invoiceAmount: 0,
+      invoiceCreatedBy: 0,
+      invoiceNoOld: "",
+      remarks: "",
+      showonReportdate: data?.showonReportdate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      hold: 0,
+      holdById: 0,
+      holdDate: data?.holdDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      unholdById: 0,
+      unHoldDate: data?.unHoldDate || new Date().toLocaleString("en-US", { hour12: true }).replace(",", "").replace(/(\d+)\/(\d+)\/(\d+)/, (_, m, d, y) => `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`),
+      doctorSignId: 0,
+      holdReason: ""
+
+    }))
+
+    try {
+      const response = await postDataForPhlebotomyCollection.postRequestData(`/tnx_BookingItem/UpdatePatientTest`, transformedList)
+
+      if (response?.success) {
+        toast.success(response?.message);
+      } else {
+        toast.error(response?.error)
+      }
+
+    } catch (error) {
+      toast.error(error?.message);
+      console.log(error);
+
+    }
+    setIsButtonClick(0);
+  }
+
+  //!======================end anil code================
+
   return (
     <div>
       <AssignPopup
@@ -380,6 +786,707 @@ export default function AppointmentStatus() {
           viewKey="Random"
         />
       </div>
+
+
+
+      {
+        showTestData === 2 && (
+          <>
+            <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Test Data Details'} setShowPopup={setShowTestData} popuptype="mediumUpper">
+
+              <FormHeader headerData={'Test Data'} />
+
+              {
+                testData?.investigationData?.length !== 0 && (
+                  <form autoComplete='off' onSubmit={onSubmitForSaveEditTestData}>
+
+                    {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
+
+                      <div className="flex gap-[0.25rem]">
+                        <div className='relative flex-1'>
+                          <CustomNumberInput
+                            type="phoneNumber"
+                            name="mobileNo"
+                            value={testData[0]?.mobileNo || ''}
+                            onChange={(e) => {
+                              handelOnChangeEditTest(e)
+                            }}
+                            maxLength={10}
+                            label="Mobile No."
+                            readOnly={true}
+                          />
+                        </div>
+
+                        <div className='relative flex-1'>
+                          <CustomNumberInput
+                            type="pincode"
+                            name="pincode"
+                            value={testData[0]?.pincode || ''}
+                            onChange={(e) => {
+                              handelOnChangeEditTest(e)
+                            }}
+                            maxLength={10}
+                            label="Pin Code"
+                            readOnly={true}
+                          />
+                        </div>
+                      </div>
+
+                      <div className='relative flex-1'>
+                        <CustomTextBox
+                          type="propercase"
+                          name="name"
+                          value={testData[0]?.name || ''}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          label="Name"
+                          readOnly={true}
+                        />
+                      </div>
+
+                      <div className='flex gap-[0.25rem]'>
+
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="years"
+                            name="age"
+                            value={testData[0]?.age.split(" ")[0] || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Years"
+                            isDisabled={false}
+                            maxLength={3}
+                            allowSpecialChars={false}
+                            readOnly={true}
+
+
+                          />
+                        </div>
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="years"
+                            name="age"
+                            value={testData[0]?.age.split(" ")[2] || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Month"
+                            isDisabled={false}
+                            maxLength={3}
+                            allowSpecialChars={false}
+                            readOnly={true}
+                          />
+                        </div>
+
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="years"
+                            name="age"
+                            value={testData[0]?.age.split(" ")[2] || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Day"
+                            isDisabled={false}
+                            maxLength={3}
+                            allowSpecialChars={false}
+                            readOnly={true}
+                          />
+                        </div>
+
+                      </div>
+
+                      <div className="relative flex-1">
+                        <CustomTextBox
+                          // type="text", name, id, value, placeholder, onChange, label
+                          type='allCharacters'
+                          name='address'
+                          allowSpecialChars={true}
+                          value={testData[0]?.address}
+                          placeholder=' '
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          label='Address'
+                          readOnly={true}
+                        />
+                      </div>
+
+                      <div className='relative flex-1'>
+                        <DatePicker
+                          id="dob"
+                          name="bookingDate"
+                          value={testData[0]?.bookingDate || ''}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          placeholder=" "
+                          label="Booking Data"
+                          activeTheme={activeTheme}
+                          //isDisabled={false}
+                          currentDate={new Date()} // Current date: today
+                          maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                          readOnly={true}
+                          showTime={false}
+                          showBigerCalandar={true}
+
+                        />
+
+                      </div>
+
+
+                      <div className='relative flex-1'>
+                        <DatePicker
+                          id="dob"
+                          name="scheduleDate"
+                          value={testData[0]?.scheduleDate || ''}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          placeholder=" "
+                          label="Schedule Date"
+                          activeTheme={activeTheme}
+                          //isDisabled={false}
+                          currentDate={new Date()} // Current date: today
+                          maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                          readOnly={true}
+                          showTime={false}
+                          showBigerCalandar={true}
+
+                        />
+
+                      </div>
+
+                    </div> */}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
+
+                      <div className='flex gap-[0.25rem]'>
+                        <div className='relative flex-1'>
+                          <CustomNumberInput
+                            type="phoneNumber"
+                            name="mobileNo"
+                            value={testData?.mobileNo || ''}
+                            onChange={(e) => {
+                              handelOnChangeEditTest(e)
+                            }}
+                            maxLength={10}
+                            label="Mobile No."
+                            readOnly={true}
+                          // isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
+                          />
+                        </div>
+
+                        <div className='relative flex-1 '>
+                          <CustomDropdown
+                            name="title_id"
+                            label="Select Title"
+                            value={testData?.title_id}
+                            options={[
+                              { label: 'Select Option', value: 0, disabled: true },
+                              ...allTitleData?.data?.map(item => ({
+                                label: item.title,
+                                value: item.id,
+                              })),
+                            ]}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
+                            readOnly={true}
+                          //isMandatory={patientRegistrationForEditTestDataError?.title_id}
+                          />
+
+                        </div>
+                      </div>
+
+
+                      <div className='relative flex-1'>
+                        <CustomTextBox
+                          type="propercase"
+                          name="name"
+                          value={testData?.name || ''}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          label="Name"
+                          readOnly={true}
+                        //isMandatory={patientRegistrationForEditTestDataError?.name}
+                        />
+                      </div>
+
+
+                      <div className='flex gap-[0.25rem]'>
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="years"
+                            name="ageYear"
+                            value={testData?.ageYear || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Years"
+                            isDisabled={false}
+                            maxLength={3}
+                            allowSpecialChars={false}
+                            readOnly={true}
+                          //isMandatory={patientRegistrationForEditTestDataError?.ageYear}
+
+                          />
+                        </div>
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="months"
+                            name="ageMonth"
+                            value={testData?.ageMonth || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Months"
+                            isDisabled={false}
+                            maxLength={2}
+                            allowSpecialChars={false}
+                            readOnly={true}
+                          //isMandatory={patientRegistrationForEditTestDataError?.ageMonth}
+
+                          />
+                        </div>
+
+                        <div className='relative flex-1'>
+                          <CustomTextBox
+                            type="days"
+                            name="ageDay"
+                            value={testData?.ageDay || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            label="Days"
+                            isDisabled={false}
+                            maxLength={2}
+                            readOnly={true}
+                          //isMandatory={patientRegistrationForEditTestDataError?.ageDay}
+
+                          />
+
+                        </div>
+
+                      </div>
+
+
+                      <div className='flex gap-[0.25rem]'>
+                        <div className='relative flex-1'>
+                          <DatePicker
+                            id="dob"
+                            name="dob"
+                            value={testData?.dob || ''}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            placeholder=" "
+                            label="DOB"
+                            activeTheme={activeTheme}
+                            //isDisabled={false}
+                            //isMandatory={!Boolean(patientRegistrationData?.dob)}
+                            currentDate={new Date()} // Current date: today
+                            maxDate={new Date(2025, 11, 31)} // Maximum date: December 31, 2025
+                            readOnly={true}
+                            showTime={false}
+                            showBigerCalandar={true}
+
+                          />
+                          {/* </div> */}
+
+                        </div>
+
+                        <div className='relative flex-1 '>
+                          <CustomDropdown
+                            name="gender"
+                            label="Select Gender"
+                            value={testData?.gender || ''}
+                            options={[
+                              { label: 'Select Option', value: '', disabled: true },
+                              { label: 'Male', value: 'M' },
+                              { label: 'Female', value: 'F' },
+                              { label: 'Transgender', value: 'T' },
+                            ]}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
+                            readOnly={true}
+                          //isMandatory={patientRegistrationForEditTestDataError?.gender}
+                          />
+
+                        </div>
+                      </div>
+                      {
+                        console.log(testData)
+
+                      }
+
+                      <div className="relative flex-1">
+                        <CustomEmailInput
+                          name="emailId"
+                          value={testData?.emailId}
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          label="Email"
+                          readOnly={true}
+                        // isMandatory={patientRegistrationForEditTestDataError?.emailId}
+                        />
+                      </div>
+
+                      <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                        <div className="relative flex-1">
+                          <CustomSearchInputFields
+                            id="refID1"
+                            name="refID1"
+                            label="Refer Dr."
+                            value={testData?.refID1}
+                            options={allReferData?.data}
+                            onChange={handelOnChangeEditTest}
+                            filterText="No records found"
+                            placeholder=" "
+                            searchWithName='doctorName'
+                            readOnly={true}
+                            uniqueKey='doctorId'
+                            activeTheme={activeTheme}
+                          //isMandatory={patientRegistrationForEditTestDataError?.refID1}
+                          />
+                        </div>
+
+                        <div>
+                          <div
+                            className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                            onClick={() => {
+                              setShowPopup(1)
+                              // setIdentifyAddReferDrOrReferLab(1)
+                            }}
+                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          >
+                            <IoMdAdd className="w-4 h-4 font-semibold" />
+                          </div>
+                        </div>
+                      </div>
+
+
+                      <div className="relative flex-1">
+                        <CustomSearchInputFields
+                          id="refID2"
+                          name="refID2"
+                          label="Refer Dr2"
+                          value={testData?.refID2}
+                          options={allReferData?.data}
+                          onChange={handelOnChangeEditTest}
+                          filterText="No records found"
+                          placeholder=" "
+                          searchWithName='doctorName'
+                          uniqueKey='doctorId'
+                          readOnly={true}
+                          activeTheme={activeTheme}
+                        //isMandatory={patientRegistrationForEditTestDataError?.refID2}
+                        />
+                      </div>
+
+
+                      {/* <div className='relative flex-1'>
+                                            <DatePicker
+                                                id="collectionDateAndTime"
+                                                name="collectionDateAndTime"
+                                                value={patientRegistrationData?.collectionDateAndTime || ''}
+                                                onChange={(e) => handelOnChangeEditTest(e)}
+                                                placeholder=" "
+                                                label="Collection Date & Time"
+                                                activeTheme={activeTheme}
+                                                //isDisabled={false}
+                                                isMandatory={!Boolean(patientRegistrationData?.dob)}
+                                                currentDate={new Date()} // Current date: today
+
+                                                showTime={true}
+                                                showBigerCalandar={false}
+                                            />
+
+
+                                        </div> */}
+
+
+                      <div className="relative flex-1">
+                        <CustomTextBox
+                          // type="text", name, id, value, placeholder, onChange, label
+                          type='allCharacters'
+                          name='address'
+                          allowSpecialChars={true}
+                          value={testData?.address}
+                          placeholder=' '
+                          onChange={(e) => handelOnChangeEditTest(e)}
+                          label='Address'
+                          readOnly={true}
+                        //isMandatory={patientRegistrationForEditTestDataError?.address}
+                        />
+                      </div>
+
+
+                      <div className='relative flex-1'>
+                        <CustomNumberInput
+                          type="pinCode"
+                          name="pinCode"
+                          value={testData?.pinCode || ''}
+                          onChange={(e) => {
+                            handelOnChangeEditTest(e)
+                          }}
+                          maxLength={6}
+                          label="Pin Code"
+                          readOnly={true}
+                        // isMandatory={patientRegistrationForEditTestDataError?.pinCode}
+                        />
+                      </div>
+
+                      {/* Refer Lab/Hospital */}
+                      <div className='relative flex-1 flex items-center gap-[0.20rem] w-full justify-between'>
+
+                        <div className="relative flex-1">
+                          <CustomSearchInputFields
+                            id="otherLabReferID"
+                            name="otherLabReferID"
+                            label="Refer Lab/Hospital"
+                            value={testData?.otherLabReferID || null} // Pass the selected object instead of just ID
+                            options={[{ otherLabRefer: 'test', otherLabReferID: 1 }]}
+                            onChange={(e) => handelOnChangeEditTest(e)}
+                            filterText="No records found"
+                            placeholder=" "
+                            searchWithName="otherLabRefer"
+                            uniqueKey="otherLabReferID"
+                            readOnly={true}
+                            activeTheme={activeTheme}
+                          //isMandatory={patientRegistrationForEditTestDataError?.otherLabReferID}
+                          />
+
+                        </div>
+
+                        <div>
+                          <div
+                            className="h-[1.6rem] flex justify-center items-center cursor-pointer rounded font-semibold w-6"
+                            onClick={() => { setShowPopup(1), setIdentifyAddReferDrOrReferLab(0) }}
+                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          >
+                            <IoMdAdd className="w-4 h-4 font-semibold" />
+                          </div>
+                        </div>
+
+                      </div>
+
+
+                      <div className="relative flex-1">
+                        <CustomFileUpload
+                          value={testData?.uploadDocument}
+                          // handelImageChange={handelImageChangeForEditTest}
+                          activeTheme={activeTheme}
+                          readOnly={true}
+
+                        />
+                      </div>
+
+                      {/* <div className="relative flex-1">
+
+                                            <CustomSearchInputFields
+                                                id="itemId"
+                                                name="itemId"
+                                                label="Test Search By Name Or Code"
+                                                value={testData?.itemId}
+                                                options={allInvastigationData}
+                                                onChange={handelOnChangePatientRegistration}
+                                                filterText="No records found"
+                                                placeholder=" "
+                                                searchWithName='itemName'
+                                                uniqueKey='itemId'
+                                                activeTheme={activeTheme}
+                                            />
+
+                                        </div> */}
+
+                      <div className="relative flex-1">
+                        <CustomSearchInputFields
+                          id="itemId"
+                          name="itemId"
+                          label="Test Search By Name Or Code"
+                          value={testData?.itemId}
+                          options={allEditTestDataForInvasticationName?.data?.data}
+                          onChange={handelOnChangePatientRegistrationSelect}
+                          filterText="No records found"
+                          placeholder=" "
+                          readOnly={false}
+                          searchWithName='itemName'
+                          uniqueKey='itemId'
+                          activeTheme={activeTheme}
+                        />
+                      </div>
+
+
+                      <div className='flex gap-[0.25rem]'>
+                        <div className='relative flex-1'>
+                          {/* <CustomFormButton
+                            activeTheme={activeTheme}
+                            text="Update"
+                            icon={FaSpinner}
+                            isButtonClick={isButtonClick}
+
+                            loadingButtonNumber={4} // Unique number for the first button
+                            // onClick={() => onSubmitForSaveEditTestData()} // Pass button number to handler
+                          /> */}
+                          <CustomFormButtonWithLoading
+                            activeTheme={activeTheme}
+                            text="Update"
+                            icon={FaSpinner}
+                            isButtonClick={isButtonClick}
+                            loadingButtonNumber={2} // Unique number for the first button
+                          />
+                        </div>
+
+                        <div className='relative flex-1'>
+                        </div>
+                      </div>
+
+                      {/* </div> */}
+
+                      {/* <CustomeNormalButton
+                                            activeTheme={activeTheme}
+                                            text="Open Popup"
+
+                                            onClick={buttonClick}
+                                        /> */}
+
+                    </div>
+
+
+                    {/* grid data */}
+                    <GridDataDetails gridDataDetails={'Test Data Details'} />
+
+                    <CustomDynamicTable height={'30vh'} activeTheme={activeTheme} columns={patientRegistrationInvestigation}>
+                      <tbody>
+                        {
+                          testData?.itemdetail?.map((data, rowIndex) => {
+                            return (
+                              <tr
+                                key={`${rowIndex}`}
+                                className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                                  }`}
+                                onMouseEnter={() => setIsHoveredTablePopup(rowIndex)}
+                                onMouseLeave={() => setIsHoveredTablePopup(null)}
+                                style={{
+                                  background:
+                                    isHoveredTablePopup === rowIndex ? activeTheme?.subMenuColor : undefined,
+                                }}
+                              >
+
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.investigationName}
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+
+                                >
+                                  <FontAwesomeIcon icon="fas fa-info-circle"
+
+                                  />
+                                </td>
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.mrp}
+                                </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.rate}
+                                </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor w-24">
+                                  {/* <input
+                                    type="text"
+                                    className="border-[1.5px] rounded outline-none px-1 w-full bg-gray-100 cursor-not-allowed"
+
+                                    value={editTestData?.testData?.find((item) => item?.itemId === data?.itemId)?.discount ?? 0}
+
+                                    readOnly
+
+                                    onChange={(e) =>
+                                      handleInputChangeEditTestDsicount(data?.itemId, e.target.value, "1")
+                                    }
+                                  /> */}{data?.discount}
+                                </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {/* {(
+                                    (data?.netAmount || 0) -
+                                    parseFloat(
+                                      gridDataBarCodeandSampleType?.discount.find(
+                                        (item) => item.itemId === data?.itemId
+                                      )?.discount || 0
+                                    )
+                                  ).toFixed(2)} */}
+                                  {data?.netAmount}
+                                </td>
+
+
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  {data?.deliveryDate}
+                                </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor text-center pt-1">
+                                  <input
+                                    type="checkbox"
+                                    id={`checkbox-${rowIndex}`}
+                                    checked={data?.isUrgent === 1} // Checkbox checked if isUrgent is 1
+                                    onChange={(e) => handleCheckboxChangeEditTestCheckBo(rowIndex, e.target.checked)}
+                                  />
+                                </td>
+                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+
+                                  {(data?.isSampleCollected === "N" || data?.isSampleCollected === "R") && (
+                                    <RiDeleteBin2Fill
+                                      onClick={() => deleteinvestigationGridDataByForEditTestDataUsingItemId(rowIndex)}
+                                      className={`cursor-pointer ${data?.isRemoveItem === 1 ? 'text-gray-300' : 'text-red-500'}  text-base`}
+                                    />
+                                  )}
+
+
+                                </td>
+
+                                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                                  <MdDelete className="w-4 h-4 text-red-500" onClick={() => handleDelete(rowIndex)} />
+                                </td> */}
+                              </tr>
+                            )
+                          })
+                        }
+                        {/* Footer Row */}
+                        <tr
+                          style={{
+                            background: activeTheme?.menuColor,
+                            color: activeTheme?.iconColor,
+                          }}
+                        >
+                          <td className="px-4 h-5 text-xxs font-semibold">
+                            Test Count: {testData?.itemdetail?.length}
+                          </td>
+                          <td className="px-4 h-5 text-xxs font-semibold">Total Amt.</td>
+                          <td className="px-4 h-5 text-xxs font-semibold">
+                            {(testData?.itemdetail || []).reduce((sum, data) => sum + (data?.mrp || 0), 0)}
+                          </td>
+
+                          <td className="px-4 h-5 text-xxs font-semibold">
+
+                            {testData?.itemdetail.reduce(
+                              (sum, data) => sum + (data?.rate || 0),
+                              0
+                            )}
+                          </td>
+                          <td className="px-4 h-5 text-xxs font-semibold">
+                            {testData?.itemdetail?.reduce(
+                              (sum, item) => sum + (item?.discount || 0),
+                              0
+                            )}
+
+
+                          </td>
+                          <td className="px-4 h-5 text-xxs font-semibold">
+                            {testData?.itemdetail.reduce((sum, data) => sum + (data?.netAmount || 0), 0)}
+                          </td>
+                          <td className="px-4 h-5 text-xxs font-semibold"></td>
+                          <td className="px-4 h-5 text-xxs font-semibold"></td>
+                          <td className="px-4 h-5 text-xxs font-semibold"></td>
+                          {/* <td className="px-4 h-5 text-xxs font-semibold"></td>
+                                                                    <td className="px-4 h-5 text-xxs font-semibold"></td> */}
+                        </tr>
+                      </tbody>
+
+
+                    </CustomDynamicTable>
+                  </form>
+                )
+              }
+
+
+
+            </CustomPopupWithResponsive>
+          </>
+        )
+      }
     </div>
   );
 }

@@ -14,7 +14,7 @@ import { IoMdMenu } from "react-icons/io";
 import { ImSwitch } from "react-icons/im";
 import { IoAlertCircleOutline } from "react-icons/io5";
 import useRippleEffect from "../../customehook/useRippleEffect";
-
+import CustomDynamicTable from '../../global/CustomDynamicTable'
 
 export default function MenuMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -58,11 +58,14 @@ export default function MenuMaster() {
   // Fetch all menu data
   useEffect(() => {
     const fetchData = async () => {
+
+
       try {
         const [menuData, menuDataWithChild] = await Promise.all([
           getAllMenuApi(),
           getAllMenuDataWithChildApi(),
         ]);
+
         setAllMenuData(menuData);
         setAllMenuDataWithChildData(menuDataWithChild);
       } catch (err) {
@@ -521,7 +524,7 @@ export default function MenuMaster() {
           <div>Menu Details</div>
         </div>
 
-        <div className="mb-2">
+        {/* <div className="mb-2">
           <div className="w-full">
             <table className="table-auto border-collapse w-full text-xxs text-left">
               <thead
@@ -559,7 +562,7 @@ export default function MenuMaster() {
               </thead>
             </table>
 
-            {/* Scrollable tbody */}
+            {/* Scrollable tbody *
             <div className="max-h-96 overflow-y-auto w-full">
               <table className="table-auto border-collapse w-full text-xxs text-left">
                 <tbody>
@@ -660,7 +663,108 @@ export default function MenuMaster() {
             </div>
           </div>
 
-        </div>
+        </div> */}
+        
+
+        <CustomDynamicTable activeTheme={activeTheme} columns={menuDataHeaderList} >
+          <tbody >
+            {allMenuDataWithChildData?.map((data) => (
+              <tr
+                className={`cursor-pointer ${isHoveredTable === data?.id
+                  ? ""
+                  : data?.id % 2 === 0
+                    ? "bg-gray-100"
+                    : "bg-white"
+                  }`}
+                key={data?.id}
+                onMouseEnter={() => setIsHoveredTable(data?.id)}
+                onMouseLeave={() => setIsHoveredTable(null)}
+                style={{
+                  background:
+                    isHoveredTable === data?.id ? activeTheme?.subMenuColor : undefined,
+                }}
+              >
+                <td
+                  className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                  style={{ width: "0%" }}
+                >
+                  {data?.id}
+                </td>
+                <td
+                  className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                  style={{ width: "20%" }}
+                >
+                  {data?.menuName}
+                </td>
+                <td
+                  className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                  style={{ width: "30%" }}
+                >
+                  {data?.navigationUrl}
+                </td>
+                <td
+                  className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                  style={{ width: "10%" }}
+                >
+                  {data?.displaySequence}
+                </td>
+                <td
+                  className={`border-b px-4 h-5 text-xxs font-semibold ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
+                    }`}
+                  style={{ width: "10%" }}
+                >
+                  {data?.isActive === 1 ? "Yes" : "No"}
+                </td>
+                <td
+                  className={`border-b px-4 h-5 text-xxs font-semibold ${data?.parentId === 0 ? "text-green-500" : "text-red-500"
+                    }`}
+                  style={{ width: "10%" }}
+                >
+                  {data?.parentId === 0 ? "Yes" : "No"}
+                </td>
+                <td className="border-b px-4 h-5 flex items-center text-xxs font-semibold gap-2">
+                  <button
+                    type="button"
+                    data-ripple-light="true"
+                    className="relative overflow-hidden w-4 h-4 flex justify-center items-center"
+                  >
+                    <FaRegEdit
+                      className="w-full h-full text-blue-500"
+                      onClick={() => {
+                        getSingleMenuDataForUpDate(data);
+                        setIsParentMenu(data?.parentId === 0 ? "Yes" : "No");
+                        setIsEditData(true);
+                        setIsValid({
+                          menuName: false,
+                          displaySequence: false,
+                          parentId: data?.parentId === 0 ? true : false,
+                          navigationUrl: data?.parentId === 0 ? true : false,
+                        });
+                      }}
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    data-ripple-light="true"
+                    className={`relative overflow-hidden w-4 h-4 flex justify-center items-center ${data?.isActive === 1 ? "text-green-500" : "text-red-500"
+                      }`}
+                  >
+                    <ImSwitch
+                      className="w-full h-full"
+                      onClick={() => {
+                        setClickedRowId(data);
+                        setShowActivePopup(true);
+                      }}
+                    />
+                  </button>
+                </td>
+              </tr>
+            ))}
+
+
+          </tbody>
+
+        </CustomDynamicTable>
       </div>
 
       {/* Popup for active and deactive status */}
