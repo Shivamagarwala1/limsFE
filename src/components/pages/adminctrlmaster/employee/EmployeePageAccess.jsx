@@ -788,7 +788,9 @@ export default function EmployeePageAccess() {
                 </table>
 
             </div > */}
-
+            {
+                console.log(allPageAccessData)
+            }
 
             <CustomDynamicTable activeTheme={activeTheme} columns={employeePageAccessData} >
 

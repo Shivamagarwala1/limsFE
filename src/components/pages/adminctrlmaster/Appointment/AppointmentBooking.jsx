@@ -1457,6 +1457,7 @@ export default function AppointmentBooking() {
                     uploadDocument: patientRegistrationData?.uploadDocument,
                     invoiceNo: '',
                     salesExecutiveID: 0,
+                    isAppointment: 1,
                     addBookingStatus: [
                         {
                             isActive: 1,
@@ -1656,38 +1657,38 @@ export default function AppointmentBooking() {
                 toast.success(response?.message);
                 console.log(response);
 
-                try {
-                    const response2 = await printBarCodeData(response?.data?.barcodeNo);
-                    if (response2.success) {
+                // try {
+                //     const response2 = await printBarCodeData(response?.data?.barcodeNo);
+                //     if (response2.success) {
 
-                        // const encodedData = encodeURIComponent(response2?.data);
-                        // // Get base URL dynamically
-                        // const baseUrl = window.location.origin;
+                //         // const encodedData = encodeURIComponent(response2?.data);
+                //         // // Get base URL dynamically
+                //         // const baseUrl = window.location.origin;
 
-                        // // Construct barcode URL with base URL
-                        // const barcodeUrl = `${baseUrl}/barcode?cmd=${encodedData}`;
+                //         // // Construct barcode URL with base URL
+                //         // const barcodeUrl = `${baseUrl}/barcode?cmd=${encodedData}`;
 
-                        // // Open in a new tab
-                        // window.open(barcodeUrl, '_blank'); 
+                //         // // Open in a new tab
+                //         // window.open(barcodeUrl, '_blank'); 
 
-                        const data = response2?.data;
-                        const blob = new Blob([data], { type: "text/plain" });
+                //         const data = response2?.data;
+                //         const blob = new Blob([data], { type: "text/plain" });
 
-                        // Create a Blob URL
-                        const blobUrl = URL.createObjectURL(blob);
+                //         // Create a Blob URL
+                //         const blobUrl = URL.createObjectURL(blob);
 
-                        // Open the Blob URL in a new tab to show the text
-                        window.open(blobUrl);
+                //         // Open the Blob URL in a new tab to show the text
+                //         window.open(blobUrl);
 
 
-                    } else {
-                        toast.error(error?.message);
-                    }
-                } catch (error) {
-                    toast.error(error?.message);
-                    console.log(error);
+                //     } else {
+                //         toast.error(error?.message);
+                //     }
+                // } catch (error) {
+                //     toast.error(error?.message);
+                //     console.log(error);
 
-                }
+                // }
 
                 setPatientRegistrationData(
                     {
