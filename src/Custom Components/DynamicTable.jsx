@@ -3,6 +3,151 @@ import { IoMdMenu } from "react-icons/io";
 import { useSelector } from "react-redux";
 import { useGetData } from "../service/apiService";
 
+// const DynamicTable = ({
+//   rows,
+//   columns,
+//   loading,
+//   showDetails = true,
+//   trstyle,
+//   tableStyle,
+//   statuses = [],
+//   noData = "",
+//   rowcolor = "rowcolor",
+//   legendColors = false,
+//   name = "Table Details",
+//   showHr = true,
+// }) => {
+//   const activeTheme = useSelector((state) => state.theme.activeTheme);
+//   const [isHoveredTable, setIsHoveredTable] = useState(null);
+//   const { data, fetchData } = useGetData();
+
+//   useEffect(() => {
+//     if (legendColors) {
+//       fetchData("/LegendColorMaster");
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     if (data?.length) {
+//       // Filter only the items that match status names from the passed statuses array
+//       const filteredData = data.filter((item) =>
+//         statuses.some((status) => status.Data === item?.id)
+//       );
+//       // setButtons(filteredData);
+//     }
+//   }, [loading, data, statuses]);
+
+//   return (
+//     <div className="pt-0 w-full">
+//       {showHr && (
+//         <div
+//           className="w-full h-[0.10rem]"
+//           style={{ background: activeTheme?.menuColor }}
+//         ></div>
+//       )}
+//       {showDetails && (
+//         <div
+//           className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
+//           style={{ background: activeTheme?.blockColor }}
+//         >
+//           <IoMdMenu className="font-semibold text-lg" />
+//           <div>{name}</div>
+//         </div>
+//       )}
+
+//       {loading ? (
+//         <div className="text-center py-4 text-gray-500">Loading...</div>
+//       ) : (
+//         <div style={{position:"fixed"}}>
+//           <div
+//             style={{
+//               ...tableStyle,
+//               overflowY: "auto", // Ensures vertical scrolling
+//               scrollbarWidth: "none", // Hides scrollbar for Firefox
+//               msOverflowStyle: "none", // Hides scrollbar for IE/Edge
+//             }}
+//             className="overflow-x-auto w-full"
+//           >
+//             <table className="table-auto border-collapse w-full text-xxs text-left  min-w-max">
+//               <thead
+//                 style={{
+//                   background: activeTheme?.menuColor,
+//                   color: activeTheme?.iconColor,
+//                 }}
+//               >
+//                 <tr>
+//                   {columns?.map((col, index) => (
+//                     <th
+//                       key={index}
+//                       className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+//                       style={{
+//                         width: col?.width ? `${col?.width}px` : "",
+//                         flex: col?.flex ? col?.flex : "",
+//                       }}
+//                     >
+//                       <div className="flex gap-1 items-center">
+//                         {(col?.headerName === "Sample Coll." ||
+//                           col?.headerName === "Sample Rec.") && (
+//                           <input type="checkbox" name="" id="" />
+//                         )}
+
+//                         {col?.renderHeaderCell
+//                           ? col?.renderHeaderCell({ row: {} })
+//                           : col?.headerName}
+//                       </div>
+//                     </th>
+//                   ))}
+//                 </tr>
+//               </thead>
+//               {rows?.length !== 0 ? (
+//                 <tbody>
+//                   {rows?.map((row, index) => (
+//                     <tr
+//                       key={row?.id}
+//                       className={`cursor-pointer ${
+//                         isHoveredTable === row?.id
+//                           ? ""
+//                           : index % 2 === 0
+//                           ? "bg-gray-100"
+//                           : "bg-white"
+//                       }`}
+//                       onMouseEnter={() => setIsHoveredTable(row?.id)}
+//                       onMouseLeave={() => setIsHoveredTable(null)}
+//                       style={{
+//                         ...trstyle,
+//                         background:
+//                           isHoveredTable === row?.id
+//                             ? activeTheme?.subMenuColor
+//                             : "",
+//                       }}
+//                     >
+//                       {columns?.map((col, idx) => (
+//                         <td
+//                           key={idx}
+//                           className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
+//                         >
+//                           {col?.renderCell
+//                             ? col?.renderCell({ row })
+//                             : row[col?.field]}
+//                         </td>
+//                       ))}
+//                     </tr>
+//                   ))}
+//                 </tbody>
+//               ) : (
+//                 <div className="flex items-center justify-center ">
+//                   {noData}
+//                 </div>
+//               )}
+//             </table>
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+// export default DynamicTable;
+
 const DynamicTable = ({
   rows,
   columns,
@@ -27,16 +172,6 @@ const DynamicTable = ({
     }
   }, []);
 
-  useEffect(() => {
-    if (data?.length) {
-      // Filter only the items that match status names from the passed statuses array
-      const filteredData = data.filter((item) =>
-        statuses.some((status) => status.Data === item?.id)
-      );
-      // setButtons(filteredData);
-    }
-  }, [loading, data, statuses]);
-
   return (
     <div className="pt-0 w-full">
       {showHr && (
@@ -45,6 +180,7 @@ const DynamicTable = ({
           style={{ background: activeTheme?.menuColor }}
         ></div>
       )}
+
       {showDetails && (
         <div
           className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
@@ -58,94 +194,292 @@ const DynamicTable = ({
       {loading ? (
         <div className="text-center py-4 text-gray-500">Loading...</div>
       ) : (
-        <div
-          style={{
-            ...tableStyle,
-            overflowY: "auto", // Ensures vertical scrolling
-            scrollbarWidth: "none", // Hides scrollbar for Firefox
-            msOverflowStyle: "none", // Hides scrollbar for IE/Edge
-          }}
-          className="overflow-x-auto w-full"
-        >
-          <table className="table-auto border-collapse w-full text-xxs text-left  min-w-max">
-            <thead
-              style={{
-                background: activeTheme?.menuColor,
-                color: activeTheme?.iconColor,
-              }}
-            >
-              <tr>
-                {columns?.map((col, index) => (
-                  <th
-                    key={index}
-                    className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
-                    style={{
-                      width: col?.width ? `${col?.width}px` : "",
-                      flex: col?.flex ? col?.flex : "",
-                    }}
-                  >
+        <div className="w-full">
+          {/* Wrapper to make only table rows scrollable */}
+          <div
+            style={{
+              ...tableStyle,
+              maxHeight: "70vh", // Adjust scrollable height
+              overflowY: "auto",
+              position: "relative",
+              scrollbarWidth: "none",
+            }}
+            className="w-full"
+          >
+            <table className="table-auto border-collapse w-full text-xxs text-left">
+              {/* Sticky Header */}
+              <thead
+                className="sticky top-0 z-10 bg-white shadow"
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              >
+                <tr>
+                  {columns?.map((col, index) => (
+                    <th
+                      key={index}
+                      className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+                      style={{
+                        width: col?.width ? `${col?.width}px` : "auto",
+                      }}
+                    >
+                      <div className="flex gap-1 items-center">
+                        {(col?.headerName === "Sample Coll." ||
+                          col?.headerName === "Sample Rec.") && (
+                          <input type="checkbox" />
+                        )}
+                        {col?.renderHeaderCell
+                          ? col?.renderHeaderCell({ row: {} })
+                          : col?.headerName}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-                    <div className="flex gap-1 items-center">
-                      {
-                        (col?.headerName === 'Sample Coll.' || col?.headerName === 'Sample Rec.') && (
-                          <input type="checkbox" name="" id="" />
-                        )
-                      }
-
-
-                      {col?.renderHeaderCell
-                        ? col?.renderHeaderCell({ row: {} })
-                        : col?.headerName}
-                    </div>
-
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            {rows?.length !== 0 ? (
+              {/* Table Body - Scrolls while header remains fixed */}
               <tbody>
-                {rows?.map((row, index) => (
-                  <tr
-                    key={row?.id}
-                    className={`cursor-pointer ${isHoveredTable === row?.id
-                      ? ""
-                      : index % 2 === 0
-                        ? "bg-gray-100"
-                        : "bg-white"
-                      }`}
-                    onMouseEnter={() => setIsHoveredTable(row?.id)}
-                    onMouseLeave={() => setIsHoveredTable(null)}
-                    style={{
-                      ...trstyle,
-                      background:
+                {rows?.length !== 0 ? (
+                  rows?.map((row, index) => (
+                    <tr
+                      key={row?.id}
+                      className={`cursor-pointer ${
                         isHoveredTable === row?.id
-                          ? activeTheme?.subMenuColor
-                          : "",
-                    }}
-                  >
-                    {columns?.map((col, idx) => (
-                      <td
-                        key={idx}
-                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
-                      >
-                        {col?.renderCell
-                          ? col?.renderCell({ row })
-                          : row[col?.field]}
-                      </td>
-                    ))}
+                          ? ""
+                          : index % 2 === 0
+                          ? "bg-gray-100"
+                          : "bg-white"
+                      }`}
+                      onMouseEnter={() => setIsHoveredTable(row?.id)}
+                      onMouseLeave={() => setIsHoveredTable(null)}
+                      style={{
+                        ...trstyle,
+                        background:
+                          isHoveredTable === row?.id
+                            ? activeTheme?.subMenuColor
+                            : "",
+                      }}
+                    >
+                      {columns?.map((col, idx) => (
+                        <td
+                          key={idx}
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
+                          style={{
+                            width: col?.width ? `${col?.width}px` : "auto",
+                          }}
+                        >
+                          {col?.renderCell
+                            ? col?.renderCell({ row })
+                            : row[col?.field]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center py-4 text-gray-500"
+                    >
+                      {noData || "No records found"}
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
-            ) : (
-              <div className="flex items-center justify-center ">{noData}</div>
-            )}
-          </table>
+            </table>
+            <br />
+            <br />
+            <br />
+          </div>
         </div>
       )}
     </div>
   );
 };
+
 export default DynamicTable;
+
+// const DynamicTable = ({
+//   rows,
+//   columns,
+//   loading,
+//   showDetails = true,
+//   trstyle,
+//   tableStyle,
+//   statuses = [],
+//   noData = "",
+//   rowcolor = "rowcolor",
+//   legendColors = false,
+//   name = "Table Details",
+//   showHr = true,
+// }) => {
+//   const activeTheme = useSelector((state) => state.theme.activeTheme);
+//   const [isHoveredTable, setIsHoveredTable] = useState(null);
+//   const { data, fetchData } = useGetData();
+
+//   useEffect(() => {
+//     if (legendColors) {
+//       fetchData("/LegendColorMaster");
+//     }
+//   }, []);
+
+//   const [tableHeight, setTableHeight] = useState("65vh");
+
+//   useEffect(() => {
+//     const updateTableHeight = () => {
+//       let width = window.innerWidth;
+//       let height = window.innerHeight;
+
+//       // Base height at 1000px width & 800px height
+//       let baseWidth = 1000;
+//       let baseHeight = 800;
+
+//       // Calculate additional height based on screen size
+//       let extraHeight =
+//         ((width - baseWidth) / 50) * 3 + ((height - baseHeight) / 50) * 2;
+
+//       // Compute final height
+//       let newHeight = 65 + extraHeight;
+
+//       // Restrict height between 50vh and 90vh
+//       newHeight = Math.max(62, Math.min(newHeight, 70));
+//       console.log(extraHeight, " ", newHeight);
+//       setTableHeight(`${newHeight}vh`);
+//     };
+
+//     updateTableHeight();
+//     window.addEventListener("resize", updateTableHeight);
+//     return () => window.removeEventListener("resize", updateTableHeight);
+//   }, []);
+
+//   return (
+//     <div className="pt-0 w-full">
+//       {showHr && (
+//         <div
+//           className="w-full h-[0.10rem]"
+//           style={{ background: activeTheme?.menuColor }}
+//         ></div>
+//       )}
+
+//       {showDetails && (
+//         <div
+//           className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
+//           style={{ background: activeTheme?.blockColor }}
+//         >
+//           <IoMdMenu className="font-semibold text-lg" />
+//           <div>{name}</div>
+//         </div>
+//       )}
+
+//       {loading ? (
+//         <div className="text-center py-4 text-gray-500">Loading...</div>
+//       ) : (
+//         <div className="w-full">
+//           {/* Wrapper to make only table rows scrollable */}
+//           <div
+//             style={{
+//               ...tableStyle,
+//               maxHeight: "65rem",
+//               overflowY: "auto",
+//               position: "relative",
+//               scrollbarWidth: "none",
+//             }}
+//             className="w-full"
+//           >
+//             <table className="table-auto border-collapse w-full text-xxs text-left">
+//               {/* Sticky Header */}
+//               <thead
+//                 className="sticky top-0 z-10 bg-white shadow"
+//                 style={{
+//                   background: activeTheme?.menuColor,
+//                   color: activeTheme?.iconColor,
+//                 }}
+//               >
+//                 <tr>
+//                   {columns?.map((col, index) => (
+//                     <th
+//                       key={index}
+//                       className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+//                       style={{
+//                         width: col?.width ? `${col?.width}px` : "auto",
+//                       }}
+//                     >
+//                       <div className="flex gap-1 items-center">
+//                         {(col?.headerName === "Sample Coll." ||
+//                           col?.headerName === "Sample Rec.") && (
+//                           <input type="checkbox" />
+//                         )}
+//                         {col?.renderHeaderCell
+//                           ? col?.renderHeaderCell({ row: {} })
+//                           : col?.headerName}
+//                       </div>
+//                     </th>
+//                   ))}
+//                 </tr>
+//               </thead>
+
+//               {/* Table Body - Scrolls while header remains fixed */}
+//               <tbody>
+//                 {rows?.length !== 0 ? (
+//                   rows?.map((row, index) => (
+//                     <tr
+//                       key={row?.id}
+//                       className={`cursor-pointer ${
+//                         isHoveredTable === row?.id
+//                           ? ""
+//                           : index % 2 === 0
+//                           ? "bg-gray-100"
+//                           : "bg-white"
+//                       }`}
+//                       onMouseEnter={() => setIsHoveredTable(row?.id)}
+//                       onMouseLeave={() => setIsHoveredTable(null)}
+//                       style={{
+//                         ...trstyle,
+//                         background:
+//                           isHoveredTable === row?.id
+//                             ? activeTheme?.subMenuColor
+//                             : "",
+//                       }}
+//                     >
+//                       {columns?.map((col, idx) => (
+//                         <td
+//                           key={idx}
+//                           className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
+//                           style={{
+//                             width: col?.width ? `${col?.width}px` : "auto",
+//                           }}
+//                         >
+//                           {col?.renderCell
+//                             ? col?.renderCell({ row })
+//                             : row[col?.field]}
+//                         </td>
+//                       ))}
+//                     </tr>
+//                   ))
+//                 ) : (
+//                   <tr>
+//                     <td
+//                       colSpan={columns.length}
+//                       className="text-center py-4 text-gray-500"
+//                     >
+//                       {noData || "No records found"}
+//                     </td>
+//                   </tr>
+//                 )}
+//               </tbody>
+//             </table>
+//             {/* <br />
+//             <br />
+//             <br /> */}
+//           </div>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default DynamicTable;
 
 export const TableHeader = ({ title }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -178,6 +512,34 @@ export const UpdatedDynamicTable = ({
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   const { data, fetchData } = useGetData();
+
+  const [tableHeight, setTableHeight] = useState("65vh");
+
+  useEffect(() => {
+    const updateTableHeight = () => {
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+
+      // Base height at 1000px width & 800px height
+      let baseWidth = 1000;
+      let baseHeight = 800;
+
+      // Calculate additional height based on screen size
+      let extraHeight =
+        ((width - baseWidth) / 50) * 3 + ((height - baseHeight) / 50) * 2;
+
+      // Compute final height
+      let newHeight = 65 + extraHeight;
+
+      // Restrict height between 50vh and 90vh
+      newHeight = Math.max(62, Math.min(newHeight, 70));
+      setTableHeight(`${newHeight}vh`);
+    };
+
+    updateTableHeight();
+    window.addEventListener("resize", updateTableHeight);
+    return () => window.removeEventListener("resize", updateTableHeight);
+  }, []);
 
   useEffect(() => {
     if (legendColors) {
@@ -217,14 +579,15 @@ export const UpdatedDynamicTable = ({
         <div
           style={{
             ...tableStyle,
+            maxHeight: "65vh",
             overflowY: "auto",
+            position: "relative",
             scrollbarWidth: "none",
-            msOverflowStyle: "none",
           }}
           className="overflow-x-auto w-full"
         >
           <table className="table-auto border-collapse w-full text-xxs text-left min-w-max">
-            <thead
+            {/* <thead
               style={{
                 background: activeTheme?.menuColor,
                 color: activeTheme?.iconColor,
@@ -246,6 +609,37 @@ export const UpdatedDynamicTable = ({
                   </th>
                 ))}
               </tr>
+            </thead> */}
+
+            {/* Sticky Header */}
+            <thead
+              className="sticky top-0 z-10 bg-white shadow"
+              style={{
+                background: activeTheme?.menuColor,
+                color: activeTheme?.iconColor,
+              }}
+            >
+              <tr>
+                {columns?.map((col, index) => (
+                  <th
+                    key={index}
+                    className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+                    style={{
+                      width: col?.width ? `${col?.width}px` : "auto",
+                    }}
+                  >
+                    <div className="flex gap-1 items-center">
+                      {(col?.headerName === "Sample Coll." ||
+                        col?.headerName === "Sample Rec.") && (
+                        <input type="checkbox" />
+                      )}
+                      {col?.renderHeaderCell
+                        ? col?.renderHeaderCell({ row: {} })
+                        : col?.headerName}
+                    </div>
+                  </th>
+                ))}
+              </tr>
             </thead>
 
             {rows?.length !== 0 ? (
@@ -253,12 +647,13 @@ export const UpdatedDynamicTable = ({
                 {rows?.map((row, index) => (
                   <tr
                     key={row?.[viewKey] || index} // Ensure a valid key
-                    className={`cursor-pointer ${isHoveredTable === row?.[viewKey]
-                      ? ""
-                      : index % 2 === 0
+                    className={`cursor-pointer ${
+                      isHoveredTable === row?.[viewKey]
+                        ? ""
+                        : index % 2 === 0
                         ? "bg-gray-100"
                         : "bg-white"
-                      }`}
+                    }`}
                     onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
                     onMouseLeave={() => setIsHoveredTable(null)}
                     style={{
@@ -284,12 +679,13 @@ export const UpdatedDynamicTable = ({
                 {extraRow?.map((row, index) => (
                   <tr
                     key={row?.[viewKey] || index} // Ensure a valid key
-                    className={`cursor-pointer ${isHoveredTable === row?.[viewKey]
-                      ? ""
-                      : index % 2 === 0
+                    className={`cursor-pointer ${
+                      isHoveredTable === row?.[viewKey]
+                        ? ""
+                        : index % 2 === 0
                         ? "bg-gray-100"
                         : "bg-white"
-                      }`}
+                    }`}
                     onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
                     onMouseLeave={() => setIsHoveredTable(null)}
                     style={{

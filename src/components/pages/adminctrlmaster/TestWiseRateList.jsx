@@ -1,5 +1,5 @@
+import React,{useEffect,useState} from 'react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import React, { useEffect, useState } from "react";
 import { IoMdMenu } from "react-icons/io";
 import { useSelector } from "react-redux";
 import { testWiseRateListHeader } from "../../listData/listData";
@@ -13,21 +13,27 @@ import { getLocal } from "usehoks";
 import toast from "react-hot-toast";
 
 const MrpInputCell = ({ params, initialTime, setRow }) => {
-  const [mrp, setMrp] = useState(initialTime || "");
+  const [mrp, setMrp] = useState(params?.row?.mrp || initialTime || "");
+  const [initialMrp] = useState(params?.row?.mrp || initialTime || ""); // Store initial value
 
   useEffect(() => {
+    setMrp(params?.row?.mrp || initialTime || "");
+  }, [params?.row?.mrp, initialTime]);
+
+  const handleMrpChange = (newValue) => {
+    setMrp(newValue);
     setRow((prev) =>
       prev.map((item) =>
         item.id === params?.row.id
           ? {
               ...item,
-              mrp: parseInt(mrp),
-              edited: parseInt(mrp) !== initialTime,
+              mrp: parseInt(newValue) || 0,
+              edited: (parseInt(newValue) || 0) !== (parseInt(initialMrp) || 0), // Compare with initial value
             }
           : item
       )
     );
-  }, [mrp]);
+  };
 
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
@@ -39,8 +45,41 @@ const MrpInputCell = ({ params, initialTime, setRow }) => {
         maxLength={8}
         name="mrp"
         onChange={(e) => {
-          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-          setMrp(newValue);
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleMrpChange(newValue);
+        }}
+      />
+    </div>
+  );
+};
+
+const AddAllMrpInputCell = ({ initialTime, setRow, placeholder }) => {
+  const [mrp, setMrp] = useState(initialTime ? initialTime.toString() : "");
+
+  const handleGlobalMrpChange = (newValue) => {
+    setMrp(newValue);
+    setRow((prev) =>
+      prev.map((item) => ({
+        ...item,
+        mrp: parseInt(newValue) || 0,
+        edited: true,
+      }))
+    );
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem",width:"60px" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={mrp}
+        placeholder={placeholder}
+        maxLength={8}
+        name="mrp"
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleGlobalMrpChange(newValue);
         }}
       />
     </div>
@@ -48,21 +87,28 @@ const MrpInputCell = ({ params, initialTime, setRow }) => {
 };
 
 const RateInputCell = ({ params, initialTime, setRow }) => {
-  const [rate, setRate] = useState(initialTime || "");
+  const [rate, setRate] = useState(params?.row?.rate || initialTime || "");
+  const [initialRate] = useState(params?.row?.rate || initialTime || ""); // Store initial value
 
   useEffect(() => {
+    setRate(params?.row?.rate || initialTime || "");
+  }, [params?.row?.rate, initialTime]);
+
+  const handleRateChange = (newValue) => {
+    setRate(newValue);
     setRow((prev) =>
       prev.map((item) =>
         item.id === params?.row.id
           ? {
               ...item,
-              rate: parseInt(rate),
-              edited: parseInt(rate) !== initialTime,
+              rate: parseInt(newValue) || 0,
+              edited:
+                (parseInt(newValue) || 0) !== (parseInt(initialRate) || 0), // Compare with initial value
             }
           : item
       )
     );
-  }, [rate]);
+  };
 
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
@@ -74,8 +120,41 @@ const RateInputCell = ({ params, initialTime, setRow }) => {
         maxLength={8}
         name="rate"
         onChange={(e) => {
-          const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-          setRate(newValue);
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleRateChange(newValue);
+        }}
+      />
+    </div>
+  );
+};
+
+const AddAllRateInputCell = ({ initialTime, setRow, placeholder }) => {
+  const [rate, setRate] = useState(initialTime ? initialTime.toString() : "");
+
+  const handleGlobalMrpChange = (newValue) => {
+    setRate(newValue);
+    setRow((prev) =>
+      prev.map((item) => ({
+        ...item,
+        rate: parseInt(newValue) || 0,
+        edited: true,
+      }))
+    );
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem",width:"60px" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={rate}
+        placeholder={placeholder}
+        maxLength={8}
+        name="rate"
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleGlobalMrpChange(newValue);
         }}
       />
     </div>
@@ -84,25 +163,75 @@ const RateInputCell = ({ params, initialTime, setRow }) => {
 
 const CheckboxInputCell = ({ params, setSelectedData, row }) => {
   const [enabled, setEnabled] = useState(false);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
-    // Enable checkbox only if the row is edited
+    // Enable checkbox if row is edited or SelectAll is true
     setEnabled(params?.row?.edited === true);
-  }, [row]);
+    // Set checked state based on SelectAll or edited status
+    setChecked(params?.row?.SelectAll === true && params?.row?.edited === true);
+  }, [row, params?.row?.SelectAll, params?.row?.edited]);
+
+  useEffect(() => {
+    // Add to selected data if checked
+    if (checked && params?.row?.edited) {
+      setSelectedData(prev => {
+        // Only add if not already present
+        if (!prev.some(item => item.id === params?.row.id)) {
+          return [...prev, { ...params?.row }];
+        }
+        return prev;
+      });
+    } else {
+      // Remove from selected data if unchecked
+      setSelectedData(prev => prev.filter(item => item.id !== params?.row.id));
+    }
+  }, [checked]);
 
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
       <input
         type="checkbox"
-        disabled={!enabled} // Disable if not edited
-        onClick={() =>
-          setSelectedData(
-            (prev) =>
-              prev.some((item) => item.id === params?.row.id)
-                ? prev.filter((item) => item.id !== params?.row.id) // Remove if exists
-                : [...prev, { ...params?.row }] // Add if not
-          )
-        }
+        disabled={!enabled}
+        checked={checked}
+        onChange={() => setChecked(!checked)}
+      />
+    </div>
+  );
+};
+
+const CheckboxSelectAllInputCell = ({ params, setSelectedData, row, setRow }) => {
+  const [selectAll, setSelectAll] = useState(false);
+
+  const handleSelectAll = () => {
+    const newSelectAll = !selectAll;
+    setSelectAll(newSelectAll);
+
+    // Update all rows with new SelectAll status
+    setRow(prev =>
+      prev.map(item => ({
+        ...item,
+        SelectAll: newSelectAll
+      }))
+    );
+
+    // Update selected data
+    if (newSelectAll) {
+      // Add all edited rows to selected data
+      const editedRows = row.filter(item => item.edited === true);
+      setSelectedData(editedRows);
+    } else {
+      // Clear selected data
+      setSelectedData([]);
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        type="checkbox"
+        checked={selectAll}
+        onChange={handleSelectAll}
       />
     </div>
   );
@@ -160,6 +289,7 @@ export default function TestWiseRateList() {
     const rows = addObjectId(GridData?.data?.data || []);
     setRow(rows);
   }, [GridData?.data?.data]);
+  console.log(row);
   const columns = [
     { field: "id", headerName: "Sr. No", width: 20 },
     { field: "itemCode", headerName: "Item Code", flex: 1 },
@@ -170,6 +300,19 @@ export default function TestWiseRateList() {
     {
       field: "mrp",
       headerName: "MRP",
+      renderHeaderCell: (params) => {
+        return (
+          <div className="flex gap-1">
+            MRP
+            <AddAllMrpInputCell
+              setRow={setRow}
+              initialTime={""}
+              params={params}
+              placeholder="Add MRP"
+            />
+          </div>
+        );
+      },
       width: 120,
       renderCell: (params) => {
         return (
@@ -184,6 +327,19 @@ export default function TestWiseRateList() {
     {
       field: "rate",
       headerName: "Rate",
+      renderHeaderCell: (params) => {
+        return (
+          <div className="flex gap-1">
+            Rate
+            <AddAllRateInputCell
+              setRow={setRow}
+              initialTime={""}
+              params={params}
+              placeholder="Add Rate"
+            />
+          </div>
+        );
+      },
       width: 120,
       renderCell: (params) => {
         return (
@@ -198,12 +354,24 @@ export default function TestWiseRateList() {
     {
       field: `select`,
       headerName: `Select`,
-      flex: 1,
+      renderHeaderCell: (params) => {
+        return (
+          <div className="flex gap-1">
+            Select All
+            <CheckboxSelectAllInputCell
+              setSelectedData={setSelectedData}
+              row={row}
+              setRow={setRow}
+              params={params}
+            />
+          </div>
+        );
+      },
+      with: 10,
       renderCell: (params) => {
         return (
           <CheckboxInputCell
             setSelectedData={setSelectedData}
-            initialTime={params?.row}
             row={row}
             params={params}
           />

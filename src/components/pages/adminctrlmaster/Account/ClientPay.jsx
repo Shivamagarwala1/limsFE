@@ -8,19 +8,21 @@ import InputGenerator, {
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
+import DynamicTable, { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
 import { FaRegEdit } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import FileUpload from "../../../../Custom Components/FileUpload";
 import toast from "react-hot-toast";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
+import { addRandomObjectId } from "../../../../service/RedendentData";
 
 export default function ClientPay() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
   const lsData = getLocal("imarsar_laboratory");
   const PostData = usePostData();
+  const getData = usePostData();
   const DocumentData = usePostData();
   const { fetchData, response, data, loading } = useGetData();
 
@@ -59,7 +61,7 @@ export default function ClientPay() {
   const [FileData, setFileData] = useState({ fileName: "" });
   const [PDFPath, setPDFPath] = useState("");
   const [PaymentMode, setPaymentMode] = useState(1);
-
+  const [Row, setRow] = useState([]);
   const AllCenterData = useGetData();
   const BankData = useGetData();
   useEffect(() => {
@@ -71,7 +73,7 @@ export default function ClientPay() {
   }, []);
   useEffect(() => {
     getReason();
-  }, [PaymentMode]);
+  }, [PaymentTypeId, CenterId]);
 
   useEffect(() => {
     if (FileData.fileData) {
@@ -87,48 +89,82 @@ export default function ClientPay() {
   console.log(FileData);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 100 },
+    { field: "Random", headerName: "Sr. No", width: 100 },
     {
-      field: `client`,
-      headerName: `Client`,
+      field: `centreName`,
+      headerName: `Center Name`,
       flex: 1,
     },
     {
-      field: "",
-      width: 200,
-      headerName: "Action",
+      field: `advancePaymentAmt`,
+      headerName: `Advance Payment`,
+      flex: 1,
+    },
+    {
+      field: `paymentMode`,
+      headerName: `Payment Mode`,
+      flex: 1,
+    },
+    {
+      field: `remarks`,
+      headerName: `Remarks`,
+      flex: 1,
+    },
+    {
+      field: `paymentType`,
+      headerName: `Payment Type`,
+      flex: 1,
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "20px" }}>
-            <button className="w-4 h-4 flex justify-center items-center">
-              <FaRegEdit
-                className={`w-full h-full ${
-                  params?.row?.isActive === 1
-                    ? "text-blue-500 cursor-pointer"
-                    : "text-gray-400 cursor-not-allowed"
-                }`}
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                }}
-              />
-            </button>
-            <button
-              className={`w-4 h-4 flex justify-center items-center ${
-                params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              <ImSwitch
-                className="w-full h-full"
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                  setShowPopup(true);
-                }}
-              />
-            </button>
+          <div>
+            {params?.row?.paymentType == 1 && "Deposit"}
+            {params?.row?.paymentType == 2 && "Credit Note"}
+            {params?.row?.paymentType == 3 && "Debit Note"}
           </div>
         );
       },
     },
+    {
+      field: `paymentDate`,
+      headerName: `Payment Date`,
+      flex: 1,
+    },
+    // {
+    //   field: "",
+    //   width: 200,
+    //   headerName: "Action",
+    //   renderCell: (params) => {
+    //     return (
+    //       <div style={{ display: "flex", gap: "20px" }}>
+    //         <button className="w-4 h-4 flex justify-center items-center">
+    //           <FaRegEdit
+    //             className={`w-full h-full ${
+    //               params?.row?.isActive === 1
+    //                 ? "text-blue-500 cursor-pointer"
+    //                 : "text-gray-400 cursor-not-allowed"
+    //             }`}
+    //             onClick={() => {
+    //               setClickedRowId(params?.row);
+    //             }}
+    //           />
+    //         </button>
+    //         <button
+    //           className={`w-4 h-4 flex justify-center items-center ${
+    //             params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
+    //           }`}
+    //         >
+    //           <ImSwitch
+    //             className="w-full h-full"
+    //             onClick={() => {
+    //               setClickedRowId(params?.row);
+    //               setShowPopup(true);
+    //             }}
+    //           />
+    //         </button>
+    //       </div>
+    //     );
+    //   },
+    // },
   ];
 
   const handleSubmit = async (event) => {
@@ -138,12 +174,20 @@ export default function ClientPay() {
     const payload =
       isButtonClick === 0
         ? {
-            ...values,
+            paymentDate: values?.paymentDate,
             paymentMode: PaymentModeValue,
+            centreId: parseInt(CenterId),
+            advancePaymentAmt: parseInt(values?.advancePaymentAmt),
             bank: BankValue,
-            tnxNo: "12345",
+            tnxNo: "",
+            chequeNo: values?.PayNo || "",
+            chequeDate: values?.PayDate,
             tnxDate: new Date().toISOString(),
-            paymentType: PaymentTypeValue,
+            remarks: values?.remarks,
+            rejectRemarks: "",
+            approved: 0,
+            apprvoedByID: 0,
+            paymentType: parseInt(PaymentTypeId),
             fileName: PDFPath,
             createdBy: lsData?.user?.employeeId,
             createdDate: new Date().toISOString(),
@@ -159,13 +203,13 @@ export default function ClientPay() {
       payload
     );
     console.log(payload);
-    // if (data1?.success) {
-    //   toast.success(
-    //     isButtonClick === 0 ? data1?.message : "Updated Successfull"
-    //   );
-    //   setIsButtonClick(0);
-    //   getReason();
-    // }
+    if (data1?.success) {
+      toast.success(
+        isButtonClick === 0 ? data1?.message : "Updated Successfull"
+      );
+      setIsButtonClick(0);
+      // getReason();
+    }
   };
 
   const handlePdfUpload = async () => {
@@ -248,6 +292,16 @@ export default function ClientPay() {
     setBankDropDown(false);
   };
   const getReason = async () => {
+    const payload = [CenterId];
+    const get = await getData?.postRequest(
+      `/CentrePayment/ClientDepositReport?FromDate=24-Mar-2024&ToDate=25-Mar-2025&Paymenttype=${PaymentTypeId}`,
+      payload
+    );
+    if (get?.success) {
+      setRow(addRandomObjectId(get?.data));
+    } else {
+      toast.error(get?.message);
+    }
     console.log(get);
   };
 
@@ -325,6 +379,8 @@ export default function ClientPay() {
                 label: "Payment Date",
                 type: "customDateField",
                 name: "paymentDate",
+                minDate: new Date(2000, 0, 1),
+                tillDate: new Date(2100, 0, 1),
               },
             ]}
           />
@@ -403,12 +459,14 @@ export default function ClientPay() {
                   {
                     label: "Cheque No.",
                     type: "number",
-                    name: "ChequeNo",
+                    name: "PayNo",
                   },
                   {
                     label: "Cheque Date",
                     type: "customDateField",
-                    name: "ChequeDate",
+                    name: "PayDate",
+                    minDate: new Date(2000, 0, 1),
+                    tillDate: new Date(2100, 0, 1),
                   },
                 ]}
               />
@@ -437,13 +495,14 @@ export default function ClientPay() {
                   {
                     label: "Neft No.",
                     type: "number",
-                    name: "NeftNo",
+                    name: "PayNo",
                   },
                   {
                     label: "Neft Date",
                     type: "customDateField",
-                    name: "NeftDate",
-                    required: true,
+                    name: "PayDate",
+                    minDate: new Date(2000, 0, 1),
+                    tillDate: new Date(2100, 0, 1),
                   },
                 ]}
               />
@@ -472,13 +531,14 @@ export default function ClientPay() {
                   {
                     label: "Rtgs No.",
                     type: "number",
-                    name: "RtgsNo",
+                    name: "PayNo",
                   },
                   {
                     label: "Rtgs Date",
                     type: "customDateField",
-                    name: "RtgsDate",
-                    required: true,
+                    name: "PayDate",
+                    minDate: new Date(2000, 0, 1),
+                    tillDate: new Date(2100, 0, 1),
                   },
                 ]}
               />
@@ -507,13 +567,14 @@ export default function ClientPay() {
                   {
                     label: "Online No.",
                     type: "number",
-                    name: "OnlineNo",
+                    name: "PayNo",
                   },
                   {
                     label: "Online Date",
                     type: "customDateField",
-                    name: "OnlineDate",
-                    required: true,
+                    name: "PayDate",
+                    minDate: new Date(2000, 0, 1),
+                    tillDate: new Date(2100, 0, 1),
                   },
                 ]}
               />
@@ -522,9 +583,10 @@ export default function ClientPay() {
           <FileUpload
             FileData={FileData}
             setFileData={setFileData}
+            accept=".pdf"
             inputFields={{
-              label: "Add Attachment",
-              Size: "10",
+              label: "Upload Reciept",
+              Size: "100",
               required: true,
             }}
           />
@@ -545,15 +607,12 @@ export default function ClientPay() {
         </div>
         <LegendButtons statuses={statuses} />
       </form>
-      <DynamicTable
-        rows={[
-          { id: 1, client: "client 1" },
-          { id: 2, client: "client 2" },
-        ]}
+      <UpdatedDynamicTable
+        rows={Row}
         name="Client Payment Details"
-        loading={loading}
+        loading={getData?.loading}
         columns={columns}
-        activeTheme={activeTheme}
+        viewKey="Random"
       />
     </div>
   );
