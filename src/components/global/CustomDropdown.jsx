@@ -36,7 +36,7 @@ function CustomDropdown({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-  
+
 
   return (
     <div ref={dropdownRef}>
@@ -72,7 +72,16 @@ function CustomDropdown({
 
           !isDisabled && (
             isOpen && (
-              <div className="absolute border-[1px] rounded-md z-50 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+              <div className="absolute border-[1px] rounded-md z-50 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs"
+
+              //!=====need to check======
+              // style={{
+              //   position: "fixed", // Fix position to prevent clipping
+              //   // top: dropdownPosition?.top, // Dynamically adjust dropdown position
+              //   // left: dropdownPosition?.left,
+              //   width: dropdownRef.current?.offsetWidth,
+              // }}
+              >
                 {options.map((option, index) => {
 
                   return (
