@@ -81,6 +81,7 @@ export default function EmployeeMaster() {
     defaultcentre: 0,
     pro: 0,
     defaultrole: 0,
+    allowTicketRole: 0,
     rate: 0,
     fileName: "",
     autoCreated: 0,
@@ -96,6 +97,7 @@ export default function EmployeeMaster() {
     isdeviceAuthentication: 0,
     adminPassword: "",
     tempPassword: "",
+    allowTicket: 0,
     addEmpCentreAccess: [],
     addEmpRoleAccess: [],
     addEmpDepartmentAccess: [],
@@ -108,6 +110,7 @@ export default function EmployeeMaster() {
     city: "",
     defaultcentre: "",
     defaultrole: "",
+    allowTicketRole: ''
   });
 
   const [isButtonClick, setIsButtonClick] = useState(0);
@@ -149,7 +152,6 @@ export default function EmployeeMaster() {
       await getAllEmployeeDataApi()
         .then((resp) => {
           if (parseInt(user?.employeeId) === parseInt(1)) {
-            console.log(user?.employeeId);
 
             setAllEmpMasterData(resp);
           } else {
@@ -444,6 +446,7 @@ export default function EmployeeMaster() {
   };
 
   const handelChangeEmployeeDetails = (event) => {
+
     setEmployeeData({
       ...employeeData,
       [event.target.name]: event.target.value,
@@ -785,6 +788,13 @@ export default function EmployeeMaster() {
 
     if (!employeeData.defaultrole) errors.defaultrole = true;
 
+    if (employeeData.allowTicket) {
+      if (!employeeData?.allowTicketRole) {
+        errors.allowTicketRole = true;
+      } else {
+        errors.allowTicketRole = false;
+      }
+    }
     // Update state with errors
     setFormErrors(errors);
 
@@ -2434,110 +2444,102 @@ export default function EmployeeMaster() {
             </label>
           </div>
 
-          {/* Sales Team */}
-          <div className="relative flex-1">
-            <select
-              id="isSalesTeamMember"
-              value={employeeData.isSalesTeamMember}
-              onChange={handelChangeEmployeeDetails}
-              className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-            // defaultValue={0}
-            >
-              <option value="" disabled hidden className="text-gray-400">
-                Select Option
-              </option>
-              <option value={0}>No</option>
-              <option value={1}>Yes</option>
-            </select>
-            <label htmlFor="isSalesTeamMember" className="menuPeerLevel">
-              Sales Team
-            </label>
+          <div className="flex gap-[0.25rem]">
+            {/* Sales Team */}
+            <div className="relative flex-1">
+              <select
+                id="isSalesTeamMember"
+                value={employeeData.isSalesTeamMember}
+                onChange={handelChangeEmployeeDetails}
+                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+
+              // defaultValue={0}
+              >
+                <option value="" disabled hidden className="text-gray-400">
+                  Select Option
+                </option>
+                <option value={0}>No</option>
+                <option value={1}>Yes</option>
+              </select>
+              <label htmlFor="isSalesTeamMember" className="menuPeerLevel">
+                Sales Team
+              </label>
+            </div>
+
+            {/* Pro */}
+            <div className="relative flex-1">
+              <select
+                id="pro"
+                value={employeeData.pro}
+                onChange={handelChangeEmployeeDetails}
+                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+
+              // defaultValue={0}
+              >
+                <option value="" disabled hidden className="text-gray-400">
+                  Select Option
+                </option>
+                <option value={0}>No</option>
+                <option value={1}>Yes</option>
+              </select>
+              <label htmlFor="pro" className="menuPeerLevel">
+                Pro
+              </label>
+            </div>
           </div>
 
-          {/* Pro */}
-          <div className="relative flex-1">
-            <select
-              id="pro"
-              value={employeeData.pro}
-              onChange={handelChangeEmployeeDetails}
-              className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-            // defaultValue={0}
-            >
-              <option value="" disabled hidden className="text-gray-400">
-                Select Option
-              </option>
-              <option value={0}>No</option>
-              <option value={1}>Yes</option>
-            </select>
-            <label htmlFor="pro" className="menuPeerLevel">
-              Pro
-            </label>
+
+          <div className="flex gap-[0.25rem]">
+            {/* Allow Due Report */}
+            <div className="relative flex-1">
+              <select
+                id="allowDueReport"
+                value={employeeData.allowDueReport}
+                onChange={handelChangeEmployeeDetails}
+                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+
+              // defaultValue={0}
+              >
+                <option value="" disabled hidden className="text-gray-400">
+                  Select Option
+                </option>
+                <option value={0}>No</option>
+                <option value={1}>Yes</option>
+              </select>
+              <label htmlFor="allowDueReport" className="menuPeerLevel">
+                Allow Due Report
+              </label>
+            </div>
+
+
+            {/* Disscount Approved */}
+            <div className="relative flex-1">
+              <select
+                id="isDiscountAppRights"
+                value={employeeData.isDiscountAppRights}
+                onChange={handelChangeEmployeeDetails}
+                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+
+              // defaultValue={0}
+              >
+                <option value="" disabled hidden className="text-gray-400">
+                  Select Option
+                </option>
+                <option value={0}>No</option>
+                <option value={1}>Yes</option>
+              </select>
+              <label htmlFor="isDiscountAppRights" className="menuPeerLevel">
+                Dis. Approved
+              </label>
+            </div>
           </div>
 
-          {/* Allow Due Report */}
-          <div className="relative flex-1">
-            <select
-              id="allowDueReport"
-              value={employeeData.allowDueReport}
-              onChange={handelChangeEmployeeDetails}
-              className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-            // defaultValue={0}
-            >
-              <option value="" disabled hidden className="text-gray-400">
-                Select Option
-              </option>
-              <option value={0}>No</option>
-              <option value={1}>Yes</option>
-            </select>
-            <label htmlFor="allowDueReport" className="menuPeerLevel">
-              Allow Due Report
-            </label>
-          </div>
 
-          {/* Hide Rate */}
-          <div className="relative flex-1">
-            <select
-              id="hidden"
-              value={employeeData.hidden}
-              onChange={handelChangeEmployeeDetails}
-              className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
 
-            // defaultValue={0}
-            >
-              <option value="" disabled hidden className="text-gray-400">
-                Select Option
-              </option>
-              <option value={0}>No</option>
-              <option value={1}>Yes</option>
-            </select>
-            <label htmlFor="hidden" className="menuPeerLevel">
-              Hide Rate
-            </label>
-          </div>
 
-          {/* Disscount Approved */}
-          <div className="relative flex-1">
-            <select
-              id="isDiscountAppRights"
-              value={employeeData.isDiscountAppRights}
-              onChange={handelChangeEmployeeDetails}
-              className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
-
-            // defaultValue={0}
-            >
-              <option value="" disabled hidden className="text-gray-400">
-                Select Option
-              </option>
-              <option value={0}>No</option>
-              <option value={1}>Yes</option>
-            </select>
-            <label htmlFor="isDiscountAppRights" className="menuPeerLevel">
-              Disscount Approved
-            </label>
-          </div>
 
           {/* emp image */}
           <div className="relative flex-1 flex items-center gap-[0.20rem] w-full justify-between">
@@ -2587,6 +2589,127 @@ export default function EmployeeMaster() {
               </div>
             )}
           </div>
+
+          <div className="flex gap-[0.25rem]">
+
+            {/* Hide Rate */}
+            <div className="relative flex-1">
+              <select
+                id="hidden"
+                value={employeeData.hidden}
+                onChange={handelChangeEmployeeDetails}
+                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+
+              // defaultValue={0}
+              >
+                <option value="" disabled hidden className="text-gray-400">
+                  Select Option
+                </option>
+                <option value={0}>No</option>
+                <option value={1}>Yes</option>
+              </select>
+              <label htmlFor="hidden" className="menuPeerLevel">
+                Hide Rate
+              </label>
+            </div>
+
+            {/* Is Ticket Allowed */}
+            <div className="relative flex-1">
+              <select
+                id="allowTicket"
+                name="allowTicket"
+                value={employeeData.allowTicket}
+                onChange={handelChangeEmployeeDetails}
+                className={`inputPeerField cursor-pointer peer border-borderColor focus:outline-none `}
+
+              // defaultValue={0}
+              >
+                {/* <option value="" disabled hidden className="text-gray-400">
+                  Select Option
+                </option> */}
+                <option value={0}>No</option>
+                <option value={1}>Yes</option>
+              </select>
+              <label htmlFor="allowTicket" className="menuPeerLevel">
+                Allow Ticket
+              </label>
+            </div>
+          </div>
+
+          {/* allow ticket Role */}
+          <div className="relative flex-1">
+            <input
+              type="search"
+              id="allowTicketRole"
+              name="allowTicketRole"
+              value={
+                selectedSearchDropDownData?.allowTicketRole ||
+                employeeData?.allowTicketRole ||
+                ""
+              }
+              onChange={(e) => {
+                handelChangeEmployeeDetails(e),
+                  setSelectedSearchDropDownData((preventData) => ({
+                    ...preventData,
+                    allowTicketRole: "",
+                  }));
+              }}
+              onClick={() => openShowSearchBarDropDown(10)}
+              placeholder=" "
+              className={`inputPeerField peer ${formErrors.allowTicketRole
+                ? "border-b-red-500"
+                : "border-borderColor"
+                } focus:outline-none`}
+            />
+            <label htmlFor="allowTicketRole" className="menuPeerLevel">
+              Allow Ticket For Role
+            </label>
+
+            {/* Dropdown to select the menu */}
+            {showSearchBarDropDown === 10 && (
+              <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                <ul>
+                  {filterAllDefaultRoleData?.length > 0 ? (
+                    filterAllDefaultRoleData?.map((data, index) => (
+                      <li
+                        key={data.id}
+                        name="allowTicketRole"
+                        className="my-1 px-2 cursor-pointer"
+                        onClick={() => {
+                          setSelectedSearchDropDownData((preventData) => ({
+                            ...preventData,
+                            allowTicketRole: data?.roleName,
+                          }));
+                          openShowSearchBarDropDown(0);
+                          //handelChangeEmployeeDetails(e)
+                          handelChangeEmployeeDetails({
+                            target: { name: "allowTicketRole", value: data?.id },
+                          });
+                        }}
+                        onMouseEnter={() => setIsHovered(index)}
+                        onMouseLeave={() => setIsHovered(null)}
+                        style={{
+                          background:
+                            isHovered === index
+                              ? activeTheme?.subMenuColor
+                              : "transparent",
+                        }}
+                      >
+                        {data?.roleName}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="py-4 text-gray-500 text-center">
+                      {import.meta.env.VITE_API_SELECT_ROLE ||
+                        "No records found"}
+                    </li>
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+
+
 
           <div className="flex gap-[0.25rem]">
             {/* Active */}
