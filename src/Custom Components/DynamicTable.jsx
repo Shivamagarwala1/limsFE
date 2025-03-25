@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { IoMdMenu } from "react-icons/io";
 import { useSelector } from "react-redux";
 import { useGetData } from "../service/apiService";
@@ -154,6 +154,7 @@ const DynamicTable = ({
   loading,
   showDetails = true,
   trstyle,
+  height,
   tableStyle,
   statuses = [],
   noData = "",
@@ -170,6 +171,45 @@ const DynamicTable = ({
     if (legendColors) {
       fetchData("/LegendColorMaster");
     }
+  }, []);
+
+  const tableRef = useRef(null);
+
+  const handleMouseDown = (event) => {
+    const table = tableRef.current;
+    if (!table) return;
+
+    let startX = event.pageX;
+    let scrollLeft = table.scrollLeft;
+
+    const handleMouseMove = (e) => {
+      table.scrollLeft = scrollLeft - (e.pageX - startX);
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const [maxHeight, setMaxHeight] = useState("auto");
+  // const tableRef = useRef(null);
+
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      const windowHeight = window.innerHeight;
+      const offsetTop = tableRef.current?.getBoundingClientRect().top || 0;
+      const calculatedHeight = windowHeight - offsetTop - 20; // Subtract some padding
+      setMaxHeight(`${calculatedHeight}px`);
+    };
+
+    updateMaxHeight();
+    window.addEventListener("resize", updateMaxHeight);
+
+    return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
   return (
@@ -197,9 +237,11 @@ const DynamicTable = ({
         <div className="w-full">
           {/* Wrapper to make only table rows scrollable */}
           <div
+            ref={tableRef}
+            onMouseDown={handleMouseDown}
             style={{
               ...tableStyle,
-              maxHeight: "70vh", // Adjust scrollable height
+              height: height === undefined ? maxHeight : height, // Adjust scrollable height
               overflowY: "auto",
               position: "relative",
               scrollbarWidth: "none",
@@ -503,7 +545,8 @@ export const UpdatedDynamicTable = ({
   tableStyle,
   statuses = [],
   noData = "",
-  rowcolor = "rowcolor",
+  height,
+  rowcolor = "",
   legendColors = false,
   name = "Table Details",
   extraRow = [],
@@ -513,32 +556,43 @@ export const UpdatedDynamicTable = ({
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   const { data, fetchData } = useGetData();
 
-  const [tableHeight, setTableHeight] = useState("65vh");
+  const tableRef = useRef(null);
 
-  useEffect(() => {
-    const updateTableHeight = () => {
-      let width = window.innerWidth;
-      let height = window.innerHeight;
+  const handleMouseDown = (event) => {
+    const table = tableRef.current;
+    if (!table) return;
 
-      // Base height at 1000px width & 800px height
-      let baseWidth = 1000;
-      let baseHeight = 800;
+    let startX = event.pageX;
+    let scrollLeft = table.scrollLeft;
 
-      // Calculate additional height based on screen size
-      let extraHeight =
-        ((width - baseWidth) / 50) * 3 + ((height - baseHeight) / 50) * 2;
-
-      // Compute final height
-      let newHeight = 65 + extraHeight;
-
-      // Restrict height between 50vh and 90vh
-      newHeight = Math.max(62, Math.min(newHeight, 70));
-      setTableHeight(`${newHeight}vh`);
+    const handleMouseMove = (e) => {
+      table.scrollLeft = scrollLeft - (e.pageX - startX);
     };
 
-    updateTableHeight();
-    window.addEventListener("resize", updateTableHeight);
-    return () => window.removeEventListener("resize", updateTableHeight);
+    const handleMouseUp = () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const [maxHeight, setMaxHeight] = useState("auto");
+  // const tableRef = useRef(null);
+
+  useEffect(() => {
+    const updateMaxHeight = () => {
+      const windowHeight = window.innerHeight;
+      const offsetTop = tableRef.current?.getBoundingClientRect().top || 0;
+      const calculatedHeight = windowHeight - offsetTop - 20; // Subtract some padding
+      setMaxHeight(`${calculatedHeight}px`);
+    };
+
+    updateMaxHeight();
+    window.addEventListener("resize", updateMaxHeight);
+
+    return () => window.removeEventListener("resize", updateMaxHeight);
   }, []);
 
   useEffect(() => {
@@ -577,12 +631,14 @@ export const UpdatedDynamicTable = ({
         <Loader columns={columns} />
       ) : (
         <div
+          ref={tableRef}
+          onMouseDown={handleMouseDown}
           style={{
             ...tableStyle,
-            maxHeight: "65vh",
             overflowY: "auto",
             position: "relative",
             scrollbarWidth: "none",
+            height: height === undefined ? maxHeight : height,
           }}
           className="overflow-x-auto w-full"
         >
@@ -661,7 +717,7 @@ export const UpdatedDynamicTable = ({
                       background:
                         isHoveredTable === row?.[viewKey]
                           ? activeTheme?.subMenuColor
-                          : "",
+                          : row?.rowcolor || "",
                     }}
                   >
                     {columns?.map((col, idx) => (

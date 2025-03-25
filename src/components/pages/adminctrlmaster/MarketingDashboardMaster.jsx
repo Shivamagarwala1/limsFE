@@ -93,9 +93,15 @@ export default function MarketingDashboardMaster() {
       headerName: "Description",
       flex: 1,
       renderCell: (params) => {
-        return <div>
-          {params.row.description}
-        </div>;
+        return (
+          <div>
+            {params?.row?.description.length > 100 ? (
+              <> {params?.row?.description?.slice(0, 100)}...</>
+            ) : (
+              <>{params?.row?.description}</>
+            )}
+          </div>
+        );
       },
     },
     {

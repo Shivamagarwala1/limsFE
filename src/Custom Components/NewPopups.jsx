@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useGetData, usePostData } from "../service/apiService";
 import { getLocal } from "usehoks";
+import { IoAlertCircleOutline } from "react-icons/io5";
 import FileUpload from "./FileUpload";
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 import { TableHeader, UpdatedDynamicTable } from "./DynamicTable";
@@ -20,6 +21,62 @@ import {
 } from "../service/RedendentData";
 import { MdPadding } from "react-icons/md";
 import { DatePickerWithTime } from "./DatePickerWithTime";
+
+export const PopupModal = ({
+  showPopup,
+  setShowPopup,
+  handleTheUpdateStatusMenu,
+  message = "Are you sure you want to update?",
+  cancel = "Cancel",
+  confirmText = "Yes",
+  spinnerColor = "text-textColor",
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  if (!showPopup) return null;
+
+  return (
+    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
+      <div className="border-[1px] w-72 pl-3 pr-3 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
+        <div className="flex mt-3 items-center">
+          <IoAlertCircleOutline
+            className="w-8 h-8"
+            style={{ color: activeTheme?.menuColor }}
+          />
+        </div>
+
+        <div className="text-xxxs font-semibold text-textColor/50 text-center">
+          {message}
+        </div>
+
+        <div className="flex items-end gap-5 my-5">
+          <div>
+            <button
+              className="border-[1px] w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
+              style={{
+                borderImageSource: activeTheme?.menuColor,
+                borderImageSlice: 1,
+              }}
+              onClick={() => setShowPopup(false)}
+            >
+              {cancel}
+            </button>
+          </div>
+
+          <div
+            className=" w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
+            style={{
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+            }}
+            onClick={handleTheUpdateStatusMenu}
+          >
+            <div>{confirmText}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const UploadCertificatePopupModal = ({
   showPopup,
@@ -1030,6 +1087,120 @@ export const CancelPopupModal = ({
           {" "}
          
         </div> */}
+      </div>
+    </div>
+  );
+};
+
+export const PaymentVarificationPopupModal = ({
+  showPopup,
+  setShowPopup,
+  message = "Are you sure you want to ",
+  row,
+}) => {
+  if (!showPopup) return null;
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const lsData = getLocal("imarsar_laboratory");
+  const [Remark, setRemark] = useState("");
+  const getData = usePostData();
+
+  const handleTheUpdateStatusMenu = async () => {
+    if (!Remark) {
+      toast.error(
+        row?.approved == 0
+          ? "Remark is Required"
+          : "Rejection Remark is Required"
+      );
+      return;
+    }
+    const payload = {
+      id: row?.id,
+      remarks: row?.approved == 0 ? Remark : "",
+      rejectRemarks: row?.approved == 0 ? "" : Remark,
+      approved: row?.approved === 0 || row?.approved === -1 ? 1 : -1,
+      updateDate: new Date().toISOString(),
+      updateByID: parseInt(lsData?.user?.employeeId),
+      apprvoedByID: parseInt(lsData?.user?.employeeId),
+    };
+    const res = await getData?.postRequest(
+      "/CentrePayment/PaymentApproveReject",
+      payload
+    );
+    if (res?.success) {
+      toast.success(res?.message);
+      setShowPopup(false);
+    } else {
+      toast.error(res?.message);
+    }
+    console.log(res);
+  };
+
+  return (
+    <div className="flex justify-center items-center  h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
+      <div
+        style={{ width: "18rem" }}
+        className="border-[1px] w-60 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50"
+      >
+        <>
+          <div className="flex mt-3 items-center">
+            <IoAlertCircleOutline
+              className="w-8 h-8"
+              style={{ color: activeTheme?.menuColor }}
+            />
+          </div>
+          <div className="text-xxxs font-semibold mb-2 text-textColor/50">
+            {message}
+            {row?.approved === 0 || row?.approved === -1 ? "Approve" : "Reject"}
+          </div>
+          <InputGenerator
+            inputFields={[
+              {
+                label: `${
+                  row?.approved === 0 || row?.approved === -1
+                    ? "Remark"
+                    : "Rejection Remark"
+                }`,
+                type: "text",
+                style: { width: "14rem" },
+                name: `${
+                  row?.approved === 0 || row?.approved === -1
+                    ? "Remark"
+                    : "RejectionRemark"
+                }`,
+                onChange: (e) => {
+                  setRemark(e);
+                },
+              },
+            ]}
+          />
+          <div className="flex items-end gap-5 my-5">
+            <div>
+              <button
+                className="border-[1px] w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
+                style={{
+                  borderImageSource: activeTheme?.menuColor,
+                  borderImageSlice: 1,
+                }}
+                onClick={() => setShowPopup(false)}
+              >
+                cancel
+              </button>
+            </div>
+
+            <div
+              className=" w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
+              style={{
+                background: activeTheme?.menuColor,
+                color: activeTheme?.iconColor,
+              }}
+              onClick={() => {
+                handleTheUpdateStatusMenu();
+              }}
+            >
+              <div>Yes</div>
+            </div>
+          </div>
+        </>
       </div>
     </div>
   );

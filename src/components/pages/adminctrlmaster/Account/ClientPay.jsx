@@ -4,18 +4,25 @@ import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
+  getFormattedDate,
   SubmitButton,
+  TwoLegendButton,
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable, { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../../Custom Components/DynamicTable";
 import { FaRegEdit } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import FileUpload from "../../../../Custom Components/FileUpload";
 import toast from "react-hot-toast";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 import { LegendButtons } from "../../../../Custom Components/LegendButtons";
-import { addRandomObjectId } from "../../../../service/RedendentData";
+import {
+  addRandomObjectId,
+  getFirstDateOfMonth,
+} from "../../../../service/RedendentData";
 
 export default function ClientPay() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -51,19 +58,29 @@ export default function ClientPay() {
   const [BankHoveIndex, setBankHoveIndex] = useState(null);
   const [BankSelectedOption, setBankSelectedOption] = useState("");
   // ------------------ PaymentType -------------------------------
-  const [PaymentTypeId, setPaymentTypeId] = useState(null);
+  const [PaymentTypeId, setPaymentTypeId] = useState(0);
   const [PaymentTypeValue, setPaymentTypeValue] = useState("");
   const [PaymentTypeDropDown, setPaymentTypeDropDown] = useState(false);
   const [PaymentTypeHoveIndex, setPaymentTypeHoveIndex] = useState(null);
   const [PaymentTypeSelectedOption, setPaymentTypeSelectedOption] =
     useState("");
-
-  const [FileData, setFileData] = useState({ fileName: "" });
   const [PDFPath, setPDFPath] = useState("");
+  const todayDate = getFormattedDate();
+  const FirstDateofMonth = getFirstDateOfMonth();
+  const [FromDate, setFromDate] = useState(FirstDateofMonth);
+  const [ToDate, setToDate] = useState(todayDate);
+  const [FileData, setFileData] = useState({ fileName: "" });
   const [PaymentMode, setPaymentMode] = useState(1);
+  const [status, setStatus] = useState(2);
   const [Row, setRow] = useState([]);
   const AllCenterData = useGetData();
   const BankData = useGetData();
+  const LegendColor = useGetData();
+
+  useEffect(() => {
+    LegendColor?.fetchData("/LegendColorMaster");
+  }, []);
+
   useEffect(() => {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreid,companyName&$filter=( centretypeid eq 2 or centretypeid eq 3 )"
@@ -73,7 +90,7 @@ export default function ClientPay() {
   }, []);
   useEffect(() => {
     getReason();
-  }, [PaymentTypeId, CenterId]);
+  }, [PaymentTypeId, CenterId, FromDate, ToDate, status]);
 
   useEffect(() => {
     if (FileData.fileData) {
@@ -86,7 +103,7 @@ export default function ClientPay() {
     }
   }, [FileData]);
 
-  console.log(FileData);
+  // console.log(Row);
 
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 100 },
@@ -106,11 +123,6 @@ export default function ClientPay() {
       flex: 1,
     },
     {
-      field: `remarks`,
-      headerName: `Remarks`,
-      flex: 1,
-    },
-    {
       field: `paymentType`,
       headerName: `Payment Type`,
       flex: 1,
@@ -125,52 +137,34 @@ export default function ClientPay() {
       },
     },
     {
+      field: `status`,
+      headerName: `Status`,
+      flex: 1,
+    },
+    {
+      field: `remarks`,
+      headerName: `Remarks`,
+      flex: 1,
+    },
+    {
       field: `paymentDate`,
       headerName: `Payment Date`,
       flex: 1,
     },
-    // {
-    //   field: "",
-    //   width: 200,
-    //   headerName: "Action",
-    //   renderCell: (params) => {
-    //     return (
-    //       <div style={{ display: "flex", gap: "20px" }}>
-    //         <button className="w-4 h-4 flex justify-center items-center">
-    //           <FaRegEdit
-    //             className={`w-full h-full ${
-    //               params?.row?.isActive === 1
-    //                 ? "text-blue-500 cursor-pointer"
-    //                 : "text-gray-400 cursor-not-allowed"
-    //             }`}
-    //             onClick={() => {
-    //               setClickedRowId(params?.row);
-    //             }}
-    //           />
-    //         </button>
-    //         <button
-    //           className={`w-4 h-4 flex justify-center items-center ${
-    //             params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
-    //           }`}
-    //         >
-    //           <ImSwitch
-    //             className="w-full h-full"
-    //             onClick={() => {
-    //               setClickedRowId(params?.row);
-    //               setShowPopup(true);
-    //             }}
-    //           />
-    //         </button>
-    //       </div>
-    //     );
-    //   },
-    // },
   ];
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
     console.log(values);
+    if (!CenterId) {
+      toast.error("Center is Required");
+      return;
+    }
+    if (!PDFPath) {
+      toast.error("Recipt is Required");
+      return;
+    }
     const payload =
       isButtonClick === 0
         ? {
@@ -277,7 +271,7 @@ export default function ClientPay() {
     setPaymentTypeSelectedOption(name);
     setPaymentTypeDropDown(false);
   };
-
+  console.log(status);
   // Function to handle input changes
   const handleSearchChange3 = (e) => {
     setBankValue(e.target.value);
@@ -294,11 +288,24 @@ export default function ClientPay() {
   const getReason = async () => {
     const payload = [CenterId];
     const get = await getData?.postRequest(
-      `/CentrePayment/ClientDepositReport?FromDate=24-Mar-2024&ToDate=25-Mar-2025&Paymenttype=${PaymentTypeId}`,
+      `/CentrePayment/ClientDepositReport?FromDate=${FromDate}&ToDate=${ToDate}&Paymenttype=${PaymentTypeId}&status=${status}`,
       payload
     );
     if (get?.success) {
-      setRow(addRandomObjectId(get?.data));
+      setRow(
+        get?.data?.map((item, index, arr) => {
+          // Find matching object in 'data' array based on status
+          const matchingData = LegendColor?.data?.find(
+            (d) => d.contantName === item.status
+          );
+
+          return {
+            ...item,
+            Random: index + 1, // Assigns a sequential number
+            rowcolor: matchingData?.colourCode || "", // Uses matched color or defaults to empty
+          };
+        })
+      );
     } else {
       toast.error(get?.message);
     }
@@ -321,27 +328,6 @@ export default function ClientPay() {
   //   }
   // };
 
-  //   const InputFileds = [{ label: "", type: "" }];
-  const statuses = [
-    {
-      Data: 17,
-      CallBack: () => {
-        // Pending
-      },
-    },
-    {
-      Data: 18,
-      CallBack: () => {
-        // Collected
-      },
-    },
-    {
-      Data: 19,
-      CallBack: () => {
-        // Collected
-      },
-    },
-  ];
   return (
     <div>
       {/* Header Section */}
@@ -372,6 +358,33 @@ export default function ClientPay() {
             setIsHovered={setCenterHoveIndex}
             isHovered={CenterHoveIndex}
             style={{ marginTop: "0.1rem" }}
+          />
+          <InputGenerator
+            inputFields={[
+              {
+                label: "From Date",
+                type: "customDateField",
+                name: "FromDate",
+                ShowDate: getFirstDateOfMonth(),
+                minDate: new Date(2000, 0, 1),
+                tillDate: new Date(2100, 0, 1),
+                customOnChange: (e) => {
+                  console.log(e);
+                  setFromDate(e);
+                },
+              },
+              {
+                label: "To Date",
+                type: "customDateField",
+                name: "ToDate",
+                minDate: new Date(2000, 0, 1),
+                tillDate: new Date(2100, 0, 1),
+                customOnChange: (e) => {
+                  console.log(e);
+                  setToDate(e);
+                },
+              },
+            ]}
           />
           <InputGenerator
             inputFields={[
@@ -593,19 +606,43 @@ export default function ClientPay() {
           <InputGenerator
             inputFields={[{ label: "Remarks", type: "text", name: "remarks" }]}
           />
-          <TwoSubmitButton
+          <TwoLegendButton
             options={[
               {
                 label: "Save",
                 submit: true,
-                // callBack: () => {
-                //   handleSubmit();
-                // },
+              },
+              {
+                id: 17,
+                submit: false,
+                callBack: () => {
+                  // Pending
+                  setStatus("0");
+                },
+              },
+            ]}
+          />
+          <TwoLegendButton
+            options={[
+              {
+                id: 18,
+                submit: false,
+                callBack: () => {
+                  // Pending
+                  setStatus("1");
+                },
+              },
+              {
+                id: 19,
+                submit: false,
+                callBack: () => {
+                  // Pending
+                  setStatus("-1");
+                },
               },
             ]}
           />
         </div>
-        <LegendButtons statuses={statuses} />
       </form>
       <UpdatedDynamicTable
         rows={Row}
