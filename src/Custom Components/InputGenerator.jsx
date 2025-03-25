@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { FaUser } from "react-icons/fa";
 import DatePicker from "react-datepicker"; // Add react-datepicker for date-time selection
 import useRippleEffect from "../components/customehook/useRippleEffect";
+import { useGetData } from "../service/apiService";
 
 export function getFormattedDate() {
   const today = new Date();
@@ -78,15 +79,6 @@ export default function InputGenerator({
     <>
       {inputFields.map((field, index) => (
         <React.Fragment key={index}>
-          {/* {showCalendars[field?.name] && (
-            <div className="absolute top-full left-0 mt-1 bg-white shadow-lg rounded z-50">
-              <UserCalendar
-                onDateClick={(date) =>
-                  handleDateClick(date, field?.name, field)
-                }
-              />
-            </div>
-          )} */}
           <div
             key={index}
             style={field?.mainStyle ? field?.mainStyle : { height: "1.6rem" }}
@@ -143,7 +135,7 @@ export default function InputGenerator({
                     style={field?.inputStyle}
                     id={field?.name}
                     name={field?.name}
-                    defaultValue={todayDate}
+                    defaultValue={field?.ShowDate || todayDate}
                     placeholder={""}
                     onChange={(e) => {
                       field?.onChange?.(e.target.value); // Calls field's internal onChange
@@ -176,6 +168,7 @@ export default function InputGenerator({
                     <UserCalendar
                       minDate={field?.minDate}
                       tillDate={field?.tillDate}
+                      currentDate={field?.currentDate}
                       onDateClick={(date) =>
                         handleDateClick(date, field?.name, field)
                       }
@@ -994,3 +987,62 @@ export const WeekdayToggle = ({ setDays, days }) => {
     </div>
   );
 };
+
+export const TwoLegendButton = ({
+  options = [],
+  NoSpace = false,
+  style = {},
+}) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const { data, fetchData } = useGetData();
+
+  useEffect(() => {
+    fetchData("/LegendColorMaster");
+  }, []);
+
+  // Split the options into pairs
+  const buttonPairs = [];
+  for (let i = 0; i < options.length; i += 2) {
+    buttonPairs.push(options.slice(i, i + 2));
+  }
+
+  useRippleEffect();
+
+  return (
+    <div style={style} className="flex flex-col gap-2">
+      {buttonPairs.map((pair, index) => (
+        <div key={index} className="flex gap-2">
+          {pair.map((button, btnIndex) => {
+            // Find matching data object based on id
+            const matchingData = data?.find((item) => item.id === button.id);
+
+            return (
+              <div
+                key={btnIndex}
+                className="relative flex-1 flex justify-start items-center"
+              >
+                <button
+                  type={button.submit ? "submit" : "button"}
+                  data-ripple-light="true"
+                  onClick={button.callBack}
+                  disabled={button.disabled}
+                  className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
+                  style={{
+                    background: matchingData?.colourCode || activeTheme?.menuColor, // Dynamic color or default theme
+                    color: activeTheme?.iconColor,
+                    ...button.style, // Allow custom styles
+                  }}
+                >
+                  {matchingData?.contantName || button.label || "Button"}
+                </button>
+              </div>
+            );
+          })}
+          {/* If there is an odd number of buttons, fill the gap */}
+          {!NoSpace && pair.length === 1 && <div className="flex-1"></div>}
+        </div>
+      ))}
+    </div>
+  );
+};
+

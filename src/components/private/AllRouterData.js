@@ -429,6 +429,11 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/MarketingDashboardMaster.jsx")),
         exact: true,
     },
+    {
+        path: "/LIMS/TransferRatelist",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Account/TransferRatelist")),
+        exact: true,
+    },
 ];
 
 

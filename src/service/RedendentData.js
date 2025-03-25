@@ -245,13 +245,18 @@ export const downloadExcel = async (api, name = "RateList.xlsx") => {
   }
 };
 
-export const downloadPostExcel = async (api, payload, name = "RateList.xlsx") => {
+export const downloadPostExcel = async (
+  api,
+  payload,
+  name = "RateList.xlsx"
+) => {
   try {
     const response = await axios.post(`${BASE_URL}${api}`, payload, {
       responseType: "blob", // Ensure binary data is handled correctly
       headers: {
         "Content-Type": "application/json",
-        Accept: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        Accept:
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       },
     });
 
@@ -273,7 +278,6 @@ export const downloadPostExcel = async (api, payload, name = "RateList.xlsx") =>
     console.error("Error downloading Excel file:", error);
   }
 };
-
 
 export function convertToISO(dateStr, fieldId = "from") {
   const months = {
@@ -357,22 +361,15 @@ export const convertDateTimeFormat = (dateTimeStr) => {
   return `${day}-${month}-${year} ${hours}:${minutes}`;
 };
 
-// export const convertDateTimeFormat = (dateTimeStr) => {
-//   if (!dateTimeStr) return "";
+export function getFirstDateOfMonth() {
+  const today = new Date();
+  const firstDate = new Date(today.getFullYear(), today.getMonth(), 1);
 
-//   // Parse the input date string into a Date object
-//   const dateObj = new Date(dateTimeStr.replace(" ", "T"));
+  const day = firstDate.getDate().toString().padStart(2, "0");
+  const month = firstDate.toLocaleString("en-GB", { month: "short" });
+  const year = firstDate.getFullYear().toString().slice(-2);
 
-//   if (isNaN(dateObj)) return "Invalid Date";
+  return `${day}-${month}-${year}`;
+}
 
-//   // Format day, month, and year
-//   const day = dateObj.getDate().toString().padStart(2, "0");
-//   const month = dateObj.toLocaleString("en-GB", { month: "short" });
-//   const year = dateObj.getFullYear();
-
-//   // Format hours and minutes
-//   const hours = dateObj.getHours().toString().padStart(2, "0");
-//   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-
-//   return `${day}-${month}-${year} ${hours}:${minutes}`;
-// };
+console.log(getFirstDateOfMonth()); // Example Output: "01-Mar-25"
