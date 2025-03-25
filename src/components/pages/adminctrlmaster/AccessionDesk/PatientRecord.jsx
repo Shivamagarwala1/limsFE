@@ -20,7 +20,7 @@ import { FaCircleInfo } from "react-icons/fa6";
 import { RiBillLine } from "react-icons/ri";
 import FormHeader from "../../../global/FormHeader";
 import CustomSearchInputFields from "../../../global/CustomSearchDropdown";
-import { getAllCentreApi, getAllEmployeeApi, getGridDataBasedOnPatientRecordData, getSearchBtnColorCodeInPatientRecordApi, handelDownloadCashReceiptApi, handelDownloadInfoOrDocumentApi, handelDownloadMRPreceiptApi } from "../../../../service/service";
+import { getAllBankNameApi, getAllCentreApi, getAllEmployeeApi, getGridDataBasedOnPatientRecordData, getSearchBtnColorCodeInPatientRecordApi, handelDownloadCashReceiptApi, handelDownloadInfoOrDocumentApi, handelDownloadMRPreceiptApi, usePostData } from "../../../../service/service";
 import CustomDropdown from "../../../global/CustomDropdown";
 import { useFormattedDate } from "../../../customehook/useDateTimeFormate";
 import { DatePicker } from "../../../global/DatePicker";
@@ -32,11 +32,12 @@ import CustomeNormalButton from "../../../global/CustomeNormalButton";
 import GridDataDetails from '../../../global/GridDataDetails';
 import useRippleEffect from "../../../customehook/useRippleEffect";
 import CustomeSearchInputFields from "../../../global/CustomeSearchInputFields";
-import { patientRecordHeader, patientRegistrationPaymentMode } from "../../../listData/listData";
+import { patientRecordHeader, patientRegistrationPaymentMode, paymentModes } from "../../../listData/listData";
 import CustomFormButton from "../../../global/CustomFormButton";
 import { IoMdCloseCircleOutline } from "react-icons/io";
 import { TbCoinRupeeFilled } from "react-icons/tb";
 import CustomSmallPopup from "../../../global/CustomSmallPopup";
+import CustomFormButtonWithLoading from "../../../global/CustomFormButtonWithLoading";
 
 export default function PatientRecord() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -237,6 +238,23 @@ export default function PatientRecord() {
   const [loadingId, setLoadingId] = useState(0);
   const [showPopup, setShowPopup] = useState(0);
 
+  const [settelmentData, setSettelmentData] = useState({
+    selectCurrencyValue: '1',
+    creditCardAmt: '',
+    lastFoureDigit: '',
+    bank_Id: 0,
+    onlinewalletAmt: '',
+    paymentModeId: 0,
+    paidAmount: 0,
+    balanceAmt: 0,
+    centreId: 0,
+    workOrderId: ''
+  })
+  const [paymentModeType, setPaymentModeType] = useState([{ value: '1', label: 'Cash' }]);
+  const [patientRegistrationDataError, setPatientRegistrationDataError] = useState([]);
+  const [allBankNameData, setAllBankNameData] = useState([]);
+  const patientRecordPostData = usePostData();
+
   useRippleEffect();
 
   const handelOnChangePatientRecord = (e) => {
@@ -312,8 +330,6 @@ export default function PatientRecord() {
       }
     } catch (error) {
       toast.error(error?.message);
-      console.log(error);
-
     }
 
     setIsButtonClick(0);
@@ -381,6 +397,190 @@ export default function PatientRecord() {
     } catch (error) {
       toast.error(error?.message);
     }
+  }
+
+  //!=================setelement data==================
+
+  const handelOpenSettlementData = (data) => {
+
+    setSettelmentData((preventData) => ({
+      ...preventData,
+      paidAmount: data?.paidAmount || 0,
+      balanceAmt: data?.dueAmt || 0,
+      centreId: data?.centreId,
+      workOrderId: data?.workOrderId
+    }))
+
+    setShowPopup(1);
+
+  }
+
+  //calculate paid amt.
+  useEffect(() => {
+    // Calculate paidAmount dynamically
+    const totalPaid =
+      parseFloat(settelmentData.cashAmt || 0) +
+      parseFloat(settelmentData.creditCardAmt || 0) +
+      parseFloat(settelmentData.onlinewalletAmt || 0);
+
+    //calculate the total net amt
+    // const totaNetAmt = investigationGridData
+    //     ? investigationGridData.reduce((sum, data) => sum + (parseInt(data?.netAmt) || 0), 0)
+    //     : 0;
+
+    // console.log(totaNetAmt);
+    // 
+
+    if (totalPaid > settelmentData?.grossAmount) {
+      toast.error('Paid amount cannot exceed the total amount.');
+      setSettelmentData((preventData) => ({
+        ...preventData,
+        balanceAmt: 0,
+        paidAmount: 0
+      }))
+      return;
+    }
+    // Update paidAmount in state, ensuring it's a double (two decimal places)
+    setSettelmentData((prevData) => ({
+      ...prevData,
+      paidAmount: parseFloat(totalPaid.toFixed(2)), // Ensures double value with 2 decimals
+      balanceAmt: settelmentData?.balanceAmt - settelmentData?.cashAmt - settelmentData?.creditCardAmt - settelmentData?.onlinewalletAmt
+    }));
+  }, [
+    settelmentData.cashAmt,
+    settelmentData.creditCardAmt,
+    settelmentData.onlinewalletAmt,
+  ]);
+
+
+  const handelOnChangeSelectCurrencyValue = (e) => {
+    setSettelmentData((preventData) => ({
+      ...preventData,
+      [e.target.name]: e.target.value
+    }));
+  }
+
+  const handelOnChangePaymentMode = (updatedSelectedItems) => {
+    setPaymentModeType(updatedSelectedItems);
+  };
+
+  //validations
+  const validateForm = () => {
+
+    const errors = {};
+
+    // Validate based on paymentModeType
+    paymentModeType?.forEach((paymentMode) => {
+
+      switch (paymentMode?.label) {
+
+        case 'Debit/Credit Card':
+          if (!settelmentData.creditCardAmt) {
+            errors.creditCardAmt = true;
+          }
+          if (!settelmentData.lastFoureDigit) {
+            errors.lastFoureDigit = true;
+          }
+          if (!settelmentData.bank_Id) {
+            errors.bank_Id = true;
+          }
+          break;
+
+        case 'UPI':
+          if (!settelmentData.onlinewalletAmt) {
+            errors.onlinewalletAmt = true;
+          }
+          break;
+
+        default:
+          break;
+      }
+    })
+
+    // Update state with errors
+    setPatientRegistrationDataError(errors);
+    //console.log(errors);
+
+    // Return true if no errors exist
+    return Object.keys(errors).length === 0;
+  };
+
+  useEffect(() => {
+
+    if (!validateForm()) {
+      setIsButtonClick(0);
+    }
+  }, [settelmentData, paymentModeType]);
+
+
+  useEffect(() => {
+    const getAllBankData = async () => {
+
+      try {
+        const response = await getAllBankNameApi();
+        setAllBankNameData(response);
+      } catch (error) {
+        toast.error(error?.message);
+      }
+    }
+    getAllBankData();
+  }, [showPopup])
+
+
+  const saveSettlementData = async (e) => {
+
+    e.preventDefault();
+
+    setIsButtonClick(2);
+
+    if (!validateForm()) {
+      toast.info("Please fill in all mandatory fields.");
+      setIsButtonClick(0);
+      return;
+    }
+
+    const addpaymentdetail = paymentModeType?.map((data) => ({
+
+      "transactionId": 0,
+      "transactionType": data?.paymentMode,
+      "workOrderId": settelmentData?.workOrderId,
+      "receiptNo": 0,
+      "receivedAmt": 0,
+      "cashAmt": data?.value === '1' ? parseFloat(settelmentData?.cashAmt) : 0,
+      "creditCardAmt": data?.value === '2' ? parseFloat(settelmentData?.creditCardAmt) : 0,
+      "creditCardNo": settelmentData?.lastFoureDigit,
+      "chequeAmt": 0,
+      "chequeNo": "",
+      "onlinewalletAmt": parseInt(settelmentData?.onlinewalletAmt),
+      "walletno": "",
+      "nefTamt": 0,
+      "bankName": data?.value === '2' ? allBankNameData.filter((data) => data?.id === settelmentData?.bank_Id)[0]?.bankName : '',
+      "paymentModeId": parseInt(data?.value),
+      "isCancel": 0,
+      "cancelDate": "",
+      "canceledBy": "",
+      "cancelReason": "",
+      "bookingCentreId": parseInt(settelmentData?.centreId),
+      "settlementCentreID": 0,
+      "receivedBy": user?.name,
+      "receivedID": parseInt(user?.employeeId),
+      "paidAmt": settelmentData?.paidAmount
+    }))
+
+
+    try {
+      const response = await patientRecordPostData.postRequestData(`/tnx_Booking/SaveSettelmentDetail`, addpaymentdetail);
+
+      if (response?.success) {
+        toast.success(response?.message);
+      } else {
+        toast.error(response?.message);
+      }
+
+    } catch (error) {
+      toast.error(error?.message);
+    }
+    setIsButtonClick(0);
   }
 
   return (
@@ -653,12 +853,14 @@ export default function PatientRecord() {
 
       </div>
 
-
       <div>
         <GridDataDetails
           gridDataDetails={'Patient Record Details'}
         />
+        {
+          console.log(allPatientRecordData)
 
+        }
         <CustomDynamicTable columns={patientRecordHeader} activeTheme={activeTheme}>
           <tbody>
             {allPatientRecordData?.map((data, index) => (
@@ -763,7 +965,7 @@ export default function PatientRecord() {
                   <div className="flex justify-center items-center">
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => setShowPopup(1)}
+                      onClick={() => handelOpenSettlementData(data)}
                     >
                       <FaRupeeSign />
                     </div>
@@ -776,7 +978,11 @@ export default function PatientRecord() {
                   <div className="flex justify-center items-center">
                     <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                       style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => setShowPopup(2)}
+                      onClick={() => {
+                        setShowPopup(2)
+                      }}
+
+
                     >
                       <TbCoinRupeeFilled />
                     </div>
@@ -819,8 +1025,8 @@ export default function PatientRecord() {
 
       {
         showPopup === 1 && (
-          <div className="fixed inset-0 px-2 lg:px-32 bg-black bg-opacity-50 z-50">
-            <div className="w-full  mt-10 bg-white rounded-lg shadow-2xl animate-slideDown pb-3">
+          <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+            <div className="w-80 max-h-[50vh] md:w-[800px] md:max-h-[40vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
 
               <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md'
                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
@@ -850,20 +1056,20 @@ export default function PatientRecord() {
                   <div>Settelment  Details</div>
                 </div>
 
-                <form autoComplete='off'>
+                <form autoComplete='off' onSubmit={saveSettlementData}>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mt-2 mb-1 items-center  mx-1 lg:mx-2">
 
                     <div className="relative flex-1">
                       <CustomDropdown
-                        name="Currency"
+                        name="selectCurrencyValue"
                         label="Select Currency"
-                        // value={selectCurrencyValue || ''}
+                        value={settelmentData?.selectCurrencyValue || ''}
                         options={[
                           { label: 'INR', value: '1' },
                           { label: 'USD', value: '2' },
                         ]}
-                        // onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
+                        onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
                         defaultIndex={0}
                         activeTheme={activeTheme}
                         isMandatory={false}
@@ -871,13 +1077,14 @@ export default function PatientRecord() {
                     </div>
 
                     <div className="relative flex-1">
+
                       <CustomMultiSelectDropdown
                         id="paymentModeType"
                         name="paymentModeType"
                         label="Select Payment Modes"
-                        // options={paymentModes}
-                        // selectedItems={paymentModeType}
-                        // onSelectionChange={handelOnChangePaymentMode}
+                        options={paymentModes}
+                        selectedItems={paymentModeType}
+                        onSelectionChange={handelOnChangePaymentMode}
                         placeholder=" "
                         activeTheme={activeTheme}
                         uniqueId={'value'}
@@ -891,7 +1098,7 @@ export default function PatientRecord() {
                         type="text"
                         id="paidAmount"
                         name="paidAmount"
-                        // value={patientRegistrationData?.paidAmount || ''}
+                        value={settelmentData?.paidAmount || 0}
                         placeholder=" "
                         className="inputPeerField peer border-borderColor focus:outline-none"
                         readOnly
@@ -909,8 +1116,7 @@ export default function PatientRecord() {
                         type="text"
                         id="balanceAmt"
                         name="balanceAmt"
-
-
+                        value={settelmentData?.balanceAmt || ''}
                         placeholder=" "
                         className={`inputPeerField peer border-borderColor            focus:outline-none `}
                         readOnly
@@ -919,114 +1125,118 @@ export default function PatientRecord() {
                         Balance Amt.
                       </label>
                     </div>
+
+
+
+                    <div className="flex gap-[0.25rem]">
+                      <div className="relative flex-1">
+                        <CustomFormButtonWithLoading
+                          activeTheme={activeTheme}
+                          text="Update"
+                          icon={FaSpinner}
+                          isButtonClick={isButtonClick}
+                          loadingButtonNumber={2} // Unique number for the first button
+                        />
+                      </div>
+
+                      <div className="relative flex-1"></div>
+                    </div>
                   </div>
 
                   {/* grid data */}
-                  <CustomDynamicTable columns={patientRegistrationPaymentMode} activeTheme={activeTheme}>
+                  <CustomDynamicTable columns={patientRegistrationPaymentMode} activeTheme={activeTheme} >
                     <tbody>
-                      <tr className=''>
-
-                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                        >
-
+                      <tr className="cursor-pointer whitespace-nowrap">
+                        {/* Paid Amount */}
+                        <td className="text-xxs font-semibold text-gridTextColor relative w-1/6 px-1">
                           <CustomTextBox
                             type="decimalpositive"
                             name="cashAmt"
-                            // value={patientRegistrationData?.cashAmt || ''}
-                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            value={settelmentData?.cashAmt || ''}
+                            onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
                             label="Paid Amt."
-                            // isDisabled={!paymentModeType.some((item) => item.value === "1")}
-                            // isMandatory={patientRegistrationDataError.cashAmt}
-                            // readOnly={!paymentModeType.some((item) => item.value === "1")}
+                            isDisabled={!paymentModeType.some((item) => item.value === "1")}
+                            isMandatory={patientRegistrationDataError.cashAmt}
+                            readOnly={!paymentModeType.some((item) => item.value === "1")}
                             showLabel={true}
                           />
                         </td>
 
-
-                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                        >
-
-
+                        {/* Credit/Debit Card Amount */}
+                        <td className="text-xxs font-semibold text-gridTextColor relative w-1/6 px-1">
                           <CustomTextBox
                             type="decimalpositive"
                             name="creditCardAmt"
-                            // value={patientRegistrationData?.creditCardAmt || ''}
-                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            value={settelmentData?.creditCardAmt || ''}
+                            onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
                             label="Credit Card Amt."
-                            // isDisabled={!paymentModeType.some((item) => item.value === "2")}
-                            // isMandatory={patientRegistrationDataError.creditCardAmt}
-                            // readOnly={!paymentModeType.some((item) => item.value === "2")}
+                            isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                            isMandatory={patientRegistrationDataError.creditCardAmt}
+                            readOnly={!paymentModeType.some((item) => item.value === "2")}
                             showLabel={true}
                           />
                         </td>
 
-                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                        >
-
-
+                        {/* Last 4 Digits */}
+                        <td className="text-xxs font-semibold text-gridTextColor relative w-1/6 px-1">
                           <CustomTextBox
                             type="positive"
                             name="lastFoureDigit"
-                            // value={patientRegistrationData?.lastFoureDigit || ''}
-                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            value={settelmentData?.lastFoureDigit || ''}
+                            onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
                             label="Last 4 digits"
-                            // isDisabled={!paymentModeType.some((item) => item.value === "2")}
-                            // isMandatory={patientRegistrationDataError.lastFoureDigit}
+                            isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                            isMandatory={patientRegistrationDataError.lastFoureDigit}
                             maxLength={4}
-                            // readOnly={!paymentModeType.some((item) => item.value === "2")}
+                            readOnly={!paymentModeType.some((item) => item.value === "2")}
                             showLabel={true}
                           />
                         </td>
 
-
-                        <td className='text-xxs font-semibold text-gridTextColor relative flex-1 -mt-[1.9px]'>
-
+                        {/* Select Bank */}
+                        <td className="text-xxs font-semibold text-gridTextColor relative w-1/6 px-1">
                           <CustomDropdown
                             name="bank_Id"
                             label="Select Bank"
-                            // value={patientRegistrationData?.bank_Id}
+                            value={settelmentData?.bank_Id}
                             options={[
                               { label: 'Select Bank Name', value: 0, disabled: true },
-                              // ...allBankNameData?.map(item => ({
-                              //   label: item.bankName,
-                              //   value: parseInt(item.id),
-                              // })),
+                              ...allBankNameData?.map(item => ({
+                                label: item.bankName,
+                                value: parseInt(item.id),
+                              })),
                             ]}
-                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
                             defaultIndex={0}
-                            // isDisabled={!paymentModeType.some((item) => item.value === "2")}
+                            isDisabled={!paymentModeType.some((item) => item.value === "2")}
                             activeTheme={activeTheme}
                             showLabel={false}
-                          // isMandatory={patientRegistrationDataError?.bank_Id}
+                            isMandatory={patientRegistrationDataError?.bank_Id}
                           />
                         </td>
 
-                        <td className="text-xxs font-semibold text-gridTextColor relative flex-1"
-                        >
-
-
+                        {/* UPI Amount */}
+                        <td className="text-xxs font-semibold text-gridTextColor relative w-1/6 px-1">
                           <CustomTextBox
                             type="decimalpositive"
                             name="onlinewalletAmt"
-                            // value={patientRegistrationData?.onlinewalletAmt || ''}
-                            // onChange={(e) => handelOnChangePatientRegistration(e)}
+                            value={settelmentData?.onlinewalletAmt || ''}
+                            onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
                             label="Last 4 digits"
-                            // isDisabled={!paymentModeType.some((item) => item.value === "3")}
-                            // isMandatory={patientRegistrationDataError.onlinewalletAmt}
+                            isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                            isMandatory={patientRegistrationDataError.onlinewalletAmt}
 
-                            // readOnly={!paymentModeType.some((item) => item.value === "3")}
+                            readOnly={!paymentModeType.some((item) => item.value === "3")}
                             showLabel={true}
                           />
                         </td>
 
-
-
-                        <td className='text-xxs font-semibold text-gridTextColor relative flex-1'>
-
+                        {/* UPI Type */}
+                        <td className="text-xxs font-semibold text-gridTextColor relative w-1/6 px-1">
                           <CustomDropdown
                             name="paymentModeId"
                             label="Select Bank"
-                            // value={patientRegistrationData?.paymentModeId}
+                            value={settelmentData?.paymentModeId}
                             options={[
                               { label: 'Select Payment Mode', value: 0, disabled: true },
                               { label: 'Paytm', value: 1, },
@@ -1034,17 +1244,22 @@ export default function PatientRecord() {
                               { label: 'BHIM', value: 3, },
                               { label: 'GooglePay', value: 4, },
                             ]}
-                            // onChange={(e) => handelOnChangePatientRegistration(e)}
-                            // defaultIndex={0}
-                            // isDisabled={!paymentModeType.some((item) => item.value === "3")}
-                            // activeTheme={activeTheme}
+                            onChange={(e) => handelOnChangeSelectCurrencyValue(e)}
+                            defaultIndex={0}
+                            isDisabled={!paymentModeType.some((item) => item.value === "3")}
+                            activeTheme={activeTheme}
                             showLabel={false}
-                          // isMandatory={patientRegistrationDataError?.paymentModeId}
+                            isMandatory={patientRegistrationDataError?.paymentModeId}
                           />
+
                         </td>
                       </tr>
                     </tbody>
+
                   </CustomDynamicTable>
+
+
+
                 </form>
 
               </div>

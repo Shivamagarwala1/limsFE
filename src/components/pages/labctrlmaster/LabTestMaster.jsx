@@ -511,8 +511,6 @@ export default function LabTestMaster() {
 
 
     //serch test data
-    console.log(allTestLabMasterData);
-
     const handelOnChangeForTestSearchData = (e) => {
 
         const searchValue = e.target.value.toLowerCase();
@@ -1184,32 +1182,29 @@ export default function LabTestMaster() {
 
                         </div>
                     </div>
+                    <div className="relative flex-1 hidden lg:block"></div>
+                    <div className="relative flex-1 hidden lg:block"></div>
+                    <div className="relative flex-1 hidden lg:block"></div>
+                    <div className="relative flex-1 hidden lg:block"></div>
+
+                    {/* search functinality */}
+                    <div className="relative flex-1">
+                        <CustomTextBox
+                            type="allCharacters"
+                            name="testSearchData"
+                            value={testSearchData || ''}
+                            onChange={(e) => handelOnChangeForTestSearchData(e)}
+                            label="Search Test Data"
+                        // showLabel={true}
+                        />
+
+                    </div>
                 </div>
             </form>
 
 
 
-            {/* search functinality */}
-            <div>
-                <GridDataDetails gridDataDetails={'Search Test Data'} />
 
-                <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-                    <form autoComplete='off'>
-                        <div className="relative flex-1">
-                            <CustomTextBox
-                                type="allCharacters"
-                                name="testSearchData"
-                                value={testSearchData || ''}
-                                onChange={(e) => handelOnChangeForTestSearchData(e)}
-                                label="Search Test Data"
-                            // showLabel={true}
-                            />
-
-                        </div>
-                    </form>
-                </div>
-
-            </div>
 
 
             <div>

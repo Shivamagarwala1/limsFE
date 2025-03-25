@@ -2648,15 +2648,30 @@ export default function ClientMaster() {
 
                         </div>
                     </div>
+                    <div className="relative flex-1 hidden lg:block"></div>
+                    <div className="relative flex-1 hidden lg:block"></div>
+                    <div className="relative flex-1 hidden lg:block"></div>
+                    <div className="relative flex-1 hidden lg:block"></div>
 
 
+                    <div className="relative flex-1">
+                        <CustomTextBox
+                            type="allCharacters"
+                            name="clientSearchData"
+                            value={clientSearchData || ''}
+                            onChange={(e) => handelOnChangeForClientSearchData(e)}
+                            label="Search Client"
+                        // showLabel={true}
+                        />
+
+                    </div>
                 </div>
 
             </form>
 
 
             {/* searching functionality */}
-            <div>
+            {/* <div>
                 <GridDataDetails gridDataDetails={'Search Client'} />
 
                 <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
@@ -2674,7 +2689,7 @@ export default function ClientMaster() {
                         </div>
                     </form>
                 </div>
-            </div>
+            </div> */}
 
 
             {/* display the data */}
