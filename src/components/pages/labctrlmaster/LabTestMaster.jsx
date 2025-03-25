@@ -10,6 +10,8 @@ import CustomDynamicTable from '../../global/CustomDynamicTable'
 import { ImSwitch } from 'react-icons/im';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import useRippleEffect from '../../customehook/useRippleEffect';
+import GridDataDetails from '../../global/GridDataDetails';
+import { CustomTextBox } from '../../global/CustomTextBox';
 
 export default function LabTestMaster() {
 
@@ -78,8 +80,12 @@ export default function LabTestMaster() {
     const [allDocumentData, setAllDocumentData] = useState([]);
     const [allDefaultSampleType, setAllDefaultSampleType] = useState([]);
     const [allTestLabMasterData, setAllTestLabMasterData] = useState([]);
+    const [filterAllTestMasterData, setFilterAllTestMasterData] = useState(allTestLabMasterData || []);
     const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
     const [isEditData, setIsEditData] = useState(false);
+    const [testSearchData, setTestSearchData] = useState('');
+
+
 
     useEffect(() => {
 
@@ -346,6 +352,7 @@ export default function LabTestMaster() {
             try {
                 const response = await getAllLabMaterApi();
                 setAllTestLabMasterData(response?.data);
+                setFilterAllTestMasterData(response?.data);
             } catch (error) {
                 toast.error(error?.message);
             }
@@ -500,6 +507,24 @@ export default function LabTestMaster() {
         }
 
         setIsButtonClick(0);
+    }
+
+
+    //serch test data
+    console.log(allTestLabMasterData);
+
+    const handelOnChangeForTestSearchData = (e) => {
+
+        const searchValue = e.target.value.toLowerCase();
+        setTestSearchData(searchValue);
+
+        // Filter data based on client name (case-insensitive)
+        const filteredResults = allTestLabMasterData.filter((data) =>
+            data?.itemName?.toLowerCase().includes(searchValue)
+        );
+
+        setFilterAllTestMasterData(filteredResults);
+
     }
 
     const filterAllDefaultSampleTypeData = allDefaultSampleType?.filter((data) =>
@@ -1163,17 +1188,32 @@ export default function LabTestMaster() {
             </form>
 
 
+
+            {/* search functinality */}
             <div>
-                <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
-                <div
-                    className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-4 font-bold border-b-2 text-textColor"
-                    style={{ background: activeTheme?.blockColor }}
-                >
-                    <div>
-                        <FontAwesomeIcon icon="fa-solid fa-house" />
-                    </div>
-                    <div>Lab Test Master Details</div>
+                <GridDataDetails gridDataDetails={'Search Test Data'} />
+
+                <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+                    <form autoComplete='off'>
+                        <div className="relative flex-1">
+                            <CustomTextBox
+                                type="allCharacters"
+                                name="testSearchData"
+                                value={testSearchData || ''}
+                                onChange={(e) => handelOnChangeForTestSearchData(e)}
+                                label="Search Test Data"
+                            // showLabel={true}
+                            />
+
+                        </div>
+                    </form>
                 </div>
+
+            </div>
+
+
+            <div>
+
 
                 {/* show data in table */}
                 {/* <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
@@ -1287,13 +1327,13 @@ export default function LabTestMaster() {
                     </tbody>
                 </table> */}
 
-
+                <GridDataDetails gridDataDetails={'Lab Test Master Details'} />
                 <CustomDynamicTable activeTheme={activeTheme} columns={labTestMasterHeaderData} >
 
                     <tbody>
 
                         {
-                            allTestLabMasterData?.map((data, index) => {
+                            filterAllTestMasterData?.map((data, index) => {
 
                                 return (
                                     <tr

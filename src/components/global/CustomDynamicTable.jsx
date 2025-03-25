@@ -82,6 +82,7 @@ const CustomDynamicTable = ({ columns, activeTheme, children, height }) => {
             zIndex: 1,
             background: activeTheme?.menuColor,
             color: activeTheme?.iconColor,
+            
           }}
         >
           <tr>

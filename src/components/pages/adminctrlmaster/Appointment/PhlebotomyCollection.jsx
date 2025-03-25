@@ -120,18 +120,16 @@ export default function PhlebotomyCollection() {
       toast.error("To Date is Required");
       return;
     }
-    const get = await fetchData(
-      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.To}&CentreID=${CenterId}&status=0`
-    );
-    setRow(addRandomObjectId(get?.data?.data));
+    // const get = await fetchData(
+    //   `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.To}&CentreID=${CenterId}&status=0`
+    // );
+    // setRow(addRandomObjectId(get?.data?.data));
 
     //! anil code
     await allPhlebotomyCollection.fetchDataFromApi(
       `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.To}&CentreID=${CenterId}&status=5`
     );
   };
-
-  console.log(allPhlebotomyCollection);
 
   //!=============anil code===============
 
@@ -154,9 +152,9 @@ export default function PhlebotomyCollection() {
       prevCheckedItems.map((item) =>
         item.investigationName === investigationName
           ? {
-              ...item,
-              sampleTypeName: selectedValue?.target?.value, // Update sampleTypeName in checkedItems
-            }
+            ...item,
+            sampleTypeName: selectedValue?.target?.value, // Update sampleTypeName in checkedItems
+          }
           : item
       )
     );
@@ -173,10 +171,10 @@ export default function PhlebotomyCollection() {
     updatedCheckedItems = checkedItems.map((item) =>
       item.sampleTypeName === Number(sampleTypeId)
         ? {
-            ...item,
-            barcode: value, // ✅ Same barcode for all matching sampleTypeId
-            isChecked: value !== "", // ✅ Auto-check if barcode is filled
-          }
+          ...item,
+          barcode: value, // ✅ Same barcode for all matching sampleTypeId
+          isChecked: value !== "", // ✅ Auto-check if barcode is filled
+        }
         : item
     );
 
@@ -309,15 +307,15 @@ export default function PhlebotomyCollection() {
         ...response?.data?.data,
         refID1: matchedDoctor1
           ? {
-              doctorId: matchedDoctor1?.doctorId,
-              doctorName: matchedDoctor1?.doctorName,
-            }
+            doctorId: matchedDoctor1?.doctorId,
+            doctorName: matchedDoctor1?.doctorName,
+          }
           : null,
         refID2: matchedDoctor2
           ? {
-              doctorId: matchedDoctor2?.doctorId,
-              doctorName: matchedDoctor2?.doctorName,
-            }
+            doctorId: matchedDoctor2?.doctorId,
+            doctorName: matchedDoctor2?.doctorName,
+          }
           : null,
       }));
 
@@ -346,8 +344,8 @@ export default function PhlebotomyCollection() {
       // Ensure prevData.testData exists and is an array
       const updatedTestData = Array.isArray(prevData?.itemdetail)
         ? prevData.itemdetail.map((item, idx) =>
-            idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
-          )
+          idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
+        )
         : [];
 
       return {
@@ -368,99 +366,99 @@ export default function PhlebotomyCollection() {
 
       const newTestData = Array.isArray(response?.data?.data)
         ? response.data?.data.map(
-            ({
-              itemName,
-              mrp,
-              netAmt,
-              deliveryDate,
-              isUrgent,
-              itemId,
-              discount,
-              id,
-              itemType,
-              grosss,
-              sampleTypeName,
-              sortName,
-              testcode,
-              defaultsampletype,
-              departmentname,
-              deptId,
-              gender,
-              sampleTypeId,
-              approvedDate,
-              departmentReceiveDate,
-              invoiceDate,
-              notApprovedDate,
-              outhouseDoneOn,
-              resultDate,
-              sampleCollectionDate,
-              sampleReceiveDate,
-              sampleRecollectedDate,
-              holdDate,
-              unHoldDate,
-              sampleRejectionOn,
-              showonReportdate,
-            }) => ({
-              investigationName: itemName,
-              mrp,
-              netAmount: netAmt,
-              rate: grosss,
-              isUrgent: isUrgent || 0,
-              deliveryDate,
-              discount,
-              id: id || 0,
-              defaultsampletype,
-              departmentName: departmentname,
-              sampleTypeName,
-              gender,
-              sampleTypeId,
-              sortName,
-              createdById: parseInt(user?.employeeId) || 0,
-              createdDateTime: new Date().toISOString(),
-              isActive: 1,
-              updateById: 0,
-              updateDateTime: new Date(
-                "1888-03-01T10:22:20.044Z"
-              ).toISOString(),
-              workOrderId: testData?.workOrderId || 0,
-              transactionId: testData?.transactionId || 0,
-              testcode,
-              itemId: itemId || 0,
-              packageID: 0,
-              deptId,
-              barcodeNo: "",
-              isPackage: 0,
-              packageName: "",
-              itemType,
-              packMrp: 0,
-              packItemRate: 0,
-              packItemDiscount: 0,
-              packItemNet: 0,
-              reportType: 0,
-              centreId: testData?.centreId || 0,
-              sessionCentreid: 0,
-              isSra: 0,
-              isMachineOrder: 0,
-              isEmailsent: 0,
-              sampleCollectionDate:
-                sampleCollectionDate || new Date().toISOString(),
-              sampleReceiveDate: sampleReceiveDate || new Date().toISOString(),
-              resultDate: resultDate || new Date().toISOString(),
-              approvedDate: approvedDate || new Date().toISOString(),
-              notApprovedDate: notApprovedDate || new Date().toISOString(),
-              deliveryDate: deliveryDate || new Date().toISOString(),
-              departmentReceiveDate:
-                departmentReceiveDate || new Date().toISOString(),
-              sampleRejectionOn: sampleRejectionOn || new Date().toISOString(),
-              outhouseDoneOn: outhouseDoneOn || new Date().toISOString(),
-              sampleRecollectedDate:
-                sampleRecollectedDate || new Date().toISOString(),
-              invoiceDate: invoiceDate || new Date().toISOString(),
-              showonReportdate: showonReportdate || new Date().toISOString(),
-              holdDate: holdDate || new Date().toISOString(),
-              unHoldDate: unHoldDate || new Date().toISOString(),
-            })
-          )
+          ({
+            itemName,
+            mrp,
+            netAmt,
+            deliveryDate,
+            isUrgent,
+            itemId,
+            discount,
+            id,
+            itemType,
+            grosss,
+            sampleTypeName,
+            sortName,
+            testcode,
+            defaultsampletype,
+            departmentname,
+            deptId,
+            gender,
+            sampleTypeId,
+            approvedDate,
+            departmentReceiveDate,
+            invoiceDate,
+            notApprovedDate,
+            outhouseDoneOn,
+            resultDate,
+            sampleCollectionDate,
+            sampleReceiveDate,
+            sampleRecollectedDate,
+            holdDate,
+            unHoldDate,
+            sampleRejectionOn,
+            showonReportdate,
+          }) => ({
+            investigationName: itemName,
+            mrp,
+            netAmount: netAmt,
+            rate: grosss,
+            isUrgent: isUrgent || 0,
+            deliveryDate,
+            discount,
+            id: id || 0,
+            defaultsampletype,
+            departmentName: departmentname,
+            sampleTypeName,
+            gender,
+            sampleTypeId,
+            sortName,
+            createdById: parseInt(user?.employeeId) || 0,
+            createdDateTime: new Date().toISOString(),
+            isActive: 1,
+            updateById: 0,
+            updateDateTime: new Date(
+              "1888-03-01T10:22:20.044Z"
+            ).toISOString(),
+            workOrderId: testData?.workOrderId || 0,
+            transactionId: testData?.transactionId || 0,
+            testcode,
+            itemId: itemId || 0,
+            packageID: 0,
+            deptId,
+            barcodeNo: "",
+            isPackage: 0,
+            packageName: "",
+            itemType,
+            packMrp: 0,
+            packItemRate: 0,
+            packItemDiscount: 0,
+            packItemNet: 0,
+            reportType: 0,
+            centreId: testData?.centreId || 0,
+            sessionCentreid: 0,
+            isSra: 0,
+            isMachineOrder: 0,
+            isEmailsent: 0,
+            sampleCollectionDate:
+              sampleCollectionDate || new Date().toISOString(),
+            sampleReceiveDate: sampleReceiveDate || new Date().toISOString(),
+            resultDate: resultDate || new Date().toISOString(),
+            approvedDate: approvedDate || new Date().toISOString(),
+            notApprovedDate: notApprovedDate || new Date().toISOString(),
+            deliveryDate: deliveryDate || new Date().toISOString(),
+            departmentReceiveDate:
+              departmentReceiveDate || new Date().toISOString(),
+            sampleRejectionOn: sampleRejectionOn || new Date().toISOString(),
+            outhouseDoneOn: outhouseDoneOn || new Date().toISOString(),
+            sampleRecollectedDate:
+              sampleRecollectedDate || new Date().toISOString(),
+            invoiceDate: invoiceDate || new Date().toISOString(),
+            showonReportdate: showonReportdate || new Date().toISOString(),
+            holdDate: holdDate || new Date().toISOString(),
+            unHoldDate: unHoldDate || new Date().toISOString(),
+          })
+        )
         : [];
 
       let duplicateFound = false; // Flag to track if any duplicates exist
@@ -879,13 +877,12 @@ export default function PhlebotomyCollection() {
 
               .map((data, index) => (
                 <tr
-                  className={`cursor-pointer whitespace-nowrap ${
-                    isHoveredTable === index
-                      ? ""
-                      : index % 2 === 0
+                  className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                    ? ""
+                    : index % 2 === 0
                       ? "bg-gray-100"
                       : "bg-white"
-                  }`}
+                    }`}
                   key={index}
                   onMouseEnter={() => setIsHoveredTable(index)}
                   onMouseLeave={() => setIsHoveredTable(null)}
@@ -957,7 +954,7 @@ export default function PhlebotomyCollection() {
                       {data?.investigationName[0]}...
                       {/* Tooltip / Dropdown */}
                       <div
-                        style={{ height: "fit-content", top: "30px" }}
+                        style={{ height: "fit-content", top: "25px" }}
                         className="w-[500px] h-[500px] bg-gray-300 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 
                 hidden gap-1 p-3 group-hover:flex flex-wrap justify-start 
                 text-xs px-2 py-1 rounded-md shadow-lg 
@@ -995,9 +992,8 @@ export default function PhlebotomyCollection() {
                     <div className="flex gap-2">
                       <button
                         type="button"
-                        className={`rounded-md ${
-                          data?.investigationName.length >= 2 ? "h-7" : "h-4"
-                        }  w-24 text-xxxs`}
+                        className={`rounded-md ${data?.investigationName.length >= 2 ? "h-7" : "h-4"
+                          }  w-24 text-xxxs`}
                         style={{
                           background: activeTheme?.menuColor,
                           color: activeTheme?.iconColor,
@@ -1032,9 +1028,8 @@ export default function PhlebotomyCollection() {
 
                       <button
                         type="button"
-                        className={`rounded-md ${
-                          data?.investigationName.length >= 2 ? "h-7" : "h-4"
-                        } w-20 text-xxxs flex justify-center items-center`}
+                        className={`rounded-md ${data?.investigationName.length >= 2 ? "h-7" : "h-4"
+                          } w-20 text-xxxs flex justify-center items-center`}
                         style={{
                           background: activeTheme?.menuColor,
                           color: activeTheme?.iconColor,
@@ -1050,9 +1045,8 @@ export default function PhlebotomyCollection() {
 
                       <button
                         type="button"
-                        className={`rounded-md ${
-                          data?.investigationName.length >= 2 ? "h-7" : "h-4"
-                        } w-28 text-xxxs`}
+                        className={`rounded-md ${data?.investigationName.length >= 2 ? "h-7" : "h-4"
+                          } w-28 text-xxxs`}
                         style={{
                           background: activeTheme?.menuColor,
                           color: activeTheme?.iconColor,
@@ -1062,9 +1056,8 @@ export default function PhlebotomyCollection() {
                       </button>
                       <button
                         type="button"
-                        className={`rounded-md ${
-                          data?.investigationName.length >= 2 ? "h-7" : "h-4"
-                        } w-28 text-xxxs`}
+                        className={`rounded-md ${data?.investigationName.length >= 2 ? "h-7" : "h-4"
+                          } w-28 text-xxxs`}
                         style={{
                           background: activeTheme?.menuColor,
                           color: activeTheme?.iconColor,
@@ -1112,9 +1105,8 @@ export default function PhlebotomyCollection() {
                       return (
                         <tr
                           key={`${rowIndex}`}
-                          className={`cursor-pointer ${
-                            rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
-                          }`}
+                          className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                            }`}
                           onMouseEnter={() => setIsHoveredTable(rowIndex)}
                           onMouseLeave={() => setIsHoveredTable(null)}
                           style={{
@@ -1181,7 +1173,7 @@ export default function PhlebotomyCollection() {
                                     data.investigationName,
                                     e.target.value,
                                     data?.selectedSampleTypeId?.target.value ||
-                                      data?.sampletypedata?.[0]?.sampleTypeId
+                                    data?.sampletypedata?.[0]?.sampleTypeId
                                   )
                                 }
                               />
@@ -1427,7 +1419,7 @@ export default function PhlebotomyCollection() {
                         maxLength={10}
                         label="Mobile No."
                         readOnly={true}
-                        // isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
+                      // isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
                       />
                     </div>
 
@@ -1447,7 +1439,7 @@ export default function PhlebotomyCollection() {
                         defaultIndex={0}
                         activeTheme={activeTheme}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.title_id}
+                      //isMandatory={patientRegistrationForEditTestDataError?.title_id}
                       />
                     </div>
                   </div>
@@ -1460,7 +1452,7 @@ export default function PhlebotomyCollection() {
                       onChange={(e) => handelOnChangeEditTest(e)}
                       label="Name"
                       readOnly={true}
-                      //isMandatory={patientRegistrationForEditTestDataError?.name}
+                    //isMandatory={patientRegistrationForEditTestDataError?.name}
                     />
                   </div>
 
@@ -1476,7 +1468,7 @@ export default function PhlebotomyCollection() {
                         maxLength={3}
                         allowSpecialChars={false}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.ageYear}
+                      //isMandatory={patientRegistrationForEditTestDataError?.ageYear}
                       />
                     </div>
 
@@ -1491,7 +1483,7 @@ export default function PhlebotomyCollection() {
                         maxLength={2}
                         allowSpecialChars={false}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.ageMonth}
+                      //isMandatory={patientRegistrationForEditTestDataError?.ageMonth}
                       />
                     </div>
 
@@ -1505,7 +1497,7 @@ export default function PhlebotomyCollection() {
                         isDisabled={false}
                         maxLength={2}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.ageDay}
+                      //isMandatory={patientRegistrationForEditTestDataError?.ageDay}
                       />
                     </div>
                   </div>
@@ -1546,7 +1538,7 @@ export default function PhlebotomyCollection() {
                         defaultIndex={0}
                         activeTheme={activeTheme}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.gender}
+                      //isMandatory={patientRegistrationForEditTestDataError?.gender}
                       />
                     </div>
                   </div>
@@ -1559,7 +1551,7 @@ export default function PhlebotomyCollection() {
                       onChange={(e) => handelOnChangeEditTest(e)}
                       label="Email"
                       readOnly={true}
-                      // isMandatory={patientRegistrationForEditTestDataError?.emailId}
+                    // isMandatory={patientRegistrationForEditTestDataError?.emailId}
                     />
                   </div>
 
@@ -1578,7 +1570,7 @@ export default function PhlebotomyCollection() {
                         readOnly={true}
                         uniqueKey="doctorId"
                         activeTheme={activeTheme}
-                        //isMandatory={patientRegistrationForEditTestDataError?.refID1}
+                      //isMandatory={patientRegistrationForEditTestDataError?.refID1}
                       />
                     </div>
 
@@ -1613,7 +1605,7 @@ export default function PhlebotomyCollection() {
                       uniqueKey="doctorId"
                       readOnly={true}
                       activeTheme={activeTheme}
-                      //isMandatory={patientRegistrationForEditTestDataError?.refID2}
+                    //isMandatory={patientRegistrationForEditTestDataError?.refID2}
                     />
                   </div>
 
@@ -1648,7 +1640,7 @@ export default function PhlebotomyCollection() {
                       onChange={(e) => handelOnChangeEditTest(e)}
                       label="Address"
                       readOnly={true}
-                      //isMandatory={patientRegistrationForEditTestDataError?.address}
+                    //isMandatory={patientRegistrationForEditTestDataError?.address}
                     />
                   </div>
 
@@ -1663,7 +1655,7 @@ export default function PhlebotomyCollection() {
                       maxLength={6}
                       label="Pin Code"
                       readOnly={true}
-                      // isMandatory={patientRegistrationForEditTestDataError?.pinCode}
+                    // isMandatory={patientRegistrationForEditTestDataError?.pinCode}
                     />
                   </div>
 
@@ -1685,7 +1677,7 @@ export default function PhlebotomyCollection() {
                         uniqueKey="otherLabReferID"
                         readOnly={true}
                         activeTheme={activeTheme}
-                        //isMandatory={patientRegistrationForEditTestDataError?.otherLabReferID}
+                      //isMandatory={patientRegistrationForEditTestDataError?.otherLabReferID}
                       />
                     </div>
 
@@ -1795,9 +1787,8 @@ export default function PhlebotomyCollection() {
                       return (
                         <tr
                           key={`${rowIndex}`}
-                          className={`cursor-pointer ${
-                            rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
-                          }`}
+                          className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                            }`}
                           onMouseEnter={() => setIsHoveredTablePopup(rowIndex)}
                           onMouseLeave={() => setIsHoveredTablePopup(null)}
                           style={{
@@ -1867,19 +1858,18 @@ export default function PhlebotomyCollection() {
                           <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                             {(data?.isSampleCollected === "N" ||
                               data?.isSampleCollected === "R") && (
-                              <RiDeleteBin2Fill
-                                onClick={() =>
-                                  deleteinvestigationGridDataByForEditTestDataUsingItemId(
-                                    rowIndex
-                                  )
-                                }
-                                className={`cursor-pointer ${
-                                  data?.isRemoveItem === 1
+                                <RiDeleteBin2Fill
+                                  onClick={() =>
+                                    deleteinvestigationGridDataByForEditTestDataUsingItemId(
+                                      rowIndex
+                                    )
+                                  }
+                                  className={`cursor-pointer ${data?.isRemoveItem === 1
                                     ? "text-gray-300"
                                     : "text-red-500"
-                                }  text-base`}
-                              />
-                            )}
+                                    }  text-base`}
+                                />
+                              )}
                           </td>
 
                           {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
