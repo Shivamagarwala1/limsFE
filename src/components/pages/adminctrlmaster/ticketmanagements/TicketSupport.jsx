@@ -520,45 +520,50 @@ export default function TicketSupport() {
                         />
                     </div>
 
+                    {
+                        user?.defaultCenter === '1' && (
+                            <>
+                                <div className="relative flex-1">
 
-                    <div className="relative flex-1">
+                                    <CustomSearchInputFields
+                                        id="centreId"
+                                        name="centreId"
+                                        label="Centre"
+                                        value={ticketSupportFilterData?.centreId}
+                                        options={allCentreData?.data}
+                                        onChange={(e) => handelOnChangeForReportDispatch(e)}
+                                        filterText="No records found"
+                                        placeholder=" "
+                                        searchWithName="companyName"
+                                        uniqueKey="centreId"
+                                        activeTheme={activeTheme}
+                                    />
 
-                        <CustomSearchInputFields
-                            id="centreId"
-                            name="centreId"
-                            label="Centre"
-                            value={ticketSupportFilterData?.centreId}
-                            options={allCentreData?.data}
-                            onChange={(e) => handelOnChangeForReportDispatch(e)}
-                            filterText="No records found"
-                            placeholder=" "
-                            searchWithName="companyName"
-                            uniqueKey="centreId"
-                            activeTheme={activeTheme}
-                        />
-
-                    </div>
+                                </div>
 
 
 
-                    <div className='relative flex-1'>
-                        <CustomDropdown
-                            name="assignedEngineer"
-                            label="Assigned Engineer"
-                            value={ticketSupportFilterData?.assignedEngineer || ''}
-                            options={[
-                                { label: 'Select Option', value: '', disabled: true },
-                                ...allAssignedEng?.data?.map(item => ({
-                                    label: `${item?.fName} ${item?.lName}`,
-                                    value: parseInt(item?.empId),
-                                })),
-                            ]}
-                            onChange={(e) => handelOnChnageTicketSupportFilterData(e)}
-                            defaultIndex={0}
-                            activeTheme={activeTheme}
-                            isMandatory={false}
-                        />
-                    </div>
+                                <div className='relative flex-1'>
+                                    <CustomDropdown
+                                        name="assignedEngineer"
+                                        label="Assigned Engineer"
+                                        value={ticketSupportFilterData?.assignedEngineer || ''}
+                                        options={[
+                                            { label: 'Select Option', value: '', disabled: true },
+                                            ...allAssignedEng?.data?.map(item => ({
+                                                label: `${item?.fName} ${item?.lName}`,
+                                                value: parseInt(item?.empId),
+                                            })),
+                                        ]}
+                                        onChange={(e) => handelOnChnageTicketSupportFilterData(e)}
+                                        defaultIndex={0}
+                                        activeTheme={activeTheme}
+                                        isMandatory={false}
+                                    />
+                                </div>
+                            </>
+                        )
+                    }
 
 
                     <div className='flex gap-[0.25rem] items-center'>
@@ -604,11 +609,7 @@ export default function TicketSupport() {
                 </div>
             </form>
 
-            <select name="" id="">
-                <option value="">okk</option>
-                <option value="">okk</option>
-                <option value="">okk</option>
-            </select>
+
 
 
             <div>
@@ -693,39 +694,52 @@ export default function TicketSupport() {
                                             </td>
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.completedDate}
+                                                {data?.isAssigned === 1 && data?.completedDate}
                                             </td>
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                <div className='flex items-center gap-2 cursor-pointer justify-between'>
-                                                    <div>
-                                                        {data?.deliveryDate}
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex justify-start items-center">
-                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === null ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
-                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                onClick={() => {
-                                                                    if (data?.isCompleted === 0) {
+                                                {
+                                                    data?.isAssigned === 1 && (
+                                                        <div className='flex items-center gap-2 cursor-pointer justify-between'>
+                                                            <div>
+                                                                {data?.deliveryDate}
+                                                            </div>
+                                                            <div>
 
-                                                                        getSingleTicketData(data?.ticketId, data?.ticketId * 2, 8)
-
-                                                                    }
-                                                                }}
-
-                                                                title='Edit Delivery Date'
-                                                            >
                                                                 {
-                                                                    isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
-                                                                        <FaSpinner className='h-4 w-4' /> :
-                                                                        <MdModeEditOutline className='h-4 w-4' />
+                                                                    user?.defaultCenter === '1' && (
+                                                                        <div className="flex justify-start items-center">
+                                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === null ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
+                                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                                onClick={() => {
+                                                                                    if (data?.isCompleted === 0) {
+
+                                                                                        getSingleTicketData(data?.ticketId, data?.ticketId * 2, 8)
+
+                                                                                    }
+                                                                                }}
+
+                                                                                title='Edit Delivery Date'
+                                                                            >
+                                                                                {
+                                                                                    isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
+                                                                                        <FaSpinner className='h-4 w-4' /> :
+                                                                                        <MdModeEditOutline className='h-4 w-4' />
+                                                                                }
+
+                                                                            </div>
+                                                                        </div>
+
+                                                                    )
                                                                 }
+
+
+
 
                                                             </div>
                                                         </div>
-
-                                                    </div>
-                                                </div>
+                                                    )
+                                                }
                                             </td>
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
@@ -766,24 +780,29 @@ export default function TicketSupport() {
                                             </td>
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                <div className="flex justify-start items-center">
-                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isAssigned === 0 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                        onClick={() => {
-                                                            if (data?.isCompleted === 0 && data?.isAssigned === 0) {
-                                                                setShowPopup(1)
-                                                                    , setticketSupportFilterData((preventData) => ({
-                                                                        ...preventData,
-                                                                        ticketId: data?.ticketId
-                                                                    }))
-                                                            }
-                                                        }}
+                                                {
+                                                    user?.defaultCenter === '1' && (
+                                                        <div className="flex justify-start items-center">
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isAssigned === 0 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                onClick={() => {
+                                                                    if (data?.isCompleted === 0 && data?.isAssigned === 0) {
+                                                                        setShowPopup(1)
+                                                                            , setticketSupportFilterData((preventData) => ({
+                                                                                ...preventData,
+                                                                                ticketId: data?.ticketId
+                                                                            }))
+                                                                    }
+                                                                }}
 
-                                                        title='Assign Ticket'
-                                                    >
-                                                        <MdAssignmentTurnedIn className='h-4 w-4' />
-                                                    </div>
-                                                </div>
+                                                                title='Assign Ticket'
+                                                            >
+                                                                <MdAssignmentTurnedIn className='h-4 w-4' />
+                                                            </div>
+                                                        </div>
+                                                    )
+
+                                                }
                                             </td>
 
 
@@ -833,69 +852,80 @@ export default function TicketSupport() {
 
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                <div className="flex justify-start items-center">
-                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isHold === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                        onClick={() => {
-                                                            if (data?.isCompleted === 0 && data?.isHold !== 1) {
-                                                                setShowPopup(4), setticketSupportFilterData((preventData) => ({
-                                                                    ...preventData,
-                                                                    ticketId: data?.ticketId
-                                                                }))
-                                                            }
+                                                {
+                                                    user?.defaultCenter === '1' && (
+                                                        <div className="flex justify-start items-center">
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isHold === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                onClick={() => {
+                                                                    if (data?.isCompleted === 0 && data?.isHold !== 1) {
+                                                                        setShowPopup(4), setticketSupportFilterData((preventData) => ({
+                                                                            ...preventData,
+                                                                            ticketId: data?.ticketId
+                                                                        }))
+                                                                    }
 
-                                                        }}
+                                                                }}
 
-                                                        title='Hold'
-                                                    >
-                                                        <FaPauseCircle className='h-4 w-4' />
-                                                    </div>
-                                                </div>
+                                                                title='Hold'
+                                                            >
+                                                                <FaPauseCircle className='h-4 w-4' />
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                }
                                             </td>
 
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                <div className="flex justify-start items-center">
-                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isRejected === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                        onClick={() => {
-                                                            if (data?.isCompleted === 0 && data?.isRejected !== 1) {
-                                                                setShowPopup(5), setticketSupportFilterData((preventData) => ({
-                                                                    ...preventData,
-                                                                    ticketId: data?.ticketId
-                                                                }))
-                                                            }
 
-                                                        }}
+                                                {
+                                                    user?.defaultCenter === '1' && (
+                                                        <div className="flex justify-start items-center">
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isRejected === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                onClick={() => {
+                                                                    if (data?.isCompleted === 0 && data?.isRejected !== 1) {
+                                                                        setShowPopup(5), setticketSupportFilterData((preventData) => ({
+                                                                            ...preventData,
+                                                                            ticketId: data?.ticketId
+                                                                        }))
+                                                                    }
 
-                                                        title='Reject'
-                                                    >
-                                                        <MdOutlineClose className='h-4 w-4' />
-                                                    </div>
-                                                </div>
+                                                                }}
+
+                                                                title='Reject'
+                                                            >
+                                                                <MdOutlineClose className='h-4 w-4' />
+                                                            </div>
+                                                        </div>
+                                                    )}
                                             </td>
 
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                <div className="flex justify-start items-center">
-                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                        onClick={() => {
-                                                            if (data?.isCompleted !== 1) {
-                                                                setShowPopup(6), setticketSupportFilterData((preventData) => ({
-                                                                    ...preventData,
-                                                                    ticketId: data?.ticketId
-                                                                }))
-                                                            }
+                                                {
+                                                    user?.defaultCenter === '1' && (
+                                                        <div className="flex justify-start items-center">
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                onClick={() => {
+                                                                    if (data?.isCompleted !== 1) {
+                                                                        setShowPopup(6), setticketSupportFilterData((preventData) => ({
+                                                                            ...preventData,
+                                                                            ticketId: data?.ticketId
+                                                                        }))
+                                                                    }
 
-                                                        }}
+                                                                }}
 
-                                                        title='Complete'
-                                                    >
-                                                        <MdOutlineCreditScore className='h-4 w-4' />
-                                                    </div>
-                                                </div>
-
+                                                                title='Complete'
+                                                            >
+                                                                <MdOutlineCreditScore className='h-4 w-4' />
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                }
                                             </td>
                                         </tr>
                                     ))

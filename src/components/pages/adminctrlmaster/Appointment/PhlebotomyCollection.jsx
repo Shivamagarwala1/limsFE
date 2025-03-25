@@ -126,16 +126,18 @@ export default function PhlebotomyCollection() {
       return;
     }
     const get = await fetchData(
-      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.To}&CentreID=${CenterId}`
+      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.To}&CentreID=${CenterId}&status=0`
     );
     setRow(addRandomObjectId(get?.data?.data));
 
     //! anil code
     await allPhlebotomyCollection.fetchDataFromApi(
-      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.To}&CentreID=${CenterId}`
+      `/appointmentBooking/GetAppointmentData?FromDate=${values?.from}&Todate=${values?.To}&CentreID=${CenterId}&status=5`
     );
 
   };
+
+  console.log(allPhlebotomyCollection);
 
 
   //!=============anil code===============
@@ -243,14 +245,18 @@ export default function PhlebotomyCollection() {
     e.preventDefault();
     setIsButtonClick(1);
 
+    console.log(checkedItems);
+
+
     const updatedData = checkedItems
       ?.filter((data) => data?.isChecked === true)
       .map((item) => ({
         testid: item?.testId,
         barcodeno: item?.barcode,
-        iscamplecollected: "Y",
+        isSampleCollected: "Y",
         collectedBy: parseInt(user?.employeeId),
       }));
+
 
     try {
       const response = await postDataForPhlebotomyCollection.postRequestData(`/appointmentBooking/UpdateSamplestatus`, updatedData);
@@ -297,8 +303,8 @@ export default function PhlebotomyCollection() {
       const matchedDoctor1 = allReferData?.data?.find((data) => data?.doctorId === response?.data?.data?.refID1);
 
       console.log(matchedDoctor1);
-      
- 
+
+
       const matchedDoctor2 = allReferData?.data?.find((data) => data?.doctorId === response?.data?.data?.refID2);
 
       setTestData((prevData) => ({
@@ -785,17 +791,39 @@ export default function PhlebotomyCollection() {
                         {data?.status}
                       </td>
 
-                      <td
-                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
-                        style={{ width: "0%" }}
-                      >
-
-                        {data?.investigationName.map((name, idx) => (
-                          <div key={idx}>{name}</div>
-                        ))}
 
 
+                      <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor ">
+                        <div className="relative group flex gap-5">
+                          {data?.investigationName[0]}...
+                          {/* Tooltip / Dropdown */}
+                          <div
+                            style={{ height: "fit-content", top: "-2px" }}
+                            className="w-[500px] h-[500px] bg-gray-300 absolute left-1/2 -translate-x-1/2 bottom-full mb-2 
+                hidden gap-1 p-3 group-hover:flex flex-wrap justify-start 
+                text-xs px-2 py-1 rounded-md shadow-lg 
+                z-[9999] whitespace-normal overflow-visible"
+                          >
+                            {data?.investigationName.map((item, index) => (
+                              <SubmitButton
+                                key={index}
+                                text={item}
+                                submit={false}
+                                callBack={() => {
+                                  // Callback when item is clicked
+                                }}
+                                style={{
+                                  height: "1.05rem",
+                                  padding: "0px 5px",
+                                }}
+                              />
+                            ))}
+                          </div>
+                        </div>
                       </td>
+
+
+
 
                       <td
                         className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
@@ -831,8 +859,8 @@ export default function PhlebotomyCollection() {
                                 filteredData?.map((data) => ({
                                   investigationName: data?.investigationName || "",
                                   sampleTypeName: data?.sampletypedata?.[0]?.sampleTypeId || "",
-                                  barcode: "",
-                                  isChecked: false,
+                                  barcode: data?.barcodeNo,
+                                  isChecked: data?.barcodeNo !== '' ? true : false,
                                   testId: data?.testId
                                 })) || [];
 
@@ -870,6 +898,17 @@ export default function PhlebotomyCollection() {
                           >
                             Payment Settlement
                           </button>
+                          <button
+                            type="button"
+                            className={`rounded-md ${data?.investigationName.length >= 2 ? 'h-7' : 'h-4'} w-28 text-xxxs`}
+                            style={{
+                              background: activeTheme?.menuColor,
+                              color: activeTheme?.iconColor,
+                            }}
+                            title="Comming soon!"
+                          >
+                            New Appointment
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -895,6 +934,7 @@ export default function PhlebotomyCollection() {
 
 
                 <CustomDynamicTable height={'25vh'} activeTheme={activeTheme} columns={['Investigation', 'Sample Type', 'Bar Code', 'Collect']}>
+
                   <tbody>
                     {
                       checkedItems !== undefined && (
@@ -971,11 +1011,23 @@ export default function PhlebotomyCollection() {
 
                               {/* Checkbox - Auto-Check Based on investigationName */}
                               <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                                <input
-                                  type="checkbox"
-                                  checked={matchedItem?.isChecked || false}
-                                  onChange={() => handleCheckboxChange(data?.investigationName)}
-                                />
+                                {
+                                  data?.barcodeNo === '' ?
+                                    <input
+                                      type="checkbox"
+                                      checked={matchedItem?.isChecked || false}
+                                      onChange={() => handleCheckboxChange(data?.investigationName)}
+                                    />
+                                    :
+                                    data?.barcodeNo !== '' && data?.isSampleCollected !== 'Y' && (
+                                      <input
+                                        type="checkbox"
+                                        checked={matchedItem?.isChecked || false}
+                                        onChange={() => handleCheckboxChange(data?.investigationName)}
+                                      />
+                                    )
+                                }
+
 
                               </td>
                             </tr>
@@ -1575,7 +1627,7 @@ export default function PhlebotomyCollection() {
                     {/* grid data */}
                     <GridDataDetails gridDataDetails={'Test Data Details'} />
 
-                    <CustomDynamicTable height={'20vh'} activeTheme={activeTheme} columns={patientRegistrationInvestigation}>
+                    <CustomDynamicTable height={'30vh'} activeTheme={activeTheme} columns={patientRegistrationInvestigation}>
                       <tbody>
                         {
                           testData?.itemdetail?.map((data, rowIndex) => {
