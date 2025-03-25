@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { IoMdMenu } from "react-icons/io";
 import { useSelector } from "react-redux";
 import { useGetData } from "../service/apiService";
-
+import "./DynamicTable.css";
 // const DynamicTable = ({
 //   rows,
 //   columns,
@@ -192,7 +192,7 @@ const DynamicTable = ({
       )}
 
       {loading ? (
-        <div className="text-center py-4 text-gray-500">Loading...</div>
+        <Loader columns={columns} />
       ) : (
         <div className="w-full">
           {/* Wrapper to make only table rows scrollable */}
@@ -574,7 +574,7 @@ export const UpdatedDynamicTable = ({
       )}
 
       {loading ? (
-        <div className="text-center py-4 text-gray-500">Loading...</div>
+        <Loader columns={columns} />
       ) : (
         <div
           style={{
@@ -742,5 +742,66 @@ export const StyledHr = ({ style = {} }) => {
         style={{ ...style, background: activeTheme?.menuColor }}
       ></div>
     </>
+  );
+};
+
+const Loader = ({ columns }) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  return (
+    <div
+      style={{
+        maxHeight: "70vh",
+        overflowY: "auto",
+        position: "relative",
+        scrollbarWidth: "none",
+      }}
+      className="border border-gray-300 rounded-md"
+    >
+      <table className="table-auto border-collapse w-full text-left">
+        <thead
+          className="sticky top-0 z-10 bg-white shadow"
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+          }}
+        >
+          <tr>
+            {columns?.map((col, index) => (
+              <th
+                key={index}
+                className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+                style={{
+                  width: col?.width ? `${col?.width}px` : "auto",
+                }}
+              >
+                <div className="flex gap-1 items-center">
+                  {(col?.headerName === "Sample Coll." ||
+                    col?.headerName === "Sample Rec.") && (
+                    <input type="checkbox" />
+                  )}
+                  {col?.renderHeaderCell
+                    ? col?.renderHeaderCell({ row: {} })
+                    : col?.headerName}
+                </div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {[...Array(50)].map((_, index) => (
+            <tr
+              key={index}
+              className={index % 2 === 0 ? "bg-gray-100" : "bg-white"}
+            >
+              {columns?.map((_, idx) => (
+                <td key={idx} className="border-b px-4 h-5">
+                  <div className="skeleton h-3 w-full"></div>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
