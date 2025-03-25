@@ -24,6 +24,7 @@ import { getDefaultCentreId } from '../../../../service/localstroageService';
 import { CustomTextBox } from '../../../global/CustomTextBox';
 import CustomFileUpload from '../../../global/CustomFileUpload';
 
+
 export default function TicketSupport() {
 
     const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -48,7 +49,6 @@ export default function TicketSupport() {
     const [isHoveredTable, setIsHoveredTable] = useState(null);
     const [showPopup, setShowPopup] = useState(0);
     const [ticketsPopupData, setTicketsPopupData] = useState(null);
-    const [dataIsEdit, setDataIsEdit] = useState(null);
 
     const allAssignedEng = useRetrieveData();
     const allTicketSupportData = useRetrieveData();
@@ -95,8 +95,6 @@ export default function TicketSupport() {
 
         try {
             const response = await allTicketSupportData.fetchDataFromApi(`/supportTicket/GetTicketDetails?FromDate=${ticketSupportFilterData?.fromDate + " " + '00:00:00'}&Todate=${ticketSupportFilterData?.toDate + " " + '23:59:59'}&Status=${ticketSupportFilterData?.ticketStatus}&assingedto=${ticketSupportFilterData?.assignedEngineer}&Datetype=${ticketSupportFilterData?.dateType}$roleid=${getDefaultCentreId()}`);
-
-            console.log(response?.data);
 
             if (!response?.data?.success && e?.preventDefault) {
                 toast.error(response?.data?.message)
@@ -145,9 +143,6 @@ export default function TicketSupport() {
     const getSingleTicketData = async (ticketId, loading, openPopUp) => {
         setIsButtonClick(loading);
         const response = await getDataForTicketsAssign.fetchDataFromApi(`/supportTicket?$filter=(id eq ${ticketId})`);
-
-        //console.log(response?.data[0]);
-
 
         setTicketsPopupData(response?.data[0]);
 
@@ -202,6 +197,7 @@ export default function TicketSupport() {
 
 
     const onSubmitForSaveRolePageBindData = async (e = null) => {
+
         // Prevent default only if the event is passed and has preventDefault
         if (e?.preventDefault) {
             e.preventDefault();
@@ -531,7 +527,7 @@ export default function TicketSupport() {
                                         label="Centre"
                                         value={ticketSupportFilterData?.centreId}
                                         options={allCentreData?.data}
-                                        onChange={(e) => handelOnChangeForReportDispatch(e)}
+                                        onChange={(e) => handelOnChnageTicketSupportFilterData(e)}
                                         filterText="No records found"
                                         placeholder=" "
                                         searchWithName="companyName"
@@ -783,7 +779,7 @@ export default function TicketSupport() {
                                                 {
                                                     user?.defaultCenter === '1' && (
                                                         <div className="flex justify-start items-center">
-                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isAssigned === 0 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isAssigned === 1 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                                 style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                                 onClick={() => {
                                                                     if (data?.isCompleted === 0 && data?.isAssigned === 0) {

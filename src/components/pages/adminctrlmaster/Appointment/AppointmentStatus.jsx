@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import { useGetData, usePostData } from "../../../../service/apiService";
+import { useGetData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
   SubmitButton,
@@ -20,7 +20,7 @@ import {
   CancelPopupModal,
   ReschedulePopupModal,
 } from "../../../../Custom Components/NewPopups";
-import { useRetrieveData } from "../../../../service/service";
+import { usePostData, useRetrieveData } from "../../../../service/service";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import CustomPopupWithResponsive from "../../../global/CustomPopupWithResponsive";
 import FormHeader from "../../../global/FormHeader";
@@ -36,12 +36,14 @@ import CustomFormButtonWithLoading from "../../../global/CustomFormButtonWithLoa
 import { FaSpinner } from "react-icons/fa";
 import GridDataDetails from "../../../global/GridDataDetails";
 import { patientRegistrationInvestigation } from "../../../listData/listData";
+import { RiDeleteBin2Fill } from "react-icons/ri";
 
 export default function AppointmentStatus() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const user = useSelector((state) => state.userSliceName?.user || null);
   const { formRef, getValues, setValues } = useFormHandler();
 
-  const PostData = usePostData();
+  // const PostData = usePostData();
   const { fetchData, response, data, loading, error } = useGetData();
 
   // ------------------ Center -------------------------------
@@ -105,7 +107,6 @@ export default function AppointmentStatus() {
     // Update state with the grouped data
     setGroupedRows(mergeByWorkOrderId(Row));
   }, [Row]); // Runs when `rows` change
-  console.log(groupedRows);
 
   const getGrid = async () => {
     const values = await getSession("appointmentBooking");
@@ -297,7 +298,6 @@ export default function AppointmentStatus() {
       status: values?.status,
     });
     setRow(addRandomObjectId(get?.data?.data));
-    console.log(get);
   };
 
   //searching legends button
@@ -324,7 +324,6 @@ export default function AppointmentStatus() {
       status: values?.status,
     });
     setRow(addRandomObjectId(get?.data?.data));
-    console.log(get);
   };
 
   const getReason = async () => {
@@ -342,7 +341,6 @@ export default function AppointmentStatus() {
     // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
     if (data1?.success) {
       toast.success("Status Updated Successfully");
-      console.log(payload);
       getReason();
       setShowPopup(false);
     }
@@ -387,12 +385,13 @@ export default function AppointmentStatus() {
   const postDataForPhlebotomyCollection = usePostData();
   const allTitleData = useRetrieveData();
   const allReferData = useRetrieveData();
+  const allTestData = useRetrieveData();
   const allEditTestDataForInvasticationName = useRetrieveData();
   const selectedInvatigationData = useRetrieveData();
+  const [isHoveredTablePopup, setIsHoveredTablePopup] = useState(null);
 
   const handleAddTest = async (data) => {
-    console.log(data);
-// alert("hii ok")
+
     setIsButtonClick(3);
     if (!data?.investigationName || data.investigationName.length === 0) {
       console.error("No investigation names available");
@@ -413,15 +412,12 @@ export default function AppointmentStatus() {
       const response = await allTestData.fetchDataFromApi(
         `/tnx_BookingItem/GetPatientEditTest?searchValue=${data?.workOrderId}`
       );
-      // console.log(response);
-
-      //       console.log(allReferData?.data?.find((item) => item?.doctorId === response?.data?.data?.refID1).doctorId);
+     
 
       const matchedDoctor1 = allReferData?.data?.find(
         (data) => data?.doctorId === response?.data?.data?.refID1
       );
 
-      console.log(matchedDoctor1);
 
       const matchedDoctor2 = allReferData?.data?.find(
         (data) => data?.doctorId === response?.data?.data?.refID2
@@ -432,15 +428,15 @@ export default function AppointmentStatus() {
         ...response?.data?.data,
         refID1: matchedDoctor1
           ? {
-              doctorId: matchedDoctor1?.doctorId,
-              doctorName: matchedDoctor1?.doctorName,
-            }
+            doctorId: matchedDoctor1?.doctorId,
+            doctorName: matchedDoctor1?.doctorName,
+          }
           : null,
         refID2: matchedDoctor2
           ? {
-              doctorId: matchedDoctor2?.doctorId,
-              doctorName: matchedDoctor2?.doctorName,
-            }
+            doctorId: matchedDoctor2?.doctorId,
+            doctorName: matchedDoctor2?.doctorName,
+          }
           : null,
       }));
 
@@ -469,8 +465,8 @@ export default function AppointmentStatus() {
       // Ensure prevData.testData exists and is an array
       const updatedTestData = Array.isArray(prevData?.itemdetail)
         ? prevData.itemdetail.map((item, idx) =>
-            idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
-          )
+          idx === index ? { ...item, isUrgent: isChecked ? 1 : 0 } : item
+        )
         : [];
 
       return {
@@ -491,99 +487,99 @@ export default function AppointmentStatus() {
 
       const newTestData = Array.isArray(response?.data?.data)
         ? response.data?.data.map(
-            ({
-              itemName,
-              mrp,
-              netAmt,
-              deliveryDate,
-              isUrgent,
-              itemId,
-              discount,
-              id,
-              itemType,
-              grosss,
-              sampleTypeName,
-              sortName,
-              testcode,
-              defaultsampletype,
-              departmentname,
-              deptId,
-              gender,
-              sampleTypeId,
-              approvedDate,
-              departmentReceiveDate,
-              invoiceDate,
-              notApprovedDate,
-              outhouseDoneOn,
-              resultDate,
-              sampleCollectionDate,
-              sampleReceiveDate,
-              sampleRecollectedDate,
-              holdDate,
-              unHoldDate,
-              sampleRejectionOn,
-              showonReportdate,
-            }) => ({
-              investigationName: itemName,
-              mrp,
-              netAmount: netAmt,
-              rate: grosss,
-              isUrgent: isUrgent || 0,
-              deliveryDate,
-              discount,
-              id: id || 0,
-              defaultsampletype,
-              departmentName: departmentname,
-              sampleTypeName,
-              gender,
-              sampleTypeId,
-              sortName,
-              createdById: parseInt(user?.employeeId) || 0,
-              createdDateTime: new Date().toISOString(),
-              isActive: 1,
-              updateById: 0,
-              updateDateTime: new Date(
-                "1888-03-01T10:22:20.044Z"
-              ).toISOString(),
-              workOrderId: testData?.workOrderId || 0,
-              transactionId: testData?.transactionId || 0,
-              testcode,
-              itemId: itemId || 0,
-              packageID: 0,
-              deptId,
-              barcodeNo: "",
-              isPackage: 0,
-              packageName: "",
-              itemType,
-              packMrp: 0,
-              packItemRate: 0,
-              packItemDiscount: 0,
-              packItemNet: 0,
-              reportType: 0,
-              centreId: testData?.centreId || 0,
-              sessionCentreid: 0,
-              isSra: 0,
-              isMachineOrder: 0,
-              isEmailsent: 0,
-              sampleCollectionDate:
-                sampleCollectionDate || new Date().toISOString(),
-              sampleReceiveDate: sampleReceiveDate || new Date().toISOString(),
-              resultDate: resultDate || new Date().toISOString(),
-              approvedDate: approvedDate || new Date().toISOString(),
-              notApprovedDate: notApprovedDate || new Date().toISOString(),
-              deliveryDate: deliveryDate || new Date().toISOString(),
-              departmentReceiveDate:
-                departmentReceiveDate || new Date().toISOString(),
-              sampleRejectionOn: sampleRejectionOn || new Date().toISOString(),
-              outhouseDoneOn: outhouseDoneOn || new Date().toISOString(),
-              sampleRecollectedDate:
-                sampleRecollectedDate || new Date().toISOString(),
-              invoiceDate: invoiceDate || new Date().toISOString(),
-              showonReportdate: showonReportdate || new Date().toISOString(),
-              holdDate: holdDate || new Date().toISOString(),
-              unHoldDate: unHoldDate || new Date().toISOString(),
-            })
-          )
+          ({
+            itemName,
+            mrp,
+            netAmt,
+            deliveryDate,
+            isUrgent,
+            itemId,
+            discount,
+            id,
+            itemType,
+            grosss,
+            sampleTypeName,
+            sortName,
+            testcode,
+            defaultsampletype,
+            departmentname,
+            deptId,
+            gender,
+            sampleTypeId,
+            approvedDate,
+            departmentReceiveDate,
+            invoiceDate,
+            notApprovedDate,
+            outhouseDoneOn,
+            resultDate,
+            sampleCollectionDate,
+            sampleReceiveDate,
+            sampleRecollectedDate,
+            holdDate,
+            unHoldDate,
+            sampleRejectionOn,
+            showonReportdate,
+          }) => ({
+            investigationName: itemName,
+            mrp,
+            netAmount: netAmt,
+            rate: grosss,
+            isUrgent: isUrgent || 0,
+            deliveryDate,
+            discount,
+            id: id || 0,
+            defaultsampletype,
+            departmentName: departmentname,
+            sampleTypeName,
+            gender,
+            sampleTypeId,
+            sortName,
+            createdById: parseInt(user?.employeeId) || 0,
+            createdDateTime: new Date().toISOString(),
+            isActive: 1,
+            updateById: 0,
+            updateDateTime: new Date(
+              "1888-03-01T10:22:20.044Z"
+            ).toISOString(),
+            workOrderId: testData?.workOrderId || 0,
+            transactionId: testData?.transactionId || 0,
+            testcode,
+            itemId: itemId || 0,
+            packageID: 0,
+            deptId,
+            barcodeNo: "",
+            isPackage: 0,
+            packageName: "",
+            itemType,
+            packMrp: 0,
+            packItemRate: 0,
+            packItemDiscount: 0,
+            packItemNet: 0,
+            reportType: 0,
+            centreId: testData?.centreId || 0,
+            sessionCentreid: 0,
+            isSra: 0,
+            isMachineOrder: 0,
+            isEmailsent: 0,
+            sampleCollectionDate:
+              sampleCollectionDate || new Date().toISOString(),
+            sampleReceiveDate: sampleReceiveDate || new Date().toISOString(),
+            resultDate: resultDate || new Date().toISOString(),
+            approvedDate: approvedDate || new Date().toISOString(),
+            notApprovedDate: notApprovedDate || new Date().toISOString(),
+            deliveryDate: deliveryDate || new Date().toISOString(),
+            departmentReceiveDate:
+              departmentReceiveDate || new Date().toISOString(),
+            sampleRejectionOn: sampleRejectionOn || new Date().toISOString(),
+            outhouseDoneOn: outhouseDoneOn || new Date().toISOString(),
+            sampleRecollectedDate:
+              sampleRecollectedDate || new Date().toISOString(),
+            invoiceDate: invoiceDate || new Date().toISOString(),
+            showonReportdate: showonReportdate || new Date().toISOString(),
+            holdDate: holdDate || new Date().toISOString(),
+            unHoldDate: unHoldDate || new Date().toISOString(),
+          })
+        )
         : [];
 
       let duplicateFound = false; // Flag to track if any duplicates exist
@@ -1125,7 +1121,7 @@ export default function AppointmentStatus() {
                         maxLength={10}
                         label="Mobile No."
                         readOnly={true}
-                        // isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
+                      // isMandatory={patientRegistrationForEditTestDataError?.mobileNo}
                       />
                     </div>
 
@@ -1145,7 +1141,7 @@ export default function AppointmentStatus() {
                         defaultIndex={0}
                         activeTheme={activeTheme}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.title_id}
+                      //isMandatory={patientRegistrationForEditTestDataError?.title_id}
                       />
                     </div>
                   </div>
@@ -1158,7 +1154,7 @@ export default function AppointmentStatus() {
                       onChange={(e) => handelOnChangeEditTest(e)}
                       label="Name"
                       readOnly={true}
-                      //isMandatory={patientRegistrationForEditTestDataError?.name}
+                    //isMandatory={patientRegistrationForEditTestDataError?.name}
                     />
                   </div>
 
@@ -1174,7 +1170,7 @@ export default function AppointmentStatus() {
                         maxLength={3}
                         allowSpecialChars={false}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.ageYear}
+                      //isMandatory={patientRegistrationForEditTestDataError?.ageYear}
                       />
                     </div>
 
@@ -1189,7 +1185,7 @@ export default function AppointmentStatus() {
                         maxLength={2}
                         allowSpecialChars={false}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.ageMonth}
+                      //isMandatory={patientRegistrationForEditTestDataError?.ageMonth}
                       />
                     </div>
 
@@ -1203,7 +1199,7 @@ export default function AppointmentStatus() {
                         isDisabled={false}
                         maxLength={2}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.ageDay}
+                      //isMandatory={patientRegistrationForEditTestDataError?.ageDay}
                       />
                     </div>
                   </div>
@@ -1244,12 +1240,10 @@ export default function AppointmentStatus() {
                         defaultIndex={0}
                         activeTheme={activeTheme}
                         readOnly={true}
-                        //isMandatory={patientRegistrationForEditTestDataError?.gender}
+                      //isMandatory={patientRegistrationForEditTestDataError?.gender}
                       />
                     </div>
                   </div>
-                  {console.log(testData)}
-
                   <div className="relative flex-1">
                     <CustomEmailInput
                       name="emailId"
@@ -1257,7 +1251,7 @@ export default function AppointmentStatus() {
                       onChange={(e) => handelOnChangeEditTest(e)}
                       label="Email"
                       readOnly={true}
-                      // isMandatory={patientRegistrationForEditTestDataError?.emailId}
+                    // isMandatory={patientRegistrationForEditTestDataError?.emailId}
                     />
                   </div>
 
@@ -1276,7 +1270,7 @@ export default function AppointmentStatus() {
                         readOnly={true}
                         uniqueKey="doctorId"
                         activeTheme={activeTheme}
-                        //isMandatory={patientRegistrationForEditTestDataError?.refID1}
+                      //isMandatory={patientRegistrationForEditTestDataError?.refID1}
                       />
                     </div>
 
@@ -1311,7 +1305,7 @@ export default function AppointmentStatus() {
                       uniqueKey="doctorId"
                       readOnly={true}
                       activeTheme={activeTheme}
-                      //isMandatory={patientRegistrationForEditTestDataError?.refID2}
+                    //isMandatory={patientRegistrationForEditTestDataError?.refID2}
                     />
                   </div>
 
@@ -1346,7 +1340,7 @@ export default function AppointmentStatus() {
                       onChange={(e) => handelOnChangeEditTest(e)}
                       label="Address"
                       readOnly={true}
-                      //isMandatory={patientRegistrationForEditTestDataError?.address}
+                    //isMandatory={patientRegistrationForEditTestDataError?.address}
                     />
                   </div>
 
@@ -1361,7 +1355,7 @@ export default function AppointmentStatus() {
                       maxLength={6}
                       label="Pin Code"
                       readOnly={true}
-                      // isMandatory={patientRegistrationForEditTestDataError?.pinCode}
+                    // isMandatory={patientRegistrationForEditTestDataError?.pinCode}
                     />
                   </div>
 
@@ -1383,7 +1377,7 @@ export default function AppointmentStatus() {
                         uniqueKey="otherLabReferID"
                         readOnly={true}
                         activeTheme={activeTheme}
-                        //isMandatory={patientRegistrationForEditTestDataError?.otherLabReferID}
+                      //isMandatory={patientRegistrationForEditTestDataError?.otherLabReferID}
                       />
                     </div>
 
@@ -1484,7 +1478,7 @@ export default function AppointmentStatus() {
                 <GridDataDetails gridDataDetails={"Test Data Details"} />
 
                 <CustomDynamicTable
-                  height={"30vh"}
+                  height={"20vh"}
                   activeTheme={activeTheme}
                   columns={patientRegistrationInvestigation}
                 >
@@ -1493,9 +1487,8 @@ export default function AppointmentStatus() {
                       return (
                         <tr
                           key={`${rowIndex}`}
-                          className={`cursor-pointer ${
-                            rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
-                          }`}
+                          className={`cursor-pointer ${rowIndex % 2 === 0 ? "bg-gray-100" : "bg-white"
+                            }`}
                           onMouseEnter={() => setIsHoveredTablePopup(rowIndex)}
                           onMouseLeave={() => setIsHoveredTablePopup(null)}
                           style={{
@@ -1565,19 +1558,18 @@ export default function AppointmentStatus() {
                           <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                             {(data?.isSampleCollected === "N" ||
                               data?.isSampleCollected === "R") && (
-                              <RiDeleteBin2Fill
-                                onClick={() =>
-                                  deleteinvestigationGridDataByForEditTestDataUsingItemId(
-                                    rowIndex
-                                  )
-                                }
-                                className={`cursor-pointer ${
-                                  data?.isRemoveItem === 1
+                                <RiDeleteBin2Fill
+                                  onClick={() =>
+                                    deleteinvestigationGridDataByForEditTestDataUsingItemId(
+                                      rowIndex
+                                    )
+                                  }
+                                  className={`cursor-pointer ${data?.isRemoveItem === 1
                                     ? "text-gray-300"
                                     : "text-red-500"
-                                }  text-base`}
-                              />
-                            )}
+                                    }  text-base`}
+                                />
+                              )}
                           </td>
 
                           {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">

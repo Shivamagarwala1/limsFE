@@ -11,7 +11,9 @@ import { IoAlertCircleOutline } from 'react-icons/io5';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
 import UserCalendar from '../../../public/UserCalendar';
 import useRippleEffect from '../../../customehook/useRippleEffect';
-
+import FormHeader from '../../../global/FormHeader'
+import { CustomTextBox } from '../../../global/CustomTextBox';
+import GridDataDetails from '../../../global/GridDataDetails';
 
 export default function ClientMaster() {
 
@@ -143,6 +145,7 @@ export default function ClientMaster() {
     const [allSalesExecutiveData, setAllSalesExecutiveData] = useState([]);
     const [allDocumentData, setAllDocumentData] = useState([]);
     const [allCentreData, setAllCentreData] = useState([]);
+    const [filterAllCentreData, setFilterAllCentreData] = useState(allCentreData || []);
     const [openModelForStateOrDistrictOrCityData, setopenModelForStateOrDistrictOrCityData] = useState('');
     const [isErrorForAddSateCityDistrict, setisErrorForAddSateCityDistrict] = useState('')
     const [documentImage, setDocumentImage] = useState();
@@ -152,6 +155,7 @@ export default function ClientMaster() {
     const [formErrors, setFormErrors] = useState({}); // State to track validation errors
     const [isEditData, setIsEditData] = useState(false);
     const [showCalander, setShowCalander] = useState(false);
+    const [clientSearchData, setClientSearchData] = useState('');
 
     const [listOfSelectedEmployee, setListOfSelectedEmployee] = useState([]);
 
@@ -375,6 +379,8 @@ export default function ClientMaster() {
 
             await getCentreMasterApi().then((resp) => {
                 setAllCentreData(resp);
+                setFilterAllCentreData(resp);
+
             }).catch((err) => {
                 toast.error(err?.message);
             })
@@ -977,6 +983,20 @@ export default function ClientMaster() {
         data?.companyName.toLowerCase().includes(String(formData?.parentCentreID || '').toLowerCase())
     );
 
+    //search client data
+    const handelOnChangeForClientSearchData = (e) => {
+
+        const searchValue = e.target.value.toLowerCase();
+        setClientSearchData(searchValue);
+
+        // Filter data based on client name (case-insensitive)
+        const filteredResults = allCentreData.filter((data) =>
+            data?.companyName?.toLowerCase().includes(searchValue)
+        );
+
+        setFilterAllCentreData(filteredResults);
+
+    }
 
 
     //===========================================
@@ -2634,6 +2654,29 @@ export default function ClientMaster() {
 
             </form>
 
+
+            {/* searching functionality */}
+            <div>
+                <GridDataDetails gridDataDetails={'Search Client'} />
+
+                <div className="grid  grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+                    <form autoComplete='off'>
+                        <div className="relative flex-1">
+                            <CustomTextBox
+                                type="allCharacters"
+                                name="clientSearchData"
+                                value={clientSearchData || ''}
+                                onChange={(e) => handelOnChangeForClientSearchData(e)}
+                                label="Client Name"
+                            // showLabel={true}
+                            />
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
             {/* display the data */}
             < div className='w-full' >
                 <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
@@ -2677,7 +2720,7 @@ export default function ClientMaster() {
                             </tr>
                         </thead>
                         <tbody>
-                            {allCentreData?.map((data) => (
+                            {filterAllCentreData?.map((data) => (
                                 <tr
                                     className={`cursor-pointer ${isHoveredTable === data?.centreId
                                         ? ''

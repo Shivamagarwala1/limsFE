@@ -44,6 +44,11 @@ export default function EmployeePageAccess() {
         totalColum: 0
     });
 
+    const [expandedEmpId, setExpandedEmpId] = useState(null);
+    const [isHoveredTableChild, setIsHoveredTableChild] = useState(null);
+
+    const groupedData = Object.groupBy(allPageAccessData, (data) => data?.empId);
+
     //itemtype,itemname,test code,departement,gender,record type
     const [selectedValue, setSelectedValue] = useState({
         selectedRoleData: '',
@@ -744,7 +749,7 @@ export default function EmployeePageAccess() {
                                 onMouseLeave={() => setIsHoveredTable(null)}
                                 style={{
                                     background:
-                                        isHoveredTable === data?.id ? activeTheme?.subMenuColor : undefined,
+                                        isHoveredTable === data?.id ? activeTheme?.subMenuColor : undefined,                                               
                                 }}
                             >
                                 <td className="border-b px-4 h-4 text-gridTextColor text-xxs font-semibold" style={{ width: '0%' }}>
@@ -788,13 +793,11 @@ export default function EmployeePageAccess() {
                 </table>
 
             </div > */}
-            {
-                console.log(allPageAccessData)
-            }
+
 
             <CustomDynamicTable activeTheme={activeTheme} columns={employeePageAccessData} >
 
-                <tbody >
+                {/* <tbody >
                     {allPageAccessData?.map((data) => (
                         <tr
                             className={`cursor-pointer ${isHoveredTable === data?.id
@@ -842,14 +845,140 @@ export default function EmployeePageAccess() {
                                             setremovePageAccessId(data?.id);
                                             setShowActivePopup(true);
                                         }} />
-                                    {/* )} */}
+                                    {/* )} *
                                 </button>
                             </td>
                         </tr>
                     ))}
+                </tbody> */}
+
+                <tbody>
+                    {Object.entries(groupedData).map(([empId, records], index) => (
+                        <React.Fragment key={empId}>
+                            {/* Render only first record by default */}
+                            <tr
+                                // className={`cursor-pointer ${records[0]?.id % 2 === 0 ? "bg-gray-100" : "bg-white"}`}
+
+                                className={`cursor-pointer ${isHoveredTable === index
+                                    ? ''
+                                    : index % 2 === 0
+                                        ? 'bg-gray-100'
+                                        : 'bg-white'
+                                    }`}
+
+                                onMouseEnter={() => setIsHoveredTable(index)}
+                                onMouseLeave={() => setIsHoveredTable(null)}
+                                style={{
+                                    background:
+                                        isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                }}
+                            >
+                                <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                    {index + 1}
+                                </td>
+                                <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                    {records[0]?.roleName}
+                                </td>
+                                <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                    {records[0]?.name}
+                                </td>
+                                <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                    {records[0]?.menuMame}
+                                </td>
+                                <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                    {records[0]?.subMenuName}
+                                </td>
+                                <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                    <button
+                                        onClick={() =>
+                                            setExpandedEmpId(expandedEmpId === empId ? null : empId)
+                                        }
+                                        className="font-semibold text-blue-400"
+                                    >
+                                        {expandedEmpId === empId ?
+                                            "View Less"
+                                            : "View More"}
+                                    </button>
+                                </td>
+                            </tr>
+
+                            {/* Show remaining records when expanded */}
+                            {expandedEmpId === empId &&
+                                records.map((data, index) => (
+                                    <tr
+                                        key={data?.id}
+                                        // className={`${index === 0
+                                        //         ? records[0]?.id % 2 === 0
+                                        //             ? "bg-gray-100"
+                                        //             : "bg-white"
+                                        //         : "bg-gray-50"
+                                        //     }`}
+
+                                        className={`cursor-pointer ${isHoveredTableChild === index
+                                            ? ''
+                                            : index % 2 === 0
+                                                ? 'bg-gray-100'
+                                                : 'bg-white'
+                                            }`}
+                                        //key={index}
+                                        onMouseEnter={() => setIsHoveredTableChild(index)}
+                                        onMouseLeave={() => setIsHoveredTableChild(null)}
+                                        style={{
+                                            background:
+                                                isHoveredTableChild === index ? activeTheme?.subMenuColor : undefined,
+                                        }}
+                                    >
+                                        <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                            {index + 1}
+                                        </td>
+                                        <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                            {data?.roleName}
+                                        </td>
+                                        <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                            {data?.name}
+                                        </td>
+                                        <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                            {data?.menuMame}
+                                        </td>
+                                        <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                            {data?.subMenuName}
+                                        </td>
+                                        <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                            {/* <button
+                                                type="button"
+                                                className="text-red-500"
+                                                onClick={() => {
+                                                    console.log(`Removing access for ${data?.id}`);
+                                                }}
+                                            >
+                                                <IoClose className="w-4 h-4" />
+                                            </button> */}
+
+                                            <button
+                                                type="button"
+                                                data-ripple-light="true"
+                                                className={`relative overflow-hidden w-5 h-4 flex justify-center items-center text-red-500`}
+                                            >
+
+                                                <IoClose className="w-full h-full"
+                                                    onClick={() => {
+                                                        setremovePageAccessId(data?.id);
+                                                        setShowActivePopup(true);
+                                                    }} />
+                                                {/* )} */}
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+
+                        </React.Fragment>
+                    ))}
+
                 </tbody>
 
             </CustomDynamicTable>
+
+
 
 
             {/* popup for active and deactive status */}
