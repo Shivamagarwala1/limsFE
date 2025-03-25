@@ -11,7 +11,7 @@ export default function GridDataDetails({ gridDataDetails }) {
             <div className='w-full h-[0.10rem]' style={{ background: activeTheme?.menuColor }}></div>
 
             <div
-                className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-bold border-b-2 text-textColor"
+                className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-bold border-[1px] text-textColor "
                 style={{ background: activeTheme?.blockColor }}
             >
                 <div>
