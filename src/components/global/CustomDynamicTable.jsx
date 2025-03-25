@@ -65,8 +65,9 @@ const CustomDynamicTable = ({ columns, activeTheme, children, height }) => {
         msOverflowStyle: "none",
         whiteSpace: "nowrap",
         cursor: "grab",
+        // height: "300px",
         // maxHeight: maxHeight, // Dynamically adjusted height
-        maxHeight: height === undefined ? maxHeight : height,
+        height: height === undefined ? maxHeight : height,
       }}
       className={`overflow-y-auto mb-2`}
     >

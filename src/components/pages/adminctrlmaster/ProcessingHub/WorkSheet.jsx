@@ -497,6 +497,7 @@ export default function WorkSheet() {
               name="Work Sheet Details"
               tableStyle={{ marginBottom: "-10px" }}
               columns={columns}
+              loading={GridData?.loading}
               activeTheme={activeTheme}
             />
           </div>

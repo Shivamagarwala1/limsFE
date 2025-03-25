@@ -57,7 +57,7 @@ export default function MarketingDashboardMaster() {
         `/MarketingDashBoard/GetDashBoardData?type=${MarketingValue}`
       );
     }
-  }, [MarketingValue,UpdateData?.loading,PostData?.loading]);
+  }, [MarketingValue, UpdateData?.loading, PostData?.loading]);
   useEffect(() => {
     if (getData?.data?.data) {
       setRow(addRandomObjectId(getData?.data?.data));
@@ -88,7 +88,16 @@ export default function MarketingDashboardMaster() {
     { field: "Random", headerName: "Sr. No", width: 20 },
     { field: "type", headerName: "Type", flex: 1 },
     { field: "subject", headerName: "Subject", flex: 1 },
-    { field: "description", headerName: "Description", flex: 1 },
+    {
+      field: "description",
+      headerName: "Description",
+      flex: 1,
+      renderCell: (params) => {
+        return <div>
+          {params.row.description}
+        </div>;
+      },
+    },
     {
       field: "",
       width: 200,
