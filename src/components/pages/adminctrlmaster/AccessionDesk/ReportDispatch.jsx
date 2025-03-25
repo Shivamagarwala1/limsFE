@@ -328,7 +328,7 @@ export default function ReportDispatch() {
       : [];
 
     const updateData = {
-      "centreId": reportDispatchData?.centreId,
+      "centreId": reportDispatchData?.centreId?.centreId,
       "fromDate": reportDispatchData?.fromDate,
       "toDate": reportDispatchData?.toDate,
       "datetype": reportDispatchData?.searchType || "",

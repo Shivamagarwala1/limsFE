@@ -705,10 +705,10 @@ export default function TicketSupport() {
                                                                 {
                                                                     user?.defaultCenter === '1' && (
                                                                         <div className="flex justify-start items-center">
-                                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === null ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
+                                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
                                                                                 style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                                                 onClick={() => {
-                                                                                    if (data?.isCompleted === 0) {
+                                                                if (data?.isCompleted === 0) {
 
                                                                                         getSingleTicketData(data?.ticketId, data?.ticketId * 2, 8)
 
@@ -718,7 +718,7 @@ export default function TicketSupport() {
                                                                                 title='Edit Delivery Date'
                                                                             >
                                                                                 {
-                                                                                    isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
+                                        isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
                                                                                         <FaSpinner className='h-4 w-4' /> :
                                                                                         <MdModeEditOutline className='h-4 w-4' />
                                                                                 }
