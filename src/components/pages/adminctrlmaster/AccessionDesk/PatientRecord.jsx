@@ -320,6 +320,8 @@ export default function PatientRecord() {
       empId: parseInt(user?.employeeId)
     }
 
+
+
     try {
       const response = await getGridDataBasedOnPatientRecordData(updateData);
       if (response?.success) {
@@ -853,171 +855,185 @@ export default function PatientRecord() {
 
       </div>
 
+
+
       <div>
         <GridDataDetails
           gridDataDetails={'Patient Record Details'}
         />
-        {
-          console.log(allPatientRecordData)
 
-        }
         <CustomDynamicTable columns={patientRecordHeader} activeTheme={activeTheme}>
           <tbody>
-            {allPatientRecordData?.map((data, index) => (
-              <tr
-                className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                  ? ''
-                  : index % 2 === 0
-                    ? 'bg-gray-100'
-                    : 'bg-white'
-                  }`}
-                key={index}
-                onMouseEnter={() => setIsHoveredTable(index)}
-                onMouseLeave={() => setIsHoveredTable(null)}
-                style={{
-                  background:
-                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                  // Hides scrollbar for IE/Edge
-                }}
-              >
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                  {index + 1}
-                </td>
+            {
+              allPatientRecordData?.map((data, index) => {
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.bookingDate}
-                </td>
+                const colorCode = allSearchBtnWithColor.find((item) => item?.contantName === data?.status)?.colourCode
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.workOrderId}
-                </td>
+                return (
+                  <tr
+                    className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                      ? ''
+                      : index % 2 === 0
+                        ? 'bg-gray-100'
+                        : 'bg-white'
+                      }`}
+                    key={index}
+                    onMouseEnter={() => setIsHoveredTable(index)}
+                    onMouseLeave={() => setIsHoveredTable(null)}
+                    style={{
+                      background:
+                        isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                      // Hides scrollbar for IE/Edge
+                    }}
+                  >
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                      <div className="flex gap-1 items-center justify-between">
+                        <div>
+                          {index + 1}
+                        </div>
+                        <div className="w-2 h-2 rounded-full" style={{ background: colorCode }}>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.name}
-                </td>
+                        </div>
+                      </div>
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.age}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.bookingDate}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.mobileNo}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.workOrderId}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.refDoctor}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.name}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.centreName}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.age}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.ratetype}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.mobileNo}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.regBy}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.refDoctor}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.grossAmount}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.centreName}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.discount}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.ratetype}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.netAmount}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.regBy}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.paidAmount}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.grossAmount}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.dueAmt}
-                </td>
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.discount}
+                    </td>
 
-                <td className="border-b px-4 h-5 text-xs font-semibold text-gridTextColor" >
-                  <div className="flex justify-start gap-5 items-startjustify-start text-xs">
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                    >
-                      <FaCircleInfo />
-                    </div>
-                    {
-                      data?.documnet === 1 && (
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.netAmount}
+                    </td>
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.paidAmount}
+                    </td>
+
+                    <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                      {data?.dueAmt}
+                    </td>
+
+                    <td className="border-b px-4 h-5 text-xs font-semibold text-gridTextColor" >
+                      <div className="flex justify-start gap-5 items-startjustify-start text-xs">
                         <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                           style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                          onClick={() => handelDownloadInfoOrDocument(data?.workOrderId)}
                         >
-                          <FaDownload />
+                          <FaCircleInfo />
                         </div>
-                      )
-                    }
+                        {
+                          data?.documnet === 1 && (
+                            <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                              style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                              onClick={() => handelDownloadInfoOrDocument(data?.workOrderId)}
+                            >
+                              <FaDownload />
+                            </div>
+                          )
+                        }
 
-                  </div>
-                </td>
+                      </div>
+                    </td>
 
-                <td className="border-b px-4 h-5 text-sm font-semibold">
-                  <div className="flex justify-center items-center">
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => handelOpenSettlementData(data)}
-                    >
-                      <FaRupeeSign />
-                    </div>
-                  </div>
+                    <td className="border-b px-4 h-5 text-sm font-semibold">
+                      <div className="flex justify-center items-center">
+                        <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                          style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          onClick={() => handelOpenSettlementData(data)}
+                        >
+                          <FaRupeeSign />
+                        </div>
+                      </div>
 
-                </td>
+                    </td>
 
-                {/*   */}
-                <td className="border-b px-4 h-5 text-sm font-semibold">
-                  <div className="flex justify-center items-center">
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => {
-                        setShowPopup(2)
-                      }}
+                    {/*   */}
+                    <td className="border-b px-4 h-5 text-sm font-semibold">
+                      <div className="flex justify-center items-center">
+                        <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                          style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          onClick={() => {
+                            setShowPopup(2)
+                          }}
 
 
-                    >
-                      <TbCoinRupeeFilled />
-                    </div>
-                  </div>
+                        >
+                          <TbCoinRupeeFilled />
+                        </div>
+                      </div>
 
-                </td>
+                    </td>
 
-                <td className="border-b px-4 h-5 text-sm font-semibold">
-                  <div className="flex justify-center items-center">
+                    <td className="border-b px-4 h-5 text-sm font-semibold">
+                      <div className="flex justify-center items-center">
 
-                    <div
-                      className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => handelDownloadCashReceipt(data?.workOrderId)}
-                    >
-                      <FaFilePdf />
-                    </div>
-                  </div>
-                </td>
+                        <div
+                          className="w-5 h-5 flex justify-center items-center rounded-sm"
+                          style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          onClick={() => handelDownloadCashReceipt(data?.workOrderId)}
+                        >
+                          <FaFilePdf />
+                        </div>
+                      </div>
+                    </td>
 
-                <td className="border-b px-4 h-5 text-sm font-semibold">
-                  <div className="flex justify-center items-center">
+                    <td className="border-b px-4 h-5 text-sm font-semibold">
+                      <div className="flex justify-center items-center">
 
-                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                      onClick={() => handelDownloadMRPreceipt(data?.workOrderId)}
-                    >
-                      <FaFilePdf />
+                        <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                          style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          onClick={() => handelDownloadMRPreceipt(data?.workOrderId)}
+                        >
+                          <FaFilePdf />
 
-                    </div>
-                  </div>
-                </td>
+                        </div>
+                      </div>
+                    </td>
 
-              </tr>
-            ))}
+                  </tr>
+                )
+              }
+              )
+            }
           </tbody>
         </CustomDynamicTable >
       </div >
@@ -1264,6 +1280,15 @@ export default function PatientRecord() {
 
               </div>
 
+              {/* footer */}
+              <div
+                className="border-t-[1px] flex justify-center items-center py-[10px] rounded-b-md text-xs font-semibold"
+                style={{
+                  borderImage: activeTheme?.menuColor,
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              ></div>
             </div>
           </div>
         )
