@@ -34,6 +34,7 @@ import GridDataDetails from "../../../global/GridDataDetails";
 import CustomLoadingPage from "../../../global/CustomLoadingPage";
 import CustomDynamicTable from "../../../global/CustomDynamicTable";
 import { resultTrackForPatientInformation } from "../../../listData/listData";
+import { PopupFooter } from "../../../../Custom Components/NewPopups";
 
 export default function HistoResultTrack() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -285,7 +286,12 @@ export default function HistoResultTrack() {
               showPopup={isShown}
               comment={params?.row?.comment}
             />
-            <div style={{ display: "flex", gap: "5px", alignItems: "center" }}>
+            <div
+              onClick={() => {
+                hideComment();
+              }}
+              style={{ display: "flex", gap: "5px", alignItems: "center" }}
+            >
               {params?.row?.comment?.slice(0, 10)}
             </div>
           </>
@@ -853,6 +859,8 @@ export default function HistoResultTrack() {
                   </tbody>
                 </CustomDynamicTable>
               )}
+              <PopupFooter />
+
             </div>
           </div>
         )}

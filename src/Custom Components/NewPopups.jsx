@@ -22,6 +22,19 @@ import {
 import { MdPadding } from "react-icons/md";
 import { DatePickerWithTime } from "./DatePickerWithTime";
 
+export const PopupFooter = () => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  return (
+    <div
+      className="flex justify-center items-center h-6 rounded-b-md text-xs font-semibold"
+      style={{
+        background: activeTheme?.menuColor,
+        color: activeTheme?.iconColor,
+      }}
+    />
+  );
+};
+
 export const PopupModal = ({
   showPopup,
   setShowPopup,
@@ -36,7 +49,7 @@ export const PopupModal = ({
 
   return (
     <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-      <div className="border-[1px] w-72 pl-3 pr-3 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
+      <div className="border-[1px] w-56 pl-3 pr-3 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50">
         <div className="flex mt-3 items-center">
           <IoAlertCircleOutline
             className="w-8 h-8"
@@ -44,9 +57,9 @@ export const PopupModal = ({
           />
         </div>
 
-        <div className="text-xxxs font-semibold text-textColor/50 text-center">
+        {/* <div className="text-xxxs font-semibold text-textColor/50 text-center">
           {message}
-        </div>
+        </div> */}
 
         <div className="flex items-end gap-5 my-5">
           <div>
@@ -178,6 +191,7 @@ export const UploadCertificatePopupModal = ({
               }}
             />
           </div>
+          <PopupFooter />
         </form>
       </div>
     </div>
@@ -283,6 +297,7 @@ export const UploadAgreementPopupModal = ({
               }}
             />
           </div>
+          <PopupFooter />
         </form>
       </div>
     </div>
@@ -368,6 +383,8 @@ export const RejectPopupModal = ({
               }}
             />
           </div>
+
+          <PopupFooter />
         </form>
       </div>
     </div>
@@ -526,7 +543,7 @@ export const IndentIssuePopupModal = ({ showPopup, setShowPopup, Params }) => {
   console.log(row);
   return (
     <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
-      <div className="w-96 md:w-[45rem] bg-white rounded-md">
+      <div className="w-96 md:w-[45rem] flex flex-col bg-white rounded-md">
         {/* Header */}
         <div
           style={{
@@ -545,103 +562,106 @@ export const IndentIssuePopupModal = ({ showPopup, setShowPopup, Params }) => {
             onClick={() => setShowPopup(false)}
           />
         </div>
-        <TableHeader title={"Indent Details"} />
-        <div
-          style={{
-            overflowY: "auto",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-          className="overflow-x-auto w-full"
-        >
-          <table className="table-auto border-collapse w-full text-xxs text-left min-w-max">
-            <thead
-              style={{
-                background: activeTheme?.menuColor,
-                color: activeTheme?.iconColor,
-              }}
-            >
-              <tr>
-                {columns?.map((col, index) => (
-                  <th
-                    key={index}
-                    className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
-                    style={{
-                      width: col?.width ? `${col?.width}px` : "",
-                      flex: col?.flex || "",
-                    }}
-                  >
-                    {col?.renderHeaderCell
-                      ? col?.renderHeaderCell({ row: {} })
-                      : col?.headerName}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            {row?.length !== 0 ? (
-              <tbody>
-                {row?.map((row, index) => (
-                  <tr
-                    key={row?.[viewKey] || index} // Ensure a valid key
-                    className={`cursor-pointer ${
-                      isHoveredTable === row?.[viewKey]
-                        ? ""
-                        : index % 2 === 0
-                        ? "bg-gray-100"
-                        : "bg-white"
-                    }`}
-                    onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
-                    onMouseLeave={() => setIsHoveredTable(null)}
-                    style={{
-                      background:
-                        isHoveredTable === row?.[viewKey]
-                          ? activeTheme?.subMenuColor
-                          : "",
-                    }}
-                  >
-                    {columns?.map((col, idx) => (
-                      <td
-                        key={idx}
-                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
-                      >
-                        {col?.renderCell
-                          ? col?.renderCell({ row })
-                          : row[col?.field]}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            ) : (
-              <tbody>
+        <div>
+          <TableHeader title={"Indent Details"} />
+          <div
+            style={{
+              overflowY: "auto",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+            className="overflow-x-auto w-full"
+          >
+            <table className="table-auto border-collapse w-full text-xxs text-left min-w-max">
+              <thead
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              >
                 <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="text-center py-4"
-                  ></td>
+                  {columns?.map((col, index) => (
+                    <th
+                      key={index}
+                      className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+                      style={{
+                        width: col?.width ? `${col?.width}px` : "",
+                        flex: col?.flex || "",
+                      }}
+                    >
+                      {col?.renderHeaderCell
+                        ? col?.renderHeaderCell({ row: {} })
+                        : col?.headerName}
+                    </th>
+                  ))}
                 </tr>
-              </tbody>
-            )}
-          </table>
-        </div>
-        <div className="flex items-end float-end">
-          <TwoSubmitButton
-            options={[
-              {
-                label: "Save",
-                style: {
-                  width: "100px",
-                  paddingTop: "3px",
-                  paddingBottom: "3px",
+              </thead>
+
+              {row?.length !== 0 ? (
+                <tbody>
+                  {row?.map((row, index) => (
+                    <tr
+                      key={row?.[viewKey] || index} // Ensure a valid key
+                      className={`cursor-pointer ${
+                        isHoveredTable === row?.[viewKey]
+                          ? ""
+                          : index % 2 === 0
+                          ? "bg-gray-100"
+                          : "bg-white"
+                      }`}
+                      onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
+                      onMouseLeave={() => setIsHoveredTable(null)}
+                      style={{
+                        background:
+                          isHoveredTable === row?.[viewKey]
+                            ? activeTheme?.subMenuColor
+                            : "",
+                      }}
+                    >
+                      {columns?.map((col, idx) => (
+                        <td
+                          key={idx}
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
+                        >
+                          {col?.renderCell
+                            ? col?.renderCell({ row })
+                            : row[col?.field]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              ) : (
+                <tbody>
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center py-4"
+                    ></td>
+                  </tr>
+                </tbody>
+              )}
+            </table>
+          </div>
+          <div className="flex items-end float-end">
+            <TwoSubmitButton
+              options={[
+                {
+                  label: "Save",
+                  style: {
+                    width: "100px",
+                    paddingTop: "3px",
+                    paddingBottom: "3px",
+                  },
+                  callBack: () => {
+                    handleSubmit();
+                  },
                 },
-                callBack: () => {
-                  handleSubmit();
-                },
-              },
-            ]}
-          />
+              ]}
+            />
+          </div>
         </div>
+        <PopupFooter />
       </div>
     </div>
   );
@@ -722,7 +742,7 @@ export const IndentApprovePopupModal = ({
 
   return (
     <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
-      <div className="w-96 md:w-[45rem] bg-white rounded-md">
+      <div className="w-96 md:w-[45rem] flex flex-col bg-white rounded-md">
         {/* Header */}
         <div
           style={{
@@ -741,103 +761,106 @@ export const IndentApprovePopupModal = ({
             onClick={() => setShowPopup(false)}
           />
         </div>
-        <TableHeader title={"Indent Details"} />
-        <div
-          style={{
-            overflowY: "auto",
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-          }}
-          className="overflow-x-auto w-full"
-        >
-          <table className="table-auto border-collapse w-full text-xxs text-left min-w-max">
-            <thead
-              style={{
-                background: activeTheme?.menuColor,
-                color: activeTheme?.iconColor,
-              }}
-            >
-              <tr>
-                {columns?.map((col, index) => (
-                  <th
-                    key={index}
-                    className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
-                    style={{
-                      width: col?.width ? `${col?.width}px` : "",
-                      flex: col?.flex || "",
-                    }}
-                  >
-                    {col?.renderHeaderCell
-                      ? col?.renderHeaderCell({ row: {} })
-                      : col?.headerName}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-
-            {row?.length !== 0 ? (
-              <tbody>
-                {row?.map((row, index) => (
-                  <tr
-                    key={row?.[viewKey] || index} // Ensure a valid key
-                    className={`cursor-pointer ${
-                      isHoveredTable === row?.[viewKey]
-                        ? ""
-                        : index % 2 === 0
-                        ? "bg-gray-100"
-                        : "bg-white"
-                    }`}
-                    onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
-                    onMouseLeave={() => setIsHoveredTable(null)}
-                    style={{
-                      background:
-                        isHoveredTable === row?.[viewKey]
-                          ? activeTheme?.subMenuColor
-                          : "",
-                    }}
-                  >
-                    {columns?.map((col, idx) => (
-                      <td
-                        key={idx}
-                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
-                      >
-                        {col?.renderCell
-                          ? col?.renderCell({ row })
-                          : row[col?.field]}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            ) : (
-              <tbody>
+        <div>
+          <TableHeader title={"Indent Details"} />
+          <div
+            style={{
+              overflowY: "auto",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+            className="overflow-x-auto w-full"
+          >
+            <table className="table-auto border-collapse w-full text-xxs text-left min-w-max">
+              <thead
+                style={{
+                  background: activeTheme?.menuColor,
+                  color: activeTheme?.iconColor,
+                }}
+              >
                 <tr>
-                  <td
-                    colSpan={columns.length}
-                    className="text-center py-4"
-                  ></td>
+                  {columns?.map((col, index) => (
+                    <th
+                      key={index}
+                      className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs whitespace-nowrap"
+                      style={{
+                        width: col?.width ? `${col?.width}px` : "",
+                        flex: col?.flex || "",
+                      }}
+                    >
+                      {col?.renderHeaderCell
+                        ? col?.renderHeaderCell({ row: {} })
+                        : col?.headerName}
+                    </th>
+                  ))}
                 </tr>
-              </tbody>
-            )}
-          </table>
-        </div>
-        <div className="flex items-end float-end">
-          <TwoSubmitButton
-            options={[
-              {
-                label: "Save",
-                style: {
-                  width: "100px",
-                  paddingTop: "3px",
-                  paddingBottom: "3px",
+              </thead>
+
+              {row?.length !== 0 ? (
+                <tbody>
+                  {row?.map((row, index) => (
+                    <tr
+                      key={row?.[viewKey] || index} // Ensure a valid key
+                      className={`cursor-pointer ${
+                        isHoveredTable === row?.[viewKey]
+                          ? ""
+                          : index % 2 === 0
+                          ? "bg-gray-100"
+                          : "bg-white"
+                      }`}
+                      onMouseEnter={() => setIsHoveredTable(row?.[viewKey])}
+                      onMouseLeave={() => setIsHoveredTable(null)}
+                      style={{
+                        background:
+                          isHoveredTable === row?.[viewKey]
+                            ? activeTheme?.subMenuColor
+                            : "",
+                      }}
+                    >
+                      {columns?.map((col, idx) => (
+                        <td
+                          key={idx}
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor whitespace-nowrap"
+                        >
+                          {col?.renderCell
+                            ? col?.renderCell({ row })
+                            : row[col?.field]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              ) : (
+                <tbody>
+                  <tr>
+                    <td
+                      colSpan={columns.length}
+                      className="text-center py-4"
+                    ></td>
+                  </tr>
+                </tbody>
+              )}
+            </table>
+          </div>
+          <div className="flex items-end float-end">
+            <TwoSubmitButton
+              options={[
+                {
+                  label: "Save",
+                  style: {
+                    width: "100px",
+                    paddingTop: "3px",
+                    paddingBottom: "3px",
+                  },
+                  callBack: () => {
+                    handleSubmit();
+                  },
                 },
-                callBack: () => {
-                  handleSubmit();
-                },
-              },
-            ]}
-          />
+              ]}
+            />
+          </div>
         </div>
+        <PopupFooter />
       </div>
     </div>
   );
@@ -953,6 +976,7 @@ export const ReschedulePopupModal = ({
               }}
             />
           </div>
+          <PopupFooter />
         </form>
         {/* <div
           style={{
@@ -1075,6 +1099,7 @@ export const CancelPopupModal = ({
               }}
             />
           </div>
+          <PopupFooter />
         </form>
         {/* <div
           style={{
@@ -1097,27 +1122,29 @@ export const PaymentVarificationPopupModal = ({
   setShowPopup,
   message = "Are you sure you want to ",
   row,
+  rejectOrApprove,
 }) => {
   if (!showPopup) return null;
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const lsData = getLocal("imarsar_laboratory");
-  const [Remark, setRemark] = useState("");
+  const { formRef, getValues, setValues } = useFormHandler();
   const getData = usePostData();
+  console.log(showPopup == "A");
+  const handleTheUpdateStatusMenu = async (e) => {
+    if (e) e.preventDefault(); // Prevents default form submission
 
-  const handleTheUpdateStatusMenu = async () => {
-    if (!Remark) {
+    const values = getValues();
+    if (!values?.Remark) {
       toast.error(
-        row?.approved == 0
-          ? "Remark is Required"
-          : "Rejection Remark is Required"
+        showPopup == "A" ? "Remark is Required" : "Rejection Remark is Required"
       );
       return;
     }
     const payload = {
       id: row?.id,
-      remarks: row?.approved == 0 ? Remark : "",
-      rejectRemarks: row?.approved == 0 ? "" : Remark,
-      approved: row?.approved === 0 || row?.approved === -1 ? 1 : -1,
+      remarks: showPopup == "A" ? values?.Remark : "",
+      rejectRemarks: showPopup == "A" ? "" : values?.Remark,
+      approved: showPopup == "A" ? 1 : -1,
       updateDate: new Date().toISOString(),
       updateByID: parseInt(lsData?.user?.employeeId),
       apprvoedByID: parseInt(lsData?.user?.employeeId),
@@ -1136,71 +1163,64 @@ export const PaymentVarificationPopupModal = ({
   };
 
   return (
-    <div className="flex justify-center items-center  h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-      <div
-        style={{ width: "18rem" }}
-        className="border-[1px] w-60 flex justify-center items-center flex-col h-auto shadow-2xl bg-white rounded-md animate-slideDown z-50"
-      >
-        <>
-          <div className="flex mt-3 items-center">
-            <IoAlertCircleOutline
-              className="w-8 h-8"
-              style={{ color: activeTheme?.menuColor }}
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">
+            {showPopup == "A" ? "Approval Remark" : "Rejection Remark"}
+          </span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <form
+          autoComplete="off"
+          ref={formRef}
+          onSubmit={handleTheUpdateStatusMenu}
+        >
+          {/* Input Field */}
+          <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
+            <InputGenerator
+              inputFields={[
+                {
+                  label: `${
+                    showPopup == "A" ? "Approval Remark" : "Rejection Remark"
+                  }`,
+                  type: "text",
+                  name: "Remark",
+                },
+              ]}
+            />
+            <SubmitButton
+              submit={true}
+              text={showPopup == "A" ? "Approve" : "Reject"}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
             />
           </div>
-          <div className="text-xxxs font-semibold mb-2 text-textColor/50">
-            {message}
-            {row?.approved === 0 || row?.approved === -1 ? "Approve" : "Reject"}
-          </div>
-          <InputGenerator
-            inputFields={[
-              {
-                label: `${
-                  row?.approved === 0 || row?.approved === -1
-                    ? "Remark"
-                    : "Rejection Remark"
-                }`,
-                type: "text",
-                style: { width: "14rem" },
-                name: `${
-                  row?.approved === 0 || row?.approved === -1
-                    ? "Remark"
-                    : "RejectionRemark"
-                }`,
-                onChange: (e) => {
-                  setRemark(e);
-                },
-              },
-            ]}
+          <div
+            className="flex justify-center items-center h-6 rounded-b-md text-xs font-semibold"
+            style={{
+              background: activeTheme?.menuColor,
+              color: activeTheme?.iconColor,
+            }}
           />
-          <div className="flex items-end gap-5 my-5">
-            <div>
-              <button
-                className="border-[1px] w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
-                style={{
-                  borderImageSource: activeTheme?.menuColor,
-                  borderImageSlice: 1,
-                }}
-                onClick={() => setShowPopup(false)}
-              >
-                cancel
-              </button>
-            </div>
-
-            <div
-              className=" w-16 h-8 rounded-md font-semibold  text-sm flex justify-center items-center gap-2 cursor-pointer"
-              style={{
-                background: activeTheme?.menuColor,
-                color: activeTheme?.iconColor,
-              }}
-              onClick={() => {
-                handleTheUpdateStatusMenu();
-              }}
-            >
-              <div>Yes</div>
-            </div>
-          </div>
-        </>
+        </form>
       </div>
     </div>
   );

@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
-import { useGetData, usePostData } from "../../../../service/apiService";
+import {
+  postData,
+  useGetData,
+  usePostData,
+} from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
   SubmitButton,
+  TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
+import DynamicTable, { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
 import { FaLock, FaLockOpen } from "react-icons/fa";
 import { MdMessage } from "react-icons/md";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
@@ -15,8 +20,9 @@ import toast from "react-hot-toast";
 import PopupModal, {
   HourPopupModal,
   RemarkPopupModal,
-  RemarkPopupModal1,
 } from "../../../../Custom Components/PopupModal";
+import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
+import { addRandomObjectId } from "../../../../service/RedendentData";
 
 export default function LedgerStatus() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -32,89 +38,93 @@ export default function LedgerStatus() {
   const [activeTab, setActiveTab] = useState(0);
   const [selectedCenter, setSelectedCenter] = useState([]);
   const [PaymentMode, setPaymentMode] = useState(1);
+  const [Row, setRow] = useState([]);
   const [Lock, setLock] = useState(true);
   const [Remark, setRemark] = useState(false);
   const [HourModel, setHourModel] = useState(false);
+  const AllCenterData = useGetData();
+  const LegendColor = useGetData();
 
   useEffect(() => {
-    getReason();
-    console.log(activeTab);
-  }, [PaymentMode]);
+    AllCenterData?.fetchData(
+      "/centreMaster?select=centreid,companyName&$filter=( centretypeid eq 2 or centretypeid eq 3 )"
+    );
+  }, []);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 70 },
+    { field: "Random", headerName: "Sr. No", width: 70 },
     {
-      field: `ClientCode`,
-      headerName: `Client Code`,
+      field: `centreCode`,
+      headerName: `Centre Code`,
       flex: 1,
     },
     {
-      field: `Type`,
-      headerName: `Type`,
-      flex: 1,
-    },
-    {
-      field: `ClientName`,
+      field: `companyName`,
       headerName: `Client Name`,
       flex: 1,
     },
     {
-      field: `InvoiceCreDate`,
-      headerName: `Invoice Cre. Date`,
+      field: `centreType`,
+      headerName: `Type`,
       flex: 1,
     },
     {
-      field: `LastInvAmount`,
-      headerName: `Last Inv. Amount`,
+      field: `createdDate`,
+      headerName: `Created Date`,
       flex: 1,
     },
     {
-      field: `OpeningBalance`,
+      field: `invoiceAmt`,
+      headerName: `Invoice Amount`,
+      flex: 1,
+    },
+    {
+      field: `unPaid`,
       headerName: `Opening Balance`,
       flex: 1,
     },
     {
-      field: `DepositAmt`,
+      field: `approvedPayment`,
       headerName: `Deposit Amt.`,
       flex: 1,
     },
     {
-      field: `ClosingBal`,
+      field: `remainingPayment`,
       headerName: `Closing Bal.`,
       flex: 1,
     },
     {
-      field: `CreLimit`,
+      field: `ccreditLimt`,
       headerName: `Cre. Limit`,
       flex: 1,
     },
     {
-      field: `CurrMonthBusiness`,
+      field: `currentBuss`,
       headerName: `Curr. Month Business`,
       flex: 1,
     },
     {
-      field: `CurrMonthDeposit`,
+      field: `currentMPayment`,
       headerName: `Curr. Month Deposit`,
       flex: 1,
     },
     {
-      field: `TodayBusiness`,
+      field: `todayBussiness`,
       headerName: `Today Business`,
       flex: 1,
     },
     {
-      field: `YesterdayBusiness`,
+      field: `yesterDayBussiness`,
       headerName: `Yesterday Business`,
       flex: 1,
     },
     {
-      field: `CreDays`,
+      field: `creditPeridos`,
       headerName: `Cre. Days`,
       flex: 1,
     },
     {
-      field: `Status`,
+      field: `isLock`,
       headerName: `Status`,
       width: 100,
       renderCell: (params) => {
@@ -122,10 +132,10 @@ export default function LedgerStatus() {
           <div className="flex justify-center items-center">
             <button
               className={`w-4 h-4 flex justify-center items-center ${
-                Lock ? "text-red-500" : "text-green-500"
+                params?.row?.isLock ? "text-red-500" : "text-green-500"
               }`}
             >
-              {Lock ? (
+              {params?.row?.isLock ? (
                 <FaLock
                   onClick={() => {
                     setShowPopup(true);
@@ -146,22 +156,22 @@ export default function LedgerStatus() {
       },
     },
     {
-      field: `OpenBy`,
+      field: `unlockBy`,
       headerName: `Open By`,
       flex: 1,
     },
     {
-      field: `OpenDate`,
+      field: `unlockDate`,
       headerName: `Open Date`,
       flex: 1,
     },
     {
-      field: `LockDate`,
+      field: `lockDate`,
       headerName: `Lock Date`,
       flex: 1,
     },
     {
-      field: `Remark`,
+      field: `remarks`,
       headerName: `Remark`,
       width: 100,
       renderCell: (params) => {
@@ -180,51 +190,6 @@ export default function LedgerStatus() {
         );
       },
     },
-    // {
-    //   field: "",
-    //   width: 200,
-    //   headerName: "Action",
-    //   renderCell: (params) => {
-    //     return (
-    //       <div style={{ display: "flex", gap: "20px" }}>
-    //         <button className="w-4 h-4 flex justify-center items-center">
-    //           <FaRegEdit
-    //             className={`w-full h-full ${
-    //               params?.row?.isActive === 1
-    //                 ? "text-blue-500 cursor-pointer"
-    //                 : "text-gray-400 cursor-not-allowed"
-    //             }`}
-    //             onClick={() => {
-    //               setClickedRowId(params?.row);
-    //               setIsButtonClick(1);
-    //               if (activeTab === 0) {
-    //                 setValues([
-    //                   {
-    //                     // [tabs[activeTab]?.fname]:
-    //                     //   params?.row?.discountReasonName,
-    //                   },
-    //                 ]);
-    //               }
-    //             }}
-    //           />
-    //         </button>
-    //         <button
-    //           className={`w-4 h-4 flex justify-center items-center ${
-    //             params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
-    //           }`}
-    //         >
-    //           <ImSwitch
-    //             className="w-full h-full"
-    //             onClick={() => {
-    //               setClickedRowId(params?.row);
-    //               setShowPopup(true);
-    //             }}
-    //           />
-    //         </button>
-    //       </div>
-    //     );
-    //   },
-    // },
   ];
 
   const handleSubmit = async (event) => {
@@ -263,8 +228,16 @@ export default function LedgerStatus() {
   };
 
   const getReason = async () => {
-    // const get = await fetchData(tabs[activeTab]?.getApi);
-    console.log(get);
+    const center = await selectedCenter.join(",");
+    const res = await PostData?.postRequest(
+      `/CentrePayment/LedgerStatus?CentreId=${center}`
+    );
+    if (res?.success) {
+      setRow(addRandomObjectId(res?.data));
+    } else {
+      toast.error(res?.message);
+    }
+    console.log(res);
   };
 
   const handleTheUpdateStatusMenu = async () => {
@@ -308,11 +281,14 @@ export default function LedgerStatus() {
         handleTheUpdateStatusMenu={() => {
           setRemark(!Remark);
         }}
+        rowData={""}
       />
       <HourPopupModal
         showPopup={HourModel}
         setShowPopup={setHourModel}
-        handleTheUpdateStatusMenu={() => {setLock(!Lock)}}
+        handleTheUpdateStatusMenu={() => {
+          setLock(!Lock);
+        }}
       />
 
       {/* )} */}
@@ -328,67 +304,40 @@ export default function LedgerStatus() {
 
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-          <InputGenerator
-            inputFields={[
+          <UpdatedMultiSelectDropDown
+            id="Center"
+            name="serachCenter"
+            label="Center"
+            placeHolder="Search Center"
+            options={AllCenterData?.data}
+            isMandatory={false}
+            isDisabled={false}
+            optionKey="centreId"
+            optionValue={["companyName"]}
+            selectedValues={selectedCenter}
+            setSelectedValues={setSelectedCenter}
+          />
+          <TwoSubmitButton
+            options={[
               {
-                label: "Sales Person",
-                type: "select",
-                name: "FromDate",
-                required: true,
+                label: "Search",
+                submit: false,
+                style: { marginTop: "0px" },
+                callBack: () => {
+                  getReason();
+                },
               },
             ]}
           />
-          <MultiSelectDropdown
-            field={{
-              label: "Centre",
-              name: "CentreMode",
-              keyField: "id",
-              required: true,
-              selectedValues: selectedCenter,
-              showValueField: "mode",
-              dataOptions: [
-                { id: 1, mode: "Cash" },
-                { id: 2, mode: "Cheque" },
-                { id: 3, mode: "Neft" },
-                { id: 4, mode: "Rtgs" },
-                { id: 5, mode: "Online" },
-              ],
-              callBack: (selected) => setSelectedCenter(selected),
-            }}
-          />
-
-          <SubmitButton text={"Search"} />
         </div>
       </form>
       <div className="flex flex-col justify-start items-center w-full gap-2">
-        <DynamicTable
-          rows={[
-            {
-              id: 1,
-              ClientCode: "1234",
-              Type: "Owner",
-              ClientName: "XYZ",
-              InvoiceCreDate: "11-01-25",
-              LastInvAmount: "1599",
-              OpeningBalance: "3000",
-              DepositAmt: "2500",
-              ClosingBal: "500",
-              CreLimit: "5000",
-              CurrMonthBusiness: "500000",
-              CurrMonthDeposit: "240000",
-              TodayBusiness: "25000",
-              YesterdayBusiness: "34000",
-              CreDays: "5",
-              OpenBy: "Admin",
-              OpenDate: "12-12-24",
-              LockDate: "05-02-25",
-              Remark: "This is Remark",
-            },
-          ]}
+        <UpdatedDynamicTable
+          rows={Row}
           name="Ledger Details"
-          loading={loading}
+          loading={PostData?.loading}
           columns={columns}
-          activeTheme={activeTheme}
+          viewKey="Random"
         />
       </div>
     </div>
