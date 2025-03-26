@@ -37,6 +37,7 @@ import { RiArrowDropDownLine, RiArrowDropUpLine } from "react-icons/ri";
 import { ImSwitch } from "react-icons/im";
 import { IoAlertCircleOutline } from "react-icons/io5";
 import useRippleEffect from "../../../customehook/useRippleEffect";
+import { CustomTextBox } from "../../../global/CustomTextBox";
 // import { ImSwitch } from 'react-icons/im';
 
 export default function EmployeeMaster() {
@@ -133,12 +134,15 @@ export default function EmployeeMaster() {
   const [allDistrictData, setAllDistrictData] = useState([]);
   const [allCityData, setAllCityData] = useState([]);
   const [allEmpMasterData, setAllEmpMasterData] = useState([]);
+  const [filterAllEmpMasterData, setFilterAllEmpMasterData] = useState(allEmpMasterData || []);
+  const [searchEmpData, setSearchEmpData] = useState('');
   const [allTitle, setTitle] = useState([]);
   const [allDesignation, setDesignation] = useState([]);
   const [allCenterData, setAllcenterData] = useState([]);
   const [allDefaultCenter, setDefaultCenter] = useState([]);
   const [allRoleData, setAllRoleData] = useState([]);
   const [allDefaultRole, setDefaultRole] = useState([]);
+  const [allDefaultRoleForTicket, setDefaultRoleForTicket] = useState([]);
   const [allZoneData, setAllZoneData] = useState([]);
   const [allDepartmentData, setAllDepartmentData] = useState([]);
   const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
@@ -153,11 +157,15 @@ export default function EmployeeMaster() {
         .then((resp) => {
           if (parseInt(user?.employeeId) === parseInt(1)) {
 
+            //need to show all data to admin
             setAllEmpMasterData(resp);
+            setFilterAllEmpMasterData(resp);
           } else {
+            //no need to show admin detais to other
             setAllEmpMasterData(
               resp?.filter((data) => parseInt(data?.empId) !== parseInt(1))
             );
+            setFilterAllEmpMasterData(resp?.filter((data) => parseInt(data?.empId) !== parseInt(1)));
           }
         })
         .catch((err) => {
@@ -633,6 +641,7 @@ export default function EmployeeMaster() {
           : [],
       }));
       setDefaultRole(isChecked ? allRoleData : []);
+      setDefaultRoleForTicket(isChecked ? allRoleData : []);
     }
   };
 
@@ -706,6 +715,14 @@ export default function EmployeeMaster() {
       });
     } else if (checkBoxName === "roleData") {
       setDefaultRole((prev) => {
+        if (isChecked) {
+          return [...prev, data];
+        } else {
+          return prev.filter((item) => item.id !== data.id);
+        }
+      });
+
+      setDefaultRoleForTicket((prev) => {
         if (isChecked) {
           return [...prev, data];
         } else {
@@ -788,13 +805,13 @@ export default function EmployeeMaster() {
 
     if (!employeeData.defaultrole) errors.defaultrole = true;
 
-    if (employeeData.allowTicket) {
-      if (!employeeData?.allowTicketRole) {
-        errors.allowTicketRole = true;
-      } else {
-        errors.allowTicketRole = false;
-      }
+    // if (employeeData.allowTicket===1) {
+    if (employeeData.allowTicket === '1' && !employeeData?.allowTicketRole) {
+      errors.allowTicketRole = true;
+    } else {
+      errors.allowTicketRole = false;
     }
+    // }
     // Update state with errors
     setFormErrors(errors);
 
@@ -961,8 +978,21 @@ export default function EmployeeMaster() {
               (access) => access.roleId === center.id
             )
           );
-          setDefaultRole(filteredRoles);
 
+
+          console.log(resp);
+          
+
+          const filterTicket = allRoleData?.filter((center) =>
+            resp?.data?.addEmpRoleAccess?.some(
+              (access) => access.roleId === center.id
+            )
+          );
+
+          console.log(filterTicket);
+          
+          setDefaultRole(filteredRoles);
+          setDefaultRoleForTicket(filterTicket);
           //set selecet value state
           setSelectedSearchDropDownData((preventData) => ({
             ...preventData,
@@ -1111,6 +1141,23 @@ export default function EmployeeMaster() {
     setIsButtonClick(0);
   };
 
+
+  //search employee
+  const handelOnChangeForEmployeeSearchData = (e) => {
+
+    const searchValue = e.target.value.toLowerCase();
+    setSearchEmpData(searchValue);
+
+    // Filter data based on client name (case-insensitive)
+    const filteredResults = allEmpMasterData.filter((data) =>
+      data?.fName?.toLowerCase().includes(searchValue)
+    );
+
+    setFilterAllEmpMasterData(filteredResults);
+
+  }
+
+
   //filter data
   const filterAllDesignationData = allDesignation?.filter((data) =>
     data?.designationName
@@ -1147,6 +1194,16 @@ export default function EmployeeMaster() {
       ?.toLowerCase()
       .includes(String(employeeData?.defaultrole || "").toLowerCase())
   );
+
+
+
+
+
+  // const filterAllDefaultRoleAssignTicketData = allDefaultRoleForTicket?.filter((data) =>
+  //   data?.roleName
+  //     ?.toLowerCase()
+  //     .includes(String(employeeData?.allowTicketRole || "").toLowerCase())
+  // );
 
   return (
     <>
@@ -1811,10 +1868,10 @@ export default function EmployeeMaster() {
                 id="addEmpDepartmentAccess"
                 name="addEmpDepartmentAccess"
                 value={
-                  employeeData.addEmpDepartmentAccess.length === 0
+                  employeeData?.addEmpDepartmentAccess?.length === 0
                     ? ""
-                    : employeeData.addEmpDepartmentAccess
-                      .map((data) => data.departmentId) // Extract departmentId
+                    : employeeData?.addEmpDepartmentAccess
+                      ?.map((data) => data.departmentId) // Extract departmentId
                       .join(", ") // Join the array into a string separated by commas
                 }
                 onChange={handelChangeEmployeeDetails}
@@ -1952,10 +2009,10 @@ export default function EmployeeMaster() {
                 id="centreId"
                 name="centreId"
                 value={
-                  employeeData.addEmpCentreAccess.length === 0
+                  employeeData?.addEmpCentreAccess?.length === 0
                     ? ""
-                    : employeeData.addEmpCentreAccess
-                      .map((data) => data.centreId) // Extract departmentId
+                    : employeeData?.addEmpCentreAccess
+                      ?.map((data) => data.centreId) // Extract departmentId
                       .join(", ") // Join the array into a string separated by commas
                 }
                 onChange={handelChangeEmployeeDetails}
@@ -2222,10 +2279,10 @@ export default function EmployeeMaster() {
                 id="addEmpRoleAccess"
                 name="addEmpRoleAccess"
                 value={
-                  employeeData.addEmpRoleAccess.length === 0
+                  employeeData?.addEmpRoleAccess?.length === 0
                     ? ""
-                    : employeeData.addEmpRoleAccess
-                      .map((data) => data.roleId)
+                    : employeeData?.addEmpRoleAccess
+                      ?.map((data) => data.roleId)
                       .join(", ")
                 }
                 onChange={handelChangeEmployeeDetails}
@@ -2644,15 +2701,15 @@ export default function EmployeeMaster() {
               name="allowTicketRole"
               value={
                 selectedSearchDropDownData?.allowTicketRole ||
-                employeeData?.allowTicketRole ||
+
                 ""
               }
               onChange={(e) => {
-                handelChangeEmployeeDetails(e),
-                  setSelectedSearchDropDownData((preventData) => ({
-                    ...preventData,
-                    allowTicketRole: "",
-                  }));
+                //handelChangeEmployeeDetails(e),
+                setSelectedSearchDropDownData((preventData) => ({
+                  ...preventData,
+                  allowTicketRole: e.target.value,
+                }));
               }}
               onClick={() => openShowSearchBarDropDown(10)}
               placeholder=" "
@@ -2669,8 +2726,8 @@ export default function EmployeeMaster() {
             {showSearchBarDropDown === 10 && (
               <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
                 <ul>
-                  {filterAllDefaultRoleData?.length > 0 ? (
-                    filterAllDefaultRoleData?.map((data, index) => (
+                  {allDefaultRoleForTicket?.length > 0 ? (
+                    allDefaultRoleForTicket?.map((data, index) => (
                       <li
                         key={data.id}
                         name="allowTicketRole"
@@ -2816,6 +2873,21 @@ export default function EmployeeMaster() {
               )}
             </div>
           </div>
+
+
+          {/* search employee data */}
+          <div className="relative flex-1">
+            <CustomTextBox
+              type="allCharacters"
+              name="searchEmpData"
+              value={searchEmpData || ''}
+              onChange={(e) => handelOnChangeForEmployeeSearchData(e)}
+              label="Search Employee Data"
+            // showLabel={true}
+            />
+
+          </div>
+
         </div>
       </form>
 
@@ -2867,7 +2939,7 @@ export default function EmployeeMaster() {
           </thead>
 
           <tbody>
-            {allEmpMasterData?.map((data) => {
+            {filterAllEmpMasterData?.map((data) => {
               return (
                 <tr
                   className={`cursor-pointer 
