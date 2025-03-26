@@ -322,11 +322,12 @@ export default function ResultTrack() {
       ? resultTrackFromData.itemIds.map((item) => item?.itemId)
       : [];
 
+
     const payload = {
       // ...values,
       // ...resultTrackFromData,
       empId: lsData?.user?.employeeId,
-      centreIds: resultTrackFromData?.centreIds.length !== 0 ? [allCentreData?.data?.find((data) => data?.centreId === resultTrackFromData?.centreIds?.centreId)]?.centreId : [],
+      centreIds: resultTrackFromData?.centreIds.length !== 0 ? [allCentreData?.data?.find((data) => data?.centreId === resultTrackFromData?.centreIds?.centreId)?.centreId] : [],
       departmentIds: itemData,
       itemIds: testData,
       fromDate: resultTrackFromData?.fromDate,
@@ -339,8 +340,6 @@ export default function ResultTrack() {
       status: filteringData || resultTrackFromData?.status,
     };
 
-
-    console.log(payload);
 
 
     try {
@@ -1702,6 +1701,8 @@ export default function ResultTrack() {
           )
         } */}
 
+
+
         <GridDataDetails
           gridDataDetails={'Patient Record Details'}
         />
@@ -1709,65 +1710,67 @@ export default function ResultTrack() {
         {/* <div className="max-h-80 overflow-y-auto"> */}
         <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme}>
           <tbody>
-            {allResultTrackingData?.map((data, index) => (
+            {allResultTrackingData?.map((data, index) => {
+              const colorCode = allFilterData?.data.find((item) => item?.contantName === data?.status)?.colourCode
+              return (
 
-              <tr
-                className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                  ? ''
-                  : index % 2 === 0
-                    ? 'bg-gray-100'
-                    : 'bg-white'
-                  }`}
-                key={index}
-                onMouseEnter={() => setIsHoveredTable(index)}
-                onMouseLeave={() => setIsHoveredTable(null)}
-                style={{
-                  background:
-                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                  // Hides scrollbar for IE/Edge
-                }}
-              >
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                  <div className="flex gap-1 items-center">
-                    <div>
-                      {index + 1}
+                <tr
+                  className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                    ? ''
+                    : index % 2 === 0
+                      ? 'bg-gray-100'
+                      : 'bg-white'
+                    }`}
+                  key={index}
+                  onMouseEnter={() => setIsHoveredTable(index)}
+                  onMouseLeave={() => setIsHoveredTable(null)}
+                  style={{
+                    background: 
+                      isHoveredTable === index ? activeTheme?.subMenuColor : colorCode,
+                    // Hides scrollbar for IE/Edge
+                  }}
+                >
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                    <div className="flex gap-1 items-center">
+                      <div>
+                        {index + 1}
+                      </div>
+                      {
+                        data?.urgent === 1 && (
+                          <div>
+                            <img src={UrgentGif} alt="path not found" />
+                          </div>
+                        )
+                      }
+
                     </div>
-                    {
-                      data?.urgent === 1 && (
-                        <div>
-                          <img src={UrgentGif} alt="path not found" />
-                        </div>
-                      )
-                    }
+                  </td>
 
-                  </div>
-                </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.bookingDate}
+                  </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.bookingDate}
-                </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.workOrderId}
+                  </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.workOrderId}
-                </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.sampleReceiveDate}
+                  </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.sampleReceiveDate}
-                </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.patientName}
+                  </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.patientName}
-                </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.age}
+                  </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.age}
-                </td>
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.barcodeNo}
+                  </td>
 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.barcodeNo}
-                </td>
-
-                {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                  {/* <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
                     <div className="flex gap-1">
                       {data?.investigationName?.map((item, index) => (
                         <CustomeNormalButton
@@ -1780,79 +1783,80 @@ export default function ResultTrack() {
                     </div>
 
                   </td> */}
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                  <div className="flex flex-wrap gap-1">
-                    {data?.investigationName?.map((item, index) => (
-                      <CustomeNormalButton
-                        key={index}
-                        activeTheme={activeTheme}
-                        text={item?.investigationName}
-                        onClick={() =>
-                          handelObservationData(
-                            data?.totalAge,
-                            item,
-                            data?.workOrderId,
-                            item?.reportType,
-                            item?.itemId,
-                            data?.testid,
-                            data?.deptId
-                          )
-                        }
-                        className="w-auto" // Optional: Adjust button width if needed
-                      />
-                    ))}
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                    <div className="flex flex-wrap gap-1">
+                      {data?.investigationName?.map((item, index) => (
+                        <CustomeNormalButton
+                          key={index}
+                          activeTheme={activeTheme}
+                          text={item?.investigationName}
+                          onClick={() =>
+                            handelObservationData(
+                              data?.totalAge,
+                              item,
+                              data?.workOrderId,
+                              item?.reportType,
+                              item?.itemId,
+                              data?.testid,
+                              data?.deptId
+                            )
+                          }
+                          className="w-auto" // Optional: Adjust button width if needed
+                        />
+                      ))}
 
-                  </div>
-                </td>
-
-
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  {data?.approvedDate}
-                </td>
-
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-
-                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                    onClick={() => {
-                      setShowPopup(1), setSingleRemarkData((preventData) => ({
-                        ...preventData,
-                        transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName[index]?.investigationName,
-                      }))
-                    }}
-                  >
-                    <MdAddCircleOutline className="text-base" />
-                  </div>
-                </td>
- 
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                  <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                    onClick={() => { setShowPopup(2), getAllInfoDocumentData(data?.itemId) }}
-                  >
-                    <FaCircleInfo />
-                  </div>
-                </td>
-
-                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
-                  {data?.comment.length >= 9 ? (
-                    <div className="flex justify-center items-center gap-1">
-                      {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
-                      <div
-                        className="w-5 h-5 flex justify-center items-center rounded-sm"
-                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                        onClick={() => setShowPopup(3)}
-                      >
-                        <FaCommentDots />
-                      </div>
                     </div>
-                  ) : (
-                    data?.comment
-                  )}
-                </td>
+                  </td>
 
-              </tr>
-            ))}
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    {data?.approvedDate}
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+
+                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                      onClick={() => {
+                        setShowPopup(1), setSingleRemarkData((preventData) => ({
+                          ...preventData,
+                          transactionId: data?.transactionId, workOrderId: data?.workOrderId, itemId: data?.itemId, investigationName: data?.investigationName[index]?.investigationName,
+                        }))
+                      }}
+                    >
+                      <MdAddCircleOutline className="text-base" />
+                    </div>
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
+                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                      style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                      onClick={() => { setShowPopup(2), getAllInfoDocumentData(data?.itemId) }}
+                    >
+                      <FaCircleInfo />
+                    </div>
+                  </td>
+
+                  <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
+                    {data?.comment.length >= 9 ? (
+                      <div className="flex justify-center items-center gap-1">
+                        {data?.comment.slice(0, 9) + " ...."} {/* Convert the sliced array to a string */}
+                        <div
+                          className="w-5 h-5 flex justify-center items-center rounded-sm"
+                          style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                          onClick={() => setShowPopup(3)}
+                        >
+                          <FaCommentDots />
+                        </div>
+                      </div>
+                    ) : (
+                      data?.comment
+                    )}
+                  </td>
+
+                </tr>
+              )
+            })}
           </tbody>
         </CustomDynamicTable >
 

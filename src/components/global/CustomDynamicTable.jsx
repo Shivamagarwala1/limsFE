@@ -66,8 +66,8 @@ const CustomDynamicTable = ({ columns, activeTheme, children, height }) => {
         whiteSpace: "nowrap",
         cursor: "grab",
         // height: "300px",
-        // maxHeight: maxHeight, // Dynamically adjusted height
-        height: height === undefined ? maxHeight : height,
+        maxHeight: maxHeight, // Dynamically adjusted height
+        //height: height === undefined ? maxHeight : height,
       }}
       className={`overflow-y-auto mb-2`}
     >
@@ -82,7 +82,7 @@ const CustomDynamicTable = ({ columns, activeTheme, children, height }) => {
             zIndex: 1,
             background: activeTheme?.menuColor,
             color: activeTheme?.iconColor,
-            
+
           }}
         >
           <tr>
