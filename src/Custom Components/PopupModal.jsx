@@ -19,6 +19,7 @@ import { useGetData, usePostData } from "../service/apiService";
 import FileUpload from "./FileUpload";
 import { ViewOrDownloandPDF } from "../service/RedendentData";
 import toast from "react-hot-toast";
+import { PopupFooter } from "./NewPopups";
 
 const PopupModal = ({
   showPopup,
@@ -97,7 +98,7 @@ export const RemarkPopupModal = ({
 
   return (
     <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
-      <div className="w-96 bg-white rounded-md ">
+      <div className="w-96  bg-white rounded-md ">
         {/* Header */}
         <div
           style={{
@@ -107,7 +108,7 @@ export const RemarkPopupModal = ({
             borderBottomLeftRadius: "0px",
             borderBottomRightRadius: "0px",
           }}
-          className="flex rounded-md justify-between items-center p-3 "
+          className="flex rounded-md justify-between items-center p-3 h-6 "
         >
           <span className="text-sm font-semibold">Remakrs</span>
           <IoMdCloseCircleOutline
@@ -118,7 +119,7 @@ export const RemarkPopupModal = ({
         </div>
 
         {/* Input Field */}
-        <div className="p-4 pb-2 border-none">
+        <div className="p-3 pb-2 border-none">
           <InputGenerator
             inputFields={[
               {
@@ -152,6 +153,7 @@ export const RemarkPopupModal = ({
             Add
           </button>
         </div>
+        <PopupFooter />
       </div>
     </div>
   );
@@ -162,6 +164,7 @@ export const HourPopupModal = ({
   setShowPopup,
   handleSubmit,
   handleTheUpdateStatusMenu,
+  rowData,
 }) => {
   const [remark, setRemark] = useState("");
   const [time, setTime] = useState(true);
@@ -267,6 +270,7 @@ export const HourPopupModal = ({
             Add
           </button>
         </div>
+        <PopupFooter />
       </div>
     </div>
   );
@@ -392,7 +396,7 @@ export const AssignPopup = ({ showPopup, setShowPopup, Params }) => {
     if (res?.success) {
       toast.success(res?.message);
       window?.location?.reload();
-    }else{
+    } else {
       toast.error(res?.message);
     }
   };
@@ -488,6 +492,7 @@ export const AssignPopup = ({ showPopup, setShowPopup, Params }) => {
             <p className="text-gray-600">No data available.</p>
           )}
         </div>
+        <PopupFooter />
       </div>
     </div>
   );
@@ -874,6 +879,7 @@ export const HistoHoldUnholdPopupModal = ({
               }}
             />
           </div>
+          <PopupFooter />
         </form>
       </div>
     </div>
@@ -962,6 +968,7 @@ export const HistoApprovedPopupModal = ({
               }}
             />
           </div>
+          <PopupFooter />
         </form>
       </div>
     </div>
@@ -1400,6 +1407,7 @@ export const HistoFileUploadPopupModal = ({
                 },
               ]}
             />
+          <PopupFooter />
           </div>
         </div>
       )}
@@ -1489,7 +1497,6 @@ export const HistoAddAttachmentPopupModal = ({
       setApiTrigger((prev) => !prev); // Trigger API refresh
     }, 10);
   };
-
   const HandleDelete = async (params) => {
     setTimeout(async () => {
       const payloadData = {
@@ -1507,7 +1514,7 @@ export const HistoAddAttachmentPopupModal = ({
     }, 10);
   };
 
-  const Buttons = [
+  const getButtons = (params) => [
     {
       callBack: () => {
         ViewOrDownloandPDF(
@@ -1527,7 +1534,8 @@ export const HistoAddAttachmentPopupModal = ({
       style: { width: "50px" },
     },
   ];
-  const Buttons1 = [
+
+  const getButtons1 = (params) => [
     {
       callBack: () => {
         ViewOrDownloandPDF(
@@ -1539,6 +1547,7 @@ export const HistoAddAttachmentPopupModal = ({
       style: { width: "50px" },
     },
   ];
+
   const columns = [
     {
       field: `attachment`,
@@ -1562,7 +1571,11 @@ export const HistoAddAttachmentPopupModal = ({
       flex: 1,
       renderCell: (params) => (
         <div className="flex justify-center items-center">
-          <TwoSubmitButton options={rowData?.isApproved ? Buttons1 : Buttons} />
+          <TwoSubmitButton
+            options={
+              params?.row?.isApproved ? getButtons1(params) : getButtons(params)
+            }
+          />
         </div>
       ),
     },
@@ -1622,6 +1635,7 @@ export const HistoAddAttachmentPopupModal = ({
           tableStyle={{ marginBottom: "-25px" }}
           columns={columns}
         />
+          <PopupFooter />
       </div>
     </div>
   );
@@ -1934,6 +1948,7 @@ export const SampleCollectionRejectPopupModal = ({
               }}
             />
           </div>
+          <PopupFooter />
         </form>
       </div>
     </div>
@@ -2107,6 +2122,7 @@ export const InvestigationRemarkPopupModal = ({
           </div>
         </form>
         <DynamicTable name="Test Details" rows={rows} columns={columns} />
+        <PopupFooter />
       </div>
     </div>
   );
@@ -2249,6 +2265,7 @@ export const SampleCollectionRemarkPopupModal = ({
           rows={GetRemark?.data?.data}
           columns={columns}
         />
+          <PopupFooter />
       </div>
     </div>
   );
@@ -2391,6 +2408,7 @@ export const ResultTrackRemarkPopupModal = ({
           rows={GetRemark?.data?.data}
           columns={columns}
         />
+          <PopupFooter />
       </div>
     </div>
   );
@@ -2679,6 +2697,7 @@ export const SampleCollectionCommentPopupModal = ({
         <div className="p-2 flex text-wrap ">
           <span>{comment}</span>
         </div>
+        <PopupFooter />
       </div>
     </div>
   );

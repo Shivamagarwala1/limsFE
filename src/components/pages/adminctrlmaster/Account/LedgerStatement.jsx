@@ -3,13 +3,20 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputGenerator from "../../../../Custom Components/InputGenerator";
+import InputGenerator, {
+  getFormattedDate,
+  TwoSubmitButton,
+} from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../../Custom Components/DynamicTable";
 import { FaRegEdit } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
 import toast from "react-hot-toast";
+import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
+import { addRandomObjectId } from "../../../../service/RedendentData";
 
 export default function LedgerStatement() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -19,75 +26,84 @@ export default function LedgerStatement() {
   const { fetchData, response, data, loading } = useGetData();
 
   const [isButtonClick, setIsButtonClick] = useState(0);
-  const [ColumnTab, setColumnTab] = useState({
-    field: "discountReasonName",
-    header: "Discount Reason Name",
-  });
+
+  const todayDate = getFormattedDate();
+  const [FromDate, setFromDate] = useState(todayDate);
+  const [ToDate, setToDate] = useState(todayDate);
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [isEditData, setIsEditData] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
   const [selectedCenter, setSelectedCenter] = useState([]);
-  const [FileData, setFileData] = useState({ fileName: "" });
-  const [PaymentMode, setPaymentMode] = useState(1);
+  const [Row, setRow] = useState([]);
+  const AllCenterData = useGetData();
+  const LegendColor = useGetData();
 
   useEffect(() => {
-    getReason();
-    console.log(activeTab);
-  }, [PaymentMode]);
-  console.log(FileData);
+    AllCenterData?.fetchData(
+      "/centreMaster?select=centreid,companyName&$filter=( centretypeid eq 2 or centretypeid eq 3 )"
+    );
+  }, []);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 100 },
+    { field: "Random", headerName: "Sr. No", width: 10 },
     {
-      field: `client`,
-      headerName: `Client`,
+      field: `centrecode`,
+      headerName: `Centre Code`,
       flex: 1,
     },
     {
-      field: "",
-      width: 200,
-      headerName: "Action",
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px" }}>
-            <button className="w-4 h-4 flex justify-center items-center">
-              <FaRegEdit
-                className={`w-full h-full ${
-                  params?.row?.isActive === 1
-                    ? "text-blue-500 cursor-pointer"
-                    : "text-gray-400 cursor-not-allowed"
-                }`}
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                  setIsButtonClick(1);
-                  if (activeTab === 0) {
-                    setValues([
-                      {
-                        // [tabs[activeTab]?.fname]:
-                        //   params?.row?.discountReasonName,
-                      },
-                    ]);
-                  }
-                }}
-              />
-            </button>
-            <button
-              className={`w-4 h-4 flex justify-center items-center ${
-                params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              <ImSwitch
-                className="w-full h-full"
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                  setShowPopup(true);
-                }}
-              />
-            </button>
-          </div>
-        );
-      },
+      field: `centretype`,
+      headerName: `Type`,
+      flex: 1,
+    },
+    {
+      field: `creditLimit`,
+      headerName: `Credit Limit`,
+      flex: 1,
+    },
+    {
+      field: `openingAmt`,
+      headerName: `Opening Amt.`,
+      width: 10,
+    },
+    {
+      field: `depositeAmt`,
+      headerName: `Deposite Amt.`,
+      width: 10,
+    },
+    {
+      field: `closingAmt`,
+      headerName: `Closing Amt.`,
+      width: 10,
+    },
+    {
+      field: `currentMonthBussiness`,
+      headerName: `Current Month Bussiness`,
+      width: 10,
+    },
+    {
+      field: `currentmonthDeposit`,
+      headerName: `Current Month Deposit`,
+      width: 10,
+    },
+    {
+      field: `yesterDayBussiness`,
+      headerName: `Yester Day Bussiness`,
+      width: 10,
+    },
+    {
+      field: `creditDays`,
+      headerName: `Credit Days`,
+      width: 10,
+    },
+    {
+      field: `openDate`,
+      headerName: `Open Date`,
+      width: 10,
+    },
+    {
+      field: `lockDate`,
+      headerName: `Lock Date`,
+      width: 10,
     },
   ];
 
@@ -127,8 +143,16 @@ export default function LedgerStatement() {
   };
 
   const getReason = async () => {
-    // const get = await fetchData(tabs[activeTab]?.getApi);
-    console.log(get);
+    const res = await PostData?.postRequest(
+      `/CentrePayment/ClientLedgerStatus?FromDate=${FromDate}&ToDate=${ToDate}`,
+      selectedCenter
+    );
+    if (res?.success) {
+      setRow(addRandomObjectId(res?.data));
+    } else {
+      toast.error(res?.message);
+    }
+    console.log(res);
   };
 
   const handleTheUpdateStatusMenu = async () => {
@@ -164,23 +188,18 @@ export default function LedgerStatement() {
 
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-        <MultiSelectDropdown
-            field={{
-              label: "Centre",
-              name: "CentreMode",
-              keyField: "id",
-              required: true,
-              selectedValues: selectedCenter,
-              showValueField: "mode",
-              dataOptions: [
-                { id: 1, mode: "Cash" },
-                { id: 2, mode: "Cheque" },
-                { id: 3, mode: "Neft" },
-                { id: 4, mode: "Rtgs" },
-                { id: 5, mode: "Online" },
-              ],
-              callBack: (selected) => setSelectedCenter(selected),
-            }}
+          <UpdatedMultiSelectDropDown
+            id="Center"
+            name="serachCenter"
+            label="Center"
+            placeHolder="Search Center"
+            options={AllCenterData?.data}
+            isMandatory={false}
+            isDisabled={false}
+            optionKey="centreId"
+            optionValue={["companyName"]}
+            selectedValues={selectedCenter}
+            setSelectedValues={setSelectedCenter}
           />
           <InputGenerator
             inputFields={[
@@ -188,42 +207,43 @@ export default function LedgerStatement() {
                 label: "From Date",
                 type: "customDateField",
                 name: "FromDate",
-                required: true,
+                customOnChange: (e) => {
+                  console.log(e);
+                  setFromDate(e);
+                },
               },
               {
                 label: "To Date",
                 type: "customDateField",
                 name: "ToDate",
-                required: true,
-              }
+                customOnChange: (e) => {
+                  console.log(e);
+                  setToDate(e);
+                },
+              },
             ]}
           />
 
-          <div className="flex gap-[0.25rem]">
-            <div className="relative flex-1 gap-1 flex justify-start items-center">
-              <button
-                type="submit"
-                className={`font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-              >
-                Search
-              </button>
-            </div>
-          </div>
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Search",
+                submit: false,
+                style: { marginTop: "0px" },
+                callBack: () => {
+                  getReason();
+                },
+              },
+            ]}
+          />
         </div>
       </form>
-      <DynamicTable
-        rows={[
-          { id: 1, client: "client 1" },
-          { id: 2, client: "client 2" },
-        ]}
-        name="Ledger Statement Details"
-        loading={loading}
+      <UpdatedDynamicTable
+        rows={Row}
+        name="Ledger Details"
+        loading={PostData?.loading}
         columns={columns}
-        activeTheme={activeTheme}
+        viewKey="Random"
       />
     </div>
   );

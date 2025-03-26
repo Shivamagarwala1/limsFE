@@ -5,6 +5,7 @@ import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
   getFormattedDate,
+  IconButton,
   SubmitButton,
   TwoLegendButton,
   TwoSubmitButton,
@@ -22,7 +23,9 @@ import { LegendButtons } from "../../../../Custom Components/LegendButtons";
 import {
   addRandomObjectId,
   getFirstDateOfMonth,
+  ViewOrDownloandPDF,
 } from "../../../../service/RedendentData";
+import { IoIosEye } from "react-icons/io";
 
 export default function ClientPay() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -151,6 +154,26 @@ export default function ClientPay() {
       headerName: `Payment Date`,
       flex: 1,
     },
+    {
+      field: `View`,
+      headerName: `View Reciept`,
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div className="flex justify-start items-center">
+            <IconButton
+              icon={IoIosEye}
+              onClick={() =>
+                ViewOrDownloandPDF(
+                  `/tnx_InvestigationAttchment/ViewDocument?Documentpath=${params?.row?.documentName}`
+                )
+              }
+              title="View Reciept"
+            />
+          </div>
+        );
+      },
+    },
   ];
 
   const handleSubmit = async (event) => {
@@ -159,6 +182,34 @@ export default function ClientPay() {
     console.log(values);
     if (!CenterId) {
       toast.error("Center is Required");
+      return;
+    }
+    if (!values?.paymentDate) {
+      toast.error("Payment Date is Required");
+      return;
+    }
+    if (!PaymentModeValue) {
+      toast.error("Payment Mode is Required");
+      return;
+    }
+    if (!PaymentTypeId) {
+      toast.error("Payment Type is Required");
+      return;
+    }
+    if (!values?.advancePaymentAmt) {
+      toast.error("Advance Amount is Required");
+      return;
+    }
+    if (!values?.PayNo && PaymentModeValue != "Cash") {
+      if (PaymentMode == 2) {
+        toast.error("Cheque No. is Required");
+      } else if (PaymentMode == 3) {
+        toast.error("Neft No. is Required");
+      } else if (PaymentMode == 4) {
+        toast.error("Rtgs No. is Required");
+      } else if (PaymentMode == 5) {
+        toast.error("Online No. is Required");
+      }
       return;
     }
     if (!PDFPath) {
@@ -288,7 +339,7 @@ export default function ClientPay() {
   const getReason = async () => {
     const payload = [CenterId];
     const get = await getData?.postRequest(
-      `/CentrePayment/ClientDepositReport?FromDate=${FromDate}&ToDate=${ToDate}&Paymenttype=${PaymentTypeId}&status=${status}`,
+      `/CentrePayment/ClientDeposit?centreid=${CenterId}&Paymenttype=${PaymentTypeId}&status=${status}`,
       payload
     );
     if (get?.success) {
@@ -342,7 +393,7 @@ export default function ClientPay() {
       </div>
 
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-2  mx-1 lg:mx-2">
           <SearchBarDropdown
             id="search-bar"
             name="Center"
@@ -359,7 +410,7 @@ export default function ClientPay() {
             isHovered={CenterHoveIndex}
             style={{ marginTop: "0.1rem" }}
           />
-          <InputGenerator
+          {/* <InputGenerator
             inputFields={[
               {
                 label: "From Date",
@@ -385,7 +436,7 @@ export default function ClientPay() {
                 },
               },
             ]}
-          />
+          /> */}
           <InputGenerator
             inputFields={[
               {
