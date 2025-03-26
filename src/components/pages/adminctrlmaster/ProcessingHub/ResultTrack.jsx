@@ -1045,7 +1045,6 @@ export default function ResultTrack() {
         const pdfBlob = new Blob([response.data], { type: "application/pdf" });
         const pdfUrl = URL.createObjectURL(pdfBlob);
         window.open(pdfUrl, "_blank");
-        console.log("PDF opened successfully.");
       } else if (
         contentType === "image"
       ) {
@@ -1053,7 +1052,6 @@ export default function ResultTrack() {
         const imageBlob = new Blob([response.data], { type: contentType });
         const imageUrl = URL.createObjectURL(imageBlob);
         window.open(imageUrl, "_blank");
-        console.log("Image opened successfully.");
       } else {
         console.error(
           `Unexpected content type: ${contentType}. Unable to open file.`
@@ -1129,7 +1127,6 @@ export default function ResultTrack() {
         const pdfBlob = new Blob([response.data], { type: "application/pdf" });
         const pdfUrl = URL.createObjectURL(pdfBlob);
         window.open(pdfUrl, "_blank");
-        console.log("PDF opened successfully.");
       } else if (
         contentType === "image"
       ) {
@@ -1137,7 +1134,6 @@ export default function ResultTrack() {
         const imageBlob = new Blob([response.data], { type: contentType });
         const imageUrl = URL.createObjectURL(imageBlob);
         window.open(imageUrl, "_blank");
-        console.log("Image opened successfully.");
       } else {
         console.error(
           `Unexpected content type: ${contentType}. Unable to open file.`
@@ -1489,7 +1485,6 @@ export default function ResultTrack() {
         console.log(error);
 
       }
-      console.log(updateData);
 
 
     } catch (error) {
@@ -1503,8 +1498,7 @@ export default function ResultTrack() {
 
   //info/ document
   const getAllInfoDocumentData = async (testId) => {
-    console.log(testId);
-
+   
     try {
       await allInfoDocument.fetchDataFromApi(`/tnx_Booking/GetTestInfo?TestId=${testId}`);
 
@@ -1707,11 +1701,13 @@ export default function ResultTrack() {
           gridDataDetails={'Patient Record Details'}
         />
 
+
         {/* <div className="max-h-80 overflow-y-auto"> */}
         <CustomDynamicTable columns={ResultTrackingHeader} activeTheme={activeTheme}>
           <tbody>
             {allResultTrackingData?.map((data, index) => {
               const colorCode = allFilterData?.data.find((item) => item?.contantName === data?.status)?.colourCode
+
               return (
 
                 <tr
@@ -1725,8 +1721,8 @@ export default function ResultTrack() {
                   onMouseEnter={() => setIsHoveredTable(index)}
                   onMouseLeave={() => setIsHoveredTable(null)}
                   style={{
-                    background: 
-                      isHoveredTable === index ? activeTheme?.subMenuColor : colorCode,
+                    background:
+                      isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
                     // Hides scrollbar for IE/Edge
                   }}
                 >
@@ -1786,10 +1782,25 @@ export default function ResultTrack() {
                   <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                     <div className="flex flex-wrap gap-1">
                       {data?.investigationName?.map((item, index) => (
-                        <CustomeNormalButton
-                          key={index}
-                          activeTheme={activeTheme}
-                          text={item?.investigationName}
+                        // <CustomeNormalButton
+                        //   key={index}
+                        //   activeTheme={activeTheme}
+                        //   text={item?.investigationName}
+                        // onClick={() =>
+                        //   handelObservationData(
+                        //     data?.totalAge,
+                        //     item,
+                        //     data?.workOrderId,
+                        //     item?.reportType,
+                        //     item?.itemId,
+                        //     data?.testid,
+                        //     data?.deptId
+                        //   )
+                        // }
+                        //   className="w-auto" // Optional: Adjust button width if needed
+                        // />
+
+                        <div key={index} className="w-auto  px-1  rounded-md" style={{ background: colorCode }}
                           onClick={() =>
                             handelObservationData(
                               data?.totalAge,
@@ -1801,8 +1812,9 @@ export default function ResultTrack() {
                               data?.deptId
                             )
                           }
-                          className="w-auto" // Optional: Adjust button width if needed
-                        />
+                        >
+                          {item?.investigationName}
+                        </div>
                       ))}
 
                     </div>
@@ -2057,13 +2069,13 @@ export default function ResultTrack() {
 
                                 <tr>
                                   <td colSpan="12" className="border-b px-4 h-6 text-xs font-extrabold text-gridTextColor w-full">
-                                    <div className="flex items-center gap-2 w-full">
+                                    <div className="flex items-center gap-2 w-full ">
                                       <div style={{
                                         background: activeTheme?.menuColor,
                                         WebkitBackgroundClip: "text",
                                         WebkitTextFillColor: "transparent",
                                       }}>{data?.investigationName}</div>
-                                      <div className="flex justify-center items-center">
+                                      <div className="flex justify-center items-center ">
                                         <input
                                           type="checkbox"
                                           checked={observationCheckValue[data?.testId] || false}
@@ -2076,7 +2088,7 @@ export default function ResultTrack() {
                                         />
                                       </div>
 
-                                      <div className="w-20">
+                                      <div className="w-20 py-[2px]">
                                         <CustomeNormalButton
                                           activeTheme={activeTheme}
                                           text={'Reject'}
@@ -2084,7 +2096,7 @@ export default function ResultTrack() {
                                           onClick={() => { setShowPopup(4), setTestIdForTracingAddAttachement(data?.testId) }}
                                         />
                                       </div>
-                                      <div className="w-20">
+                                      <div className="w-20 py-[2px]">
                                         <CustomeNormalButton activeTheme={activeTheme}
                                           text={'Re-Run'}
                                           disabled={String(data?.isapproved) !== '0'}
@@ -2093,7 +2105,7 @@ export default function ResultTrack() {
                                               handelPushAllAllTestDatabasedOnTestId(data?.testId)
                                           }} />
                                       </div>
-                                      <div className="w-20">
+                                      <div className="w-20 py-[2px]">
                                         <CustomeNormalButton activeTheme={activeTheme}
                                           text={'Comment'}
                                           onClick={() => {

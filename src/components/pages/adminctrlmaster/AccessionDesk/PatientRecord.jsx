@@ -855,8 +855,6 @@ export default function PatientRecord() {
 
       </div>
 
-
-
       <div>
         <GridDataDetails
           gridDataDetails={'Patient Record Details'}
@@ -891,9 +889,9 @@ export default function PatientRecord() {
                         <div>
                           {index + 1}
                         </div>
-                        <div className="w-2 h-2 rounded-full" style={{ background: colorCode }}>
+                        {/* <div className="w-2 h-2 rounded-full" style={{ background: colorCode }}>
 
-                        </div>
+                        </div> */}
                       </div>
                     </td>
 
@@ -946,7 +944,10 @@ export default function PatientRecord() {
                     </td>
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                      {data?.paidAmount}
+
+                      <div style={{ background: colorCode }} className="text-center rounded-md">
+                        {data?.paidAmount}
+                      </div>
                     </td>
 
                     <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
@@ -975,31 +976,42 @@ export default function PatientRecord() {
                     </td>
 
                     <td className="border-b px-4 h-5 text-sm font-semibold">
+
                       <div className="flex justify-center items-center">
-                        <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.dueAmt !== 0 || data?.status === 'UnPaid' || data?.status === 'Partial Paid' ? 'opacity-100' : 'cursor-not-allowed opacity-65'}`}
                           style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                          onClick={() => handelOpenSettlementData(data)}
+                          onClick={() => {
+                            if (data?.dueAmt !== 0 || data?.status === 'UnPaid' || data?.status === 'Partial Paid')
+                              handelOpenSettlementData(data)
+                          }}
                         >
                           <FaRupeeSign />
                         </div>
                       </div>
 
+
                     </td>
 
                     {/*   */}
                     <td className="border-b px-4 h-5 text-sm font-semibold">
+
+
                       <div className="flex justify-center items-center">
-                        <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                        <div
+                          className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.dueAmt !== 0 || data?.status === 'UnPaid' || data?.status === 'Partial Paid' ? 'opacity-100' : 'cursor-not-allowed opacity-65'}`}
                           style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                           onClick={() => {
-                            setShowPopup(2)
+                            if (data?.dueAmt !== 0 || data?.status === 'UnPaid' || data?.status === 'Partial Paid') {
+                              setShowPopup(2);
+
+                            }
                           }}
-
-
                         >
                           <TbCoinRupeeFilled />
                         </div>
                       </div>
+
+
 
                     </td>
 
@@ -1178,7 +1190,7 @@ export default function PatientRecord() {
                           />
                         </td>
 
-                        {/* Credit/Debit Card Amount */}
+                        {/* Partial Paid/Debit Card Amount */}
                         <td className="text-xxs font-semibold text-gridTextColor relative w-1/6 px-1">
                           <CustomTextBox
                             type="decimalpositive"

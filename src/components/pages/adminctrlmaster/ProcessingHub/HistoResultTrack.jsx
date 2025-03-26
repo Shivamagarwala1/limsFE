@@ -119,6 +119,23 @@ export default function HistoResultTrack() {
   };
 
   console.log("Content => ", editorContent2);
+
+  const allFilterData = useRetrieveData();
+
+  useEffect(() => {
+
+    const getAllData = async () => {
+      try {
+        await allFilterData.fetchDataFromApi(`/LegendColorMaster?select=id,colourCode,colourName,contantName&$filter=(isactive eq 1 and (id gt 2 and id lt 13 or id eq 1))`);
+
+      } catch (error) {
+        toast.error(error.message)
+      }
+    }
+
+    getAllData();
+  }, [])
+
   const columns = [
     {
       field: "id",
@@ -200,6 +217,7 @@ export default function HistoResultTrack() {
                 padding: "0px 20px",
                 height: "20px",
               }}
+              themecolor={allFilterData?.data.find((item) => item?.contantName === params?.row?.status)?.colourCode}
             />
           </div>
         );
@@ -386,30 +404,30 @@ export default function HistoResultTrack() {
         LegendButtonSearch(data);
       },
     },
-    {
-      Data: 9,
-      CallBack: () => {
-        // Sample Rerun
-        const data = { ...PayloadData, status: "Sample Rerun" };
-        LegendButtonSearch(data);
-      },
-    },
-    {
-      Data: 12,
-      CallBack: () => {
-        // Under Machine
-        const data = { ...PayloadData, status: "Under Machine" };
-        LegendButtonSearch(data);
-      },
-    },
-    {
-      Data: 8,
-      CallBack: () => {
-        // Machine Data
-        const data = { ...PayloadData, status: "Machine Data" };
-        LegendButtonSearch(data);
-      },
-    },
+    // {
+    //   Data: 9,
+    //   CallBack: () => {
+    //     // Sample Rerun
+    //     const data = { ...PayloadData, status: "Sample Rerun" };
+    //     LegendButtonSearch(data);
+    //   },
+    // },
+    // {
+    //   Data: 12,
+    //   CallBack: () => {
+    //     // Under Machine
+    //     const data = { ...PayloadData, status: "Under Machine" };
+    //     LegendButtonSearch(data);
+    //   },
+    // },
+    // {
+    //   Data: 8,
+    //   CallBack: () => {
+    //     // Machine Data
+    //     const data = { ...PayloadData, status: "Machine Data" };
+    //     LegendButtonSearch(data);
+    //   },
+    // },
     {
       Data: 6,
       CallBack: () => {
@@ -712,13 +730,12 @@ export default function HistoResultTrack() {
                   <tbody>
                     {allInfoDocument?.data?.data?.map((data, index) => (
                       <tr
-                        className={`cursor-pointer whitespace-nowrap ${
-                          isHoveredTable === index
-                            ? ""
-                            : index % 2 === 0
+                        className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                          ? ""
+                          : index % 2 === 0
                             ? "bg-gray-100"
                             : "bg-white"
-                        }`}
+                          }`}
                         key={index}
                         onMouseEnter={() => setIsHoveredPopupTable(index)}
                         onMouseLeave={() => setIsHoveredPopupTable(null)}
