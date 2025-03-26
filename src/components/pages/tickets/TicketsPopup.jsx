@@ -30,6 +30,7 @@ export default function TicketsPopup() {
     const [isButtonClick, setIsButtonClick] = useState(0);
     const allTicketType = useRetrieveData();
     const postDataForTicketsPopup = usePostData();
+    const [ticketPopupError, setTicketPopupError] = useState([]);
 
 
     const handleClick = (user) => {
@@ -107,9 +108,46 @@ export default function TicketsPopup() {
     };
 
 
+    //validations
+    const validateForm = () => {
+
+        const errors = {};
+
+        // Check for  fields
+        if (!ticketsPopupData.deliveryDate) errors.deliveryDate = true;
+
+        if (!ticketsPopupData.priority) errors.priority = true;
+        if (!ticketsPopupData.ticketDescription) errors.ticketDescription = true;
+
+        if (!ticketsPopupData.ticketSubject) errors.ticketSubject = true;
+        if (!ticketsPopupData.ticketType) errors.ticketType = true;
+
+
+        // Update state with errors
+        setTicketPopupError(errors);
+        //console.log(errors);
+
+        // Return true if no errors exist
+        return Object.keys(errors).length === 0;
+    };
+
+    useEffect(() => {
+
+        if (!validateForm()) {
+            setIsButtonClick(0);
+        }
+    }, [ticketsPopupData]);
+
     const onSubmitForSaveRolePageBindData = async () => {
 
         setIsButtonClick(1);
+
+
+        if (!validateForm()) {
+            toast.info("Please fill in all mandatory fields.");
+            setIsButtonClick(0);
+            return;
+        }
 
         const updatedData = {
             "id": 0,
@@ -196,8 +234,8 @@ export default function TicketsPopup() {
 
             {
                 showhelpAndSupportPopup === true && (
-                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-50">
-                        <div className="w-full mx-32 z-50 shadow-2xl bg-white rounded-lg    animate-slideDown ">
+                    <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
+                        <div className="w-80 md:w-[500px] max-h-[50vh] z-50 shadow-2xl bg-white rounded-lg animate-slideDown  flex flex-col">
 
                             <div className='border-b-[1px]  flex justify-between items-center px-2 py-1 rounded-t-md text-xs'
                                 style={{ borderImage: activeTheme?.menuColor, background: activeTheme?.menuColor }}
@@ -247,7 +285,7 @@ export default function TicketsPopup() {
                                             onChange={(e) => handelOnChangeTicketPopup(e)}
                                             defaultIndex={0}
                                             activeTheme={activeTheme}
-                                            isMandatory={!Boolean(ticketsPopupData?.ticketType)}
+                                            isMandatory={ticketPopupError?.ticketType}
                                         />
 
                                     </div>
@@ -267,7 +305,7 @@ export default function TicketsPopup() {
                                             onChange={(e) => handelOnChangeTicketPopup(e)}
                                             defaultIndex={0}
                                             activeTheme={activeTheme}
-                                            isMandatory={!Boolean(ticketsPopupData?.priority)}
+                                            isMandatory={ticketPopupError?.priority}
                                         />
 
                                     </div>
@@ -282,7 +320,7 @@ export default function TicketsPopup() {
                                             isDisabled={false}
                                             maxLength={50}
                                             allowSpecialChars={false}
-                                            isMandatory={!Boolean(ticketsPopupData?.ticketSubject)}
+                                            isMandatory={ticketPopupError?.ticketSubject}
                                             decimalPrecision={4}
                                         />
                                     </div>
@@ -337,7 +375,7 @@ export default function TicketsPopup() {
                                         maxLength={500}
                                         name='ticketDescription'
                                         onChange={handelOnChangeTicketPopup}
-                                        className='w-full rounded border-[1.5px] px-1 text-sm font-semibold h-[5.4rem] outline-none bg-white text-[#795548]'
+                                        className={`w-full rounded border-[1.5px] px-1 text-sm font-semibold h-[5.4rem] outline-none bg-white text-[#795548] ${ticketPopupError?.ticketDescription ? 'border-b-red-500' : 'border-b-borderColor'}`}
                                     />
 
                                 </div>
