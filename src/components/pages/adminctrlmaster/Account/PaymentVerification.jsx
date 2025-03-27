@@ -16,8 +16,13 @@ import { FaRegEdit } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import toast from "react-hot-toast";
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
-import { getFirstDateOfMonth } from "../../../../service/RedendentData";
+import {
+  downloadPostExcel,
+  getFirstDateOfMonth,
+  ViewOrDownloadPostPDF,
+} from "../../../../service/RedendentData";
 import { PaymentVarificationPopupModal } from "../../../../Custom Components/NewPopups";
+import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 
 export default function PaymentVerification() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -25,17 +30,14 @@ export default function PaymentVerification() {
 
   // ------------------ Center -------------------------------
   const [CenterId, setCenterId] = useState(null);
-  const [CenterValue, setCenterValue] = useState("");
-  const [CenterDropDown, setCenterDropDown] = useState(false);
-  const [CenterHoveIndex, setCenterHoveIndex] = useState(null);
-  const [CenterSelectedOption, setCenterSelectedOption] = useState("");
+  const [CenterValue, setCenterValue] = useState([]);
 
   const todayDate = getFormattedDate();
   const FirstDateofMonth = getFirstDateOfMonth();
   const [FromDate, setFromDate] = useState(FirstDateofMonth);
   const [ToDate, setToDate] = useState(todayDate);
 
-  const [ShowPopup, setShowPopup] = useState(false);
+  const [ShowPopup, setShowPopup] = useState("");
   const [Params, setParams] = useState(null);
   const [status, setStatus] = useState(2);
   const getData = usePostData();
@@ -56,8 +58,7 @@ export default function PaymentVerification() {
 
   useEffect(() => {
     getReason();
-  }, [CenterId, FromDate, ToDate, status,ShowPopup]);
-  console.log(data);
+  }, [status, ShowPopup]);
 
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 100 },
@@ -111,14 +112,25 @@ export default function PaymentVerification() {
       flex: 1,
       renderCell: (params) => {
         return (
-          <div>
+          <div className="flex gap-1">
             <SubmitButton
               submit={false}
               style={{ width: "100px", height: "1.05rem" }}
-              text={params?.row?.approved === 0 || params?.row?.approved === -1 ? "Approve" : "Reject"}
+              text={"Approve"}
+              disabled={params?.row?.approved == 1}
               callBack={() => {
                 setParams(params?.row);
-                setShowPopup(true);
+                setShowPopup("A");
+              }}
+            />
+            <SubmitButton
+              submit={false}
+              style={{ width: "100px", height: "1.05rem" }}
+              text={"Reject"}
+              disabled={params?.row?.approved == -1}
+              callBack={() => {
+                setParams(params?.row);
+                setShowPopup("R");
               }}
             />
           </div>
@@ -127,25 +139,11 @@ export default function PaymentVerification() {
     },
   ];
 
-  // Function to handle input changes
-  const handleSearchChange2 = (e) => {
-    setCenterValue(e.target.value);
-    setCenterDropDown(true); // Show dropdown when typing
-  };
-
-  // Function to handle selection from the dropdown
-  const handleOptionClick2 = (name, id) => {
-    setCenterValue(name);
-    setCenterId(id);
-    setCenterSelectedOption(name);
-    setCenterDropDown(false);
-  };
-
   const getReason = async () => {
-    if (CenterId == null) {
+    if (CenterValue == null) {
       return;
     }
-    const payload = [CenterId];
+    const payload = CenterValue;
     const get = await getData?.postRequest(
       `/CentrePayment/ClientDepositReport?FromDate=${FromDate}&ToDate=${ToDate}&Paymenttype=0&status=${status}`,
       payload
@@ -171,19 +169,15 @@ export default function PaymentVerification() {
     console.log(get);
   };
 
-
-
   return (
     <div>
       <PaymentVarificationPopupModal
         showPopup={ShowPopup}
         setShowPopup={setShowPopup}
         row={Params}
-        activeTheme={activeTheme}
-        // message="Are you sure you want to proceed with the action?"
-        cancelText="Cancel"
-        confirmText="Yes"
+        rejectOrApprove={true}
       />
+
       {/* Header Section */}
       <div
         className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
@@ -197,22 +191,20 @@ export default function PaymentVerification() {
 
       <form autoComplete="off" ref={formRef}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-          <SearchBarDropdown
-            id="search-bar"
-            name="Center"
-            value={CenterValue}
-            onChange={handleSearchChange2}
+          <UpdatedMultiSelectDropDown
+            id="Center"
+            name="serachCenter"
             label="Center"
-            placeholder="Serch Center"
+            placeHolder="Search Center"
             options={AllCenterData?.data}
-            isRequired={false}
-            showSearchBarDropDown={CenterDropDown}
-            setShowSearchBarDropDown={setCenterDropDown}
-            handleOptionClickForCentre={handleOptionClick2}
-            setIsHovered={setCenterHoveIndex}
-            isHovered={CenterHoveIndex}
-            style={{ marginTop: "0.1rem" }}
+            isMandatory={false}
+            isDisabled={false}
+            optionKey="centreId"
+            optionValue={["companyName"]}
+            selectedValues={CenterValue}
+            setSelectedValues={setCenterValue}
           />
+
           <InputGenerator
             inputFields={[
               {
@@ -240,23 +232,56 @@ export default function PaymentVerification() {
               },
             ]}
           />
-          {/* <TwoLegendButton
+          <TwoLegendButton
             options={[
               {
                 label: "Search",
-                submit: true,
-              },
-              {
-                label: "Bulk Settlement",
                 submit: false,
                 callBack: () => {
                   // Pending
+                  if (CenterValue.length == 0) {
+                    toast.error("Please Select Center.");
+                    return;
+                  }
+                  setStatus(2);
+                  getReason();
+                },
+              },
+              {
+                label: "PDF",
+                submit: false,
+                callBack: () => {
+                  // Pending
+                  if (CenterValue.length == 0) {
+                    toast.error("Please Select Center.");
+                    return;
+                  }
+                  ViewOrDownloadPostPDF(
+                    `/CentrePayment/ClientDepositReportPdf?FromDate=${FromDate}&ToDate=${ToDate}&Paymenttype=0&status=${status}`,
+                    CenterValue
+                  );
                 },
               },
             ]}
-          /> */}
+          />
           <TwoLegendButton
             options={[
+              {
+                label: "Excel",
+                submit: false,
+                callBack: () => {
+                  // Pending
+                  if (CenterValue.length == 0) {
+                    toast.error("Please Select Center.");
+                    return;
+                  }
+                  downloadPostExcel(
+                    `/CentrePayment/ClientDepositReportExcel?FromDate=${FromDate}&ToDate=${ToDate}&Paymenttype=0&status=${status}`,
+                    CenterValue,
+                    "PaymentVerification.xlsx"
+                  );
+                },
+              },
               {
                 id: 17,
                 submit: false,
@@ -265,6 +290,10 @@ export default function PaymentVerification() {
                   setStatus("0");
                 },
               },
+            ]}
+          />
+          <TwoLegendButton
+            options={[
               {
                 id: 18,
                 submit: false,
@@ -273,10 +302,6 @@ export default function PaymentVerification() {
                   setStatus("1");
                 },
               },
-            ]}
-          />
-          <TwoLegendButton
-            options={[
               {
                 id: 19,
                 submit: false,

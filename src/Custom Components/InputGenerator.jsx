@@ -631,8 +631,8 @@ export const SubmitButton = ({
           style={{
             ...style,
             background: disabled
-              ? themecolor !== null ? themecolor : activeTheme?.subMenuColor
-              :themecolor !== null ? themecolor :  activeTheme?.menuColor,
+              ? activeTheme?.menuColor
+              : activeTheme?.menuColor,
             color: activeTheme?.iconColor,
           }}
         >
@@ -1023,7 +1023,8 @@ export const TwoLegendButton = ({
                   disabled={button.disabled}
                   className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
                   style={{
-                    background: matchingData?.colourCode || activeTheme?.menuColor, // Dynamic color or default theme
+                    background:
+                      matchingData?.colourCode || activeTheme?.menuColor, // Dynamic color or default theme
                     color: activeTheme?.iconColor,
                     ...button.style, // Allow custom styles
                   }}
@@ -1041,3 +1042,20 @@ export const TwoLegendButton = ({
   );
 };
 
+export const IconButton = ({ icon: Icon, onClick, title, style = {} }) => {
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  return (
+    <div
+      className="w-5 h-5 flex justify-center items-center rounded-sm cursor-pointer"
+      style={{
+        background: activeTheme?.menuColor,
+        color: activeTheme?.iconColor,
+        ...style,
+      }}
+      onClick={onClick}
+      title={title}
+    >
+      <Icon className="h-4 w-4" />
+    </div>
+  );
+};

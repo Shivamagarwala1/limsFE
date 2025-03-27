@@ -586,18 +586,18 @@ export default function CreateDoctor() {
                   },
                 ]}
               />
-              <div className="flex flex-row gap-1">
-                <InputGenerator
-                  inputFields={[
-                    { type: "email", label: "Email", name: "email" },
-                    {
-                      type: "email",
-                      label: "Report Mail",
-                      name: "reportEmail",
-                    },
-                  ]}
-                />
-              </div>
+              {/* <div className="flex flex-row gap-1"> */}
+              <InputGenerator
+                inputFields={[
+                  { type: "email", label: "Email", name: "email" },
+                  {
+                    type: "email",
+                    label: "Report Mail",
+                    name: "reportEmail",
+                  },
+                ]}
+              />
+              {/* </div> */}
               <InputGenerator
                 inputFields={[
                   {
@@ -756,42 +756,45 @@ export default function CreateDoctor() {
                   style={{ marginTop: "0.1rem" }}
                 />
               </div>
-              <SearchBarDropdown
-                id="search-bar"
-                name="search"
-                value={ReferMasterValue}
-                onChange={handleSearchChange9}
-                label="Refer Master Share"
-                options={[
-                  { id: 1, data: "Yes" },
-                  { id: 0, data: "No" },
-                ]}
-                isRequired={false}
-                showSearchBarDropDown={ReferMasterDropDown}
-                setShowSearchBarDropDown={setReferMasterDropDown}
-                handleOptionClickForCentre={handleOptionClick9}
-                setIsHovered={setReferMasterHoverIndex}
-                isHovered={ReferMasterHoverIndex}
-                style={{ marginTop: "0.1rem" }}
-              />
-              <SearchBarDropdown
-                id="search-bar"
-                name="search"
-                value={AllowOPDValue}
-                onChange={handleSearchChange13}
-                label="Allow OPD"
-                options={[
-                  { id: 1, data: "Yes" },
-                  { id: 0, data: "No" },
-                ]}
-                isRequired={false}
-                showSearchBarDropDown={AllowOPDDropDown}
-                setShowSearchBarDropDown={setAllowOPDDropDown}
-                handleOptionClickForCentre={handleOptionClick13}
-                setIsHovered={setAllowOPDHoverIndex}
-                isHovered={AllowOPDHoverIndex}
-                style={{ marginTop: "0.1rem" }}
-              />
+
+              <div className="flex flex-row gap-1">
+                <SearchBarDropdown
+                  id="search-bar"
+                  name="search"
+                  value={ReferMasterValue}
+                  onChange={handleSearchChange9}
+                  label="Refer Master Share"
+                  options={[
+                    { id: 1, data: "Yes" },
+                    { id: 0, data: "No" },
+                  ]}
+                  isRequired={false}
+                  showSearchBarDropDown={ReferMasterDropDown}
+                  setShowSearchBarDropDown={setReferMasterDropDown}
+                  handleOptionClickForCentre={handleOptionClick9}
+                  setIsHovered={setReferMasterHoverIndex}
+                  isHovered={ReferMasterHoverIndex}
+                  style={{ marginTop: "0.1rem" }}
+                />
+                <SearchBarDropdown
+                  id="search-bar"
+                  name="search"
+                  value={AllowOPDValue}
+                  onChange={handleSearchChange13}
+                  label="Allow OPD"
+                  options={[
+                    { id: 1, data: "Yes" },
+                    { id: 0, data: "No" },
+                  ]}
+                  isRequired={false}
+                  showSearchBarDropDown={AllowOPDDropDown}
+                  setShowSearchBarDropDown={setAllowOPDDropDown}
+                  handleOptionClickForCentre={handleOptionClick13}
+                  setIsHovered={setAllowOPDHoverIndex}
+                  isHovered={AllowOPDHoverIndex}
+                  style={{ marginTop: "0.1rem" }}
+                />
+              </div>
               {/* <SubmitButton text={"Save"} submit={false} /> */}
               <TwoSubmitButton
                 options={[
