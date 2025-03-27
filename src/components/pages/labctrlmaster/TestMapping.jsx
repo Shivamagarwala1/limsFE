@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { allItemTypeInLabTestMaster, gendersInLabTestMaster, referanceRangePopUpHeaderInTestMapping, testMappingHeader, testMappingHeaderWithItemTypeIsPackage, testMappingRoundUp } from '../../listData/listData';
 import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri';
@@ -178,47 +178,118 @@ export default function TestMapping() {
 
     }, [testMappingData?.itemType, isButtonClick])
 
+    const prevValues = useRef({ testName: '', packageName: '' });
+
+    // useEffect(() => {
+
+    //     //if (!selectedDropDown?.testName || !selectedDropDown?.packageName) return;
+
+    //     // Check which field changed
+    //     if (selectedDropDown?.testName !== prevValues.current.testName) {
+    //         console.log('testName value changed:', selectedDropDown?.testName);
+    //     }
+
+    //     if (selectedDropDown?.packageName !== prevValues.current.packageName) {
+    //         console.log('packageName value changed:', selectedDropDown?.packageName);
+    //     }
+
+    //     const getGridData = async () => {
+
+    //         try {
+
+    //             // const response = await getAllTestMapingGridDataApi(testMappingData?.itemType || '', testMappingData?.testName === '' ? 0 : testMappingData?.testName || '');
+
+    //             console.log(testMappingData?.packageName);
+
+    //             const response = await getAllTestMapingGridDataApi(
+    //                 testMappingData?.itemType || '',
+    //                 testMappingData?.packageName || testMappingData?.testName || 0
+    //             );
+
+    //             console.log(response);
+
+    //             if (response?.success) {
+
+    //                 setTestMapping((preventData) => ({ ...preventData, observation: [] }));
+
+    //                 setAllTestMappingGridData(response?.data);
+    //                 //setAllTestMappingGridData((prevData) => [...prevData, ...response?.data]);
+    //             }
+
+    //         } catch (error) {
+    //             if (error.status !== 400) {
+    //                 toast.error(error?.message)
+    //             }
+    //         }
+    //     }
+
+    //     if (selectedDropDown?.testName || selectedDropDown?.packageName)
+    //         getGridData()
+
+
+    // }, [selectedDropDown?.testName, selectedDropDown?.packageName, isButtonClick])
 
     useEffect(() => {
-
-        //if (!selectedDropDown?.testName || !selectedDropDown?.packageName) return;
-
-
-        const getGridData = async () => {
-
+        const getGridData = async (type) => {
             try {
+                let response;
 
-                // const response = await getAllTestMapingGridDataApi(testMappingData?.itemType || '', testMappingData?.testName === '' ? 0 : testMappingData?.testName || '');
+                if (type === 'testName') {
+                    // Call API with testName
+                    response = await getAllTestMapingGridDataApi(
+                        testMappingData?.itemType || '',
+                        testMappingData?.testName || 0
+                    );
 
-                console.log(testMappingData?.packageName);
+                } else if (type === 'packageName') {
+                    // Call API with packageName
+                    response = await getAllTestMapingGridDataApi(
+                        testMappingData?.itemType || '',
+                        testMappingData?.packageName || 0
+                    );
 
-                const response = await getAllTestMapingGridDataApi(
-                    testMappingData?.itemType || '',
-                    testMappingData?.packageName || testMappingData?.testName || 0
-                );
-
-                console.log(response);
+                }
 
                 if (response?.success) {
+                    setAllTestMappingGridData((prevData) => {
+                        // Check if the new data is the same as the previous data
+                        const isSameData = JSON.stringify(prevData) === JSON.stringify(response?.data);
 
-                    setTestMapping((preventData) => ({ ...preventData, observation: [] }));
+                      
+                        if (isSameData) {
+                            toast.error('Duplicate data received!'); // Show popup if data is the same
+                            //toast
+                            return prevData; // Return previous data without appending
+                        }
 
-                    setAllTestMappingGridData(response?.data);
-                    //setAllTestMappingGridData((prevData) => [...prevData, ...response?.data]);
+                        // Append new data if it is different
+                        return [...prevData, ...response?.data];
+                    });
                 }
 
             } catch (error) {
                 if (error.status !== 400) {
-                    toast.error(error?.message)
+                    toast.error(error?.message);
                 }
             }
+        };
+
+        // Check if testName has changed
+        if (selectedDropDown?.testName !== prevValues.current.testName) {
+            getGridData('testName');
         }
 
-        if (selectedDropDown?.testName || selectedDropDown?.packageName)
-            getGridData()
+        // Check if packageName has changed
+        if (selectedDropDown?.packageName !== prevValues.current.packageName) {
+            getGridData('packageName');
+        }
 
-
-    }, [selectedDropDown?.testName, selectedDropDown?.packageName, isButtonClick])
+        // Update previous values
+        prevValues.current = {
+            testName: selectedDropDown?.testName,
+            packageName: selectedDropDown?.packageName,
+        };
+    }, [selectedDropDown?.testName, selectedDropDown?.packageName, isButtonClick]);
 
 
     const handleCheckboxChange = (e, data) => {
@@ -398,6 +469,7 @@ export default function TestMapping() {
         }
         setIsButtonClick(0);
         setSingleGridData(null);
+        setIsRemoveMappingPopup(false);
     }
 
     //dragged row
@@ -1411,10 +1483,7 @@ export default function TestMapping() {
                     <div>Test Mapping Details</div>
                 </div>
 
-                {
-                    console.log(allTestMappingGridData)
 
-                }
                 <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
 
                     <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>

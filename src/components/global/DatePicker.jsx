@@ -22,7 +22,8 @@ export const DatePicker = ({
     highlightedDates,
     disabledDates,
     showBigerCalandar,
-    timeFormat = "12"
+    timeFormat = "12",
+    disableType = "isDisabled" // Or backDateDisable
 }) => {
     const [showCalendar, setShowCalendar] = useState(false);
     const calendarRef = useRef(null);
@@ -131,6 +132,7 @@ export const DatePicker = ({
                         activeTheme={activeTheme}
                         tillDate={tillDate}
                         showBigerCalandar={showBigerCalandar}
+                        disableType={disableType}
                     />
                 </div>
             )}
