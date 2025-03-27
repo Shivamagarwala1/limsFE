@@ -21,6 +21,7 @@ import {
 } from "../service/RedendentData";
 import { MdPadding } from "react-icons/md";
 import { DatePickerWithTime } from "./DatePickerWithTime";
+import { FormHeader } from "./FormGenerator";
 
 export const PopupFooter = () => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -1221,6 +1222,126 @@ export const PaymentVarificationPopupModal = ({
             }}
           />
         </form>
+      </div>
+    </div>
+  );
+};
+
+export const CancelInvoicePopupModal = ({
+  showPopup,
+  setShowPopup,
+  Params,
+  UserId,
+}) => {
+  if (!showPopup) return null;
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const lsData = getLocal("imarsar_laboratory");
+  const { formRef, getValues, setValues } = useFormHandler();
+  const [selectedDate, setSelectedDate] = useState("");
+  console.log(Params);
+  const handleReject = async (e) => {
+    if (e) e.preventDefault(); // Prevents default form submission
+
+    const values = getValues();
+    if (!values?.CancelReason) {
+      toast.error("Cancel Reason is required");
+      return;
+    }
+    const payload = {
+      id: Params?.id,
+      invoiceNo: Params?.invoiceNo,
+      centreid: Params?.id,
+      rate: Params?.rate,
+      fromDate: Params?.fromDate,
+      toDate: Params?.toDate,
+      invoiceDate: Params?.invoiceDate,
+      createdBy: parseInt(lsData?.user?.employeeId),
+      createDate: new Date().toISOString(),
+      cancelReason: values?.CancelReason,
+      cancelByID: parseInt(lsData?.user?.employeeId),
+      isCancel: 1,
+      LabNo:" ",
+    };
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/centreInvoice/CreateInvoice`,
+        payload
+      );
+      if (res?.data?.success) {
+        toast.success(res?.data?.message);
+      } else {
+        toast.error(res?.data?.message);
+      }
+      setShowPopup(false); // Close modal on success
+    } catch (error) {
+      console.error("Error rejecting indent:", error);
+    }
+  };
+  const todayDate = getFormattedDate();
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">Cancel Reason</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <FormHeader title="Cancel Reason" />
+        <form autoComplete="off" ref={formRef} onSubmit={handleReject}>
+          {/* Input Field */}
+          <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
+            
+            <InputGenerator
+              inputFields={[
+                {
+                  label: "Cancel Reason",
+                  type: "text",
+                  name: "CancelReason",
+                },
+              ]}
+            />
+            <SubmitButton
+              submit={false}
+              text={"Save"}
+              callBack={() => {
+                handleReject();
+              }}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+          <PopupFooter />
+        </form>
+        {/* <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-2 "
+        >
+          {" "}
+         
+        </div> */}
       </div>
     </div>
   );

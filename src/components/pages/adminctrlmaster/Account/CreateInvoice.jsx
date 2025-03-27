@@ -3,25 +3,42 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputGenerator from "../../../../Custom Components/InputGenerator";
+import InputGenerator, {
+  getFormattedDate,
+  SubmitButton,
+  TwoSubmitButton,
+} from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
 import { FaRegEdit } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import { IoMdMenu } from "react-icons/io";
-import { fetchAllCenterData } from "../../../../service/RedendentData";
+import {
+  addRandomObjectId,
+  fetchAllCenterData,
+} from "../../../../service/RedendentData";
+import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
+import toast from "react-hot-toast";
 
 export default function CreateInvoice() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
 
   const PostData = usePostData();
+  const FirstGrid = usePostData();
+  const SecondGrid = usePostData();
   const { fetchData, response, data, loading } = useGetData();
 
   const [isButtonClick, setIsButtonClick] = useState(0);
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [isEditData, setIsEditData] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
+
+  const todayDate = getFormattedDate();
+  const [FromDate, setFromDate] = useState(todayDate);
+  const [ToDate, setToDate] = useState(todayDate);
+  const [InvoiceDate, setInvoiceDate] = useState(todayDate);
+  const [CenterValue, setCenterValue] = useState([]);
+  const [Grid1, setGrid1] = useState([]);
+  const [Grid2, setGrid2] = useState([]);
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   const [isHoveredTable1, setIsHoveredTable1] = useState(null);
   // const AllCenterData = fetchAllCenterData();
@@ -31,126 +48,132 @@ export default function CreateInvoice() {
     AllCenterData?.fetchData(
       "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
     );
-    StateData?.fetchData("/stateMaster");
-    getReason();
     // console.log(AllCenterData);
   }, []);
-  console.log(data);
-  const rows = [
-    { id: 1, client: "client 1" },
-    { id: 2, client: "client 2" },
-  ];
+  // useEffect(() => {
+  //   getReason();
+  // }, [FromDate, ToDate, CenterValue]);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 100 },
+    { field: "Random", headerName: "Sr. No", flex: 1 },
+
     {
-      field: `centreid`,
-      headerName: `Centre Id`,
+      field: `centre`,
+      headerName: `Centre Name`,
       flex: 1,
     },
     {
-      field: `labNo`,
-      headerName: `Lab No.`,
+      field: `netAmount`,
+      headerName: `Net Amt.`,
       flex: 1,
     },
-    // {
-    //   field: `invoiceDate`,
-    //   headerName: `Invoice Date`,
-    //   flex: 1,
-    // },
     {
-      field: "",
-      width: 200,
-      headerName: "Action",
+      field: `discount`,
+      headerName: `Discount`,
+      flex: 1,
+    },
+
+    {
+      field: `creditAmount`,
+      headerName: `Credit Amt.`,
+      flex: 1,
+    },
+    {
+      field: `Action`,
+      headerName: `Action`,
+      flex: 1,
       renderCell: (params) => {
         return (
-          <div style={{ display: "flex", gap: "20px" }}>
-            <button className="w-4 h-4 flex justify-center items-center">
-              <FaRegEdit
-                className={`w-full h-full ${
-                  params?.row?.isActive === 1
-                    ? "text-blue-500 cursor-pointer"
-                    : "text-gray-400 cursor-not-allowed"
-                }`}
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                  setIsButtonClick(1);
-                  // setValues([
-                  //   {
-                  //     [tabs[activeTab]?.fname]: params?.row?.discountReasonName,
-                  //   },
-                  // ]);
-                }}
-              />
-            </button>
-            <button
-              className={`w-4 h-4 flex justify-center items-center ${
-                params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
-              }`}
-            >
-              <ImSwitch
-                className="w-full h-full"
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                  setShowPopup(true);
-                }}
-              />
-            </button>
+          <div>
+            <SubmitButton
+              text="Create"
+              submit={false}
+              callBack={() => {
+                setClickedRowId(params?.row);
+                handleSubmit(params?.row)
+              }}
+              style={{ height: "1.05rem" }}
+            />
           </div>
         );
       },
     },
   ];
+  const columns1 = [
+    { field: "Random", headerName: "Sr. No", flex: 1 },
+    {
+      field: `centreId`,
+      headerName: `Centre Id`,
+      flex: 1,
+    },
+    {
+      field: `companyName`,
+      headerName: `Centre Name`,
+      flex: 1,
+    },
+    {
+      field: `invoiceNo`,
+      headerName: `Invoice No.`,
+      flex: 1,
+    },
+    {
+      field: `invoiceDate`,
+      headerName: `Invoice Date`,
+      flex: 1,
+    },
+   
+  ];
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const values = getValues();
+  const handleSubmit = async (clickedRowId) => {
+    // event.preventDefault();
+    // const values = getValues();
+    console.log(clickedRowId);
     const lsData = getLocal("imarsar_laboratory");
-    const payload =
-      isButtonClick === 0
-        ? { ...values, createdById: lsData?.user?.employeeId }
-        : {
-            ...values,
-            updateById: lsData?.user?.employeeId,
-            id: clickedRowId?.id,
-            isActive: clickedRowId?.isActive,
-          };
+    const payload = {
+      invoiceNo: "",
+      centreid: parseInt(clickedRowId?.companyID),
+      rate: parseInt(clickedRowId?.netAmount),
+      fromDate: FromDate,
+      toDate: ToDate,
+      invoiceDate: InvoiceDate,
+      createdBy: parseInt(lsData?.user?.employeeId),
+      createDate: new Date().toISOString(),
+      cancelReason: "",
+      cancelByID: 0,
+      isCancel: 0,
+      labNo: clickedRowId?.transactionId,
+    };
+    // : {
+    //     ...values,
+    //     updateById: lsData?.user?.employeeId,
+    //     id: clickedRowId?.id,
+    //     isActive: clickedRowId?.isActive,
+    //   };
     const data1 = await PostData?.postRequest(
       "/centreInvoice/CreateInvoice",
       payload
     );
-    console.log(payload);
+    console.log(data1);
     if (data1?.success) {
-      toast.success(
-        isButtonClick === 0 ? data1?.message : "Updated Successfull"
-      );
+      toast.success("Invoice Created Successfully");
       setIsButtonClick(0);
       getReason();
     }
   };
 
   const getReason = async () => {
-    const get = await fetchData("centreInvoice");
-    console.log(get);
+    const get = await FirstGrid?.postRequest(
+      `/centreInvoice/SearchInvoiceData?FromDate=${FromDate}&Todate=${ToDate}`,
+      CenterValue
+    );
+    const get1 = await SecondGrid?.postRequest(
+      `/centreInvoice/GetLastInvoiceData`,
+      CenterValue
+    );
+    setGrid1(addRandomObjectId(get?.data));
+    setGrid2(addRandomObjectId(get1?.data));
+    console.log(get, " ", get1);
   };
-
-  const handleTheUpdateStatusMenu = async () => {
-    const lsData = getLocal("imarsar_laboratory");
-    const payload = {
-      ...clickedRowId,
-      updateById: lsData?.user?.employeeId,
-      isActive: clickedRowId?.isActive === 1 ? 0 : 1,
-    };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    // if (data1?.success) {
-    //   toast.success("Status Updated Successfully");
-    //   console.log(payload);
-    //   getReason();
-    //   setShowPopup(false);
-    // }
-  };
-
-  //   const InputFileds = [{ label: "", type: "" }];
 
   return (
     <div>
@@ -167,47 +190,62 @@ export default function CreateInvoice() {
 
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+          <UpdatedMultiSelectDropDown
+            id="Center"
+            name="serachCenter"
+            label="Center"
+            placeHolder="Search Center"
+            options={AllCenterData?.data}
+            isMandatory={false}
+            isDisabled={false}
+            optionKey="centreId"
+            optionValue={["companyName"]}
+            selectedValues={CenterValue}
+            setSelectedValues={setCenterValue}
+          />
           <InputGenerator
             inputFields={[
               {
-                label: "State",
-                type: "select",
-                name: "state",
-                dataOptions: StateData?.data,
+                label: "From Date",
+                type: "customDateField",
+                name: "fromDate",
+                customOnChange: (e) => {
+                  console.log(e);
+                  setFromDate(e);
+                },
               },
               {
-                label: "Centre",
-                type: "select",
-                name: "centreid",
-                dataOptions: AllCenterData?.data,
-                keyField: "centreId",
-                showValueField: "companyName",
+                label: "To Date",
+                type: "customDateField",
+                name: "toDate",
+                customOnChange: (e) => {
+                  console.log(e);
+                  setFromDate(e);
+                },
               },
-              { label: "Lab No.", type: "text", name: "labNo" },
-
-              { label: "From Date", type: "customDateField", name: "fromDate" },
-              { label: "To Date", type: "customDateField", name: "toDate" },
               {
                 label: "Invoice Date",
                 type: "customDateField",
                 name: "invoiceDate",
+                customOnChange: (e) => {
+                  console.log(e);
+                  setInvoiceDate(e);
+                },
               },
             ]}
           />
-          <div className="flex gap-[0.25rem]">
-            <div className="relative flex-1 gap-1 flex justify-start items-center">
-              <button
-                type="submit"
-                className={`font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-              >
-                Search
-              </button>
-            </div>
-          </div>
+
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Search",
+                submit: false,
+                callBack: () => {
+                  getReason();
+                },
+              },
+            ]}
+          />
         </div>
       </form>
       <div className="pt-1 w-full">
@@ -227,118 +265,122 @@ export default function CreateInvoice() {
           <div className="text-center py-4 text-gray-500">Loading...</div>
         ) : (
           <div className="flex flex-col md:flex-row justify-start  w-full gap-2">
-            <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
-              <thead
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-              >
-                <tr>
-                  {columns.map((col, index) => (
-                    <th
-                      key={index}
-                      className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
-                      style={{
-                        width: col.width ? `${col.width}px` : "",
-                        flex: col.flex ? col.flex : "",
-                      }}
-                    >
-                      {col.headerName}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((row, index) => (
-                  <tr
-                    key={row.id}
-                    className={`cursor-pointer ${
-                      isHoveredTable1 === row.id
-                        ? ""
-                        : index % 2 === 0
-                        ? "bg-gray-100"
-                        : "bg-white"
-                    }`}
-                    onMouseEnter={() => setIsHoveredTable1(row.id)}
-                    onMouseLeave={() => setIsHoveredTable1(null)}
-                    style={{
-                      background:
-                        isHoveredTable1 === row.id
-                          ? activeTheme?.subMenuColor
-                          : undefined,
-                    }}
-                  >
-                    {columns.map((col, idx) => (
-                      <td
-                        key={idx}
-                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+            <div className="w-full">
+              <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
+                <thead
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <tr>
+                    {columns.map((col, index) => (
+                      <th
+                        key={index}
+                        className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
+                        style={{
+                          width: col.width ? `${col.width}px` : "",
+                          flex: col.flex ? col.flex : "",
+                        }}
                       >
-                        {col.renderCell
-                          ? col.renderCell({ row })
-                          : row[col.field]}
-                      </td>
+                        {col.headerName}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
-              <thead
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-              >
-                <tr>
-                  {columns.map((col, index) => (
-                    <th
-                      key={index}
-                      className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
+                </thead>
+                <tbody>
+                  {Grid1.map((row, index) => (
+                    <tr
+                      key={row.Random}
+                      className={`cursor-pointer ${
+                        isHoveredTable1 === row.Random
+                          ? ""
+                          : index % 2 === 0
+                          ? "bg-gray-100"
+                          : "bg-white"
+                      }`}
+                      onMouseEnter={() => setIsHoveredTable1(row.Random)}
+                      onMouseLeave={() => setIsHoveredTable1(null)}
                       style={{
-                        width: col.width ? `${col.width}px` : "",
-                        flex: col.flex ? col.flex : "",
+                        background:
+                          isHoveredTable1 === row.Random
+                            ? activeTheme?.subMenuColor
+                            : undefined,
                       }}
                     >
-                      {col.headerName}
-                    </th>
+                      {columns.map((col, idx) => (
+                        <td
+                          key={idx}
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                        >
+                          {col.renderCell
+                            ? col.renderCell({ row })
+                            : row[col.field]}
+                        </td>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, index) => (
-                  <tr
-                    key={row.id}
-                    className={`cursor-pointer ${
-                      isHoveredTable === row.id
-                        ? ""
-                        : index % 2 === 0
-                        ? "bg-gray-100"
-                        : "bg-white"
-                    }`}
-                    onMouseEnter={() => setIsHoveredTable(row.id)}
-                    onMouseLeave={() => setIsHoveredTable(null)}
-                    style={{
-                      background:
-                        isHoveredTable === row.id
-                          ? activeTheme?.subMenuColor
-                          : undefined,
-                    }}
-                  >
-                    {columns.map((col, idx) => (
-                      <td
-                        key={idx}
-                        className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                </tbody>
+              </table>
+            </div>
+            <div className="w-full">
+              <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
+                <thead
+                  style={{
+                    background: activeTheme?.menuColor,
+                    color: activeTheme?.iconColor,
+                  }}
+                >
+                  <tr>
+                    {columns1.map((col, index) => (
+                      <th
+                        key={index}
+                        className="border-b font-semibold border-gray-300 px-4 h-4 text-xxs"
+                        style={{
+                          width: col.width ? `${col.width}px` : "",
+                          flex: col.flex ? col.flex : "",
+                        }}
                       >
-                        {col.renderCell
-                          ? col.renderCell({ row })
-                          : row[col.field]}
-                      </td>
+                        {col.headerName}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {Grid2.map((row, index) => (
+                    <tr
+                      key={row.id}
+                      className={`cursor-pointer ${
+                        isHoveredTable === row.Random
+                          ? ""
+                          : index % 2 === 0
+                          ? "bg-gray-100"
+                          : "bg-white"
+                      }`}
+                      onMouseEnter={() => setIsHoveredTable(row.Random)}
+                      onMouseLeave={() => setIsHoveredTable(null)}
+                      style={{
+                        background:
+                          isHoveredTable === row.Random
+                            ? activeTheme?.subMenuColor
+                            : undefined,
+                      }}
+                    >
+                      {columns1.map((col, idx) => (
+                        <td
+                          key={idx}
+                          className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor"
+                        >
+                          {col.renderCell
+                            ? col.renderCell({ row })
+                            : row[col.field]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

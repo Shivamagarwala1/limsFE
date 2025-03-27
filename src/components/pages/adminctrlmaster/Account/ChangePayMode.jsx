@@ -3,13 +3,16 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputGenerator from "../../../../Custom Components/InputGenerator";
+import InputGenerator, {
+  TwoSubmitButton,
+} from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
+import DynamicTable, { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
 import { FaRegEdit } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
 import toast from "react-hot-toast";
+import { addRandomObjectId } from "../../../../service/RedendentData";
 
 export default function ChangePayMode() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -23,8 +26,8 @@ export default function ChangePayMode() {
   const [showPopup, setShowPopup] = useState(false);
   const [isEditData, setIsEditData] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
-  const [selectedCenter, setSelectedCenter] = useState([]);
-  const [FileData, setFileData] = useState({ fileName: "" });
+  const [Row, setRow] = useState([]);
+  const [Visitor, setVisitor] = useState("");
   const [PaymentMode, setPaymentMode] = useState(1);
   const [className, setClassName] = useState("");
   const [ShowDetails, setShowDetails] = useState(false);
@@ -48,57 +51,86 @@ export default function ChangePayMode() {
     getReason();
     console.log(activeTab);
   }, [PaymentMode]);
-  console.log(FileData);
 
   const columns = [
+    // {
+    //   field: "check",
+    //   headerName: "",
+    //   width: 20,
+    //   renderCell: (params) => {
+    //     return (
+    //       <div style={{ display: "flex", gap: "20px" }}>
+    //         <input type="checkbox" />
+    //       </div>
+    //     );
+    //   },
+    // },
+    { field: "Random", headerName: "Sr. No", width: 10 },
     {
-      field: "check",
-      headerName: "",
-      width: 20,
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px" }}>
-            <input type="checkbox" />
-          </div>
-        );
-      },
-    },
-    { field: "id", headerName: "Sr. No", width: 100 },
-    {
-      field: `amount`,
-      headerName: `Recive Amount`,
+      field: `workOrderId`,
+      headerName: `Visitor Id`,
       flex: 1,
     },
     {
-      field: `mode`,
+      field: `centrename`,
+      headerName: `Centre Name`,
+      flex: 1,
+    },
+    {
+      field: `title`,
+      headerName: `Title`,
+      flex: 1,
+    },
+    {
+      field: `name`,
       headerName: `Payment Mode`,
       flex: 1,
     },
     {
-      field: "",
-      width: 200,
-      headerName: "Action",
-      renderCell: (params) => {
-        return (
-          <div style={{ display: "flex", gap: "20px" }}>
-            <select
-              name={""}
-              className={`inputPeerField cursor-pointer ${
-                false ? "border-b-red-500" : "border-borderColor"
-              } peer border-borderColor focus:outline-none`}
-            >
-              <option value="" hidden>
-                Select Option
-              </option>
-
-              <option value={1}>Deposit</option>
-              <option value={2}>Debit Note</option>
-              <option value={3}>Credit Note</option>
-            </select>
-          </div>
-        );
-      },
+      field: `mobileNo`,
+      headerName: `Mobile No.`,
+      flex: 1,
     },
+    {
+      field: `age`,
+      headerName: `Age`,
+      flex: 1,
+    },
+    {
+      field: `gender`,
+      headerName: `Gender`,
+      flex: 1,
+    },
+    {
+      field: `mobileNo`,
+      headerName: `Mobile No.`,
+      flex: 1,
+    },
+    // {
+    //   field: "",
+    //   width: 200,
+    //   headerName: "Action",
+    //   renderCell: (params) => {
+    //     return (
+    //       <div style={{ display: "flex", gap: "20px" }}>
+    //         <select
+    //           name={""}
+    //           className={`inputPeerField cursor-pointer ${
+    //             false ? "border-b-red-500" : "border-borderColor"
+    //           } peer border-borderColor focus:outline-none`}
+    //         >
+    //           <option value="" hidden>
+    //             Select Option
+    //           </option>
+
+    //           <option value={1}>Deposit</option>
+    //           <option value={2}>Debit Note</option>
+    //           <option value={3}>Credit Note</option>
+    //         </select>
+    //       </div>
+    //     );
+    //   },
+    // },
   ];
 
   const handleSubmit = async (event) => {
@@ -108,8 +140,13 @@ export default function ChangePayMode() {
   };
 
   const getReason = async () => {
-    // const get = await fetchData(tabs[activeTab]?.getApi);
-    console.log(get);
+    const get = await fetchData(
+      `/CentrePayment/GetPatientpaymentDetail?Workorderid=${Visitor}`
+    );
+    console.log(get?.data?.data?.patientdetail)
+    if (get?.data?.success) {
+      setRow(addRandomObjectId(get?.data?.data?.patientdetail));
+    }
   };
 
   const handleTheUpdateStatusMenu = async () => {
@@ -144,52 +181,62 @@ export default function ChangePayMode() {
       </div>
 
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-2  mx-1 lg:mx-2">
           <InputGenerator
             inputFields={[
               {
                 label: "Visitor Id",
                 type: "text",
                 name: "Visitor Id",
-                required: true,
+                onChange: (e) => {
+                  setVisitor(e);
+                },
               },
             ]}
           />
 
-          <div className="flex gap-[0.25rem]">
-            <div className="relative flex-1 gap-1 flex justify-start items-center">
-              <button
-                type="submit"
-                className={`font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-              >
-                Search
-              </button>
-            </div>
-          </div>
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Search",
+                submit: false,
+                style: { marginTop: "0px" },
+                callBack: () => {
+                  getReason();
+                },
+              },
+            ]}
+          />
         </div>
       </form>
       {ShowDetails && (
-       <>
-        <div className="w-full h-[0.10rem]" style={{ background: activeTheme?.menuColor }}></div>
-        <div style={{display:"flex",alignItems:"center",flexDirection:"row",gap:"20px"}}>
-          <div className="grid rounded-md grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-            <div className={`relative flex-1 `}>
-              <span className={className}>
-                <b>Name</b>
-              </span>
-              : Mr. Dummy
-            </div>
-            <div className="relative flex-1">
-              <span className={className}>
-                <b>Age</b>
-              </span>{" "}
-              : 23,male
-            </div>
-            {/* <div className="relative flex-1">
+        <>
+          <div
+            className="w-full h-[0.10rem]"
+            style={{ background: activeTheme?.menuColor }}
+          ></div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "row",
+              gap: "20px",
+            }}
+          >
+            <div className="grid rounded-md grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+              <div className={`relative flex-1 `}>
+                <span className={className}>
+                  <b>Name</b>
+                </span>
+                : Mr. Dummy
+              </div>
+              <div className="relative flex-1">
+                <span className={className}>
+                  <b>Age</b>
+                </span>{" "}
+                : 23,male
+              </div>
+              {/* <div className="relative flex-1">
             {" "}
             <span className={className}>
               <b>Gender</b>
@@ -197,40 +244,40 @@ export default function ChangePayMode() {
             : 
           </div> */}
 
-            <div className="relative flex-1">
-              <span className={className}>
-                <b>Mobile No.</b>
-              </span>{" "}
-              : 1234567890
-            </div>
-            {/* <div className="relative flex-1">
+              <div className="relative flex-1">
+                <span className={className}>
+                  <b>Mobile No.</b>
+                </span>{" "}
+                : 1234567890
+              </div>
+              {/* <div className="relative flex-1">
             <span className={className}>
               <b>Address</b>
             </span>{" "}
             : Poket 4 Noida Uttar Pradesh
           </div> */}
+            </div>
+            <div className="relative flex-1">
+              <span className={className}>
+                <b>Booking Centre</b>
+              </span>{" "}
+              : Life Care Hospital & Trauma Centre
+            </div>
           </div>
-          <div className="relative flex-1">
-            <span className={className}>
-              <b>Booking Centre</b>
-            </span>{" "}
-            : Life Care Hospital & Trauma Centre
-          </div>
-        </div>
-        <div className="w-full h-[0.10rem]" style={{ background: activeTheme?.menuColor }}></div>
+          <div
+            className="w-full h-[0.10rem]"
+            style={{ background: activeTheme?.menuColor }}
+          ></div>
         </>
       )}
-      <DynamicTable
-        rows={[
-          { id: 1, mode: "client 1", amount: "1000" },
-          { id: 2, mode: "client 2", amount: "1500" },
-        ]}
+      <UpdatedDynamicTable
+        rows={Row}
         name="Payment Mode Details"
         loading={loading}
         columns={columns}
         activeTheme={activeTheme}
       />
-      <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+      {/* <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
           <InputGenerator
             inputFields={[
@@ -258,7 +305,7 @@ export default function ChangePayMode() {
             </div>
           </div>
         </div>
-      </form>
+      </form> */}
     </div>
   );
 }

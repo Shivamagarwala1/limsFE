@@ -20,6 +20,8 @@ import FileUpload from "./FileUpload";
 import { ViewOrDownloandPDF } from "../service/RedendentData";
 import toast from "react-hot-toast";
 import { PopupFooter } from "./NewPopups";
+import { FormHeader } from "./FormGenerator";
+import SearchBarDropdown from "./SearchBarDropdown";
 
 const PopupModal = ({
   showPopup,
@@ -118,6 +120,7 @@ export const RemarkPopupModal = ({
           />
         </div>
 
+        <FormHeader title="Remakrs" />
         {/* Input Field */}
         <div className="p-3 pb-2 border-none">
           <InputGenerator
@@ -165,17 +168,46 @@ export const HourPopupModal = ({
   handleSubmit,
   handleTheUpdateStatusMenu,
   rowData,
+  clickedRowId,
 }) => {
-  const [remark, setRemark] = useState("");
-  const [time, setTime] = useState(true);
-  const [timeUnit, setTimeUnit] = useState("Hour"); // Default value for dropdown
-  const [hold, setHold] = useState(rowData?.hold === 1 ? "0" : "1"); // State for hold
-  const [title, setTitle] = useState(
-    hold === "1" ? "Hold Reason" : "Un-Hold Reason"
-  ); // State for title
-  const activeTheme = useSelector((state) => state.theme.activeTheme);
-
   if (!showPopup) return null;
+  const [timeUnit, setTimeUnit] = useState("");
+  //   --------------------- Department ------------------------------
+  const [DepartmentId, setDepartmentId] = useState("");
+  const [DepartmentValue, setDepartmentValue] = useState("Hour");
+  const [DepartmentDropDown, setDepartmentDropDown] = useState(false);
+  const [DepartmentHoveIndex, setDepartmentHoveIndex] = useState(null);
+  const [DepartmentSelectedOption, setDepartmentSelectedOption] = useState("");
+
+  const handleOptionClick1 = (name, id) => {
+    setDepartmentValue(name);
+    setDepartmentId(id);
+    setDepartmentSelectedOption(name);
+    setDepartmentDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange1 = (e) => {
+    setDepartmentValue(e.target.value);
+    setDepartmentDropDown(true); // Show dropdown when typing
+  };
+
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  console.log(timeUnit);
+  const handleUnLock = async () => {
+    const currentDate = new Date();
+    if (DepartmentValue === "Hour") {
+      // Add timeUnit hours to the current time
+      currentDate.setHours(currentDate.getHours() + Number(timeUnit));
+    } else {
+      // Add timeUnit days to the current date
+      currentDate.setDate(currentDate.getDate() + Number(timeUnit));
+    }
+    // Convert to ISO format (adjust as per your needs)
+    const finalTime = currentDate.toISOString(); // Example: "2025-03-27T23:03:00.000Z"
+
+    handleTheUpdateStatusMenu(finalTime);
+    setShowPopup(false);
+  };
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 z-50">
@@ -199,76 +231,58 @@ export const HourPopupModal = ({
           />
         </div>
 
+        <FormHeader title="Unlock" />
         {/* Input Field */}
         <div className="p-4 pb-2">
-          <InputGenerator
-            inputFields={[
-              {
-                label: "Remark",
-                type: "text",
-                name: "Remark",
-                onChange: (data) => {
-                  setRemark(data);
-                },
-              },
-            ]}
-          />
-          {/* <InputGenerator inputFields={[{label:"",type:"select",name:"time-format",dataOptions:[{id:1,mode:"Hour"},{id:2,mode:"Day"}]}]} /> */}
-          <div className="flex items-center gap-[0.25rem] mt-1">
-            <div className="relative flex-1">
-              <select
-                // style={{ fontSize: "0.7rem", fontWeight: "500" }}
-                name={"timeFormat"}
-                className={`inputPeerField peer ${
-                  false ? "border-b-red-500" : "border-borderColor"
-                } focus:outline-none`}
-              >
-                <option value={""} hidden>
-                  Select Option
-                </option>
-                <option value={1}>Hour</option>
-                <option value={2}>Day</option>
-              </select>
-              <label htmlFor="Time Format" className="menuPeerLevel">
-                Time Format
-              </label>
-            </div>
+          <div className="flex items-center gap-[0.25rem] ">
+            <SearchBarDropdown
+              id="search-bar"
+              name="Department"
+              value={DepartmentValue}
+              onChange={handleSearchChange1}
+              label="Time Format"
+              placeholder="Search Format"
+              options={[
+                { id: 1, data: "Hour" },
+                { id: 2, data: "Day" },
+              ]}
+              isRequired={false}
+              showSearchBarDropDown={DepartmentDropDown}
+              setShowSearchBarDropDown={setDepartmentDropDown}
+              handleOptionClickForCentre={handleOptionClick1}
+              setIsHovered={setDepartmentHoveIndex}
+              isHovered={DepartmentHoveIndex}
+            />
             {/* <br /> */}
             <div className="relative flex-1">
               <input
-                // type={showPass ? "text" : "password"}
+                type="text"
                 id="confirmPass"
                 name="confirmPass"
-                // value={confirmPass}
-                // onChange={(e) => setConfirmPass(e.target.value)}
-                placeholder=" "
+                placeholder=""
+                onChange={(e) => {
+                  const numericValue = e.target.value.replace(/\D/g, ""); // Removes non-numeric characters
+                  setTimeUnit(numericValue);
+                }}
+                value={timeUnit} // Ensures controlled input behavior
                 className={`inputPeerField peer ${
                   false ? "border-b-red-500" : "border-borderColor"
-                }  focus:outline-none`}
+                } focus:outline-none`}
               />
+
               <label htmlFor="Time" className="menuPeerLevel">
-                Time
+                {DepartmentValue}
               </label>
             </div>
+            <SubmitButton
+              text="Unlock"
+              submit={false}
+              style={{ width: "100px" }}
+              callBack={() => {
+                handleUnLock();
+              }}
+            />
           </div>
-        </div>
-
-        {/* Buttons */}
-        <div className="flex justify-end gap-3 p-3 pt-0 ">
-          <button
-            onClick={() => {
-              handleTheUpdateStatusMenu();
-              setShowPopup(false);
-              handleSubmit(remark, timeUnit);
-            }}
-            className="px-4 py-1 rounded"
-            style={{
-              background: activeTheme?.menuColor,
-              color: activeTheme?.iconColor,
-            }}
-          >
-            Add
-          </button>
         </div>
         <PopupFooter />
       </div>
@@ -1407,7 +1421,7 @@ export const HistoFileUploadPopupModal = ({
                 },
               ]}
             />
-          <PopupFooter />
+            <PopupFooter />
           </div>
         </div>
       )}
@@ -1635,7 +1649,7 @@ export const HistoAddAttachmentPopupModal = ({
           tableStyle={{ marginBottom: "-25px" }}
           columns={columns}
         />
-          <PopupFooter />
+        <PopupFooter />
       </div>
     </div>
   );
@@ -2265,7 +2279,7 @@ export const SampleCollectionRemarkPopupModal = ({
           rows={GetRemark?.data?.data}
           columns={columns}
         />
-          <PopupFooter />
+        <PopupFooter />
       </div>
     </div>
   );
@@ -2408,7 +2422,7 @@ export const ResultTrackRemarkPopupModal = ({
           rows={GetRemark?.data?.data}
           columns={columns}
         />
-          <PopupFooter />
+        <PopupFooter />
       </div>
     </div>
   );
