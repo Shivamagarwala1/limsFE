@@ -24,7 +24,7 @@ import CustomSearchInputFields from '../../../global/CustomSearchDropdown';
 import { getDefaultCentreId } from '../../../../service/localstroageService';
 import { CustomTextBox } from '../../../global/CustomTextBox';
 import CustomFileUpload from '../../../global/CustomFileUpload';
-import {RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri'
+import { RiArrowDropDownLine, RiArrowDropUpLine } from 'react-icons/ri'
 
 export default function TicketSupport() {
 
@@ -484,15 +484,12 @@ export default function TicketSupport() {
 
     //open the popup based on reason
     const handelforGetReasonData = (data, fieldName) => {
-        console.log(fieldName);
         setReasonDataFromPopup({
             fieldName: fieldName,
             reasonData: data
         })
         setShowPopup(9);
     }
-
-    console.log(getReasonDataFromPopup);
 
     const [selected, setSelected] = useState(null);
 
@@ -653,11 +650,11 @@ export default function TicketSupport() {
 
                 </div>
             </form>
-
+            {/* 
 
             {
                 console.log(allTicketSupportData)
-            }
+            } */}
 
             <div>
                 <GridDataDetails gridDataDetails={'Ticket Details'} />
@@ -717,10 +714,10 @@ export default function TicketSupport() {
 
                                             <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                                                 <div className="flex justify-start items-center">
-                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 && data?.isAssigned === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
+                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
                                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                         onClick={() => {
-                                                            if (data?.isCompleted === 0 || data?.isAssigned === 0) {
+                                                            if (data?.isCompleted === 0) {
 
                                                                 getSingleTicketData(data?.ticketId, data?.ticketId * 2, 7)
                                                             }
@@ -787,9 +784,6 @@ export default function TicketSupport() {
                                                                     )
                                                                 }
 
-
-
-
                                                             </div>
                                                         </div>
                                                     )
@@ -819,7 +813,6 @@ export default function TicketSupport() {
 
                                                                 <IoIosEye className='h-4 w-4' />
 
-
                                                             </div>
                                                         </div>
                                                     )
@@ -844,10 +837,10 @@ export default function TicketSupport() {
                                                 {
                                                     user?.defaultCenter === '1' && (
                                                         <div className="flex justify-start items-center">
-                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                                 style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                                 onClick={() => {
-                                                                    if (data?.isCompleted === 0) {
+                                                                    if (data?.isCompleted === 0 || data?.isClosed === 0) {
                                                                         setShowPopup(1)
                                                                             , setticketSupportFilterData((preventData) => ({
                                                                                 ...preventData,
@@ -871,10 +864,10 @@ export default function TicketSupport() {
 
                                                 <div className='flex justify-between'>
                                                     <div className="flex justify-start items-center">
-                                                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isReopen === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? 'opacity-100 ' : 'opacity-60 cursor-not-allowed'}`}
                                                             style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                             onClick={() => {
-                                                                if (data?.isCompleted === 0 && data?.isReopen !== 1) {
+                                                                if (data?.isCompleted === 1 || data?.isClosed === 1) {
                                                                     setShowPopup(2), setticketSupportFilterData((preventData) => ({
                                                                         ...preventData,
                                                                         ticketId: data?.ticketId
@@ -912,10 +905,10 @@ export default function TicketSupport() {
 
                                                 <div className="flex justify-between gap-1">
                                                     <div className="flex justify-start items-center">
-                                                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isClosed === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                             style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                             onClick={() => {
-                                                                if (data?.isCompleted === 0 && data?.isClosed !== 1) {
+                                                                if (data?.isClosed !== 1) {
                                                                     setShowPopup(3), setticketSupportFilterData((preventData) => ({
                                                                         ...preventData,
                                                                         ticketId: data?.ticketId
@@ -1793,33 +1786,44 @@ export default function TicketSupport() {
             {
                 showPopup === 9 && (
                     <CustomPopupWithResponsive activeTheme={activeTheme} heading={`${getReasonDataFromPopup?.fieldName} Ticket Data`} setShowPopup={setShowPopup} popuptype='medium'>
-                        {
 
-                            getReasonDataFromPopup?.reasonData?.map((item, i) => {
-                                return (
-                                    <div key={i} className='border-[1px] border-[#004B75] bg-white rounded-md' >
-                                        <div onClick={() => trogole(i)} className='border-b flex border-[#004B75] justify-between items-center px-2 py-3 cursor-pointer rounded-md'>
-                                            <div className='text-xl font-semibold'>{item.addedDate}</div>
-                                            <div>
-                                                {selected === i ?
-                                                    <RiArrowDropUpLine className='text-3xl' />
-                                                    :
-                                                    <RiArrowDropDownLine className='text-3xl' />
-                                                }
+                        <GridDataDetails gridDataDetails={`${getReasonDataFromPopup?.fieldName} Ticket Details`} />
+
+                        {
+                            // Array.from({ length: 10 }).map((_, index) => (
+                            getReasonDataFromPopup?.reasonData?.length !== 0 ?
+                                getReasonDataFromPopup?.reasonData?.map((item, i) => {
+                                    return (
+                                        <div key={i} className='m-2 border-[1px] bg-white rounded-md' style={{
+                                            backgroundColor: `${activeTheme?.subMenuColor} !important`,
+                                        }}>
+                                            <div onClick={() => trogole(i)} className='border-b flex border-[#004B75] justify-between items-center px-2 py-1 cursor-pointer rounded-md'>
+                                                <div className='text-xxs font-semibold'>{item.addedDate}</div>
+                                                <div>
+                                                    {selected === i ?
+                                                        <RiArrowDropUpLine className='text-xl' />
+                                                        :
+                                                        <RiArrowDropDownLine className='text-xl' />
+                                                    }
+
+                                                </div>
+                                            </div>
+                                            <div className={` ${selected === i ? 'h-auto text-xxxs px-3 py-2' : 'max-h-0 overflow-hidden'} grid grid-cols-2`}>
+
+                                                {item?.remarks}
 
                                             </div>
-                                        </div>
-                                        <div className={` ${selected === i ? 'h-auto px-3 py-2' : 'max-h-0 overflow-hidden'} grid grid-cols-2`}>
 
-                                            {item?.remarks}
 
                                         </div>
 
-
-                                    </div>
-
-                                )
-                            })
+                                    )
+                                })
+                                :
+                                <div className='flex py-2 justify-center items-center text-xxs font-semibold'>
+                                    No data found
+                                </div>
+                            // ))
                         }
 
 

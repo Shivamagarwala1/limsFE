@@ -92,9 +92,8 @@ export default function InputGenerator({
                   required={field?.required}
                   onChange={field?.callBack}
                   value={field?.value}
-                  className={`inputPeerField cursor-pointer ${
-                    field?.required ? "border-b-red-500" : ""
-                  } peer border-borderColor focus:outline-none`}
+                  className={`inputPeerField cursor-pointer ${field?.required ? "border-b-red-500" : ""
+                    } peer border-borderColor focus:outline-none`}
                 >
                   {field?.defaultView ? (
                     ""
@@ -140,9 +139,8 @@ export default function InputGenerator({
                     onChange={(e) => {
                       field?.onChange?.(e.target.value); // Calls field's internal onChange
                     }}
-                    className={`inputPeerField peer border-borderColor ${
-                      field?.required ? "border-b-red-500" : ""
-                    } focus:outline-none`}
+                    className={`inputPeerField peer border-borderColor ${field?.required ? "border-b-red-500" : ""
+                      } focus:outline-none`}
                   />
                   <label htmlFor={field?.name} className="menuPeerLevel">
                     {field?.label}
@@ -326,9 +324,8 @@ export const DateInputWithTime = ({ field = {} }) => {
           value={selectedDate ? formatDateTime(selectedDate) : ""}
           placeholder="Select Date & Time"
           readOnly
-          className={`inputPeerField peer border-borderColor ${
-            field?.required ? "border-b-red-500" : ""
-          } focus:outline-none`}
+          className={`inputPeerField peer border-borderColor ${field?.required ? "border-b-red-500" : ""
+            } focus:outline-none`}
         />
         <label htmlFor={field?.name} className="menuPeerLevel">
           {field?.label}
@@ -415,9 +412,8 @@ export const DateInput = ({ field = {} }) => {
           value={selectedDate} // Now updates dynamically
           placeholder=""
           readOnly // Prevent manual typing if using a calendar picker
-          className={`inputPeerField peer border-borderColor ${
-            field?.required ? "border-b-red-500" : ""
-          } focus:outline-none`}
+          className={`inputPeerField peer border-borderColor ${field?.required ? "border-b-red-500" : ""
+            } focus:outline-none`}
         />
         <label htmlFor={field?.name} className="menuPeerLevel">
           {field?.label}
@@ -458,7 +454,7 @@ export const NumericInput = ({
   allowSpecialChars = false,
   label = "",
   name = "number",
-  onChange = () => {},
+  onChange = () => { },
   placeholder = "",
 }) => {
   const [value, setValue] = useState("");
@@ -525,9 +521,8 @@ const SearchBarDropdown = ({
   return (
     <div className="relative flex-1" ref={dropdownRef}>
       <div
-        className={`flex peer items-center border-[1.5px] rounded text-xxxs h-[1.6rem] text-[#495057] my-1 bg-white ${
-          isValid ? "border-b-red-500" : "border-borderColor"
-        }`}
+        className={`flex peer items-center border-[1.5px] rounded text-xxxs h-[1.6rem] text-[#495057] my-1 bg-white ${isValid ? "border-b-red-500" : "border-borderColor"
+          }`}
       >
         <input
           type="search"
@@ -593,8 +588,9 @@ export const SubmitButton = ({
   text,
   submit = true,
   disabled = false,
-  callBack = () => {},
+  callBack = () => { },
   style,
+  themecolor = null
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const buttonRef = useRef(null); // Added ref for the button
@@ -630,9 +626,8 @@ export const SubmitButton = ({
             handleClick(e); // Call the ripple effect handler
             callBack(); // Directly pass the callback
           }}
-          className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center ${
-            disabled ? "cursor-not-allowed" : "cursor-pointer"
-          }`}
+          className={`overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center ${disabled ? "cursor-not-allowed" : "cursor-pointer"
+            }`}
           style={{
             ...style,
             background: disabled
@@ -669,7 +664,7 @@ export const ButtonWithImage = ({
   text,
   img = "",
   submit = true,
-  callBack = () => {},
+  callBack = () => { },
   style,
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -756,7 +751,7 @@ export const TwoSubmitButton = ({
 export const ClickChangeButton = ({
   text,
   submit = true,
-  callBack = () => {},
+  callBack = () => { },
   style,
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -848,9 +843,8 @@ export const MinMaxInputGenerator = ({ inputFields }) => {
               }
             }}
             placeholder={field?.placeholder || ""}
-            className={`inputPeerField peer border-borderColor ${
-              field?.required ? "border-b-red-500" : ""
-            } focus:outline-none`}
+            className={`inputPeerField peer border-borderColor ${field?.required ? "border-b-red-500" : ""
+              } focus:outline-none`}
           />
           <label htmlFor={field?.name} className="menuPeerLevel">
             {field?.label}
@@ -864,8 +858,9 @@ export const MinMaxInputGenerator = ({ inputFields }) => {
 export const StatusSubmitButton = ({
   text,
   submit = true,
-  callBack = () => {},
+  callBack = () => { },
   style,
+  themecolor = null
 }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const buttonRef = useRef(null); // Added ref for the button
@@ -903,13 +898,13 @@ export const StatusSubmitButton = ({
           className="overflow-hidden relative font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center cursor-pointer"
           style={{
             ...style,
-            background: activeTheme?.menuColor,
+            background: themecolor !== null ? themecolor : activeTheme?.menuColor,
             color: activeTheme?.iconColor,
           }}
         >
           <span
             style={{
-              backgroundColor: text?.rowcolor,
+              backgroundColor: themecolor !== null ? themecolor : text?.rowcolor,
               padding: "2px",
               borderRadius: "10px",
             }}

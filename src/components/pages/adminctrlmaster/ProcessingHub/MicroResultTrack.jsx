@@ -125,6 +125,22 @@ export default function MicroResultTrack() {
   let PayloadData = getLocal("HistoPayload");
   const updatedArray = addObjectId(PostData?.data);
 
+  const allFilterData = useRetrieveData();
+
+  useEffect(() => {
+
+    const getAllData = async () => {
+      try {
+        await allFilterData.fetchDataFromApi(`/LegendColorMaster?select=id,colourCode,colourName,contantName&$filter=(isactive eq 1 and (id gt 2 and id lt 13 or id eq 1))`);
+
+      } catch (error) {
+        toast.error(error.message)
+      }
+    }
+
+    getAllData();
+  }, [])
+
   const columns = [
     {
       field: "id",
@@ -208,6 +224,7 @@ export default function MicroResultTrack() {
                 padding: "0px 20px",
                 height: "20px",
               }}
+              themecolor={allFilterData?.data.find((item) => item?.contantName === params?.row?.status)?.colourCode}
             />
           </div>
         );
@@ -305,6 +322,7 @@ export default function MicroResultTrack() {
   //info/ document
   const getAllInfoDocumentData = async (testId) => {
     console.log(testId);
+
 
     try {
       await allInfoDocument.fetchDataFromApi(
@@ -468,30 +486,30 @@ export default function MicroResultTrack() {
         LegendButtonSearch(data);
       },
     },
-    {
-      Data: 9,
-      CallBack: () => {
-        // Sample Rerun
-        const data = { ...PayloadData, status: "Sample Rerun" };
-        LegendButtonSearch(data);
-      },
-    },
-    {
-      Data: 12,
-      CallBack: () => {
-        // Under Machine
-        const data = { ...PayloadData, status: "Under Machine" };
-        LegendButtonSearch(data);
-      },
-    },
-    {
-      Data: 8,
-      CallBack: () => {
-        // Machine Data
-        const data = { ...PayloadData, status: "Machine Data" };
-        LegendButtonSearch(data);
-      },
-    },
+    // {
+    //   Data: 9,
+    //   CallBack: () => {
+    //     // Sample Rerun
+    //     const data = { ...PayloadData, status: "Sample Rerun" };
+    //     LegendButtonSearch(data);
+    //   },
+    // },
+    // {
+    //   Data: 12,
+    //   CallBack: () => {
+    //     // Under Machine
+    //     const data = { ...PayloadData, status: "Under Machine" };
+    //     LegendButtonSearch(data);
+    //   },
+    // },
+    // {
+    //   Data: 8,
+    //   CallBack: () => {
+    //     // Machine Data
+    //     const data = { ...PayloadData, status: "Machine Data" };
+    //     LegendButtonSearch(data);
+    //   },
+    // },
     {
       Data: 6,
       CallBack: () => {
