@@ -19,7 +19,8 @@ const UserCalendar = ({
     activeTheme,
     tillDate = new Date(), // Default till date: today
     timeFormat = "12", // Default time format: 24-hour
-    showBigerCalandar
+    showBigerCalandar,
+    disableType
 }) => {
     const [currentDate, setCurrentDate] = useState(new Date()); // Default to today's date
     const [selectedDate, setSelectedDate] = useState(null); // Track selected date
@@ -280,6 +281,31 @@ const UserCalendar = ({
         return highlighted?.msg || disabled?.msg || null;
     };
 
+    //get back day disabled
+    // Disable past dates (back date)
+    const backDateDisable = (day) => {
+        if (!day) return true; // Disable empty days
+
+        const currentDateObj = new Date(); // Today's date
+        currentDateObj.setHours(0, 0, 0, 0); // Reset to midnight for accurate comparison
+
+        const selectedDateObj = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            day
+        );
+
+        // Disable if the selected date is before today
+        return selectedDateObj < currentDateObj;
+    };
+
+    // Custom condition to disable specific days
+    // const isDisabled = (day) => {
+    //     // Add your logic here (e.g., disable weekends or specific dates)
+    //     return day === 15 || day === 25; // Example: disable 15th and 25th of the month
+    // };
+
+
     return (
         <div
             ref={calendarRef}
@@ -394,43 +420,52 @@ const UserCalendar = ({
                                 {day}
                             </div>
                         ))}
-                        {days.map((day, index) => (
-                            <div
-                                key={index}
-                                onClick={() =>
-                                    !isDisabled(day) &&
-                                    !isDisabledForceFully(day) &&
-                                    handleDateClick(day)
-                                }
-                                onMouseEnter={() =>
-                                    setHoveredDate({
-                                        date: new Date(
-                                            currentDate.getFullYear(),
-                                            currentDate.getMonth(),
-                                            day
-                                        ),
-                                        msg: getDateMessage(day),
-                                    })
-                                }
-                                onMouseLeave={() => setHoveredDate(null)}
-                                className={`text-black rounded-sm cursor-pointer font-semibold ${day && index % 7 === 0 ? "text-red-500" : ""
-                                    } ${day
-                                        ? `border-[1px] h-6 w-6 flex justify-center items-center hover:bg-gray-200 ${isHighlighted(day) ? "bg-blue-200" : ""
-                                        } ${isDisabled(day)
-                                            ? "bg-gray-200 text-black cursor-not-allowed"
-                                            : ""
-                                        }
-                          ${isDisabledForceFully(day)
-                                            ? "bg-gray-400 text-black cursor-not-allowed"
-                                            : ""
-                                        } ${isCurrentDate(day) ? "bg-red-100" : ""} ${isSelectedDate(day) ? "bg-green-200" : ""
-                                        }`
-                                        : "text-transparent"
-                                    }`}
-                            >
-                                {day || ""}
-                            </div>
-                        ))}
+                        {days.map((day, index) => {
+                            const isDateDisabled =
+                                disableType === "backDateDisable"
+                                    ? backDateDisable(day)
+                                    : isDisabled(day);
+
+                            return (
+                                <div
+                                    key={index}
+                                    onClick={() =>
+                                        !isDateDisabled &&
+                                        !isDisabledForceFully(day) &&
+                                        handleDateClick(day)
+                                    }
+                                    onMouseEnter={() =>
+                                        setHoveredDate({
+                                            date: new Date(
+                                                currentDate.getFullYear(),
+                                                currentDate.getMonth(),
+                                                day
+                                            ),
+                                            msg: getDateMessage(day),
+                                        })
+                                    }
+                                    onMouseLeave={() => setHoveredDate(null)}
+                                    className={`text-black rounded-sm cursor-pointer font-semibold ${day && index % 7 === 0 ? "text-red-500" : ""
+                                        } ${day
+                                            ? `border-[1px] h-6 w-6 flex justify-center items-center hover:bg-gray-200 ${isHighlighted(day) ? "bg-blue-200" : ""
+                                            } ${isDateDisabled
+                                                ? "bg-gray-200 text-black cursor-not-allowed"
+                                                : ""
+                                            }
+                      ${isDisabledForceFully(day)
+                                                ? "bg-gray-400 text-black cursor-not-allowed"
+                                                : ""
+                                            } ${isCurrentDate(day) ? "bg-red-100" : ""} ${isSelectedDate(day) ? "bg-green-200" : ""
+                                            }`
+                                            : "text-transparent"
+                                        }`}
+                                >
+                                    {day || ""}
+                                </div>
+                            );
+                        })}
+
+
                     </div>
 
                     {/* Time Selector (shown only if a date is selected and showTime is true) */}

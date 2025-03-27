@@ -266,12 +266,6 @@ export default function TicketSupport() {
         }
         setIsButtonClick(2);
 
-        if (ticketSupportFilterData?.ticketDesc === '') {
-            toast.warning('Please provide a reason.!');
-            setIsButtonClick(0);
-            return;
-        }
-
         const response = await postDataForTicketsAssign.postRequestData(`/supportTicket/AssignTicket?ticketId=${ticketSupportFilterData?.ticketId}&AssigneTo=${ticketSupportFilterData?.ticketAssignedEng}&DeliveryDate=${ticketSupportFilterData?.daliveryDate}&UserId=${parseInt(user?.employeeId)}`);
 
         if (response?.success) {
@@ -650,9 +644,9 @@ export default function TicketSupport() {
 
                 </div>
             </form>
-            {/* 
 
-            {
+
+            {/* {
                 console.log(allTicketSupportData)
             } */}
 
@@ -840,7 +834,7 @@ export default function TicketSupport() {
                                                             <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                                 style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                                 onClick={() => {
-                                                                    if (data?.isCompleted === 0 || data?.isClosed === 0) {
+                                                                    if (data?.isCompleted === 0 && data?.isClosed === 0) {
                                                                         setShowPopup(1)
                                                                             , setticketSupportFilterData((preventData) => ({
                                                                                 ...preventData,
@@ -1142,11 +1136,12 @@ export default function TicketSupport() {
                                             placeholder=" "
                                             label="DeliveryDate"
                                             activeTheme={activeTheme}
-                                            //isDisabled={false}
+                                            // isDisabled={true}
                                             isMandatory={!Boolean(ticketSupportFilterData?.fromDate)}
                                             currentDate={new Date()} // Current date: today
                                             showTime={false}
                                             showBigerCalandar={false}
+                                            disableType="backDateDisable"
                                         />
                                     </div>
 

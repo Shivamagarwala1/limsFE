@@ -808,12 +808,13 @@ export default function EmployeeMaster() {
     // if (employeeData.allowTicket===1) {
     if (employeeData.allowTicket === '1' && !employeeData?.allowTicketRole) {
       errors.allowTicketRole = true;
-    } else {
-      errors.allowTicketRole = false;
     }
+
+
     // }
     // Update state with errors
     setFormErrors(errors);
+    //console.log(errors);
 
     // Return true if no errors exist
     return Object.keys(errors).length === 0;
@@ -981,7 +982,7 @@ export default function EmployeeMaster() {
 
 
           console.log(resp);
-          
+
 
           const filterTicket = allRoleData?.filter((center) =>
             resp?.data?.addEmpRoleAccess?.some(
@@ -990,7 +991,7 @@ export default function EmployeeMaster() {
           );
 
           console.log(filterTicket);
-          
+
           setDefaultRole(filteredRoles);
           setDefaultRoleForTicket(filterTicket);
           //set selecet value state

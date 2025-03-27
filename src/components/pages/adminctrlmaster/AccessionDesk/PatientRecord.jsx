@@ -20,7 +20,7 @@ import { FaCircleInfo } from "react-icons/fa6";
 import { RiBillLine } from "react-icons/ri";
 import FormHeader from "../../../global/FormHeader";
 import CustomSearchInputFields from "../../../global/CustomSearchDropdown";
-import { getAllBankNameApi, getAllCentreApi, getAllEmployeeApi, getGridDataBasedOnPatientRecordData, getSearchBtnColorCodeInPatientRecordApi, handelDownloadCashReceiptApi, handelDownloadInfoOrDocumentApi, handelDownloadMRPreceiptApi, usePostData } from "../../../../service/service";
+import { getAllBankNameApi, getAllCentreApi, getAllEmployeeApi, getGridDataBasedOnPatientRecordData, getSearchBtnColorCodeInPatientRecordApi, handelDownloadCashReceiptApi, handelDownloadInfoOrDocumentApi, handelDownloadMRPreceiptApi, usePostData, useRetrieveData } from "../../../../service/service";
 import CustomDropdown from "../../../global/CustomDropdown";
 import { useFormattedDate } from "../../../customehook/useDateTimeFormate";
 import { DatePicker } from "../../../global/DatePicker";
@@ -38,6 +38,8 @@ import { IoMdCloseCircleOutline } from "react-icons/io";
 import { TbCoinRupeeFilled } from "react-icons/tb";
 import CustomSmallPopup from "../../../global/CustomSmallPopup";
 import CustomFormButtonWithLoading from "../../../global/CustomFormButtonWithLoading";
+import Payment from "../../payment/Payment";
+import CustomPopupWithResponsive from "../../../global/CustomPopupWithResponsive";
 
 export default function PatientRecord() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -237,6 +239,7 @@ export default function PatientRecord() {
   const [isHoveredTable, setIsHoveredTable] = useState(null);
   const [loadingId, setLoadingId] = useState(0);
   const [showPopup, setShowPopup] = useState(0);
+  const ammountData = useRetrieveData();
 
   const [settelmentData, setSettelmentData] = useState({
     selectCurrencyValue: '1',
@@ -254,6 +257,7 @@ export default function PatientRecord() {
   const [patientRegistrationDataError, setPatientRegistrationDataError] = useState([]);
   const [allBankNameData, setAllBankNameData] = useState([]);
   const patientRecordPostData = usePostData();
+  //const [selectedId, setSelectedId] = useState(0);
 
   useRippleEffect();
 
@@ -584,6 +588,23 @@ export default function PatientRecord() {
     }
     setIsButtonClick(0);
   }
+
+
+  //!==============payment data==============
+  const getAmmountData = async (workOrderId) => {
+
+    try {
+      const response = await ammountData.fetchDataFromApi(`/tnx_Booking/GetPendingPayment?workOrderId=${workOrderId}`);
+      console.log(response?.data?.success);
+
+      if (response?.data?.success) {
+        setShowPopup(2);
+      }
+    } catch (error) {
+      toast.error(error?.message);
+    }
+  }
+
 
   return (
 
@@ -1002,7 +1023,8 @@ export default function PatientRecord() {
                           style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                           onClick={() => {
                             if (data?.dueAmt !== 0 || data?.status === 'UnPaid' || data?.status === 'Partial Paid') {
-                              setShowPopup(2);
+
+                              getAmmountData(data?.workOrderId)
 
                             }
                           }}
@@ -1306,18 +1328,14 @@ export default function PatientRecord() {
         )
       }
 
+
       {
         showPopup === 2 && (
-          <CustomSmallPopup
-            headerData={'Online Payment Mode'}
-            activeTheme={activeTheme}
-            setShowPopup={setShowPopup} // Pass the function, not the value
-          >
-            <div className="flex justify-center font-semibold ">
-              Comming soon :)
-            </div>
-
-          </CustomSmallPopup>
+          <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Recharge your wallet'} setShowPopup={setShowPopup} popuptype={'medium'} >
+            <Payment showAmt={false} lable={'Due Ammount : '}
+              amount={ammountData?.data?.data?.dueAmt}
+            />
+          </CustomPopupWithResponsive>
         )
       }
 
