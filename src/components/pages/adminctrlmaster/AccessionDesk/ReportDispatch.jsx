@@ -860,7 +860,7 @@ export default function ReportDispatch() {
                     >
                       <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
                         <div className="flex gap-3 items-center">
-                          <div>
+                          {/* <div>
                             <div className="flex gap-1 items-center justify-between">
                               <div>
                                 {index + 1}
@@ -869,14 +869,21 @@ export default function ReportDispatch() {
 
                               </div>
                             </div>
+                          </div> */}
+
+                          <div>
+                            {index + 1}
                           </div>
-                          {
-                            data?.urgent === 1 && (
-                              <div>
-                                <img src={UrgentGif} alt="path not found" />
-                              </div>
-                            )
-                          }
+
+                          <div>
+                            {
+                              data?.urgent === 1 && (
+                                <div>
+                                  <img src={UrgentGif} alt="path not found" />
+                                </div>
+                              )
+                            }
+                          </div>
                         </div>
                       </td>
 
@@ -942,7 +949,9 @@ export default function ReportDispatch() {
                       </td>
 
                       <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" >
-                        {data?.investigationName}
+                        <div style={{background:colorCode}} className="px-2 py-1 w-auto rounded-md">
+                          {data?.investigationName}
+                        </div>
                       </td>
 
 

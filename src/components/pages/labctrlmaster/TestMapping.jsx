@@ -22,12 +22,14 @@ export default function TestMapping() {
     const [testMappingData, setTestMapping] = useState({
         itemType: 0,
         testName: 0,
-        observation: []
+        observation: [],
+        packageName: 0,
     });
 
     const [selectedDropDown, setSeleDropDown] = useState({
         testName: '',
-        observationName: ''
+        observationName: '',
+        packageName: ''
     });
 
     const [selectedDropDownForRefRangePopup, setSeleDropDownForRefRangePopup] = useState({
@@ -60,6 +62,7 @@ export default function TestMapping() {
     const [allTestNameData, setAllTestNameData] = useState([]);
     const [allObseravationData, setAllObseravationData] = useState([]);
     const [allTestMappingGridData, setAllTestMappingGridData] = useState([]);
+    const [allPackageNameData, setAllPackageNameData] = useState([]);
     const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
     const [showPopup, setShowPopup] = useState(false);
     const [isButtonClick, setIsButtonClick] = useState(0);
@@ -152,6 +155,7 @@ export default function TestMapping() {
                 //setTestMapping((preventData) => ({ ...preventData, testName: 0 }))
 
                 setAllTestNameData(response);
+                setAllPackageNameData(response);
 
             } catch (error) {
                 toast.error(error?.message);
@@ -177,13 +181,23 @@ export default function TestMapping() {
 
     useEffect(() => {
 
-        if (!selectedDropDown?.testName) return;
+        //if (!selectedDropDown?.testName || !selectedDropDown?.packageName) return;
 
 
         const getGridData = async () => {
 
             try {
-                const response = await getAllTestMapingGridDataApi(testMappingData?.itemType || '', testMappingData?.testName === '' ? 0 : testMappingData?.testName || '');
+
+                // const response = await getAllTestMapingGridDataApi(testMappingData?.itemType || '', testMappingData?.testName === '' ? 0 : testMappingData?.testName || '');
+
+                console.log(testMappingData?.packageName);
+
+                const response = await getAllTestMapingGridDataApi(
+                    testMappingData?.itemType || '',
+                    testMappingData?.packageName || testMappingData?.testName || 0
+                );
+
+                console.log(response);
 
                 if (response?.success) {
 
@@ -200,10 +214,11 @@ export default function TestMapping() {
             }
         }
 
-        getGridData()
+        if (selectedDropDown?.testName || selectedDropDown?.packageName)
+            getGridData()
 
 
-    }, [selectedDropDown?.testName, isButtonClick])
+    }, [selectedDropDown?.testName, selectedDropDown?.packageName, isButtonClick])
 
 
     const handleCheckboxChange = (e, data) => {
@@ -1011,6 +1026,10 @@ export default function TestMapping() {
     const filterAlltestNameData = allTestNameData.filter((data) => (data?.itemName?.toLowerCase() || '').includes(String(selectedDropDown?.testName?.toLowerCase() || '')));
 
 
+    //package name
+    const filterAllPackageNameData = allPackageNameData.filter((data) => (data?.itemName?.toLowerCase() || '').includes(String(selectedDropDown?.packageName?.toLowerCase() || '')));
+
+
     //    observationName
     const filterObservationNameData = allObseravationData.filter((data) => (data?.labObservationName?.toLowerCase() || '').includes(String(selectedDropDown?.observationName?.toLowerCase() || '')));
 
@@ -1282,6 +1301,77 @@ export default function TestMapping() {
                         </div>
                     </div>
 
+                    {/* package */}
+                    {
+                        testMappingData?.itemType === '3' && (
+                            <div className="relative flex-1">
+                                <input
+                                    type="search"
+                                    id="packageName"
+                                    name="packageName"
+                                    value={selectedDropDown?.packageName || testMappingData?.packageName || ''}
+                                    onChange={(e) => {
+                                        handelOnChangeTestMappingData(e),
+                                            setSeleDropDown((preventData) => ({
+                                                ...preventData,
+                                                packageName: e.target.value
+                                            }))
+                                    }}
+                                    onClick={() => openShowSearchBarDropDown(6)}
+
+                                    placeholder=" "
+                                    className={`inputPeerField peer border-borderColor focus:outline-none`}
+                                />
+                                <label htmlFor="packageName" className="menuPeerLevel">
+                                    {/* {
+                                testMappingData?.itemType === '3' ? 'Package Name' : testMappingData?.itemType === '2' ? 'Profile Name' : 'Test Name'
+                            } */}
+                                    Package
+                                </label>
+
+                                {/* Dropdown to select the menu */}
+                                {showSearchBarDropDown === 6 && (
+                                    <div className="absolute border-[1px] rounded-md z-30 shadow-lg max-h-56 w-full bg-white overflow-y-auto text-xxxs">
+                                        <ul>
+                                            {filterAllPackageNameData?.length > 0 ? (
+                                                filterAllPackageNameData?.map((data, index) => (
+                                                    <li
+                                                        key={data?.itemId}
+                                                        name="packageName"
+                                                        className="my-1 px-2 cursor-pointer"
+                                                        onClick={(e) => {
+                                                            openShowSearchBarDropDown(0);
+                                                            handelOnChangeTestMappingData({
+                                                                target: { name: 'packageName', value: data?.itemId },
+                                                            });
+                                                            setSeleDropDown((preventData) => ({
+                                                                ...preventData,
+                                                                packageName: data?.itemName
+                                                            }))
+                                                        }}
+                                                        onMouseEnter={() => setIsHovered(index)}
+                                                        onMouseLeave={() => setIsHovered(null)}
+                                                        style={{
+                                                            background:
+                                                                isHovered === index ? activeTheme?.subMenuColor : 'transparent',
+                                                        }}
+                                                    >
+                                                        {data?.itemName}
+                                                    </li>
+
+                                                ))
+                                            ) : (
+                                                <li className="py-4 text-gray-500 text-center">
+                                                    {import.meta.env.VITE_API_RECORD_NOT_FOUND || 'No records found'}
+                                                </li>
+                                            )}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    }
+
 
                     <div className='flex gap-[0.25rem]'>
                         <div className="relative flex-1 flex justify-start items-center">
@@ -1321,7 +1411,10 @@ export default function TestMapping() {
                     <div>Test Mapping Details</div>
                 </div>
 
+                {
+                    console.log(allTestMappingGridData)
 
+                }
                 <table className="table-auto border-collapse w-full text-xxs text-left mb-2">
 
                     <thead style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}>
