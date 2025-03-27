@@ -367,7 +367,7 @@ export default function TestWiseRateList() {
           </div>
         );
       },
-      with: 10,
+      width: 10,
       renderCell: (params) => {
         return (
           <CheckboxInputCell

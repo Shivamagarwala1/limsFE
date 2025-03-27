@@ -3,16 +3,30 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputGenerator from "../../../../Custom Components/InputGenerator";
+import InputGenerator, {
+  getFormattedDate,
+  IconButton,
+  TwoSubmitButton,
+} from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
-import { FaRegEdit } from "react-icons/fa";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../../Custom Components/DynamicTable";
+import { FaFileExcel, FaRegEdit, FaRegFileExcel } from "react-icons/fa";
 import { ImSwitch } from "react-icons/im";
 import { GiCancel } from "react-icons/gi";
 import { FaEye } from "react-icons/fa6";
 import { VscFilePdf } from "react-icons/vsc";
 import toast from "react-hot-toast";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
+import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
+import {
+  addRandomObjectId,
+  downloadExcel,
+  ViewOrDownloandPDF,
+} from "../../../../service/RedendentData";
+import { CancelInvoicePopupModal } from "../../../../Custom Components/NewPopups";
+import { FormHeader } from "../../../../Custom Components/FormGenerator";
 
 export default function PrintInvoice() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -22,55 +36,55 @@ export default function PrintInvoice() {
   const { fetchData, response, data, loading } = useGetData();
 
   const [isButtonClick, setIsButtonClick] = useState(0);
-  const [ColumnTab, setColumnTab] = useState({
-    field: "discountReasonName",
-    header: "Discount Reason Name",
-  });
+  const todayDate = getFormattedDate();
+  const [FromDate, setFromDate] = useState(todayDate);
+  const [ToDate, setToDate] = useState(todayDate);
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const [isEditData, setIsEditData] = useState(false);
+  const [Grid2, setGrid2] = useState([]);
   const [selectedCenter, setSelectedCenter] = useState([]);
-
+  const AllCenterData = useGetData();
+  const getData = usePostData();
+  const StateData = useGetData();
   useEffect(() => {
-    getReason();
+    AllCenterData?.fetchData(
+      "/centreMaster?select=centreId,companyName&$filter=(isActive eq 1)"
+    );
+    // console.log(AllCenterData);
   }, []);
+  useEffect(() => {
+    if (selectedCenter.length != 0) {
+      getReason();
+    }
+  }, [showPopup]);
   console.log(selectedCenter);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 100 },
+    { field: "Random", headerName: "Sr. No", width: 100 },
     {
-      field: `Invoice No`,
+      field: `invoiceNo`,
       headerName: `Invoice No`,
       flex: 1,
     },
     {
-      field: `Centre`,
-      headerName: `Centre`,
+      field: `rate`,
+      headerName: `Rate`,
       flex: 1,
     },
     {
-      field: `Invoice Amount`,
-      headerName: `Invoice Amount`,
-      flex: 1,
-    },
-    {
-      field: `Invoice Date`,
+      field: `invoiceDate`,
       headerName: `Invoice Date`,
       flex: 1,
     },
     {
-      field: `From Date`,
-      headerName: `From Date`,
-      flex: 1,
-    },
-    {
-      field: `To Date`,
-      headerName: `To Date`,
-      flex: 1,
-    },
-    {
-      field: `Created By`,
+      field: `createdBy`,
       headerName: `Created By`,
+      flex: 1,
+    },
+    {
+      field: `createDate`,
+      headerName: `Create Date`,
       flex: 1,
     },
     {
@@ -79,18 +93,18 @@ export default function PrintInvoice() {
       width: 100,
       renderCell: (params) => {
         return (
-          <div className="flex justify-center items-center">
-            <button
-              className={`w-4 h-4 flex justify-center items-center text-red-500`}
-            >
-              <GiCancel
-                className="w-full h-full"
+          <div className="flex justify-start gap-1 items-center">
+            {params?.row?.isCancel != 1 && (
+              <IconButton
+                icon={GiCancel}
                 onClick={() => {
                   setClickedRowId(params?.row);
                   setShowPopup(true);
                 }}
+                className={"h-4 w-4"}
+                title="View Reciept"
               />
-            </button>
+            )}
           </div>
         );
       },
@@ -101,18 +115,17 @@ export default function PrintInvoice() {
       width: 100,
       renderCell: (params) => {
         return (
-          <div className="flex justify-center items-center">
-            <button
-              className={`w-4 h-4 flex justify-center items-center text-blue-500`}
-            >
-              <FaEye
-                className="w-full h-full"
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                  setShowPopup(true);
-                }}
-              />
-            </button>
+          <div className="flex justify-start gap-1 items-center">
+            <IconButton
+              icon={FaEye}
+              onClick={() =>
+                ViewOrDownloandPDF(
+                  `/centreInvoice/PrintInvoice?InvoiceNo=${params?.row?.invoiceNo}`
+                )
+              }
+              className={"h-4 w-4"}
+              title="View Reciept"
+            />
           </div>
         );
       },
@@ -123,18 +136,28 @@ export default function PrintInvoice() {
       headerName: "View Report",
       renderCell: (params) => {
         return (
-          <div className="flex justify-center items-center">
-            <button
-              className={`w-4 h-4 flex justify-center items-center text-red-500`}
-            >
-              <VscFilePdf
-                className="w-full h-full"
-                onClick={() => {
-                  setClickedRowId(params?.row);
-                  setShowPopup(true);
-                }}
-              />
-            </button>
+          <div className="flex justify-start gap-1 items-center">
+            <IconButton
+              icon={VscFilePdf}
+              onClick={() =>
+                ViewOrDownloandPDF(
+                  `/centreInvoice/PrintInvoiceData?InvoiceNo=${params?.row?.invoiceNo}`
+                )
+              }
+              className={"h-4 w-4"}
+              title="View Reciept"
+            />
+            <IconButton
+              icon={FaRegFileExcel}
+              onClick={() =>
+                downloadExcel(
+                  `/centreInvoice/PrintInvoiceDataExcel?InvoiceNo=${params?.row?.invoiceNo}`,
+                  `${params?.row?.invoiceNo}-Invoice.xlsx`
+                )
+              }
+              className={"h-4 w-4"}
+              title="View Reciept"
+            />
           </div>
         );
       },
@@ -178,41 +201,27 @@ export default function PrintInvoice() {
   };
 
   const getReason = async () => {
-    // const get = await fetchData(tabs[activeTab]?.getApi);
+    if (selectedCenter.length == 0) {
+      toast.error("Center is Rquired");
+      return;
+    }
+    const get = await getData?.postRequest(
+      `/centreInvoice/GetInvoices?FromDate=${FromDate} 12:01 AM&Todate=${ToDate} 11:59 PM`,
+      selectedCenter
+    );
+    setGrid2(addRandomObjectId(get?.data));
     console.log(get);
   };
 
-  const handleTheUpdateStatusMenu = async () => {
-    const lsData = getLocal("imarsar_laboratory");
-    const payload = {
-      ...clickedRowId,
-      updateById: lsData?.user?.employeeId,
-      isActive: clickedRowId?.isActive === 1 ? 0 : 1,
-    };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    if (data1?.success) {
-      toast.success("Status Updated Successfully");
-      console.log(payload);
-      getReason();
-      setShowPopup(false);
-    }
-  };
-
-  //   const InputFileds = [{ label: "", type: "" }];
-
   return (
     <div>
+      <CancelInvoicePopupModal
+        showPopup={showPopup}
+        setShowPopup={setShowPopup}
+        Params={clickedRowId}
+      />
       {/* Header Section */}
-      <div
-        className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-        style={{ background: activeTheme?.blockColor }}
-      >
-        <div>
-          <FontAwesomeIcon icon="fa-solid fa-house" />
-        </div>
-        <div>Print Invoice</div>
-      </div>
-
+      <FormHeader title="Print Invoice" />
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
           <InputGenerator
@@ -220,63 +229,57 @@ export default function PrintInvoice() {
               {
                 label: "From Date",
                 type: "customDateField",
-                name: "FromDate",
+                name: "fromDate",
+                customOnChange: (e) => {
+                  console.log(e);
+                  setFromDate(e);
+                },
               },
               {
                 label: "To Date",
                 type: "customDateField",
                 name: "toDate",
+                // minDate: new Date(2000, 0, 1),
+                // tillDate: new Date(2100, 0, 1),
+                customOnChange: (e) => {
+                  console.log(e);
+                  setToDate(e);
+                },
               },
             ]}
           />
-          <MultiSelectDropdown
-            field={{
-              label: "Centre",
-              name: "CentreMode",
-              keyField: "id",
-              required: true,
-              selectedValues: selectedCenter,
-              showValueField: "mode",
-              dataOptions: [
-                { id: 1, mode: "Cash" },
-                { id: 2, mode: "Cheque" },
-                { id: 3, mode: "Neft" },
-                { id: 4, mode: "Rtgs" },
-                { id: 5, mode: "Online" },
-              ],
-              callBack: (selected) => setSelectedCenter(selected),
-            }}
+          <UpdatedMultiSelectDropDown
+            id="Center"
+            name="serachCenter"
+            label="Center"
+            placeHolder="Search Center"
+            options={AllCenterData?.data}
+            isMandatory={false}
+            isDisabled={false}
+            optionKey="centreId"
+            optionValue={["companyName"]}
+            selectedValues={selectedCenter}
+            setSelectedValues={setSelectedCenter}
           />
-          <InputGenerator
-            inputFields={[
-              { label: "Cancel Remarks", type: "text", name: "remark" },
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Search",
+                submit: false,
+                callBack: () => {
+                  getReason();
+                },
+              },
             ]}
           />
-          <div className="flex gap-[0.25rem]">
-            <div className="relative flex-1 gap-1 flex justify-start items-center">
-              <button
-                type="submit"
-                className={`font-semibold text-xxxs h-[1.6rem] w-full rounded-md flex justify-center items-center 'cursor-pointer`}
-                style={{
-                  background: activeTheme?.menuColor,
-                  color: activeTheme?.iconColor,
-                }}
-              >
-                Search
-              </button>
-            </div>
-          </div>
         </div>
       </form>
-      <DynamicTable
-        rows={[
-          { id: 1, client: "client 1" },
-          { id: 2, client: "client 2" },
-        ]}
+      <UpdatedDynamicTable
+        rows={Grid2}
         name="Print Invoice Details"
-        loading={loading}
+        loading={Grid2?.loading}
         columns={columns}
-        activeTheme={activeTheme}
+        viewKey="Random"
       />
     </div>
   );

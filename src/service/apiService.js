@@ -115,8 +115,9 @@ export const useGetData = (url, params = {}) => {
   };
 
   useEffect(() => {
+    console.log(BASE_URL.length);
     // Check if BASE_URL is the restricted URL
-    if (BASE_URL !== "https://imarsar.com:8084/api") {
+    if (BASE_URL > 28) {
       fetchData();
     } else {
       setLoading(false); // Set loading to false if the URL is restricted

@@ -12,7 +12,9 @@ import InputGenerator, {
   TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable, { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../../Custom Components/DynamicTable";
 import { FaLock, FaLockOpen } from "react-icons/fa";
 import { MdMessage } from "react-icons/md";
 import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
@@ -23,11 +25,12 @@ import PopupModal, {
 } from "../../../../Custom Components/PopupModal";
 import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/UpdatedMultiSelectDropDown";
 import { addRandomObjectId } from "../../../../service/RedendentData";
+import { FormHeader } from "../../../../Custom Components/FormGenerator";
 
 export default function LedgerStatus() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const { formRef, getValues, setValues } = useFormHandler();
-
+  const lsData = getLocal("imarsar_laboratory");
   const PostData = usePostData();
   const { fetchData, response, data, loading } = useGetData();
 
@@ -50,6 +53,12 @@ export default function LedgerStatus() {
       "/centreMaster?select=centreid,companyName&$filter=( centretypeid eq 2 or centretypeid eq 3 )"
     );
   }, []);
+
+  useEffect(() => {
+    if (selectedCenter?.length > 0) {
+      getReason();
+    }
+  }, [showPopup, HourModel]);
 
   const columns = [
     { field: "Random", headerName: "Sr. No", width: 70 },
@@ -128,6 +137,16 @@ export default function LedgerStatus() {
       headerName: `Status`,
       width: 100,
       renderCell: (params) => {
+        const handleRowClick = (rowData) => {
+          console.log("Clicked Row Data:", rowData); // Debug log
+          setClickedRowId(rowData);
+          setShowPopup(true);
+        };
+        const handleRowClick1 = (rowData) => {
+          console.log("Clicked Row Data:", rowData); // Debug log
+          setClickedRowId(rowData);
+          setHourModel(true);
+        };
         return (
           <div className="flex justify-center items-center">
             <button
@@ -137,16 +156,18 @@ export default function LedgerStatus() {
             >
               {params?.row?.isLock ? (
                 <FaLock
-                  onClick={() => {
-                    setShowPopup(true);
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent event bubbling
+                    handleRowClick1(params?.row);
                   }}
-                  className="w-full h-full"
+                  className="w-full h-full cursor-pointer"
                 />
               ) : (
                 <FaLockOpen
-                  className="w-full h-full"
-                  onClick={() => {
-                    setShowPopup(true);
+                  className="w-full h-full cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent event bubbling
+                    handleRowClick(params?.row);
                   }}
                 />
               )}
@@ -196,17 +217,6 @@ export default function LedgerStatus() {
     event.preventDefault();
     const values = getValues();
 
-    // Check for required fields
-    // const requiredFields = ["Payment Date", "Payment Mode", "Payment Type", "Advance"];
-
-    // const missingFields = requiredFields.filter(field => !values[field]);
-
-    // if (missingFields.length > 0) {
-    //   toast(`${missingFields[0]} is required`);
-    //   return;
-    // }
-
-    const lsData = getLocal("imarsar_laboratory");
     const payload =
       isButtonClick === 0
         ? { ...values, createdById: lsData?.user?.employeeId }
@@ -240,41 +250,60 @@ export default function LedgerStatus() {
     console.log(res);
   };
 
-  const handleTheUpdateStatusMenu = async () => {
-    const lsData = getLocal("imarsar_laboratory");
-    const payload = {
-      ...clickedRowId,
-      updateById: lsData?.user?.employeeId,
-      isActive: clickedRowId?.isActive === 1 ? 0 : 1,
-    };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    if (data1?.success) {
-      toast.success("Status Updated Successfully");
-      console.log(payload);
-      getReason();
-      // setShowPopup(false);
+  const handleLock = async () => {
+    const res = await PostData?.postRequest(
+      `/CentrePayment/LockCentre?CentreId=${
+        clickedRowId?.lCentreId
+      }&UserId=${parseInt(lsData?.user?.employeeId)}`
+    );
+    if (res?.success) {
+      toast.success(res?.message);
+      window.location.reload();
+    } else {
+      toast.success(res?.message);
     }
+    setShowPopup(false);
   };
 
-  //   const InputFileds = [{ label: "", type: "" }];
+  const handleUnLock = async (date) => {
+    console.log(date);
+    const res = await PostData?.postRequest(
+      `/CentrePayment/UnlockCentre?CentreId=${
+        clickedRowId?.lCentreId
+      }&UserId=${parseInt(lsData?.user?.employeeId)}&unlocktime=${date}`
+    );
+    if (res?.success) {
+      toast.success(res?.message);
+      window.location.reload();
+    } else {
+      toast.success(res?.message);
+    }
+    setHourModel(false);
+  };
+
+  useEffect(() => {
+    console.log("Updated clickedRowId:", clickedRowId); // Debug log
+  }, [clickedRowId]);
 
   return (
     <div>
       {/* Header Section */}
       {/* {true && ( */}
-      <PopupModal
-        showPopup={showPopup}
-        setShowPopup={setShowPopup}
-        message={
-          Lock ? "You Want to Unlock this Panel" : "You Want to Lock this Panel"
-        }
-        handleTheUpdateStatusMenu={() => {
-          setShowPopup(false);
-          {
-            Lock ? setHourModel(true) : setLock(!Lock);
-          }
-        }}
-      />
+      {showPopup && (
+        <PopupModal
+          showPopup={showPopup}
+          setShowPopup={setShowPopup}
+          handleTheUpdateStatusMenu={() => {
+            // Handle your popup action here
+            console.log("Processing row:", clickedRowId); // Debug log
+            // Your action logic here
+            handleLock();
+          }}
+          message={`Are you sure you want to ${
+            clickedRowId?.isLock ? "unlock" : "lock"
+          } this record?`}
+        />
+      )}
       <RemarkPopupModal
         showPopup={Remark}
         setShowPopup={setRemark}
@@ -285,23 +314,16 @@ export default function LedgerStatus() {
       />
       <HourPopupModal
         showPopup={HourModel}
+        clickedRowId={clickedRowId}
         setShowPopup={setHourModel}
-        handleTheUpdateStatusMenu={() => {
-          setLock(!Lock);
+        handleTheUpdateStatusMenu={(date) => {
+          handleUnLock(date);
         }}
       />
 
       {/* )} */}
-      <div
-        className="flex justify-start items-center text-xxxs gap-1 w-full pl-2 h-5 font-semibold"
-        style={{ background: activeTheme?.blockColor }}
-      >
-        <div>
-          <FontAwesomeIcon icon="fa-solid fa-house" />
-        </div>
-        <div>Ledger Status</div>
-      </div>
 
+      <FormHeader title="Ledger Status" />
       <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
           <UpdatedMultiSelectDropDown

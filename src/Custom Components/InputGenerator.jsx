@@ -1042,7 +1042,7 @@ export const TwoLegendButton = ({
   );
 };
 
-export const IconButton = ({ icon: Icon, onClick, title, style = {} }) => {
+export const IconButton = ({ icon: Icon, onClick, title, style = {},className="h-4 w-4" }) => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   return (
     <div
@@ -1055,7 +1055,7 @@ export const IconButton = ({ icon: Icon, onClick, title, style = {} }) => {
       onClick={onClick}
       title={title}
     >
-      <Icon className="h-4 w-4" />
+      <Icon className={className}/>
     </div>
   );
 };
