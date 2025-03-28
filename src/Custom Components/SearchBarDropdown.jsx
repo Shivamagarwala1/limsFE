@@ -13,6 +13,7 @@ const SearchBarDropdown = ({
   showValueField,
   placeholder = "Search Data",
   showSearchBarDropDown,
+  maxLength,
   setShowSearchBarDropDown,
   callback = () => {},
   handleOptionClickForCentre,
@@ -68,6 +69,7 @@ const SearchBarDropdown = ({
           id={id}
           name={name}
           value={value}
+          maxLength={maxLength}
           disabled={disableDroDown}
           onChange={onChange}
           autoComplete="off"

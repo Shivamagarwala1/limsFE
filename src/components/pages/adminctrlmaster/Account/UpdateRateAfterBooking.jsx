@@ -3,16 +3,19 @@ import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import InputGenerator, { SubmitButton } from "../../../../Custom Components/InputGenerator";
+import InputGenerator, {
+  getFormattedDate,
+  SubmitButton,
+  TwoSubmitButton,
+} from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
-import { FaRegEdit } from "react-icons/fa";
-import { ImSwitch } from "react-icons/im";
-import { GiCancel } from "react-icons/gi";
-import { FaEye } from "react-icons/fa6";
-import { VscFilePdf } from "react-icons/vsc";
 import toast from "react-hot-toast";
-import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
+import { UpdatedDynamicTable } from "../../../../Custom Components/DynamicTable";
+import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
+import {
+  addRandomObjectId,
+  getFirstDateOfMonth,
+} from "../../../../service/RedendentData";
 
 export default function UpdateRateAfterBooking() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -20,137 +23,113 @@ export default function UpdateRateAfterBooking() {
 
   const PostData = usePostData();
   const { fetchData, response, data, loading } = useGetData();
-
+  // ------------------ Client -------------------------------
+  const [ClientId, setClientId] = useState("");
+  const [ClientValue, setClientValue] = useState("");
+  const [ClientDropDown, setClientDropDown] = useState(false);
+  const [ClientHoveIndex, setClientHoveIndex] = useState(null);
+  const [ClientSelectedOption, setClientSelectedOption] = useState("");
+  const todayDate = getFormattedDate();
+  const FirstDateofMonth = getFirstDateOfMonth();
+  const [FromDate, setFromDate] = useState(FirstDateofMonth);
+  const [ToDate, setToDate] = useState(todayDate);
   const [isButtonClick, setIsButtonClick] = useState(0);
-  const [ColumnTab, setColumnTab] = useState({
-    field: "discountReasonName",
-    header: "Discount Reason Name",
-  });
   const [clickedRowId, setClickedRowId] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
-  const [isEditData, setIsEditData] = useState(false);
   const [selectedCenter, setSelectedCenter] = useState([]);
 
+  const [Row, setRow] = useState([]);
+  const ClientData = useGetData();
+  const NewRateData = useGetData();
+  const RateTypeData = useGetData();
   useEffect(() => {
-    getReason();
+    ClientData?.fetchData(
+      "/centreMaster?select=centreid,companyname&$filter=(isactive eq 1 )"
+    );
   }, []);
-  console.log(selectedCenter);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 100 },
+    { field: "Random", headerName: "Sr. No", width: 100 },
     {
-      field: `Client`,
-      headerName: `Client`,
+      field: `centreName`,
+      headerName: `Centre Name`,
       flex: 1,
     },
     {
-      field: `Booking Date`,
+      field: `bookingDate`,
       headerName: `Booking Date`,
       flex: 1,
     },
     {
-      field: `Visitor ID`,
-      headerName: `Visitor ID`,
+      field: `workOrderId`,
+      headerName: `Visitor Id`,
       flex: 1,
     },
     {
-      field: `Patient Name`,
-      headerName: `Patient Name`,
+      field: `pateintName`,
+      headerName: `Pateint Name`,
       flex: 1,
     },
     {
-      field: `Age/Gender`,
-      headerName: `Age/Gender`,
+      field: `age`,
+      headerName: `Age`,
       flex: 1,
     },
     {
-      field: `Mobile No.`,
-      headerName: `Mobile No.`,
+      field: `mobileNo`,
+      headerName: `Mobile No`,
       flex: 1,
     },
     {
-      field: `Amount`,
-      headerName: `Amount`,
+      field: `netAmount`,
+      headerName: `Net Amount`,
       flex: 1,
     },
-    // {
-    //   field: "",
-    //   width: 100,
-    //   headerName: "View Report",
-    //   renderCell: (params) => {
-    //     return (
-    //       <div className="flex justify-center items-center">
-    //         <button
-    //           className={`w-4 h-4 flex justify-center items-center text-red-500`}
-    //         >
-    //           <VscFilePdf
-    //             className="w-full h-full"
-    //             onClick={() => {
-    //               setClickedRowId(params?.row);
-    //               setShowPopup(true);
-    //             }}
-    //           />
-    //         </button>
-    //       </div>
-    //     );
-    //   },
-    // },
   ];
+
+  // Function to handle input changes
+  const handleSearchChange2 = (e) => {
+    setClientValue(e.target.value);
+    setClientId(null);
+    setClientDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick2 = (name, id) => {
+    setClientValue(name);
+    setClientId(id);
+    setClientSelectedOption(name);
+    setClientDropDown(false);
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
-    // const requiredFields = ["CentreMode", "FromDate", "toDate"];
-    // const missingFields = requiredFields.filter((field) => !values[field]);
-
-    // if (missingFields.length > 0) {
-    //   toast(`The following fields are required: ${missingFields[0]}`);
-    //   return;
-    // }
-
-    if (selectedCenter.length === 0) {
-      toast(`Centre is required`);
-      return;
-    }
-
-    const lsData = getLocal("imarsar_laboratory");
-    const payload =
-      isButtonClick === 0
-        ? { ...values, createdById: lsData?.user?.employeeId }
-        : {
-            ...values,
-            updateById: lsData?.user?.employeeId,
-            id: clickedRowId?.id,
-            isActive: clickedRowId?.isActive,
-          };
-    console.log(payload);
-    // if (data1?.success) {
-    //   toast.success(
-    //     isButtonClick === 0 ? data1?.message : "Updated Successfull"
-    //   );
-    //   setIsButtonClick(0);
-    //   getReason();
-    // }
   };
 
   const getReason = async () => {
-    // const get = await fetchData(tabs[activeTab]?.getApi);
+    const get = await fetchData(
+      `/CentrePayment/GetPatientForRateChange?CentreId=${ClientId}&FromDate=${FromDate}&ToDate=${ToDate}`
+    );
     console.log(get);
+    if (get?.data?.success) {
+      setRow(addRandomObjectId(get?.data?.data));
+    }
   };
 
   const handleTheUpdateStatusMenu = async () => {
-    const lsData = getLocal("imarsar_laboratory");
-    const payload = {
-      ...clickedRowId,
-      updateById: lsData?.user?.employeeId,
-      isActive: clickedRowId?.isActive === 1 ? 0 : 1,
-    };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
+    if (!ClientId) {
+      toast(`Centre is required`);
+      return;
+    }
+    const data1 = await PostData?.postRequest(
+      `/CentrePayment/CentreRateChange?Centre=${ClientId}&FromDate=${FromDate}&ToDate=${ToDate}`
+    );
+    console.log(data1)
     if (data1?.success) {
-      toast.success("Status Updated Successfully");
-      console.log(payload);
+      toast.success(data1?.message);
+      setIsButtonClick(0);
       getReason();
-      setShowPopup(false);
     }
   };
 
@@ -176,28 +155,70 @@ export default function UpdateRateAfterBooking() {
               {
                 label: "From Date",
                 type: "customDateField",
+                ShowDate: getFirstDateOfMonth(),
                 name: "FromDate",
+                customOnChange: (e) => {
+                  console.log(e);
+                  setFromDate(e);
+                },
               },
               {
                 label: "To Date",
                 type: "customDateField",
                 name: "toDate",
+                customOnChange: (e) => {
+                  console.log(e);
+                  setToDate(e);
+                },
               },
-              { label: "Client/Panel", type: "select", name: "remark" }
             ]}
           />
-          <SubmitButton text={"Search"} />
+          <SearchBarDropdown
+            id="search-bar"
+            name="Client"
+            value={ClientValue}
+            onChange={handleSearchChange2}
+            label="Center"
+            placeholder="Serch Center"
+            options={ClientData?.data}
+            isRequired={false}
+            showSearchBarDropDown={ClientDropDown}
+            setShowSearchBarDropDown={setClientDropDown}
+            handleOptionClickForCentre={handleOptionClick2}
+            setIsHovered={setClientHoveIndex}
+            isHovered={ClientHoveIndex}
+            style={{
+              marginTop: "2px",
+            }}
+          />
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Search",
+                submit: false,
+                style: { marginTop: "0px" },
+                callBack: () => {
+                  getReason();
+                },
+              },
+              {
+                label: "Save",
+                submit: false,
+                style: { marginTop: "0px" },
+                callBack: () => {
+                  handleTheUpdateStatusMenu();
+                },
+              },
+            ]}
+          />
         </div>
       </form>
-      <DynamicTable
-        rows={[
-          { id: 1, client: "client 1" },
-          { id: 2, client: "client 2" },
-        ]}
+      <UpdatedDynamicTable
+        rows={Row}
         name="Booking Details"
         loading={loading}
         columns={columns}
-        activeTheme={activeTheme}
+        viewKey="Random"
       />
     </div>
   );
