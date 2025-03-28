@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   doActiveTheame,
   dologout,
+  getDefaultCentreId,
   getLocalStroageData,
   isActiveTheme,
   isloggedin,
@@ -31,6 +32,7 @@ import {
   employeeWiseCentre,
   employeeWiseRole,
   getThemeColor,
+  useRetrieveData,
 } from "../../service/service";
 import toast from "react-hot-toast";
 import ChangePassword from "../security/ChangePassword";
@@ -39,6 +41,7 @@ import DynamicMenu2 from "../private/DynamicMenuForMobile";
 import Notification from "../pages/Notification";
 import useOutsideClick from "../customehook/useOutsideClick";
 import CustomPopupWithResponsive from "../global/CustomPopupWithResponsive";
+import Payment from "../pages/payment/Payment";
 
 export default function Navbar({ toggleFullScreen, routes }) {
   const [employeeWiseCentreData, setEmployeeWiseCentreData] = useState([]);
@@ -59,6 +62,7 @@ export default function Navbar({ toggleFullScreen, routes }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNotiFicationPopup, setShowNotificationPopup] = useState(false);
   const [showPopup, setShowPopup] = useState(0);
+  const ammountData = useRetrieveData();
 
   const navigation = useNavigate();
 
@@ -254,6 +258,21 @@ export default function Navbar({ toggleFullScreen, routes }) {
     });
   };
 
+  //!==============payment data==============
+  // const getAmmountData = async () => {
+
+  //   try {
+  //     const response = await ammountData.fetchDataFromApi(`/tnx_Booking/GetPendingPayment?workOrderId=${getDefaultCentreId()}`);
+  //     console.log(response);
+
+  //     if (response?.data?.success) {
+  //       setShowPopup(1);
+  //     }
+  //   } catch (error) {
+  //     toast.error(error?.message);
+  //   }
+  // }
+
   return (
     <div>
       {/* ==========================for desktop================== */}
@@ -377,7 +396,10 @@ export default function Navbar({ toggleFullScreen, routes }) {
                 className="text-lg cursor-pointer "
                 title="Recharge Account"
                 style={{ color: activeTheme?.iconColor }}
-                onClick={() => setShowPopup(1)}
+                onClick={() =>
+                  // getAmmountData()
+                  setShowPopup(1)
+                }
               />
             </div>
 
@@ -907,14 +929,16 @@ export default function Navbar({ toggleFullScreen, routes }) {
         />
       )}
 
+      {/* {
+        console.log(ammountData?.data?.data)
+
+      } */}
 
       {
         showPopup === 1 && (
           <>
-            <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Payment Details'} setShowPopup={setShowPopup} popuptype={'small'} >
-              <div className="flex justify-center items-center font-semibold text-xxs my-4">
-                Cooming soon :)
-              </div>
+            <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Recharge your wallet'} setShowPopup={setShowPopup} popuptype={'medium'} >
+              <Payment lable={'Available Balance :'} amount={0} />
             </CustomPopupWithResponsive>
           </>
         )

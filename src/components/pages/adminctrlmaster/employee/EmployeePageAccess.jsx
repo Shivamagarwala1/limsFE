@@ -10,6 +10,7 @@ import { employeePageAccessData } from '../../../listData/listData';
 import { IoAlertCircleOutline, IoClose } from 'react-icons/io5';
 import useRippleEffect from '../../../customehook/useRippleEffect';
 import CustomDynamicTable from '../../../global/CustomDynamicTable';
+import { CustomTextBox } from '../../../global/CustomTextBox';
 
 export default function EmployeePageAccess() {
 
@@ -46,8 +47,11 @@ export default function EmployeePageAccess() {
 
     const [expandedEmpId, setExpandedEmpId] = useState(null);
     const [isHoveredTableChild, setIsHoveredTableChild] = useState(null);
+    const [clientSearchData, setClientSearchData] = useState('');
 
     const groupedData = Object.groupBy(allPageAccessData, (data) => data?.empId);
+    const [filterAllCentreData, setFilterAllCentreData] = useState(groupedData || []);
+
 
     //itemtype,itemname,test code,departement,gender,record type
     const [selectedValue, setSelectedValue] = useState({
@@ -116,6 +120,7 @@ export default function EmployeePageAccess() {
                 if (resp?.success) {
                     setAllPageAccessPaginationData((data) => ({ ...data, totalColum: resp?.count }))
                     setAllPageAccessData(resp?.data);
+                    setFilterAllCentreData(Object.groupBy(resp?.data, (data) => data?.empId))
                 }
             }).catch((err) => {
                 console.log(err);
@@ -228,6 +233,31 @@ export default function EmployeePageAccess() {
 
     const filterEmployeeList = allEmployeeData.filter((data) => data?.fName.toLowerCase().includes(searchDropwDownMenuList.serachEmployeeList.toLowerCase()));
 
+    // console.log(Object.entries(groupedData));
+
+    // //search employee data
+    const handelOnChangeForClientSearchData = (e) => {
+        const searchValue = e.target.value.toLowerCase(); // Get lowercase search value
+        setClientSearchData(searchValue);
+
+        // Filter groupedData based on client name
+        const filteredResults = Object.entries(groupedData) // Assuming allCentreData is your groupedData
+            .map(([key, values]) => [
+                key,
+                values.filter((item) =>
+                    item?.name?.toLowerCase().includes(searchValue)
+                )
+            ])
+            .filter(([key, values]) => values.length > 0); // Remove empty groups
+
+        // Convert back to object if needed
+        const filteredObject = Object.fromEntries(filteredResults);
+
+        // Set the filtered data
+        setFilterAllCentreData(filteredObject);
+    };
+
+
     return (
         <>
             <div
@@ -244,7 +274,7 @@ export default function EmployeePageAccess() {
             {/* form data */}
             <div>
                 <form autoComplete='off'>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
 
 
                         <div className="relative flex-1">
@@ -670,22 +700,39 @@ export default function EmployeePageAccess() {
                         </div>
 
 
-                        <div className="relative flex-1 flex justify-start items-center">
-                            <button
-                                type="button"
-                                data-ripple-light="true"
-                                className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-20 rounded-md flex justify-center items-center 'cursor-pointer`}
-                                style={{
-                                    background: activeTheme?.menuColor, color: activeTheme?.iconColor
-                                }}
-                                onClick={onSubmitEmployeeData}
-                            >
-                                {
-                                    isButtonClick ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
-                                }
+                        <div className='flex gap-[0.25rem]'>
+                            <div className="relative flex-1 flex justify-start items-center">
+                                <button
+                                    type="button"
+                                    data-ripple-light="true"
+                                    className={`relative overflow-hidden font-semibold text-xxxs h-[1.6rem] w-20 rounded-md flex justify-center items-center 'cursor-pointer`}
+                                    style={{
+                                        background: activeTheme?.menuColor, color: activeTheme?.iconColor
+                                    }}
+                                    onClick={onSubmitEmployeeData}
+                                >
+                                    {
+                                        isButtonClick ? <FaSpinner className='text-xl animate-spin' /> : 'Save'
+                                    }
 
-                            </button>
+                                </button>
+                            </div>
+
+                            <div className="relative flex-1"></div>
                         </div>
+
+                        {/* search employee */}
+                        <div className="relative flex-1">
+                            <CustomTextBox
+                                type="allCharacters"
+                                name="clientSearchData"
+                                value={clientSearchData || ''}
+                                onChange={(e) => handelOnChangeForClientSearchData(e)}
+                                label="Search Employee"
+                            // showLabel={true}
+                            />
+                        </div>
+
                     </div >
                 </form>
             </div>
@@ -853,7 +900,7 @@ export default function EmployeePageAccess() {
                 </tbody> */}
 
                 <tbody>
-                    {Object.entries(groupedData).map(([empId, records], index) => (
+                    {Object.entries(filterAllCentreData).map(([empId, records], index) => (
                         <React.Fragment key={empId}>
                             {/* Render only first record by default */}
                             <tr

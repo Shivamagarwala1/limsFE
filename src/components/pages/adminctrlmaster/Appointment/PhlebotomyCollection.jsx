@@ -31,6 +31,7 @@ import CustomSearchInputFields from "../../../global/CustomSearchDropdown";
 import CustomFileUpload from "../../../global/CustomFileUpload";
 import { patientRegistrationInvestigation } from "../../../listData/listData";
 import { RiDeleteBin2Fill } from "react-icons/ri";
+import AppointmentBooking from "./AppointmentBooking";
 
 export default function PhlebotomyCollection() {
   const user = useSelector((state) => state.userSliceName?.user || null);
@@ -1062,7 +1063,8 @@ export default function PhlebotomyCollection() {
                           background: activeTheme?.menuColor,
                           color: activeTheme?.iconColor,
                         }}
-                        title="Comming soon!"
+                        // title="Comming soon!"
+                        onClick={() => setShowPopup(3)}
                       >
                         New Appointment
                       </button>
@@ -1928,6 +1930,17 @@ export default function PhlebotomyCollection() {
             )}
           </CustomPopupWithResponsive>
         </>
+      )}
+
+      {showPopup === 3 && (
+        <CustomPopupWithResponsive
+          activeTheme={activeTheme}
+          heading={"New Appointment"}
+          setShowPopup={setShowPopup}
+          popuptype="extralarge"
+        >
+          <AppointmentBooking />
+        </CustomPopupWithResponsive>
       )}
     </div>
   );

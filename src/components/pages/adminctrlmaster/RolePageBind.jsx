@@ -15,6 +15,7 @@ import { MdDelete } from 'react-icons/md';
 import { IoAlertCircleOutline } from 'react-icons/io5';
 import CustomeNormalButton from '../../global/CustomeNormalButton';
 import CustomFormButton from '../../global/CustomFormButton';
+import { CustomTextBox } from '../../global/CustomTextBox';
 
 export default function RolePageBind() {
 
@@ -30,6 +31,7 @@ export default function RolePageBind() {
         subMenuId: [],
         createdDateTime: useFormattedDate()
     });
+
     const [showPopup, setShowPopup] = useState(0);
     const [selectedId, setSelectedId] = useState(0)
     const allRoleData = useRetrieveData();
@@ -38,6 +40,16 @@ export default function RolePageBind() {
     const allGridMenuData = useRetrieveData();
     const getData = useRetrieveData();
     const postData = usePostData();
+    const [expandedEmpId, setExpandedEmpId] = useState(null);
+    const [isHoveredTableChild, setIsHoveredTableChild] = useState(null);
+
+    const [clientSearchData, setClientSearchData] = useState('');
+    const groupedData = Object.groupBy(
+        allGridMenuData?.data?.data || [], // Ensuring a fallback to an empty array
+        (data) => data?.roleName
+    );
+    const [filterAllCentreData, setFilterAllCentreData] = useState();
+
 
     useEffect(() => {
 
@@ -135,7 +147,10 @@ export default function RolePageBind() {
     useEffect(() => {
 
         const getAllData = async () => {
-            await allGridMenuData?.fetchDataFromApi(`/roleMenuAccess/RolePagebindData?roleid=${parseInt(user?.defaultRole)}`)
+            const response = await allGridMenuData?.fetchDataFromApi(`/roleMenuAccess/RolePagebindData?roleid=${parseInt(user?.defaultRole)}`);
+
+            //setFilterAllCentreData(response?.data?.data);
+            setFilterAllCentreData(Object.groupBy(response?.data?.data, (data) => data?.roleName))
         }
         getAllData();
 
@@ -157,6 +172,30 @@ export default function RolePageBind() {
         }
         setShowPopup(0);
         setIsButtonClick(0);
+    }
+
+
+    const handelOnChangeForEmployeeSearchData = (e) => {
+
+        const searchValue = e.target.value.toLowerCase(); // Get lowercase search value
+        setClientSearchData(searchValue);
+
+        // Filter groupedData based on client name
+        const filteredResults = Object.entries(groupedData) // Assuming allCentreData is your groupedData
+            .map(([key, values]) => [
+                key,
+                values.filter((item) =>
+                    item?.roleName?.toLowerCase().includes(searchValue)
+                )
+            ])
+            .filter(([key, values]) => values.length > 0); // Remove empty groups
+
+        // Convert back to object if needed
+        const filteredObject = Object.fromEntries(filteredResults);
+
+        // Set the filtered data
+        setFilterAllCentreData(filteredObject);
+
     }
 
     return (
@@ -232,6 +271,19 @@ export default function RolePageBind() {
                         <div className="relative flex-1"></div>
 
                     </div>
+
+
+                    {/* search employee */}
+                    <div className="relative flex-1">
+                        <CustomTextBox
+                            type="allCharacters"
+                            name="clientSearchData"
+                            value={clientSearchData || ''}
+                            onChange={(e) => handelOnChangeForEmployeeSearchData(e)}
+                            label="Search Role"
+                        // showLabel={true}
+                        />
+                    </div>
                 </div>
             </form>
 
@@ -241,10 +293,10 @@ export default function RolePageBind() {
                 allGridMenuData?.loading ?
                     <CustomLoadingPage />
                     :
-                    <CustomDynamicTable activeTheme={activeTheme} columns={['SR. No.', 'Role Name', 'Menu Name', 'Sub Menu Name',  'Actions']}>
-                        <tbody >
+                    <CustomDynamicTable activeTheme={activeTheme} columns={['SR. No.', 'Role Name', 'Menu Name', 'Sub Menu Name', 'Actions']}>
+                        {/* <tbody >
                             {
-                                allGridMenuData?.data?.data?.map((data, index) => (
+                                filterAllCentreData?.map((data, index) => (
                                     <tr
                                         className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
                                             ? ''
@@ -289,6 +341,114 @@ export default function RolePageBind() {
                                     </tr>
                                 ))
                             }
+                        </tbody> */}
+                        {/* 
+                        {
+                            console.log(filterAllCentreData)
+
+                        } */}
+                        <tbody>
+                            {
+                                filterAllCentreData && Object?.entries(filterAllCentreData).map(([roleName, records], index) => (
+                                    <React.Fragment key={roleName}>
+                                        {/* Render only first record by default */}
+                                        <tr
+
+
+                                            className={`cursor-pointer ${isHoveredTable === index
+                                                ? ''
+                                                : index % 2 === 0
+                                                    ? 'bg-gray-100'
+                                                    : 'bg-white'
+                                                }`}
+
+                                            onMouseEnter={() => setIsHoveredTable(index)}
+                                            onMouseLeave={() => setIsHoveredTable(null)}
+                                            style={{
+                                                background:
+                                                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                            }}
+                                        >
+                                            <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                {index + 1}
+                                            </td>
+                                            <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                {records[0]?.roleName}
+                                            </td>
+                                            <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                {records[0]?.menuMame}
+                                            </td>
+                                            <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                {records[0]?.subMenuName}
+                                            </td>
+
+                                            <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                <button
+                                                    onClick={() =>
+                                                        setExpandedEmpId(expandedEmpId === roleName ? null : roleName)
+                                                    }
+                                                    className="font-semibold text-blue-400"
+                                                >
+                                                    {expandedEmpId === roleName ?
+                                                        "View Less"
+                                                        : "View More"}
+                                                </button>
+                                            </td>
+                                        </tr>
+
+                                        {/* Show remaining records when expanded */}
+                                        {expandedEmpId === roleName &&
+                                            records.map((data, index) => (
+                                                <tr
+                                                    key={data?.id}
+                                                    className={`cursor-pointer ${isHoveredTableChild === index
+                                                        ? ''
+                                                        : index % 2 === 0
+                                                            ? 'bg-gray-100'
+                                                            : 'bg-white'
+                                                        }`}
+                                                    //key={index}
+                                                    onMouseEnter={() => setIsHoveredTableChild(index)}
+                                                    onMouseLeave={() => setIsHoveredTableChild(null)}
+                                                    style={{
+                                                        background:
+                                                            isHoveredTableChild === index ? activeTheme?.subMenuColor : undefined,
+                                                    }}
+                                                >
+                                                    <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                        {index + 1}
+                                                    </td>
+                                                    <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                        {data?.roleName}
+                                                    </td>
+                                                    <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                        {data?.menuMame}
+                                                    </td>
+                                                    <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+                                                        {data?.subMenuName}
+                                                    </td>
+
+                                                    <td className="border px-4 h-4 text-gridTextColor text-xxs font-semibold">
+
+
+                                                        <button
+                                                            type="button"
+                                                            data-ripple-light="true"
+                                                            className={`relative overflow-hidden w-5 h-4 flex justify-center items-center text-red-500`}
+                                                        >
+
+                                                            <MdDelete className='text-red-500 w-4 h-4'
+                                                                onClick={() => { setShowPopup(1), setSelectedId(data?.id) }}
+                                                            />
+
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+
+                                    </React.Fragment>
+                                ))}
+
                         </tbody>
                     </CustomDynamicTable>
             }
