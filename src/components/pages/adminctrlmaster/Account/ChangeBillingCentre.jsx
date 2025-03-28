@@ -1,35 +1,62 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useFormHandler } from "../../../../Custom Components/useFormHandler";
 import { useGetData, usePostData } from "../../../../service/apiService";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import InputGenerator, {
-  SubmitButton,
+  TwoSubmitButton,
 } from "../../../../Custom Components/InputGenerator";
 import { getLocal } from "usehoks";
-import DynamicTable from "../../../../Custom Components/DynamicTable";
-import { FaRegEdit } from "react-icons/fa";
-import { ImSwitch } from "react-icons/im";
-import MultiSelectDropdown from "../../../../Custom Components/MultiSelectDropdown";
+import DynamicTable, {
+  UpdatedDynamicTable,
+} from "../../../../Custom Components/DynamicTable";
 import toast from "react-hot-toast";
+import { addRandomObjectId } from "../../../../service/RedendentData";
+import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 
-export default function ChangeBillingCentre() {
+export default function ChangePayMode() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
-  const formHandler = useFormHandler();
   const { formRef, getValues, setValues } = useFormHandler();
 
+  const lsData = getLocal("imarsar_laboratory");
   const PostData = usePostData();
   const { fetchData, response, data, loading } = useGetData();
+  // ------------------ Center -------------------------------
+  const [CenterId, setCenterId] = useState("");
+  const [CenterValue, setCenterValue] = useState("");
+  const [CenterDropDown, setCenterDropDown] = useState(false);
+  const [CenterHoveIndex, setCenterHoveIndex] = useState(null);
+  const [CenterSelectedOption, setCenterSelectedOption] = useState("");
+  // ------------------ RateType -------------------------------
+  const [RateTypeId, setRateTypeId] = useState("");
+  const [RateTypeValue, setRateTypeValue] = useState("");
+  const [RateTypeDropDown, setRateTypeDropDown] = useState(false);
+  const [RateTypeHoveIndex, setRateTypeHoveIndex] = useState(null);
+  const [RateTypeSelectedOption, setRateTypeSelectedOption] = useState("");
 
-  const [isButtonClick, setIsButtonClick] = useState(0);
-  const [clickedRowId, setClickedRowId] = useState(null);
-  const [showPopup, setShowPopup] = useState(false);
-  const [isEditData, setIsEditData] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
-  const [selectedCenter, setSelectedCenter] = useState([]);
+  const [Row, setRow] = useState([]);
+  const [PymentDetails, setPymentDetails] = useState([]);
+  const [Visitor, setVisitor] = useState("");
   const [PaymentMode, setPaymentMode] = useState(1);
   const [className, setClassName] = useState("");
-  const [ShowDetails, setShowDetails] = useState(false);
+  console.log(PymentDetails);
+
+  const CenterData = useGetData();
+  const NewRateData = useGetData();
+  const RateTypeData = useGetData();
+  useEffect(() => {
+    CenterData?.fetchData(
+      "/centreMaster?select=centreid,companyname&$filter=(isactive eq 1 )"
+    );
+  }, []);
+  useEffect(() => {
+    RateTypeData?.fetchData(
+      `/centreMaster/GetRatetypeCentreWise?CentreId=${CenterId}`
+    );
+    NewRateData?.fetchData(
+      `/CentrePayment/GetWorkOrderNewRate?WorkOrderid=ims59&RatetypeId=${RateTypeId}`
+    );
+  }, [CenterId, RateTypeId]);
 
   useEffect(() => {
     if (activeTheme) {
@@ -46,139 +73,124 @@ export default function ChangeBillingCentre() {
     }
   }, [activeTheme]);
 
-  useEffect(() => {
-    getReason();
-    console.log(activeTab);
-  }, [PaymentMode]);
 
   const columns = [
-    { field: "id", headerName: "Sr. No", width: 70 },
+    { field: "Random", headerName: "Sr. No", width: 10 },
     {
-      field: `Test Code`,
-      headerName: `Test Code`,
+      field: `ratetype`,
+      headerName: `Rate Type`,
       flex: 1,
     },
     {
-      field: `Investigation Name`,
-      headerName: `Investigation Name`,
+      field: `itemId`,
+      headerName: `Item Id`,
       flex: 1,
     },
     {
-      field: `Current Amount`,
-      headerName: `Current Amount`,
+      field: `investigationName`,
+      headerName: `InvestigationName`,
       flex: 1,
     },
     {
-      field: `New Amount`,
-      headerName: `New Amount`,
+      field: `rate`,
+      headerName: `Old Rate`,
       flex: 1,
     },
-    // {
-    //   field: "",
-    //   width: 200,
-    //   headerName: "Action",
-    //   renderCell: (params) => {
-    //     return (
-    //       <div style={{ display: "flex", gap: "20px" }}>
-    //         <button className="w-4 h-4 flex justify-center items-center">
-    //           <FaRegEdit
-    //             className={`w-full h-full ${
-    //               params?.row?.isActive === 1
-    //                 ? "text-blue-500 cursor-pointer"
-    //                 : "text-gray-400 cursor-not-allowed"
-    //             }`}
-    //             onClick={() => {
-    //               setClickedRowId(params?.row);
-    //               setIsButtonClick(1);
-    //               if (activeTab === 0) {
-    //                 setValues([
-    //                   {
-    //                     // [tabs[activeTab]?.fname]:
-    //                     //   params?.row?.discountReasonName,
-    //                   },
-    //                 ]);
-    //               }
-    //             }}
-    //           />
-    //         </button>
-    //         <button
-    //           className={`w-4 h-4 flex justify-center items-center ${
-    //             params?.row?.isActive === 1 ? "text-green-500" : "text-red-500"
-    //           }`}
-    //         >
-    //           <ImSwitch
-    //             className="w-full h-full"
-    //             onClick={() => {
-    //               setClickedRowId(params?.row);
-    //               setShowPopup(true);
-    //             }}
-    //           />
-    //         </button>
-    //       </div>
-    //     );
-    //   },
-    // },
+    {
+      field: `1`,
+      headerName: `New Rate`,
+      flex: 1,
+      renderCell: (params) => {
+        const data = NewRateData?.data?.data?.find(
+          (item) => item?.itemId == params?.row?.itemId
+        );
+        return <>{data?.rate}</>;
+      },
+    },
   ];
 
-  const handleVisitor = (event) => {
-    event.preventDefault();
-    const values = formHandler?.getValues();
-    if (values?.Visitor_Id === "") {
-      toast("Visitor Id is required");
-      return;
-    }
-    setShowDetails(true);
-    console.log(values);
+  // Function to handle input changes
+  const handleSearchChange2 = (e) => {
+    setCenterValue(e.target.value);
+    setCenterId(null);
+    setCenterDropDown(true); // Show dropdown when typing
   };
 
+  // Function to handle selection from the dropdown
+  const handleOptionClick2 = (name, id) => {
+    setCenterValue(name);
+    setCenterId(id);
+    setCenterSelectedOption(name);
+    setCenterDropDown(false);
+  };
+  // Function to handle input changes
+  const handleSearchChange1 = (e) => {
+    setRateTypeValue(e.target.value);
+    setRateTypeId(null);
+    setRateTypeDropDown(true); // Show dropdown when typing
+  };
+
+  // Function to handle selection from the dropdown
+  const handleOptionClick1 = (name, id) => {
+    setRateTypeValue(name);
+    setRateTypeId(id);
+    setRateTypeSelectedOption(name);
+    setRateTypeDropDown(false);
+  };
   const handleSubmit = async (event) => {
     event.preventDefault();
     const values = getValues();
-
-    const lsData = getLocal("imarsar_laboratory");
-    const payload =
-      isButtonClick === 0
-        ? { ...values, createdById: lsData?.user?.employeeId }
-        : {
-            ...values,
-            updateById: lsData?.user?.employeeId,
-            id: clickedRowId?.id,
-            isActive: clickedRowId?.isActive,
-          };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    console.log(payload);
-    // if (data1?.success) {
-    //   toast.success(
-    //     isButtonClick === 0 ? data1?.message : "Updated Successfull"
-    //   );
-    //   setIsButtonClick(0);
-    //   getReason();
-    // }
   };
 
   const getReason = async () => {
-    // const get = await fetchData(tabs[activeTab]?.getApi);
-    console.log(get);
-  };
-
-  const handleTheUpdateStatusMenu = async () => {
-    const lsData = getLocal("imarsar_laboratory");
-    const payload = {
-      ...clickedRowId,
-      updateById: lsData?.user?.employeeId,
-      isActive: clickedRowId?.isActive === 1 ? 0 : 1,
-    };
-    // const data1 = await PostData?.postRequest(tabs[activeTab]?.api, payload);
-    if (data1?.success) {
-      toast.success("Status Updated Successfully");
-      console.log(payload);
-      getReason();
-      setShowPopup(false);
+    if (!Visitor) {
+      toast.error("Visitor is Required");
+      return;
+    }
+    // if (!CenterId) {
+    //   toast.error("Center is Required");
+    //   return;
+    // }
+    // if (!RateTypeId) {
+    //   toast.error("RateType is Required");
+    //   return;
+    // }
+    const get = await fetchData(
+      `/CentrePayment/GetWorkOrderdetailCentreChange?WorkOrderid=${Visitor}`
+    );
+    console.log(get?.data?.data?.patientdetail);
+    if (get?.data?.success) {
+      setRow(addRandomObjectId(get?.data?.data));
+      // setPymentDetails(addRandomObjectId(get?.data?.data?.paymentdetail));
     }
   };
 
-  //   const InputFileds = [{ label: "", type: "" }];
+  const handleTheUpdateStatusMenu = async () => {
+    if (!Visitor) {
+      toast.error("Visitor is Required");
+      return;
+    }
+    if (!CenterId) {
+      toast.error("Center is Required");
+      return;
+    }
+    if (!RateTypeId) {
+      toast.error("RateType is Required");
+      return;
+    }
 
+    const data1 = await PostData?.postRequest(
+      `/CentrePayment/ChangeBillingCentre?WorkOrderId=${Visitor}&Centre=${CenterId}&RateType=${RateTypeId}`
+    );
+
+    console.log(data1);
+
+    if (data1?.success) {
+      toast.success(data1?.message);
+      getReason();
+    }
+  };
+  console.log(Row);
   return (
     <div>
       {/* Header Section */}
@@ -189,123 +201,131 @@ export default function ChangeBillingCentre() {
         <div>
           <FontAwesomeIcon icon="fa-solid fa-house" />
         </div>
-        <div>Change Billing Centre</div>
+        <div>Change Billing Center</div>
       </div>
-      <form
-        // className="flex items-center justify-center"
-        autoComplete="off"
-        ref={formHandler?.formRef}
-        onSubmit={handleVisitor}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+
+      <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2  mt-2 mb-2  mx-1 lg:mx-2">
           <InputGenerator
             inputFields={[
               {
-                label: "Search Visit ID",
+                label: "Visitor Id",
                 type: "text",
-                name: "Visitor_Id",
-                required: true,
+                name: "Visitor Id",
+                onChange: (e) => {
+                  setVisitor(e);
+                },
               },
             ]}
           />
-
-          {/* <SubmitButton text={"Search"} /> */}
+          <SearchBarDropdown
+            id="search-bar"
+            name="Center"
+            value={CenterValue}
+            onChange={handleSearchChange2}
+            label="Center"
+            placeholder="Serch Center"
+            options={CenterData?.data}
+            isRequired={false}
+            showSearchBarDropDown={CenterDropDown}
+            setShowSearchBarDropDown={setCenterDropDown}
+            handleOptionClickForCentre={handleOptionClick2}
+            setIsHovered={setCenterHoveIndex}
+            isHovered={CenterHoveIndex}
+            style={{
+              marginTop: "2px",
+            }}
+          />
+          <SearchBarDropdown
+            id="search-bar"
+            name="RateType"
+            value={RateTypeValue}
+            onChange={handleSearchChange1}
+            label="RateType"
+            placeholder="Serch RateType"
+            options={RateTypeData?.data?.data}
+            isRequired={false}
+            showSearchBarDropDown={RateTypeDropDown}
+            setShowSearchBarDropDown={setRateTypeDropDown}
+            handleOptionClickForCentre={handleOptionClick1}
+            setIsHovered={setRateTypeHoveIndex}
+            isHovered={RateTypeHoveIndex}
+            style={{
+              marginTop: "2px",
+            }}
+          />
+          <TwoSubmitButton
+            options={[
+              {
+                label: "Search",
+                submit: false,
+                style: { marginTop: "0px" },
+                callBack: () => {
+                  getReason();
+                },
+              },
+              {
+                label: "Save",
+                submit: false,
+                style: { marginTop: "0px" },
+                callBack: () => {
+                  handleTheUpdateStatusMenu();
+                },
+              },
+            ]}
+          />
         </div>
       </form>
-      {ShowDetails && (
-       <>
-        <div className="w-full h-[0.10rem]" style={{ background: activeTheme?.menuColor }}></div>
-        <div style={{display:"flex",alignItems:"center",flexDirection:"row",gap:"20px"}}>
-          <div className="grid rounded-md grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-            <div className={`relative flex-1 `}>
-              <span className={className}>
-                <b>Name</b>
-              </span>
-              : Mr. Dummy
-            </div>
-            <div className="relative flex-1">
-              <span className={className}>
-                <b>Age</b>
-              </span>{" "}
-              : 23,male
-            </div>
-            {/* <div className="relative flex-1">
-            {" "}
-            <span className={className}>
-              <b>Gender</b>
-            </span>{" "}
-            : 
-          </div> */}
+      {Row.length > 0 && (
+        <>
+          <div
+            className="w-full h-[0.06rem]"
+            style={{ background: activeTheme?.menuColor }}
+          ></div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "row",
+              gap: "20px",
+            }}
+          >
+            <div className="grid rounded-md grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-2  mt-2 mb-1  mx-1 lg:mx-2">
+              <div className={`relative flex-1 `}>
+                <span className={className}>
+                  <b>Name</b>
+                </span>
+                : {Row[0]?.title} {Row[0]?.name}
+              </div>
+              <div className="relative flex-1">
+                <span className={className}>
+                  <b>Age</b>
+                </span>{" "}
+                : {Row[0]?.age},{Row[0]?.gender}
+              </div>
 
+              <div className="relative flex-1">
+                <span className={className}>
+                  <b>Mobile No.</b>
+                </span>{" "}
+                : {Row[0]?.mobileNo || ""}
+              </div>
+            </div>
             <div className="relative flex-1">
               <span className={className}>
-                <b>Mobile No.</b>
+                <b>Booking Centre</b>
               </span>{" "}
-              : 1234567890
+              : {Row[0]?.centre}
             </div>
-            {/* <div className="relative flex-1">
-            <span className={className}>
-              <b>Address</b>
-            </span>{" "}
-            : Poket 4 Noida Uttar Pradesh
-          </div> */}
           </div>
-          <div className="relative flex-1">
-            <span className={className}>
-              <b>Booking Centre</b>
-            </span>{" "}
-            : Life Care Hospital & Trauma Centre
-          </div>
-        </div>
-        <div className="w-full h-[0.10rem]" style={{ background: activeTheme?.menuColor }}></div>
         </>
       )}
-      {ShowDetails && (
-        <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-2  mt-2 mb-1  mx-1 lg:mx-2">
-            <InputGenerator
-              inputFields={[
-                {
-                  label: "New Centre",
-                  type: "select",
-                  name: "NewCentre",
-                },
-                // {
-                //   label: "To Date",
-                //   type: "select",
-                //   name: "ToDatfrome",
-                // },
-                {
-                  label: "New Rate Type",
-                  type: "select",
-                  name: "NewRateType",
-                  // dataOptions: [
-                  //   { id: 1, Type: "Deposit" },
-                  //   { id: 2, Type: "Credit Note" },
-                  //   { id: 3, Type: "Debit Note" },
-                  // ],
-                },
-                {
-                  label: "Remarks",
-                  type: "text",
-                  name: "Remark",
-                },
-              ]}
-            />
-
-            <SubmitButton text={"Change Centre"} />
-          </div>
-        </form>
-      )}
-      <DynamicTable
-        rows={[
-          { id: 1, client: "client 1" },
-          { id: 2, client: "client 2" },
-        ]}
-        name="Billing Centre Details"
+      <UpdatedDynamicTable
+        rows={Row}
+        name="Billing Center Details"
         loading={loading}
         columns={columns}
-        activeTheme={activeTheme}
+        viewKey="Random"
       />
     </div>
   );

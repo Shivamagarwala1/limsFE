@@ -20,21 +20,27 @@ import { UpdatedMultiSelectDropDown } from "../../../../Custom Components/Update
 import SearchBarDropdown from "../../../../Custom Components/SearchBarDropdown";
 
 const AmountInputCell = ({ params, initialTime, setRow }) => {
-  const [rate, setRate] = useState(initialTime || 0);
+  const [mrp, setMrp] = useState(params?.row?.mrp || initialTime || "");
+  const [initialMrp] = useState(params?.row?.mrp || initialTime || ""); // Store initial value
 
   useEffect(() => {
+    setMrp(params?.row?.mrp || initialTime || "");
+  }, [params?.row?.mrp, initialTime]);
+
+  const handleMrpChange = (newValue) => {
+    setMrp(newValue);
     setRow((prev) =>
       prev.map((item) =>
         item.Random === params?.row.Random
           ? {
               ...item,
-              amount: parseInt(rate),
-              edited: parseInt(rate) !== initialTime,
+              amount: parseInt(newValue) || 0,
+              edited: (parseInt(newValue) || 0) !== (parseInt(initialMrp) || 0), // Compare with initial value
             }
           : item
       )
     );
-  }, [rate]);
+  };
 
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
@@ -42,16 +48,12 @@ const AmountInputCell = ({ params, initialTime, setRow }) => {
         style={{ height: "1rem" }}
         type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
-        value={rate}
+        value={mrp}
         maxLength={8}
-        name="rate"
+        name="mrp"
         onChange={(e) => {
-          if (params?.row?.percentage > 0) {
-            return;
-          } else {
-            const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-            setRate(newValue);
-          }
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleMrpChange(newValue);
         }}
       />
     </div>
@@ -59,21 +61,27 @@ const AmountInputCell = ({ params, initialTime, setRow }) => {
 };
 
 const PerInputCell = ({ params, initialTime, setRow }) => {
-  const [rate, setRate] = useState(initialTime || 0);
+  const [mrp, setMrp] = useState(params?.row?.mrp || initialTime || "");
+  const [initialMrp] = useState(params?.row?.mrp || initialTime || ""); // Store initial value
 
   useEffect(() => {
+    setMrp(params?.row?.mrp || initialTime || "");
+  }, [params?.row?.mrp, initialTime]);
+
+  const handleMrpChange = (newValue) => {
+    setMrp(newValue);
     setRow((prev) =>
       prev.map((item) =>
         item.Random === params?.row.Random
           ? {
               ...item,
-              percentage: parseInt(rate),
-              edited: parseInt(rate) !== initialTime,
+              percentage: parseInt(newValue) || 0,
+              edited: (parseInt(newValue) || 0) !== (parseInt(initialMrp) || 0), // Compare with initial value
             }
           : item
       )
     );
-  }, [rate]);
+  };
 
   return (
     <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
@@ -81,16 +89,12 @@ const PerInputCell = ({ params, initialTime, setRow }) => {
         style={{ height: "1rem" }}
         type="text"
         className="inputPeerField peer border-borderColor focus:outline-none"
-        value={rate}
+        value={mrp}
         maxLength={8}
-        name="rate"
+        name="mrp"
         onChange={(e) => {
-          if (params?.row?.amount > 0) {
-            return;
-          } else {
-            const newValue = e.target.value.replace(/[^0-9]/g, ""); // Remove non-numeric characters
-            setRate(newValue);
-          }
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleMrpChange(newValue);
         }}
       />
     </div>
@@ -176,6 +180,72 @@ const SelectInputCell = ({ initialTime, setRow, params, DepartmentData }) => {
           margin: "0px",
         }}
         Inputstyle={{ borderRadius: "2px" }}
+      />
+    </div>
+  );
+};
+
+const AddAllAmountInputCell = ({ initialTime, setRow, placeholder }) => {
+  const [rate, setRate] = useState(initialTime ? initialTime.toString() : "");
+
+  const handleGlobalMrpChange = (newValue) => {
+    setRate(newValue);
+    setRow((prev) =>
+      prev.map((item) => ({
+        ...item,
+        amount: parseInt(newValue) || 0,
+        edited: true,
+      }))
+    );
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem", width: "60px" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={rate}
+        placeholder={placeholder}
+        maxLength={8}
+        name="rate"
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleGlobalMrpChange(newValue);
+        }}
+      />
+    </div>
+  );
+};
+
+const AddAllPerInputCell = ({ initialTime, setRow, placeholder }) => {
+  const [rate, setRate] = useState(initialTime ? initialTime.toString() : "");
+
+  const handleGlobalMrpChange = (newValue) => {
+    setRate(newValue);
+    setRow((prev) =>
+      prev.map((item) => ({
+        ...item,
+        percentage: parseInt(newValue) || 0,
+        edited: true,
+      }))
+    );
+  };
+
+  return (
+    <div style={{ display: "flex", gap: "20px", fontSize: "15px" }}>
+      <input
+        style={{ height: "1rem", width: "60px" }}
+        type="text"
+        className="inputPeerField peer border-borderColor focus:outline-none"
+        value={rate}
+        placeholder={placeholder}
+        maxLength={8}
+        name="rate"
+        onChange={(e) => {
+          const newValue = e.target.value.replace(/[^0-9]/g, "");
+          handleGlobalMrpChange(newValue);
+        }}
       />
     </div>
   );
@@ -279,6 +349,19 @@ export default function DiscountReport() {
     {
       field: "amount",
       headerName: "Amount",
+      renderHeaderCell: (params) => {
+        return (
+          <div className="flex gap-1">
+            Amount
+            <AddAllAmountInputCell
+              setRow={setRow}
+              initialTime={""}
+              params={params}
+              placeholder="Amount"
+            />
+          </div>
+        );
+      },
       width: 120,
       renderCell: (params) => {
         return (
@@ -295,7 +378,19 @@ export default function DiscountReport() {
     {
       field: "percentage",
       headerName: "Percentage",
-      width: 120,
+      width: 120,   renderHeaderCell: (params) => {
+        return (
+          <div className="flex gap-1">
+            Amount
+            <AddAllPerInputCell
+              setRow={setRow}
+              initialTime={""}
+              params={params}
+              placeholder="Percentage"
+            />
+          </div>
+        );
+      },
       renderCell: (params) => {
         return (
           <div>
