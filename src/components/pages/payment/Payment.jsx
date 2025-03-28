@@ -2,16 +2,21 @@ import React, { useState } from 'react'
 import { FaRupeeSign } from 'react-icons/fa'
 import { SiRazorpay } from "react-icons/si";
 import useRippleEffect from '../../customehook/useRippleEffect';
-
-export default function Payment({ showAmt = true, lable, amount = 0 }) {
+import { useSelector } from 'react-redux';
+import FormHeader from '../../global/FormHeader'
+export default function Payment({ showAmt = true, lable, amount = 0, onSubmitForAmt, headerLable = 'Payment' }) {
 
     const [ammountRecharge, setAmmountRecharge] = useState(0);
+    const activeTheme = useSelector((state) => state.theme.activeTheme);
 
     useRippleEffect();
 
     return (
         <>
-            <div className='flex justify-center items-center font-semibold text-xs h-9 bg-gray-300/15 text-green-500'>
+
+            <FormHeader headerData={headerLable} />
+
+            <div className='flex justify-center items-center font-bold text-sm h-9 border-t-2 ' style={{background:activeTheme?.menuColor,color:activeTheme?.iconColor}}>
                 <div>
                     {lable}
                 </div>
@@ -34,7 +39,7 @@ export default function Payment({ showAmt = true, lable, amount = 0 }) {
                             <FaRupeeSign className='text-xxs flex items-center' />
                         </div>
                         <div className="pl-7 pr-3 py-2 border-[1.5px] text-xs rounded-lg font-semibold focus:outline-none w-48">
-                            {ammountRecharge}
+                            {ammountRecharge === 0 ? amount : ammountRecharge}
                         </div>
                     </div>
                 </div>
@@ -83,7 +88,10 @@ export default function Payment({ showAmt = true, lable, amount = 0 }) {
                 <div className='w-full'>
                     <button type="button"
                         data-ripple-light="true" className='
-                    relative overflow-hidden border-[1.5px] w-full h-8 rounded-md bg-indigo-900 border-indigo-900 text-white'>
+                    relative overflow-hidden  w-full h-8 rounded-md  font-bold text-white'
+                        style={{ background: activeTheme?.menuColor }}
+                        onClick={onSubmitForAmt}
+                    >
                         Continue
                     </button>
                 </div>
