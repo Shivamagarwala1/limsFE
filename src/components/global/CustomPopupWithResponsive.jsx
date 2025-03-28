@@ -5,7 +5,7 @@ export default function CustomPopupWithResponsive({ activeTheme, heading, popupt
     return (
         <>
             <div className="flex justify-center items-center h-[100vh] inset-0 fixed bg-black bg-opacity-50 z-40">
-                <div className={`${popuptype === "medium" ? "w-80 md:w-[500px] max-h-[60vh]" : popuptype === "large" ? "w-80 md:w-[900px] max-h-[60vh]" : popuptype === "extralarge" ? "w-80 md:w-[1200px] max-h-[60vh]" : popuptype === 'mediumUpper' ? 'w-80 md:w-[700px] max-h-[60vh]' : "w-80 max-h-[50vh]"} z-50 shadow-2xl bg-white rounded-lg animate-slideDown flex flex-col`}>
+                <div className={`${popuptype === "medium" ? "w-80 md:w-[500px] max-h-[75vh]" : popuptype === "large" ? "w-80 md:w-[900px] max-h-[75vh]" : popuptype === "extralarge" ? "w-80 md:w-[1200px] max-h-[75vh]" : popuptype === 'mediumUpper' ? 'w-80 md:w-[700px] max-h-[75vh]' : "w-80 max-h-[50vh]"} z-50 shadow-2xl bg-white rounded-lg animate-slideDown flex flex-col`}>
 
                     {/* Header */}
                     <div className="border-b-[1px] flex justify-between items-center px-2 py-1 rounded-t-md"

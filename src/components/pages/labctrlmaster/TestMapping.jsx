@@ -232,6 +232,9 @@ export default function TestMapping() {
     useEffect(() => {
         const getGridData = async (type) => {
             try {
+
+                setAllTestMappingGridData([]);
+
                 let response;
 
                 if (type === 'testName') {
@@ -255,15 +258,18 @@ export default function TestMapping() {
                         // Check if the new data is the same as the previous data
                         const isSameData = JSON.stringify(prevData) === JSON.stringify(response?.data);
 
-                      
-                        if (isSameData) {
+                        //console.log(isSameData);
+
+
+                        if (isSameData && prevData.length !== 0) {
                             toast.error('Duplicate data received!'); // Show popup if data is the same
                             //toast
                             return prevData; // Return previous data without appending
                         }
 
                         // Append new data if it is different
-                        return [...prevData, ...response?.data];
+                        // return [...prevData, ...response?.data];
+                        return response?.data
                     });
                 }
 
@@ -1671,7 +1677,8 @@ export default function TestMapping() {
                                                 <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor">
                                                     <CgAdd
                                                         className={`text-lg cursor-pointer ${data?.isHeader === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                    // onClick={data?.isHeader === 1 ? undefined : handleClick}
+                                                        // onClick={data?.isHeader === 1 ? undefined : handleClick}
+                                                        title='Comming soon!'
                                                     />
                                                 </td>
 

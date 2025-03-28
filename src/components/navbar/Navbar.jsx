@@ -14,7 +14,7 @@ import {
   FaUserCircle,
   FaArrowRight,
   FaEdit,
-  FaRegMoneyBillAlt,
+  FaMoneyBillAlt,
 } from "react-icons/fa";
 import { RiLockPasswordFill } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
@@ -273,6 +273,28 @@ export default function Navbar({ toggleFullScreen, routes }) {
   //   }
   // }
 
+
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  // Dynamically load the Razorpay script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => {
+      setScriptLoaded(true);
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const saveData = () => {
+    alert('okkk');
+  }
+
   return (
     <div>
       {/* ==========================for desktop================== */}
@@ -392,8 +414,8 @@ export default function Navbar({ toggleFullScreen, routes }) {
           <div className="flex items-center gap-2">
 
             <div className="flex items-centre">
-              <FaRegMoneyBillAlt
-                className="text-lg cursor-pointer "
+              <FaMoneyBillAlt
+                className="text-xl cursor-pointer "
                 title="Recharge Account"
                 style={{ color: activeTheme?.iconColor }}
                 onClick={() =>
@@ -412,7 +434,7 @@ export default function Navbar({ toggleFullScreen, routes }) {
 
 
               <IoIosColorPalette
-                className="text-lg cursor-pointer "
+                className="text-xl cursor-pointer "
                 title="Theme"
                 style={{ color: activeTheme?.iconColor }}
                 onClick={() => setShowThemePopup(!showThemePopUp)}
@@ -627,6 +649,19 @@ export default function Navbar({ toggleFullScreen, routes }) {
 
         {/* icons */}
         <div className="flex items-center gap-2">
+
+          <div className="flex items-centre">
+            <FaMoneyBillAlt
+              className="cursor-pointer w-4 h-4 sm:w-6 sm:h-6"
+              title="Recharge Account"
+              style={{ color: activeTheme?.iconColor }}
+              onClick={() =>
+                // getAmmountData()
+                setShowPopup(1)
+              }
+            />
+          </div>
+
           <div className="relative">
             <IoIosColorPalette
               className="cursor-pointer w-5 h-5 sm:w-7 sm:h-7"
@@ -938,7 +973,9 @@ export default function Navbar({ toggleFullScreen, routes }) {
         showPopup === 1 && (
           <>
             <CustomPopupWithResponsive activeTheme={activeTheme} heading={'Recharge your wallet'} setShowPopup={setShowPopup} popuptype={'medium'} >
-              <Payment lable={'Available Balance :'} amount={0} />
+              <Payment lable={'Available Balance :'} amount={0} saveData={saveData}
+                headerLable={'Wallet Recharge'}
+              />
             </CustomPopupWithResponsive>
           </>
         )
