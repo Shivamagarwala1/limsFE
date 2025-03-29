@@ -546,7 +546,9 @@ export const UpdatedDynamicTable = ({
   statuses = [],
   noData = "",
   height,
+  extraBr = 0,
   rowcolor = "",
+  showHr = true,
   legendColors = false,
   name = "Table Details",
   extraRow = [],
@@ -557,7 +559,7 @@ export const UpdatedDynamicTable = ({
   const { data, fetchData } = useGetData();
 
   const tableRef = useRef(null);
-
+  let extraBrArr = Array.from({ length: extraBr }, () => 0);
   const handleMouseDown = (event) => {
     const table = tableRef.current;
     if (!table) return;
@@ -612,10 +614,12 @@ export const UpdatedDynamicTable = ({
 
   return (
     <div className="pt-0 w-full">
-      <div
-        className="w-full h-[0.10rem]"
-        style={{ background: activeTheme?.menuColor }}
-      ></div>
+      {showHr && (
+        <div
+          className="w-full h-[0.10rem]"
+          style={{ background: activeTheme?.menuColor }}
+        ></div>
+      )}
 
       {showDetails && (
         <div
@@ -781,6 +785,16 @@ export const UpdatedDynamicTable = ({
           <br />
           <br />
           <br />
+          {extraBrArr.map((_, index) => (
+            <div key={index}>
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
+              <br />
+            </div>
+          ))}
         </div>
       )}
       <br />

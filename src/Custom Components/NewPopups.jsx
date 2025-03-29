@@ -22,6 +22,7 @@ import {
 import { MdPadding } from "react-icons/md";
 import { DatePickerWithTime } from "./DatePickerWithTime";
 import { FormHeader } from "./FormGenerator";
+import { UpdatedMultiSelectDropDown } from "./UpdatedMultiSelectDropDown";
 
 export const PopupFooter = () => {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -1260,7 +1261,7 @@ export const CancelInvoicePopupModal = ({
       cancelReason: values?.CancelReason,
       cancelByID: parseInt(lsData?.user?.employeeId),
       isCancel: 1,
-      LabNo:" ",
+      LabNo: " ",
     };
     try {
       const res = await axios.post(
@@ -1306,7 +1307,6 @@ export const CancelInvoicePopupModal = ({
         <form autoComplete="off" ref={formRef} onSubmit={handleReject}>
           {/* Input Field */}
           <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
-            
             <InputGenerator
               inputFields={[
                 {
@@ -1342,6 +1342,112 @@ export const CancelInvoicePopupModal = ({
           {" "}
          
         </div> */}
+      </div>
+    </div>
+  );
+};
+
+export const SalesHierarchyPopupModal = ({
+  showPopup,
+  setShowPopup,
+  Params,
+  EmployeeData,
+}) => {
+  if (!showPopup) return null;
+  const activeTheme = useSelector((state) => state.theme.activeTheme);
+  const lsData = getLocal("imarsar_laboratory");
+  const { formRef, getValues, setValues } = useFormHandler();
+  const [SelectedEmployee, setSelectedEmployee] = useState([]);
+  const [selectedDate, setSelectedDate] = useState("");
+  console.log(EmployeeData);
+  const handleReject = async (e) => {
+    if (e) e.preventDefault(); // Prevents default form submission
+
+    const values = getValues();
+    if (!values?.CancelReason) {
+      toast.error("Cancel Reason is required");
+      return;
+    }
+    const payload = {};
+    try {
+      const res = await axios.post(`${BASE_URL}`, payload);
+      if (res?.data?.success) {
+        toast.success(res?.data?.message);
+      } else {
+        toast.error(res?.data?.message);
+      }
+      setShowPopup(false); // Close modal on success
+    } catch (error) {
+      console.error("Error rejecting indent:", error);
+    }
+  };
+  const todayDate = getFormattedDate();
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+  };
+  return (
+    <div className="fixed inset-0 flex rounded-md justify-center items-center bg-black bg-opacity-50 z-50">
+      <div className="w-96 bg-white rounded-md ">
+        {/* Header */}
+        <div
+          style={{
+            background: activeTheme?.menuColor,
+            color: activeTheme?.iconColor,
+            borderRadius: "5px",
+            borderBottomLeftRadius: "0px",
+            borderBottomRightRadius: "0px",
+          }}
+          className="flex rounded-md justify-between items-center px-2 py-1 "
+        >
+          <span className="text-sm font-semibold">Sales Hierarchy</span>
+          <IoMdCloseCircleOutline
+            className="text-xl cursor-pointer"
+            style={{ color: activeTheme?.iconColor }}
+            onClick={() => setShowPopup(false)}
+          />
+        </div>
+        <FormHeader title="Sales Hierarchy" />
+        <form autoComplete="off" ref={formRef} onSubmit={handleReject}>
+          {/* Input Field */}
+          <div className="p-4 pb-2 pt-2 flex flex-row gap-1 border-none">
+            {/* <InputGenerator
+              inputFields={[
+                {
+                  label: "Full Name",
+                  type: "text",
+                  value: `${Params?.row?.fName} ${Params?.row?.lName}`,
+                  name: "fullname",
+                },
+              ]}
+            /> */}
+            <UpdatedMultiSelectDropDown
+              id="Center"
+              name="serachCenter"
+              label="Employee"
+              placeHolder="Search Employee"
+              options={EmployeeData}
+              isMandatory={false}
+              isDisabled={false}
+              optionKey="empId"
+              optionValue={["fName","lName"]}
+              selectedValues={SelectedEmployee}
+              setSelectedValues={setSelectedEmployee}
+            />
+            <SubmitButton
+              submit={false}
+              text={"Save"}
+              callBack={() => {
+                handleReject();
+              }}
+              style={{
+                width: "80px",
+                fontSize: "0.75rem",
+                backgroundColor: "red !important",
+              }}
+            />
+          </div>
+          <PopupFooter />
+        </form>
       </div>
     </div>
   );

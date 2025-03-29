@@ -19,7 +19,7 @@ import { getLocal } from "usehoks";
 import toast from "react-hot-toast";
 import PopupModal from "../../../../Custom Components/PopupModal";
 
-export default function CreateDoctor() {
+export default function DrConsultantMaster() {
   const activeTheme = useSelector((state) => state.theme.activeTheme);
   const lsData = getLocal("imarsar_laboratory");
   const { formRef, getValues, setValues } = useFormHandler();
@@ -434,11 +434,12 @@ export default function CreateDoctor() {
             degreeName: DegreeValue,
             specializationID: SpecializationId,
             specialization: SpecializationValue,
-            allowsharing: SharingId,
-            referMasterShare: ReferMasterId,
+            allowsharing: SharingId == "Yes" ? 1 : 0,
+            referMasterShare: ReferMasterValue == "Yes" ? 1 : 0,
             proId: ProId,
             centreID: CenterId,
             emailReport: EmailReportValue,
+            opdFee: parseInt(values?.opdFee),
             type: OPDValue == "Yes" ? 1 : 0,
             discount: DiscountValue == "Yes" ? 1 : 0,
             allowOPD: AllowOPDValue == "Yes" ? 1 : 0,
@@ -456,11 +457,12 @@ export default function CreateDoctor() {
             degreeName: DegreeValue,
             specializationID: SpecializationId,
             specialization: SpecializationValue,
-            allowsharing: SharingId,
-            referMasterShare: ReferMasterId,
+            allowsharing: SharingId == "Yes" ? 1 : 0,
+            referMasterShare: ReferMasterValue == "Yes" ? 1 : 0,
             proId: ProId,
             centreID: CenterId,
             emailReport: EmailReportValue,
+            opdFee: parseInt(values?.opdFee),
             type: OPDValue == "Yes" ? 1 : 0,
             discount: DiscountValue == "Yes" ? 1 : 0,
             allowOPD: AllowOPDValue == "Yes" ? 1 : 0,
@@ -479,7 +481,7 @@ export default function CreateDoctor() {
         toast.error(response?.message);
       }
     } catch (error) {
-      toast?.error(res?.data?.message);
+      toast?.error(response?.message);
     }
   };
   const handleDelete = async () => {
@@ -501,7 +503,7 @@ export default function CreateDoctor() {
     }
   };
   return (
-    <div style={{overflow:"hidden"}}>
+    <div style={{ overflow: "hidden" }}>
       <PopupModal
         showPopup={showPopup}
         setShowPopup={setShowPopup}
@@ -514,9 +516,9 @@ export default function CreateDoctor() {
       />
       <>
         {/* <div style={{ position: "fixed", top: "100px", maxHeight: "200px", overflowY: "auto", width: "100%",backgroundColor:"white" }}> */}
-        <div style={{overflow:"hidden"}}>
+        <div style={{ overflow: "hidden" }}>
           {/* Header Section */}
-          <FormHeader title="Create Doctor" />
+          <FormHeader title="Dr Consultant Master" />
           <form autoComplete="off" ref={formRef} onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mt-2 mb-2 mx-1 lg:mx-2">
               <SearchBarDropdown
@@ -532,7 +534,7 @@ export default function CreateDoctor() {
                 handleOptionClickForCentre={handleOptionClick1}
                 setIsHovered={setTitleHoveredIndex}
                 isHovered={TitleHoveredIndex}
-                style={{ marginTop: "0.1rem",marginBottom:"0px" }}
+                style={{ marginTop: "0.1rem", marginBottom: "0px" }}
               />
               <InputGenerator
                 inputFields={[
@@ -554,7 +556,7 @@ export default function CreateDoctor() {
                 handleOptionClickForCentre={handleOptionClick}
                 setIsHovered={setHoveredIndex}
                 isHovered={hoveredIndex}
-                style={{ marginTop: "0.1rem",marginBottom:"0px" }}
+                style={{ marginTop: "0.1rem", marginBottom: "0px" }}
               />
               <InputGenerator
                 inputFields={[
@@ -620,7 +622,7 @@ export default function CreateDoctor() {
                 handleOptionClickForCentre={handleOptionClick4}
                 setIsHovered={setDegreeHoverIndex}
                 isHovered={DegreeHoverIndex}
-                style={{ marginTop: "0.1rem",marginBottom:"0px" }}
+                style={{ marginTop: "0.1rem", marginBottom: "0px" }}
               />
               <SearchBarDropdown
                 id="search-bar"
@@ -635,7 +637,7 @@ export default function CreateDoctor() {
                 handleOptionClickForCentre={handleOptionClick5}
                 setIsHovered={setSpecializationHoverIndex}
                 isHovered={SpecializationHoverIndex}
-                style={{ marginTop: "0.1rem",marginBottom:"0px" }}
+                style={{ marginTop: "0.1rem", marginBottom: "0px" }}
               />
               <div className="flex flex-row gap-1">
                 <InputGenerator
@@ -795,21 +797,24 @@ export default function CreateDoctor() {
                   style={{ marginTop: "0.1rem" }}
                 />
               </div>
-              {/* <SubmitButton text={"Save"} submit={false} /> */}
-              <TwoSubmitButton
-                options={[
-                  {
-                    label: isButtonClick == 0 ? "Save" : "Update",
-                    submit: true,
-                  },
-                ]}
-              />
+              <div className="flex flex-row gap-1">
+                <InputGenerator
+                  inputFields={[
+                    { type: "text", label: "OPD Rate", name: "opdFee" },
+                  ]}
+                />
+                <SubmitButton
+                  text={isButtonClick == 0 ? "Save" : "Update"}
+                  submit={true}
+                  style={{ width: "100px" }}
+                />
+              </div>
             </div>
           </form>
-          <div style={{height:"500px"}}>
+          <div style={{ height: "500px" }}>
             <UpdatedDynamicTable
               rows={Row}
-              name="Create Doctor Details"
+              name="Consultant Details"
               loading={loading}
               extraBr={1}
               tableStyle={{ marginBottom: "-10px" }}
