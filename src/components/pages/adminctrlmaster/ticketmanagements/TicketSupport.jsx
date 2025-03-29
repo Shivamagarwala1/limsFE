@@ -58,6 +58,7 @@ export default function TicketSupport() {
     const getDataForTicketsAssign = useRetrieveData();
     const allCentreData = useRetrieveData();
     const allTicketType = useRetrieveData();
+    const allTicketLegentColor = useRetrieveData();
     const [getReasonDataFromPopup, setReasonDataFromPopup] = useState({
         fieldName: '',
         reasonData: []
@@ -70,6 +71,8 @@ export default function TicketSupport() {
             await allAssignedEng.fetchDataFromApi(`/empMaster?select=empid,fname,lname&$filter=(isactive eq 1)`)
 
             await allCentreData.fetchDataFromApi(`/centreMaster?select=centreid,companyName&$filter=(centreid eq 1)`);
+
+            await allTicketLegentColor.fetchDataFromApi(`/LegendColorMaster?$filter=(id gt 35 and id lt 43)`)
         }
 
         getAllData();
@@ -646,9 +649,6 @@ export default function TicketSupport() {
             </form>
 
 
-            {/* {
-                console.log(allTicketSupportData)
-            } */}
 
             <div>
                 <GridDataDetails gridDataDetails={'Ticket Details'} />
@@ -658,422 +658,425 @@ export default function TicketSupport() {
                             <CustomLoadingPage />
                         </div>
                         :
-                        <CustomDynamicTable activeTheme={activeTheme} columns={['SR. NO.', ' Ticket ID', "Ticket Type", "Ticket Details", 'Action', "Client Name", 'Assign Date', 'Delivered Date', 'Delivery date', 'Ticket Status', 'Hold ticket', 'Document View', "Created Date", , "Action Taken", "Assigned To", "Assigned", "Re Open", 'Close', 'Hold', 'Reject', 'Complete']} >
+                        <CustomDynamicTable activeTheme={activeTheme} columns={['SR. NO.', ' Ticket ID', "Ticket Type", "Ticket Details", 'Action', "Client Name", 'Assign Date', 'Delivered Date', 'Delivery date', 'Ticket Status', 'Document View', "Created Date", , "Action Taken", "Assigned To", "Assigned", "Re Open", 'Close', 'Hold', 'Reject', 'Complete']} >
                             <tbody>
                                 {
-                                    allTicketSupportData?.data?.data?.map((data, index) => (
-                                        <tr
-                                            className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
-                                                ? ''
-                                                : index % 2 === 0
-                                                    ? 'bg-gray-100'
-                                                    : 'bg-white'
-                                                }`}
-                                            key={index}
-                                            onMouseEnter={() => setIsHoveredTable(index)}
-                                            onMouseLeave={() => setIsHoveredTable(null)}
-                                            style={{
-                                                background:
-                                                    isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
-                                                // Hides scrollbar for IE/Edge
-                                            }}
-                                        >
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {index + 1}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.ticketId}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.ticketType}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }} title={data?.task}
-                                                onClick={() => {
-                                                    if (data?.task) {
-                                                        navigator.clipboard.writeText(data.task);
-                                                        toast.success('Task copied to clipboard!');
-                                                    }
+                                    allTicketSupportData?.data?.data?.map((data, index) => {
+                                        const colorCode = allTicketLegentColor?.data?.find((item) => item?.contantName === data?.ticketstatus)?.colourCode
+                                        return (
+                                            <tr
+                                                className={`cursor-pointer whitespace-nowrap ${isHoveredTable === index
+                                                    ? ''
+                                                    : index % 2 === 0
+                                                        ? 'bg-gray-100'
+                                                        : 'bg-white'
+                                                    }`}
+                                                key={index}
+                                                onMouseEnter={() => setIsHoveredTable(index)}
+                                                onMouseLeave={() => setIsHoveredTable(null)}
+                                                style={{
+                                                    background:
+                                                        isHoveredTable === index ? activeTheme?.subMenuColor : undefined,
+                                                    // Hides scrollbar for IE/Edge
                                                 }}
                                             >
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {index + 1}
+                                                </td>
 
-                                                {data?.task?.length >= 30
-                                                    ? data?.task.substring(0, 30) + "..."
-                                                    : data?.task}
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.ticketId}
+                                                </td>
 
-                                            </td>
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.ticketType}
+                                                </td>
 
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                <div className="flex justify-start items-center">
-                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
-                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                        onClick={() => {
-                                                            if (data?.isCompleted === 0) {
-
-                                                                getSingleTicketData(data?.ticketId, data?.ticketId * 2, 7)
-                                                            }
-                                                        }}
-
-                                                        title='Edit Ticket'
-                                                    >
-                                                        {
-                                                            isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
-                                                                <FaSpinner className='h-4 w-4' /> :
-                                                                <MdModeEditOutline className='h-4 w-4' />
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }} title={data?.task}
+                                                    onClick={() => {
+                                                        if (data?.task) {
+                                                            navigator.clipboard.writeText(data.task);
+                                                            toast.success('Task copied to clipboard!');
                                                         }
+                                                    }}
+                                                >
 
-                                                    </div>
-                                                </div>
-                                            </td>
+                                                    {data?.task?.length >= 30
+                                                        ? data?.task.substring(0, 30) + "..."
+                                                        : data?.task}
+
+                                                </td>
 
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.clientName}
-                                            </td>
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    <div className="flex justify-start items-center">
+                                                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
+                                                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                            onClick={() => {
+                                                                if (data?.isCompleted === 0) {
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.isAssigned === 1 && data?.assigneDate}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.isAssigned === 1 && data?.completedDate}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {
-                                                    data?.isAssigned === 1 && (
-                                                        <div className='flex items-center gap-2 cursor-pointer justify-between'>
-                                                            <div>
-                                                                {data?.deliveryDate}
-                                                            </div>
-                                                            <div>
-
-                                                                {
-                                                                    user?.defaultCenter === '1' && (
-                                                                        <div className="flex justify-start items-center">
-                                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
-                                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                                onClick={() => {
-                                                                                    if (data?.isCompleted === 0) {
-
-                                                                                        getSingleTicketData(data?.ticketId, data?.ticketId * 2, 8)
-
-                                                                                    }
-                                                                                }}
-
-                                                                                title='Edit Delivery Date'
-                                                                            >
-                                                                                {
-                                                                                    isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
-                                                                                        <FaSpinner className='h-4 w-4' /> :
-                                                                                        <MdModeEditOutline className='h-4 w-4' />
-                                                                                }
-
-                                                                            </div>
-                                                                        </div>
-
-                                                                    )
+                                                                    getSingleTicketData(data?.ticketId, data?.ticketId * 2, 7)
                                                                 }
+                                                            }}
 
+                                                            title='Edit Ticket'
+                                                        >
+                                                            {
+                                                                isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
+                                                                    <FaSpinner className='h-4 w-4' /> :
+                                                                    <MdModeEditOutline className='h-4 w-4' />
+                                                            }
+
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.clientName}
+                                                </td>
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.isAssigned === 1 && data?.assigneDate}
+                                                </td>
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.isAssigned === 1 && data?.completedDate}
+                                                </td>
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {
+                                                        data?.isAssigned === 1 && (
+                                                            <div className='flex items-center gap-2 cursor-pointer justify-between'>
+                                                                <div>
+                                                                    {data?.deliveryDate}
+                                                                </div>
+                                                                <div>
+
+                                                                    {
+                                                                        user?.defaultCenter === '1' && (
+                                                                            <div className="flex justify-start items-center">
+                                                                                <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 0 ? 'opacity-100' : 'opacity-60 cursor-not-allowed'}`}
+                                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                                    onClick={() => {
+                                                                                        if (data?.isCompleted === 0) {
+
+                                                                                            getSingleTicketData(data?.ticketId, data?.ticketId * 2, 8)
+
+                                                                                        }
+                                                                                    }}
+
+                                                                                    title='Edit Delivery Date'
+                                                                                >
+                                                                                    {
+                                                                                        isButtonClick === (data?.ticketId, data?.ticketId * 2) ?
+                                                                                            <FaSpinner className='h-4 w-4' /> :
+                                                                                            <MdModeEditOutline className='h-4 w-4' />
+                                                                                    }
+
+                                                                                </div>
+                                                                            </div>
+
+                                                                        )
+                                                                    }
+
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    }
+                                                </td>
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }} >
+                                                    <div style={{ background: colorCode }} className=' rounded-md px-2 text-center'>
+                                                        {data?.ticketstatus}
+                                                    </div>
+                                                </td>
+
+
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {
+                                                        data?.document && (
+                                                            <div className="flex justify-start items-center">
+                                                                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                    onClick={() => {
+                                                                        openDocument(data?.document)
+                                                                    }}
+
+                                                                    title='View Documents'
+                                                                >
+
+                                                                    <IoIosEye className='h-4 w-4' />
+
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    }
+                                                </td>
+
+
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.createdDate}
+                                                </td>
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.actionTaken}
+                                                </td>
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {data?.assinedToname}
+                                                </td>
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {
+                                                        user?.defaultCenter === '1' && (
+                                                            <div className="flex justify-start items-center">
+                                                                <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                    onClick={() => {
+                                                                        if (data?.isCompleted === 0 && data?.isClosed === 0) {
+                                                                            setShowPopup(1)
+                                                                                , setticketSupportFilterData((preventData) => ({
+                                                                                    ...preventData,
+                                                                                    ticketId: data?.ticketId
+                                                                                }))
+                                                                        }
+                                                                    }}
+
+                                                                    title='Assign Ticket'
+                                                                >
+                                                                    <MdAssignmentTurnedIn className='h-4 w-4' />
+                                                                </div>
+                                                            </div>
+                                                        )
+
+                                                    }
+                                                </td>
+
+
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+
+                                                    <div className='flex justify-between'>
+                                                        <div className="flex justify-start items-center">
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? 'opacity-100 ' : 'opacity-60 cursor-not-allowed'}`}
+                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                onClick={() => {
+                                                                    if (data?.isCompleted === 1 || data?.isClosed === 1) {
+                                                                        setShowPopup(2), setticketSupportFilterData((preventData) => ({
+                                                                            ...preventData,
+                                                                            ticketId: data?.ticketId
+                                                                        }))
+                                                                    }
+
+                                                                }}
+
+                                                                title='Re Open'
+                                                            >
+                                                                <FaBookOpen className='h-4 w-4' />
                                                             </div>
                                                         </div>
-                                                    )
-                                                }
-                                            </td>
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.ticketstatus}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.isHold === 1 ? 'Yes' : 'No'}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {
-                                                    data?.document && (
                                                         <div className="flex justify-start items-center">
                                                             <div className="w-5 h-5 flex justify-center items-center rounded-sm"
                                                                 style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                                 onClick={() => {
-                                                                    openDocument(data?.document)
+                                                                    handelforGetReasonData(data?.reopenReasons, 'ReOpen')
                                                                 }}
 
-                                                                title='View Documents'
+                                                                title='View Data'
                                                             >
 
                                                                 <IoIosEye className='h-4 w-4' />
 
+
                                                             </div>
                                                         </div>
-                                                    )
-                                                }
-                                            </td>
+                                                    </div>
+                                                </td>
 
 
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.createdDate}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.actionTaken}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {data?.assinedToname}
-                                            </td>
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {
-                                                    user?.defaultCenter === '1' && (
+                                                    <div className="flex justify-between gap-1">
                                                         <div className="flex justify-start items-center">
-                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? ' opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                            <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isClosed === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
                                                                 style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                                                 onClick={() => {
-                                                                    if (data?.isCompleted === 0 && data?.isClosed === 0) {
-                                                                        setShowPopup(1)
-                                                                            , setticketSupportFilterData((preventData) => ({
-                                                                                ...preventData,
-                                                                                ticketId: data?.ticketId
-                                                                            }))
+                                                                    if (data?.isClosed !== 1) {
+                                                                        setShowPopup(3), setticketSupportFilterData((preventData) => ({
+                                                                            ...preventData,
+                                                                            ticketId: data?.ticketId
+                                                                        }))
                                                                     }
+
                                                                 }}
 
-                                                                title='Assign Ticket'
+
+                                                                title='Close'
                                                             >
-                                                                <MdAssignmentTurnedIn className='h-4 w-4' />
+                                                                <IoMdCloseCircleOutline className='h-4 w-4' />
                                                             </div>
                                                         </div>
-                                                    )
 
-                                                }
-                                            </td>
+                                                        <div className="flex justify-start items-center">
+                                                            <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                                style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                onClick={() => {
+                                                                    handelforGetReasonData(data?.closedRemarks, 'Closed')
+                                                                }}
+
+                                                                title='View Data'
+                                                            >
+
+                                                                <IoIosEye className='h-4 w-4' />
 
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-
-                                                <div className='flex justify-between'>
-                                                    <div className="flex justify-start items-center">
-                                                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isClosed === 1 ? 'opacity-100 ' : 'opacity-60 cursor-not-allowed'}`}
-                                                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                            onClick={() => {
-                                                                if (data?.isCompleted === 1 || data?.isClosed === 1) {
-                                                                    setShowPopup(2), setticketSupportFilterData((preventData) => ({
-                                                                        ...preventData,
-                                                                        ticketId: data?.ticketId
-                                                                    }))
-                                                                }
-
-                                                            }}
-
-                                                            title='Re Open'
-                                                        >
-                                                            <FaBookOpen className='h-4 w-4' />
+                                                            </div>
                                                         </div>
                                                     </div>
 
-                                                    <div className="flex justify-start items-center">
-                                                        <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                                                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                            onClick={() => {
-                                                                handelforGetReasonData(data?.reopenReasons, 'ReOpen')
-                                                            }}
-
-                                                            title='View Data'
-                                                        >
-
-                                                            <IoIosEye className='h-4 w-4' />
+                                                </td>
 
 
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </td>
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {
+                                                        user?.defaultCenter === '1' && (
+                                                            <div className='flex justify-between gap-1'>
+                                                                <div className="flex justify-start items-center">
+                                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isHold === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                        onClick={() => {
+                                                                            if (data?.isCompleted === 0 && data?.isHold !== 1) {
+                                                                                setShowPopup(4), setticketSupportFilterData((preventData) => ({
+                                                                                    ...preventData,
+                                                                                    ticketId: data?.ticketId
+                                                                                }))
+                                                                            }
+
+                                                                        }}
+
+                                                                        title='Hold'
+                                                                    >
+                                                                        <FaPauseCircle className='h-4 w-4' />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex justify-start items-center">
+                                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                        onClick={() => {
+                                                                            handelforGetReasonData(data?.holdRemarks, 'Hold')
+                                                                        }}
+
+                                                                        title='View Data'
+                                                                    >
+
+                                                                        <IoIosEye className='h-4 w-4' />
 
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-
-                                                <div className="flex justify-between gap-1">
-                                                    <div className="flex justify-start items-center">
-                                                        <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isClosed === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                            onClick={() => {
-                                                                if (data?.isClosed !== 1) {
-                                                                    setShowPopup(3), setticketSupportFilterData((preventData) => ({
-                                                                        ...preventData,
-                                                                        ticketId: data?.ticketId
-                                                                    }))
-                                                                }
-
-                                                            }}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    }
+                                                </td>
 
 
-                                                            title='Close'
-                                                        >
-                                                            <IoMdCloseCircleOutline className='h-4 w-4' />
-                                                        </div>
-                                                    </div>
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
 
-                                                    <div className="flex justify-start items-center">
-                                                        <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                                                            style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                            onClick={() => {
-                                                                handelforGetReasonData(data?.closedRemarks, 'Closed')
-                                                            }}
+                                                    {
+                                                        user?.defaultCenter === '1' && (
 
-                                                            title='View Data'
-                                                        >
+                                                            <div className='flex justify-between gap-1'>
+                                                                <div className="flex justify-start items-center">
+                                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isRejected === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                        onClick={() => {
+                                                                            if (data?.isCompleted === 0 && data?.isRejected !== 1) {
+                                                                                setShowPopup(5), setticketSupportFilterData((preventData) => ({
+                                                                                    ...preventData,
+                                                                                    ticketId: data?.ticketId
+                                                                                }))
+                                                                            }
 
-                                                            <IoIosEye className='h-4 w-4' />
+                                                                        }}
+
+                                                                        title='Reject'
+                                                                    >
+                                                                        <MdOutlineClose className='h-4 w-4' />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="flex justify-start items-center">
+                                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                        onClick={() => {
+                                                                            handelforGetReasonData(data?.rejectedRemarks, 'Reject')
+                                                                        }}
+
+                                                                        title='View Data'
+                                                                    >
+
+                                                                        <IoIosEye className='h-4 w-4' />
 
 
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                            </td>
-
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {
-                                                    user?.defaultCenter === '1' && (
-                                                        <div className='flex justify-between gap-1'>
-                                                            <div className="flex justify-start items-center">
-                                                                <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isHold === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                    onClick={() => {
-                                                                        if (data?.isCompleted === 0 && data?.isHold !== 1) {
-                                                                            setShowPopup(4), setticketSupportFilterData((preventData) => ({
-                                                                                ...preventData,
-                                                                                ticketId: data?.ticketId
-                                                                            }))
-                                                                        }
-
-                                                                    }}
-
-                                                                    title='Hold'
-                                                                >
-                                                                    <FaPauseCircle className='h-4 w-4' />
+                                                                    </div>
                                                                 </div>
                                                             </div>
 
-                                                            <div className="flex justify-start items-center">
-                                                                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                    onClick={() => {
-                                                                        handelforGetReasonData(data?.holdRemarks, 'Hold')
-                                                                    }}
-
-                                                                    title='View Data'
-                                                                >
-
-                                                                    <IoIosEye className='h-4 w-4' />
+                                                        )}
+                                                </td>
 
 
+                                                <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
+                                                    {
+                                                        user?.defaultCenter === '1' && (
+
+                                                            <div className='flex justify-between'>
+                                                                <div className="flex justify-start items-center">
+                                                                    <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
+                                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                        onClick={() => {
+                                                                            if (data?.isCompleted !== 1) {
+                                                                                setShowPopup(6), setticketSupportFilterData((preventData) => ({
+                                                                                    ...preventData,
+                                                                                    ticketId: data?.ticketId
+                                                                                }))
+                                                                            }
+
+                                                                        }}
+
+                                                                        title='Complete'
+                                                                    >
+                                                                        <MdOutlineCreditScore className='h-4 w-4' />
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                }
-                                            </td>
+
+                                                                <div className="flex justify-start items-center">
+                                                                    <div className="w-5 h-5 flex justify-center items-center rounded-sm"
+                                                                        style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
+                                                                        onClick={() => {
+                                                                            handelforGetReasonData(data?.completeRemarks, 'Completed')
+                                                                        }}
+
+                                                                        title='View Data'
+                                                                    >
+
+                                                                        <IoIosEye className='h-4 w-4' />
 
 
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-
-                                                {
-                                                    user?.defaultCenter === '1' && (
-
-                                                        <div className='flex justify-between gap-1'>
-                                                            <div className="flex justify-start items-center">
-                                                                <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 || data?.isRejected === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                    onClick={() => {
-                                                                        if (data?.isCompleted === 0 && data?.isRejected !== 1) {
-                                                                            setShowPopup(5), setticketSupportFilterData((preventData) => ({
-                                                                                ...preventData,
-                                                                                ticketId: data?.ticketId
-                                                                            }))
-                                                                        }
-
-                                                                    }}
-
-                                                                    title='Reject'
-                                                                >
-                                                                    <MdOutlineClose className='h-4 w-4' />
+                                                                    </div>
                                                                 </div>
+
                                                             </div>
-
-                                                            <div className="flex justify-start items-center">
-                                                                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                    onClick={() => {
-                                                                        handelforGetReasonData(data?.rejectedRemarks, 'Reject')
-                                                                    }}
-
-                                                                    title='View Data'
-                                                                >
-
-                                                                    <IoIosEye className='h-4 w-4' />
-
-
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                    )}
-                                            </td>
-
-
-                                            <td className="border-b px-4 h-5 text-xxs font-semibold text-gridTextColor" style={{ width: '0%' }}>
-                                                {
-                                                    user?.defaultCenter === '1' && (
-
-                                                        <div className='flex justify-between'>
-                                                            <div className="flex justify-start items-center">
-                                                                <div className={`w-5 h-5 flex justify-center items-center rounded-sm ${data?.isCompleted === 1 ? 'opacity-60 cursor-not-allowed' : 'opacity-100'}`}
-                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                    onClick={() => {
-                                                                        if (data?.isCompleted !== 1) {
-                                                                            setShowPopup(6), setticketSupportFilterData((preventData) => ({
-                                                                                ...preventData,
-                                                                                ticketId: data?.ticketId
-                                                                            }))
-                                                                        }
-
-                                                                    }}
-
-                                                                    title='Complete'
-                                                                >
-                                                                    <MdOutlineCreditScore className='h-4 w-4' />
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex justify-start items-center">
-                                                                <div className="w-5 h-5 flex justify-center items-center rounded-sm"
-                                                                    style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
-                                                                    onClick={() => {
-                                                                        handelforGetReasonData(data?.completeRemarks, 'Completed')
-                                                                    }}
-
-                                                                    title='View Data'
-                                                                >
-
-                                                                    <IoIosEye className='h-4 w-4' />
-
-
-                                                                </div>
-                                                            </div>
-
-                                                        </div>
-                                                    )
-                                                }
-                                            </td>
-                                        </tr>
-                                    ))
+                                                        )
+                                                    }
+                                                </td>
+                                            </tr>
+                                        )
+                                    })
 
                                 }
                             </tbody>
