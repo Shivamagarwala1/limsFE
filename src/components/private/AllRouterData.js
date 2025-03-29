@@ -439,6 +439,16 @@ export const allRoutes = [
         component: React.lazy(() => import("../pages/adminctrlmaster/sales/SalesBusinessReport")),
         exact: true,
     },
+    {
+        path: "/LIMS/DrConsultantMaster",
+        component: React.lazy(() => import("../pages/adminctrlmaster/Doctor Account/DrConsultantMaster.jsx")),
+        exact: true,
+    },
+    {
+        path: "/LIMS/SalesHierarchy",
+        component: React.lazy(() => import("../pages/adminctrlmaster/sales/SalesHierarchy")),
+        exact: true,
+    },
 ];
 
 
