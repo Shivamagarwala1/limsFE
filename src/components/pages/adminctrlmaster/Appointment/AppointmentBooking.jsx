@@ -24,7 +24,10 @@ import FormHeader from '../../../global/FormHeader';
 import PopupFooter from '../../../global/PopupFooter';
 
 
-export default function AppointmentBooking() {
+export default function AppointmentBooking({
+    //add this phlebotomy collections
+    popupData = false
+}) {
 
     const user = useSelector((state) => state.userSliceName?.user || null);
     const activeTheme = useSelector((state) => state.theme.activeTheme);
@@ -95,6 +98,7 @@ export default function AppointmentBooking() {
         "workorderId": "string",
         "appointmentType": 0,
         "appointmentScheduledOn": '',
+        "appointmentScheduledOnPopup": useFormattedDateTime(),
         "pincode": "string",
         "status": 0,
         "assignedPhlebo": 0,
@@ -212,6 +216,16 @@ export default function AppointmentBooking() {
             [event.target.name]: event.target.value
         }))
     }
+
+
+    //change the gender value based on the title
+    useEffect(() => {
+        const genderMap = { 1: 'M', 6: 'M', 2: 'F', 5: 'F' };
+        setPatientRegistrationData(prev => ({
+            ...prev,
+            gender: genderMap[patientRegistrationData?.title_id] || ''
+        }));
+    }, [patientRegistrationData?.title_id]);
 
 
     const handelOnChangeSelectCurrencyValue = (e) => {
@@ -1622,7 +1636,7 @@ export default function AppointmentBooking() {
                             "transactionId": 0,
                             "workorderId": "",
                             "appointmentType": parseInt(patientRegistrationData?.appointmentType) || 0,
-                            "appointmentScheduledOn": patientRegistrationData?.appointmentScheduledOn,
+                            "appointmentScheduledOn": popupData ? patientRegistrationData?.appointmentScheduledOnPopup : patientRegistrationData?.appointmentScheduledOn,
                             "pincode": patientRegistrationData?.pinCode,
                             "status": 0,
                             "assignedPhlebo": 0,
@@ -3174,20 +3188,40 @@ export default function AppointmentBooking() {
 
 
                         <div className='relative flex-1'>
-                            <DatePicker
-                                id="appointmentScheduledOn"
-                                name="appointmentScheduledOn"
-                                value={patientRegistrationData?.appointmentScheduledOn || ''}
-                                onChange={(e) => handelOnChangePatientRegistration(e)}
-                                placeholder=" "
-                                label="Appointment Schedule"
-                                activeTheme={activeTheme}
-                                isMandatory={patientRegistrationDataError?.appointmentScheduledOn}
-                                currentDate={new Date()} // Current date: today
-                                maxDate={new Date(2025, 11, 31)}
-                                showTime={true}
-                                showBigerCalandar={true}
-                            />
+                            {
+                                popupData ?
+                                    <DatePicker
+                                        id="appointmentScheduledOn"
+                                        name="appointmentScheduledOn"
+                                        value={patientRegistrationData?.appointmentScheduledOnPopup || ''}
+                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                        placeholder=" "
+                                        label="Appointment Schedule"
+                                        activeTheme={activeTheme}
+                                        // isMandatory={patientRegistrationDataError?.appointmentScheduledOn}
+                                        currentDate={new Date()} // Current date: today
+                                        maxDate={new Date(2025, 11, 31)}
+                                        showTime={true}
+                                        isDisabled={true}
+                                        showBigerCalandar={true}
+                                    />
+                                    :
+                                    <DatePicker
+                                        id="appointmentScheduledOn"
+                                        name="appointmentScheduledOn"
+                                        value={patientRegistrationData?.appointmentScheduledOn || ''}
+                                        onChange={(e) => handelOnChangePatientRegistration(e)}
+                                        placeholder=" "
+                                        label="Appointment Schedule"
+                                        activeTheme={activeTheme}
+                                        isMandatory={patientRegistrationDataError?.appointmentScheduledOn}
+                                        currentDate={new Date()} // Current date: today
+                                        maxDate={new Date(2025, 11, 31)}
+                                        showTime={true}
+                                        showBigerCalandar={true}
+                                    />
+                            }
+
                         </div>
 
 
@@ -4217,7 +4251,7 @@ export default function AppointmentBooking() {
                                 </div>
                             )}
                         </div> */}
-                        <div className="relative flex-1">
+                        <div className="relative  w-[200%]">
                             <CustomSearchInputFields
                                 id="itemId"
                                 name="itemId"
@@ -4230,6 +4264,7 @@ export default function AppointmentBooking() {
                                 searchWithName='itemName'
                                 uniqueKey='itemId'
                                 activeTheme={activeTheme}
+                                showDataInTextField={false}
                             />
                         </div>
 

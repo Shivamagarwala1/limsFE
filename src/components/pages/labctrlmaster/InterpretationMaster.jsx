@@ -37,7 +37,10 @@ export default function InterpretationMaster() {
     showinPackages: 1,
   });
   const editor = useRef(null);
-  const [content, setContent] = useState("");
+  // const [content, setEditorContent(""); // Clear the editor] = useState("");
+
+  // New: State for editor content
+  const [editorContent, setEditorContent] = useState("");
   const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
   const [isHovered, setIsHovered] = useState(null);
   const [selectInterpreationMaster, setSelectInterpreationMaster] = useState({
@@ -59,7 +62,6 @@ export default function InterpretationMaster() {
   const [DepartmentSelectedOption, setDepartmentSelectedOption] = useState("");
 
   const user = useSelector((state) => state.userSliceName?.user || null);
-  console.log("department => ", department, " ");
   useEffect(() => {
     const getCenterData = async () => {
       try {
@@ -104,16 +106,15 @@ export default function InterpretationMaster() {
           interpretationMasterData?.centreId || 0
         );
         // if (response?.length == 0) {
-        //   setContent("");
+        //   setEditorContent(""); // Clear the editor("");
         // }
         if (response && response[0]) {
           setInterpretationMasterData(response[0]);
           setSingleInterpreationData(response[0]);
-          setContent(response[0]?.interpretation || "");
+          setEditorContent(""); // Clear the editor(response[0]?.interpretation || "");
         } else {
-          setContent("");
+          setEditorContent(""); // Clear the editor("");
         }
-        console.log("response => ", response);
       } catch (error) {
         toast.error(error?.message || "Error fetching interpretation data");
       }
@@ -131,7 +132,7 @@ export default function InterpretationMaster() {
 
   // Add this effect to handle department changes
   useEffect(() => {
-    setContent("");
+    setEditorContent(""); // Clear the editor("");
     setSingleInterpreationData("");
     setAllTestName([]); // Clear test list when department changes
     setSearchTest(""); // Clear test search field
@@ -140,7 +141,7 @@ export default function InterpretationMaster() {
   // Add this effect to handle item changes
   useEffect(() => {
     if (interpretationMasterData.itemId !== singleInterpreationData?.itemId) {
-      setContent("");
+      setEditorContent(""); // Clear the editor("");
       setSingleInterpreationData("");
     }
   }, [interpretationMasterData.itemId]);
@@ -171,7 +172,7 @@ export default function InterpretationMaster() {
     setDepartmentSelectedOption(name);
     setDepartmentDropDown(false);
     // Clear content and related data when department changes
-    setContent("");
+    setEditorContent(""); // Clear the editor("");
     setSingleInterpreationData("");
     setInterpretationMasterData(prev => ({
       ...prev,
@@ -181,59 +182,70 @@ export default function InterpretationMaster() {
   };
 
   // Handle content change from the editor
-  const handleContentChange = (newContent) => {
-    setContent(newContent); // Update the state with the new content
+  // const handleContentChange = (newContent) => {
+  //   setEditorContent(""); // Clear the editor(newContent); // Update the state with the new content
+  // };
+
+  //accept child to parent in editor
+
+  const handleContentChange = (content) => {
+    setInterpretationMasterData((preventData) => ({
+      ...preventData,
+      interpretation: content
+    }))
+    // Correctly set editor content
+    // setEditorContent(content);
   };
+
 
   const onSubmitSaveInterpretationData = async (event) => {
     event.preventDefault();
     setIsButtonClick(1);
     const updatedData = {
       ...interpretationMasterData,
-      interpretation: content,
+      // interpretation: content,
       createdById: parseInt(user?.employeeId),
       createdDateTime: new Date().toISOString(),
       showInReport: 1,
       showinPackages: 1,
     };
 
-    console.log(updatedData);
 
-    // try {
-    //     const response = await saveInterpreationDataApi(updatedData);
+    try {
+      const response = await saveInterpreationDataApi(updatedData);
 
-    //     if (response?.success) {
+      if (response?.success) {
 
-    //         toast.success(response?.message);
+        toast.success(response?.message);
 
-    //         setInterpretationMasterData({
-    //             isActive: 0,
-    //             createdById: 0,
-    //             createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
-    //             updateById: 0,
-    //             updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
-    //             id: 0,
-    //             itemId: 0,
-    //             interpretation: '',
-    //             centreId: 0,
-    //             showInReport: 0,
-    //             showinPackages: 0
-    //         });
+        setInterpretationMasterData({
+          isActive: 0,
+          createdById: 0,
+          createdDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+          updateById: 0,
+          updateDateTime: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+          id: 0,
+          itemId: 0,
+          interpretation: '',
+          centreId: 0,
+          showInReport: 0,
+          showinPackages: 0
+        });
 
-    //         setSelectInterpreationMaster({
-    //             centreId: '',
-    //             itemId: ''
-    //         });
+        setSelectInterpreationMaster({
+          centreId: '',
+          itemId: ''
+        });
 
-    //         setContent('');
+        setEditorContent(""); // Clear the editor('');
 
-    //     } else {
-    //         toast.error(response?.message);
-    //     }
+      } else {
+        toast.error(response?.message);
+      }
 
-    // } catch (error) {
-    //     toast.error(error?.message);
-    // }
+    } catch (error) {
+      toast.error(error?.message);
+    }
 
     setIsButtonClick(0);
   };
@@ -277,7 +289,7 @@ export default function InterpretationMaster() {
           itemId: "",
         });
 
-        setContent("");
+        setEditorContent(""); // Clear the editor("");
         setSingleInterpreationData("");
       } else {
         toast.error(response?.message);
@@ -446,7 +458,7 @@ export default function InterpretationMaster() {
                           onClick={() => {
                             openShowSearchBarDropDown(0);
                             setSearchTest(data?.itemName || "");
-                            setContent(""); // Clear content when new test is selected
+                            setEditorContent(""); // Clear the editor(""); // Clear content when new test is selected
                             setSingleInterpreationData(""); // Reset interpretation data
                             handelOnChangeInterpretationMasterData({
                               target: {
@@ -572,15 +584,15 @@ export default function InterpretationMaster() {
                         value={content}
 
                         tabIndex={1} // tabIndex of textarea
-                        onBlur={newContent => setContent(newContent)} // preferred to use only this option to update the content for performance reasons
-                        onChange={newContent => { setContent(newContent) }}
+                        onBlur={newContent => setEditorContent(""); // Clear the editor(newContent)} // preferred to use only this option to update the content for performance reasons
+                        onChange={newContent => { setEditorContent(""); // Clear the editor(newContent) }}
                     /> */}
 
           <CustomeEditor
-            value={content} // Controlled value for the editor
-            // onContentChange={setContent}
-            onContentChange={handleContentChange} // Callback to update content
-          />
+            value={editorContent} // Controlled value for the editor
+            onContentChange={handleContentChange} />
+
+
         </div>
       </form>
     </>

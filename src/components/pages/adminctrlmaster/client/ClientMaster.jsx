@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { IoMdAdd, IoMdCloseCircleOutline, IoMdMenu } from 'react-icons/io';
 import { useSelector } from 'react-redux';
 import { FaArrowDown, FaArrowUp, FaCalendarAlt, FaRegEdit, FaSpinner } from 'react-icons/fa';
-import { getAllBankNameApi, getAllBillingTypeApi, getAllCityApi, getAllDistrictApi, getAllDocumentApi, getAllParentCenterTypeApi, getAllProcessingLabApi, getAllStateApi, getAllZoneApi, getCenterAccessDataApi, getCenterTypeMasterApi, getCentreMasterApi, getRateTypeApi, getRateTypeMRPApi, getSalesExecutiveApi, getSingleClientMasterData, saveActiveAndDiActiveClientmaster, saveCentreMasterApi, saveCityApi, saveDistrictApi, saveStateApi } from '../../../../service/service';
+import { getAllBankNameApi, getAllBillingTypeApi, getAllCityApi, getAllDistrictApi, getAllDocumentApi, getAllParentCenterTypeApi, getAllProcessingLabApi, getAllStateApi, getAllZoneApi, getCenterAccessDataApi, getCenterTypeMasterApi, getCentreMasterApi, getRateTypeApi, getRateTypeMRPApi, getSalesExecutiveApi, getSingleClientMasterData, saveActiveAndDiActiveClientmaster, saveCentreMasterApi, saveCityApi, saveDistrictApi, saveStateApi, useRetrieveData } from '../../../../service/service';
 import toast from 'react-hot-toast';
 import { clientMasterHeaderList } from '../../../listData/listData';
 import { ImSwitch } from 'react-icons/im';
@@ -14,6 +14,7 @@ import useRippleEffect from '../../../customehook/useRippleEffect';
 import FormHeader from '../../../global/FormHeader'
 import { CustomTextBox } from '../../../global/CustomTextBox';
 import GridDataDetails from '../../../global/GridDataDetails';
+import CustomDropdown from '../../../global/CustomDropdown';
 
 export default function ClientMaster() {
 
@@ -38,7 +39,7 @@ export default function ClientMaster() {
         //creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
         creditPeridos: '',
         minBookingAmt: 0,
-        creditLimt: 0,
+        creditLimt: 1,
         email: '',
         paymentMode: '',
         paymentModeId: 0,
@@ -72,9 +73,9 @@ export default function ClientMaster() {
         bankName: '',
         bankID: 0,
         ifscCode: '',
-        isPrePrintedBarcode: 0,
+        isPrePrintedBarcode: 1,
         isActive: 1,
-        showBackcover: 0,
+        showBackcover: 1,
         showISO: 0,
         receptionarea: 0,
         waitingarea: 0,
@@ -109,6 +110,7 @@ export default function ClientMaster() {
         isLock: 0,
         billingType: 0,
         billingTypeName: '',
+        barcodeType: 0
     });
     const [isHovered, setIsHovered] = useState(null);
     const [showSearchBarDropDown, setShowSearchBarDropDown] = useState(0);
@@ -156,7 +158,7 @@ export default function ClientMaster() {
     const [isEditData, setIsEditData] = useState(false);
     const [showCalander, setShowCalander] = useState(false);
     const [clientSearchData, setClientSearchData] = useState('');
-
+    const getDefaultCenreCose = useRetrieveData();
     const [listOfSelectedEmployee, setListOfSelectedEmployee] = useState([]);
 
     const handleCheckboxClick = (data, isChecked) => {
@@ -390,6 +392,28 @@ export default function ClientMaster() {
     }, [isButtonClick])
 
 
+    //get default centre code
+    useEffect(() => {
+        async function getData() {
+            try {
+                const response = await getDefaultCenreCose.fetchDataFromApi(`/centreMaster/GetCentreCode?Type=LIMS`);
+
+
+                if (response?.data?.success) {
+                    setFormData((preventData) => ({
+                        ...preventData,
+                        centrecode: response?.data?.message
+                    }))
+                }
+
+            } catch (error) {
+                toast.error(error?.message);
+            }
+        }
+        getData();
+    }, [])
+
+
     const openShowSearchBarDropDown = (val) => {
         setShowSearchBarDropDown(val);
     };
@@ -593,7 +617,7 @@ export default function ClientMaster() {
         }
 
         if (!formData.adharNo) errors.adharNo = true;
-        if (!formData.pan) errors.pan = true;
+        if (!formData.document) errors.document = true;
         if (!selectedSearchDropDownData.patientRate) errors.patientRate = true;
         if (!formData.mobileNo || !/^\d{10}$/.test(formData.mobileNo)) {
             errors.mobileNo = true;
@@ -1449,7 +1473,7 @@ export default function ClientMaster() {
                         </div>
 
 
-                        {/* Min Cash Book Input Field */}
+                        {/* Min Prepaid Book Input Field */}
                         <div className="relative flex-1">
                             <input
                                 type="text"
@@ -1461,7 +1485,7 @@ export default function ClientMaster() {
                                 className={`inputPeerField ${formErrors.minBookingAmt ? "border-b-red-500" : "border-borderColor"} peer focus:outline-none`}
                             />
                             <label htmlFor="minBookingAmt" className="menuPeerLevel">
-                                Min Cash Book
+                                Min Prepaid Book
                             </label>
                         </div>
 
@@ -1500,7 +1524,7 @@ export default function ClientMaster() {
                             value={formData?.paymentMode || ''}
                             onChange={(e) => {
                                 const selectedValue = e.target.value;
-                                const paymentModeId = selectedValue === 'Cash' ? 1 : 2; // Determine the paymentModeId based on the selected value
+                                const paymentModeId = selectedValue === 'Prepaid' ? 1 : 2; // Determine the paymentModeId based on the selected value
 
                                 setFormData((prevData) => ({
                                     ...prevData,
@@ -1513,8 +1537,8 @@ export default function ClientMaster() {
                             <option value="" disabled className="text-gray-400">
                                 Select Option
                             </option>
-                            <option value={1}>Cash</option>
-                            <option value={2}>Credit</option>
+                            <option value={1}>Prepaid</option>
+                            <option value={2}>Postpaid</option>
                         </select>
                         <label htmlFor="paymentMode" className="menuPeerLevel">
                             Payment Mode
@@ -2223,7 +2247,7 @@ export default function ClientMaster() {
                             value={formData.pan || ''}
                             onChange={handelChangeFormData}
                             placeholder=" "
-                            className={`inputPeerField ${formErrors.pan ? "border-b-red-500" : "border-borderColor"} peer focus:outline-none`}
+                            className={`inputPeerField border-borderColor peer focus:outline-none`}
                         />
                         <label htmlFor="pan" className="menuPeerLevel">
                             Pan No.
@@ -2399,14 +2423,28 @@ export default function ClientMaster() {
                             onChange={handleDocumentChangeForImage}
                             accept="image/*"
                             placeholder=" "
-                            className={`inputPeerField border-borderColor  peer focus:outline-none`}
+                            className={`inputPeerField ${formErrors?.document ? 'border-b-red-500' : 'border-borderColor'}  peer focus:outline-none`}
                         />
                         <label htmlFor="documentImage" className="menuPeerLevel">
                             Upload Documents
                         </label>
                     </div>
 
-
+                    <div className="relative flex-1">
+                        <CustomDropdown
+                            name="barcodeType"
+                            label="Barcode Type"
+                            value={formData?.barcodeType || ''}
+                            options={[
+                                { label: 'Patient Type', value: '0' },
+                                { label: 'Sample type', value: '1' },
+                            ]}
+                            onChange={(e) => handelChangeFormData(e)}
+                            defaultIndex={0}
+                            activeTheme={activeTheme}
+                            isMandatory={false}
+                        />
+                    </div>
 
 
                     {/* <div className="relative flex-1">
@@ -2648,7 +2686,7 @@ export default function ClientMaster() {
 
                         </div>
                     </div>
-                    <div className="relative flex-1 hidden lg:block"></div>
+
                     <div className="relative flex-1 hidden lg:block"></div>
                     <div className="relative flex-1 hidden lg:block"></div>
                     <div className="relative flex-1 hidden lg:block"></div>
