@@ -180,7 +180,7 @@ export default function PatientRegistration() {
     const [showPopup, setShowPopup] = useState(0);
     const [identifyAddReferDrOrReferLab, setIdentifyAddReferDrOrReferLab] = useState(0);
     //const imgRef = useRef();
-    const [isPreprintedCode, setIsPrePrintedCode] = useState(0);
+    const [isPreprintedCode, setIsPrePrintedCode] = useState(10);
 
     // const openShowSearchBarDropDown = (val) => {
     //     setShowSearchBarDropDown(val);
@@ -688,14 +688,16 @@ export default function PatientRegistration() {
 
         const getData = () => {
             const foundData = allCentreData?.find(data => data?.centreId === patientRegistrationData?.centreId?.centreId);
-            setIsPrePrintedCode(foundData?.isPrePrintedBarcode || 0);
+            console.log(foundData);
+
+
+            setIsPrePrintedCode(foundData?.isPrePrintedBarcode || 10);
+            setPatientWiseBarcode(foundData?.barcodeType === 0 ? true : false || false)
         };
         if (patientRegistrationData?.centreId !== 0) {
             getData()
         }
     }, [patientRegistrationData?.centreId])
-
-
 
 
     useEffect(() => {
@@ -1264,18 +1266,26 @@ export default function PatientRegistration() {
 
     //func  to handel barcode input change
     const handleInputChangeForPopUpGridData = (rowId, value) => {
+        //console.log(gridDataBarCodeandSampleType.barCode);
+
         setGridDataBarCodeandSampleType((prevState) => {
             // Get the sampleTypeName of the current row being updated
             const currentSampleTypeName = prevState.barCode?.find(
                 (item) => item.itemId === rowId
             )?.sampleTypeName;
 
-            // Update barCode values where sampleTypeName matches
-            const updatedBarCode = prevState.barCode.map((item) =>
-                item.sampleTypeName === currentSampleTypeName
-                    ? { ...item, name: value } // Update all matching sampleTypeName
-                    : item
-            );
+            // Update barCode values based on condition
+            const updatedBarCode = prevState.barCode.map((item) => {
+                if (patientWiseBarcode) {
+                    // If patientWiseBarcode is true, update all name values
+                    return { ...item, name: value };
+                } else {
+                    // Otherwise, update only matching sampleTypeName
+                    return item.sampleTypeName === currentSampleTypeName
+                        ? { ...item, name: value }
+                        : item;
+                }
+            });
 
             return { ...prevState, barCode: updatedBarCode };
         });
@@ -1286,6 +1296,7 @@ export default function PatientRegistration() {
             [rowId]: value.length > 0, // Check if barcode is not empty
         }));
     };
+
 
 
 
@@ -1341,6 +1352,9 @@ export default function PatientRegistration() {
 
     }
 
+    
+
+    
 
     //save patient registration data
     const onSubmitForSavePatientRegistrationData = async (val) => {
@@ -4137,7 +4151,7 @@ export default function PatientRegistration() {
                                 </div>
                             )}
                         </div> */}
-                        <div className="relative flex-1">
+                        <div className="relative w-[200%]">
                             <CustomSearchInputFields
                                 id="itemId"
                                 name="itemId"
@@ -4150,6 +4164,7 @@ export default function PatientRegistration() {
                                 searchWithName='itemName'
                                 uniqueKey='itemId'
                                 activeTheme={activeTheme}
+                                showDataInTextField={false}
                             />
                         </div>
 
@@ -6700,7 +6715,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                                                             maxLength={12}
                                                                             value={barcodeValue || ""}
 
-                                                                            readOnly={patientWiseBarcode}
+                                                                            // readOnly={patientWiseBarcode}
 
                                                                             onChange={(e) => handleInputChangeForPopUpGridData(data?.itemId, e.target.value)}
                                                                             placeholder=" "
@@ -6730,17 +6745,25 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
 
                                 </div>
 
+                                {/* {
+                                    console.log(patientWiseBarcode)
 
+                                } */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-2 mb-1 mx-1">
                                     <div className="relative flex-1"></div>
                                     <div className="relative flex-1"></div>
                                     <div className="relative flex-1"></div>
                                     <div
-                                        className="relative flex-1 overflow-hidden cursor-pointer flex items-center gap-1 w-full rounded-md pl-2 text-xxxs h-[1.6rem] font-semibold"
+                                        className={`relative flex-1 overflow-hidden cursor-pointer flex items-center gap-1 w-full rounded-md pl-2 text-xxxs h-[1.6rem] font-semibold ${patientWiseBarcode  ? 'opacity-60 cursor-not-allowed' : 'opacity-100'} `}
                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                         type="button"
                                         data-ripple-light="true"
-                                        onClick={() => handelToUpdatePatientWiseBarcode()} // Toggle state on div click
+                                        onClick={() => {
+                                            if (patientWiseBarcode === '0') {
+                                                handelToUpdatePatientWiseBarcode();
+                                            }
+                                        }
+                                        } // Toggle state on div click
                                     >
                                         <input
                                             type="checkbox"

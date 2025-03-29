@@ -23,6 +23,8 @@ export default function CustomeEditor({ onContentChange, value }) {
 
     const [isOrderedList, setIsOrderedList] = useState(false);
     const [showListDropDown, setShowListDropDown] = useState(0);
+    const [tableBox, setTableBox] = useState(0);
+
 
     // Apply formatting to the selected text
     const applyStyle = (command) => {
@@ -126,27 +128,37 @@ export default function CustomeEditor({ onContentChange, value }) {
     };
 
 
-    // Function to insert a table
-    const insertTable = () => {
-        if (editorRef.current) {
-            const tableHtml = generateTableHtml(3, 3); // Change 3, 3 to desired rows and columns
-            document.execCommand("insertHTML", false, tableHtml); // Insert the generated table HTML
-        }
+    const [selectedCell, setSelectedCell] = useState({ row: null, col: null });
+
+    const handleCellHover = (index) => {
+        const cols = 6; // Number of columns
+        const row = Math.floor(index / cols) + 1;
+        const col = (index % cols) + 1;
+        setSelectedCell({ row, col }); // Set row and col in state
     };
 
-    // Generate table HTML dynamically (blank cells)
+    const insertTable = (row, col) => {
+        if (editorRef.current) {
+            const tableHtml = generateTableHtml(row, col);
+            editorRef.current.innerHTML += tableHtml;
+        }
+        setTableBox(0);
+    };
+
     const generateTableHtml = (rows, cols) => {
-        let table = '<table class="border-2 border-collapse  w-full">';
+        let table = '<table class="border-2 border-collapse w-full">';
         for (let i = 0; i < rows; i++) {
-            table += '<tr class="border-2 ">';
+            table += '<tr class="border-2">';
             for (let j = 0; j < cols; j++) {
-                table += '<td class="border px-4 py-2 text-center"></td>';
+                table += '<td class="border-2 px-4 py-2 text-center"></td>';
             }
             table += "</tr>";
         }
         table += "</table><br/>";
         return table;
     };
+
+
 
 
     useEffect(() => {
@@ -508,12 +520,12 @@ export default function CustomeEditor({ onContentChange, value }) {
                         </button>
                     </div>
 
-                    <div className="flex  gap-2 text-xs">
+                    <div className="flex  gap-2 text-xs relative">
 
                         <button
                             type='button'
                             title='Table'
-                            onClick={insertTable}
+                            onClick={() => setTableBox(1)}
                             className={`cursor-pointer border-[1px] w-6 h-6 flex justify-center items-center rounded-md`}
                         >
                             <FaTable className='text-base' />
@@ -536,6 +548,35 @@ export default function CustomeEditor({ onContentChange, value }) {
                         >
                             <FaRedoAlt />
                         </button>
+
+
+                        {
+                            tableBox === 1 && (
+                                <div className="absolute border-2 w-36 h-36 overflow-scroll mt-7 z-10 bg-white shadow-xl rounded-l p-1">
+                                    {/* insertTable */}
+
+                                    <div className="grid grid-cols-6 grid-rows-6 gap-2">
+                                        {Array.from({ length: 36 }).map((_, index) => {
+                                            const cols = 6;
+                                            const row = Math.floor(index / cols) + 1;
+                                            const col = (index % cols) + 1;
+
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className={`border-2 w-4 h-4 flex items-center justify-center cursor-pointer
+                ${selectedCell.row === row && selectedCell.col === col ? "bg-gray-300" : ""}`}
+                                                    onMouseEnter={() => handleCellHover(index)}
+                                                    onClick={() => insertTable(row, col)}
+                                                />
+                                            );
+                                        })}
+                                    </div>
+
+
+                                </div>
+                            )
+                        }
 
                     </div>
 

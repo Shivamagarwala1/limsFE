@@ -38,6 +38,7 @@ import { ImSwitch } from "react-icons/im";
 import { IoAlertCircleOutline } from "react-icons/io5";
 import useRippleEffect from "../../../customehook/useRippleEffect";
 import { CustomTextBox } from "../../../global/CustomTextBox";
+import { generateRandomString } from "../../../customehook/useDateTimeFormate";
 // import { ImSwitch } from 'react-icons/im';
 
 export default function EmployeeMaster() {
@@ -776,7 +777,7 @@ export default function EmployeeMaster() {
 
     if (!employeeData.designationId) errors.designationId = true;
 
-    if (!employeeData.userName) errors.userName = true;
+    // if (!employeeData.userName) errors.userName = true;
     if (!employeeData.password) errors.password = true;
 
     if (!confirmPass) errors.confirmPass = true;
@@ -826,6 +827,10 @@ export default function EmployeeMaster() {
     }
   }, [employeeData, confirmPass]);
 
+
+
+
+
   //save client master
   const onSubmitSaveEmployeeMaster = async (event) => {
     event.preventDefault();
@@ -839,16 +844,21 @@ export default function EmployeeMaster() {
     }
 
     // check the 2 password
-    if (employeeData?.password !== confirmPass) {
-      toast.error("The passwords do not match");
-      setIsButtonClick(0);
-      return;
-    }
+    // if (employeeData?.password !== confirmPass) {
+    //   toast.error("The passwords do not match");
+    //   setIsButtonClick(0);
+    //   return;
+    // }
+
+    const passData = generateRandomString();
 
     const updatedFormData = {
       ...employeeData,
+      userName: employeeData?.email,
       createdDateTime: new Date().toISOString(),
       createdById: parseInt(user?.employeeId),
+      password: passData,
+      tempPassword: passData
     };
 
     await saveEmployeeDataApi(updatedFormData)
@@ -1500,10 +1510,10 @@ export default function EmployeeMaster() {
               type="text"
               id="userName"
               name="userName"
-              value={employeeData.userName}
+              value={employeeData.email}
               onChange={handelChangeEmployeeDetails}
               placeholder=" "
-              className={`inputPeerField peer ${formErrors.userName ? "border-b-red-500" : "border-borderColor"
+              className={`inputPeerField peer ${formErrors.email ? "border-b-red-500" : "border-borderColor"
                 } focus:outline-none`}
             />
             <label htmlFor="userName" className="menuPeerLevel">
@@ -1512,7 +1522,7 @@ export default function EmployeeMaster() {
           </div>
 
           {/* passowrd */}
-          <div className="flex items-center gap-[0.25rem]">
+          {/* <div className="flex items-center gap-[0.25rem]">
             <div className="relative flex-1">
               <input
                 type={showPass ? "text" : "password"}
@@ -1565,7 +1575,7 @@ export default function EmployeeMaster() {
                 )}
               </div>
             )}
-          </div>
+          </div> */}
 
           {/* Zone */}
           <div className="relative flex-1">
