@@ -37,7 +37,7 @@ export default function ClientMaster() {
         address: '',
         pinCode: 0,
         //creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
-        creditPeridos: '',
+        creditPeridos: '0001-01-01',
         minBookingAmt: 0,
         creditLimt: 1,
         email: '',
@@ -199,7 +199,7 @@ export default function ClientMaster() {
         const creditPeridos = formatDate(date);
         setFormData((prevData) => ({
             ...prevData,
-            creditPeridos // Set formatted date in searchData
+            creditPeridos: creditPeridos // Set formatted date in searchData
         }));
         setShowCalander(false);
     };
@@ -634,12 +634,12 @@ export default function ClientMaster() {
         // Payment mode-specific validation
         if (formData.paymentMode === "2") {
             if (formData.creditLimt === 0) errors.creditLimt = true;
-            if (formData.creditPeridos === 0) errors.creditPeridos = true;
+            // if (formData.creditPeridos === 0) errors.creditPeridos = true;
         }
 
         // Update state with errors
         setFormErrors(errors);
-        // console.log(errors);
+        //console.log(errors);
 
         // Return true if no errors exist
         return Object.keys(errors).length === 0;
@@ -677,6 +677,9 @@ export default function ClientMaster() {
             createdDateTime: new Date().toISOString()
         };
 
+        //console.log(updatedFormData);
+
+
         await saveCentreMasterApi(updatedFormData).then((resp) => {
 
             if (resp.success) {
@@ -694,7 +697,7 @@ export default function ClientMaster() {
                     mobileNo: '',
                     address: '',
                     pinCode: 0,
-                    creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
+                    creditPeridos: '0001-01-01',
                     minBookingAmt: 0,
                     creditLimt: 0,
                     email: '',
@@ -890,7 +893,7 @@ export default function ClientMaster() {
                     address: '',
                     pinCode: 0,
                     //creditPeridos: new Date('1970-01-01T00:00:00:00Z'.replace(/:\d+Z$/, 'Z')).toISOString(),
-                    creditPeridos: '',
+                    creditPeridos: '0001-01-01',
                     minBookingAmt: 0,
                     creditLimt: 0,
                     email: '',

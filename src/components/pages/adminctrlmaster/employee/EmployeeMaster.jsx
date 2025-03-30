@@ -778,9 +778,9 @@ export default function EmployeeMaster() {
     if (!employeeData.designationId) errors.designationId = true;
 
     // if (!employeeData.userName) errors.userName = true;
-    if (!employeeData.password) errors.password = true;
+    // if (!employeeData.password) errors.password = true;
 
-    if (!confirmPass) errors.confirmPass = true;
+    // if (!confirmPass) errors.confirmPass = true;
 
     if (
       !employeeData.addEmpDepartmentAccess ||
@@ -1512,6 +1512,7 @@ export default function EmployeeMaster() {
               name="userName"
               value={employeeData.email}
               onChange={handelChangeEmployeeDetails}
+              readOnly
               placeholder=" "
               className={`inputPeerField peer ${formErrors.email ? "border-b-red-500" : "border-borderColor"
                 } focus:outline-none`}
