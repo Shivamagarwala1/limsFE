@@ -878,7 +878,7 @@ export default function PhlebotomyCollection() {
       toast.success(response.status);
 
       if (response.status === 'success') {
-        
+
         const updatedData = {
           "transactionId": 0,
           "transactionType": "Online wallet",
@@ -2107,7 +2107,7 @@ export default function PhlebotomyCollection() {
           setShowPopup={setShowPopup}
           popuptype="extralarge"
         >
-          <AppointmentBooking />
+          <AppointmentBooking popupData={true} />
         </CustomPopupWithResponsive>
       )}
 

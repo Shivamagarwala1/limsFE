@@ -130,7 +130,8 @@ function CustomSearchInputFields({
     activeTheme = { subMenuColor: "#e0f2fe" }, // Customize hover color
     searchWithName,
     uniqueKey,
-    isMandatory = false
+    isMandatory = false,
+    showDataInTextField = true //show the selected data in text fields
 }) {
     const [isOpen, setIsOpen] = useState(false);
     const [isHovered, setIsHovered] = useState(null);
@@ -142,10 +143,11 @@ function CustomSearchInputFields({
 
     // Update displayValue when parent value changes
     useEffect(() => {
-        if (value && typeof value === "object") {
+        if (value && typeof value === "object" && showDataInTextField) {
+
             // If value is an object, extract and set display value
             setDisplayValue(value[searchWithName] || "");
-        } else if (value === 1) {
+        } else if (value === 1 && showDataInTextField) {
             // If value is 1, set it to the first option's searchWithName or a default
             setDisplayValue(options[0]?.[searchWithName] || "Default Value");
         } else {
@@ -216,8 +218,11 @@ function CustomSearchInputFields({
                                                 name={name}
                                                 className="my-1 px-2 py-1 cursor-pointer flex items-center gap-2"
                                                 onClick={() => {
-                                                    // Set the displayed value in the input field
-                                                    setDisplayValue(itemName);
+                                                    showDataInTextField && (
+                                                        // Set the displayed value in the input field
+                                                        setDisplayValue(itemName)
+                                                    )
+
 
                                                     // Close the dropdown
                                                     handleDropdownToggle(false);
