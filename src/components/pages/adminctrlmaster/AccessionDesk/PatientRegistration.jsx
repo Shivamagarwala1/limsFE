@@ -1352,9 +1352,9 @@ export default function PatientRegistration() {
 
     }
 
-    
 
-    
+
+
 
     //save patient registration data
     const onSubmitForSavePatientRegistrationData = async (val) => {
@@ -4603,7 +4603,6 @@ onClick={() => showSearchBarDropDown !== 6 ? openShowSearchBarDropDown(6) : open
 </div> */}
 
                                                 <div className="relative flex-1">
-
                                                     <CustomMultiSelectDropdown
                                                         id="paymentModeType"
                                                         name="paymentModeType"
@@ -6754,7 +6753,7 @@ isButtonClick === 1 ? <FaSpinner className='text-xl animate-spin' /> : 'Save Map
                                     <div className="relative flex-1"></div>
                                     <div className="relative flex-1"></div>
                                     <div
-                                        className={`relative flex-1 overflow-hidden cursor-pointer flex items-center gap-1 w-full rounded-md pl-2 text-xxxs h-[1.6rem] font-semibold ${patientWiseBarcode  ? 'opacity-60 cursor-not-allowed' : 'opacity-100'} `}
+                                        className={`relative flex-1 overflow-hidden cursor-pointer flex items-center gap-1 w-full rounded-md pl-2 text-xxxs h-[1.6rem] font-semibold ${patientWiseBarcode ? 'opacity-60 cursor-not-allowed' : 'opacity-100'} `}
                                         style={{ background: activeTheme?.menuColor, color: activeTheme?.iconColor }}
                                         type="button"
                                         data-ripple-light="true"
